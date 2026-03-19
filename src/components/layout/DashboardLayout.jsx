@@ -1,0 +1,285 @@
+import React, { useState, useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
+import User from 'lucide-react/dist/esm/icons/user';
+import Wallet from 'lucide-react/dist/esm/icons/wallet';
+import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
+import Grid3X3 from 'lucide-react/dist/esm/icons/grid-3x3';
+import LogOut from 'lucide-react/dist/esm/icons/log-out';
+import Bank from 'lucide-react/dist/esm/icons/landmark'; // Alias for Bank usages
+import Landmark from 'lucide-react/dist/esm/icons/landmark'; // For Landmark usages
+import Signal from 'lucide-react/dist/esm/icons/signal';
+import Ban from 'lucide-react/dist/esm/icons/ban';
+import PhoneCall from 'lucide-react/dist/esm/icons/phone-call';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import Crown from 'lucide-react/dist/esm/icons/crown';
+import Users from 'lucide-react/dist/esm/icons/users';
+import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
+import Bell from 'lucide-react/dist/esm/icons/bell';
+import Send from 'lucide-react/dist/esm/icons/send';
+import Wifi from 'lucide-react/dist/esm/icons/wifi';
+import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
+import Megaphone from 'lucide-react/dist/esm/icons/megaphone';
+import BarChart from 'lucide-react/dist/esm/icons/bar-chart-2';
+import Tv from 'lucide-react/dist/esm/icons/tv';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
+import Banknote from 'lucide-react/dist/esm/icons/banknote';
+import Tag from 'lucide-react/dist/esm/icons/tag';
+import Book from 'lucide-react/dist/esm/icons/book';
+import Activity from 'lucide-react/dist/esm/icons/activity';
+import Upload from 'lucide-react/dist/esm/icons/upload';
+import CalculatorIcon from 'lucide-react/dist/esm/icons/calculator';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import ArrowRightLeft from 'lucide-react/dist/esm/icons/arrow-right-left';
+import Smile from 'lucide-react/dist/esm/icons/smile';
+import FileEdit from 'lucide-react/dist/esm/icons/file-edit';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import Code from 'lucide-react/dist/esm/icons/code';
+import Logo from '../ui/Logo';
+
+export default function DashboardLayout() {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const [user, setUser] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [unreadNotifications, setUnreadNotifications] = useState(0);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+    useEffect(() => {
+        const adminToken = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('token');
+
+        if (adminToken) {
+            setIsAdmin(true);
+            const adminUser = localStorage.getItem('adminUser');
+            if (adminUser) setUser(JSON.parse(adminUser));
+        } else if (token) {
+            const storedUser = localStorage.getItem('user');
+            if (storedUser) setUser(JSON.parse(storedUser));
+            fetchProfile();
+            fetchUnreadCount();
+        } else {
+            navigate('/login');
+        }
+    }, [location.pathname]);
+
+    const fetchUnreadCount = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const res = await axios.get('/api/notifications', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUnreadNotifications(res.data.unreadCount);
+        } catch (error) {
+            console.error('Failed to fetch unread count', error);
+        }
+    };
+
+    const fetchProfile = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+            const res = await axios.get('/api/user/me', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUser(res.data.user);
+            localStorage.setItem('user', JSON.stringify(res.data.user));
+        } catch (error) {
+            console.error('Failed to fetch profile', error);
+        }
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        navigate(isAdmin ? '/admin/login' : '/login');
+    };
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        setIsMobileMenuOpen(false);
+    }, [location.pathname]);
+
+    const isActive = (path) => location.pathname === path;
+
+    const userSidebarItems = [
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+        { icon: Banknote, label: 'Pricing', path: '/dashboard/pricing' },
+        { icon: Crown, label: 'Upgrade Account', path: '/dashboard/upgrade' },
+        { icon: Users, label: 'Referrals', path: '/dashboard/referrals' },
+        { icon: Grid3X3, label: 'Services', path: '/dashboard/services' },
+        { icon: Wallet, label: 'Transactions', path: '/dashboard/transactions' },
+        { icon: ShieldCheck, label: 'Verification', path: '/dashboard/verify' },
+        { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
+        { icon: Landmark, label: 'Gov Services', path: '/dashboard/gov-services' },
+        { icon: Tag, label: 'Data PINs', path: '/dashboard/data-pins' },
+        { icon: ShoppingBag, label: 'Exam PINs', path: '/dashboard/exam-pins' },
+        { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
+        { icon: MessageSquare, label: 'Bulk SMS', path: '/dashboard/bulk-sms' },
+        { icon: ArrowRightLeft, label: 'Sell Airtime', path: '/dashboard/sell-pin' },
+        { icon: CalculatorIcon, label: 'Calculator', path: '/dashboard/calculator' },
+        { icon: Globe, label: 'Reseller Website', path: '/dashboard/reseller' },
+        { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
+        { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },
+        { icon: User, label: 'Profile', path: '/dashboard/profile' },
+    ];
+
+    // Vendor-specific navigation items
+    const vendorSidebarItems = [
+        { icon: Book, label: 'API Docs', path: '/dashboard/api-docs' },
+        { icon: Activity, label: 'Analytics', path: '/dashboard/vendor-analytics' },
+        { icon: Upload, label: 'Bulk Transactions', path: '/dashboard/bulk-transactions' },
+    ];
+
+    const adminSidebarItems = [
+        { icon: LayoutDashboard, label: 'Admin Home', path: '/admin/dashboard' },
+        { icon: Users, label: 'Users', path: '/admin/dashboard/users' },
+        { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services' },
+        { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers' },
+        { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions' },
+        { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales' },
+        { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings' },
+        { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments' },
+        { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks' },
+        { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist' },
+        { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users' },
+        { icon: Wallet, label: 'API Wallets', path: '/admin/dashboard/api-wallets' },
+        { icon: PhoneCall, label: 'Airtime 2 Cash', path: '/admin/dashboard/airtime-cash' },
+        { icon: Crown, label: 'Alpha Topup', path: '/admin/dashboard/alpha-topup' },
+        { icon: FileText, label: 'CAC Registration', path: '/admin/dashboard/cac' },
+        { icon: Send, label: 'Messages', path: '/admin/dashboard/contact' },
+        { icon: Wifi, label: 'Smile Data', path: '/admin/dashboard/smile-plans' },
+        { icon: GraduationCap, label: 'Exam Pins', path: '/admin/dashboard/exam-pins' },
+        { icon: Tag, label: 'Pin Stock', path: '/admin/dashboard/pins' },
+        { icon: Users, label: 'Referrals', path: '/admin/dashboard/referrals' },
+        { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades' },
+        { icon: Code, label: 'Software Options', path: '/admin/dashboard/settings/software' },
+        { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing' },
+        { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast' },
+        { icon: BarChart, label: 'Analytics', path: '/admin/dashboard/reports' },
+        { icon: Tv, label: 'Cable TV', path: '/admin/dashboard/cable' },
+        { icon: Zap, label: 'Electricity', path: '/admin/dashboard/electricity' },
+        { icon: MessageSquare, label: 'Bulk SMS', path: '/admin/dashboard/sms' },
+        { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts' },
+        { icon: FileEdit, label: 'Manual Services', path: '/admin/dashboard/manual-services' },
+        { icon: GraduationCap, label: 'Academy', path: '/admin/dashboard/academy' },
+        { icon: User, label: 'My Account', path: '/admin/dashboard/profile' },
+    ];
+
+    const sidebarItems = isAdmin
+        ? adminSidebarItems
+        : (user?.accountType === 'vendor' ? [...userSidebarItems, ...vendorSidebarItems] : userSidebarItems);
+
+    return (
+        <div className="flex h-screen bg-tertiary overflow-hidden">
+            {/* Mobile Sidebar Overlay */}
+            {isMobileMenuOpen && (
+                <div
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside
+                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                    }`}
+            >
+                <div className="p-6 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                        <Logo className="w-8 h-8" />
+                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
+                            Ufriends
+                        </span>
+                    </div>
+                    {/* Close button for mobile inside sidebar */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="p-2 rounded-lg hover:bg-gray-100 text-gray-500 md:hidden"
+                    >
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto no-scrollbar">
+                    {sidebarItems.map((item) => (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                            className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive(item.path)
+                                ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25'
+                                : 'text-gray-600 hover:bg-primary/5 hover:text-primary'
+                                } `}
+                        >
+                            <item.icon size={20} />
+                            <span className="font-medium">{item.label}</span>
+                        </Link>
+                    ))}
+                </nav>
+
+                <div className="p-4 border-t border-gray-100 bg-white">
+                    <button
+                        onClick={handleLogout}
+                        className="flex items-center space-x-3 px-4 py-3 w-full text-red-500 hover:bg-red-50 rounded-xl transition-colors font-medium"
+                    >
+                        <LogOut size={20} />
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 overflow-auto relative">
+                {/* Background Pattern - Crosshatch Art */}
+                <div
+                    className="absolute inset-0 z-0 pointer-events-none"
+                    style={{
+                        backgroundImage: `
+repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85, 99, 0.06) 2px, rgba(75, 85, 99, 0.06) 3px, transparent 3px, transparent 8px),
+    repeating - linear - gradient(67.5deg, transparent, transparent 2px, rgba(107, 114, 128, 0.05) 2px, rgba(107, 114, 128, 0.05) 3px, transparent 3px, transparent 8px),
+    repeating - linear - gradient(112.5deg, transparent, transparent 2px, rgba(55, 65, 81, 0.04) 2px, rgba(55, 65, 81, 0.04) 3px, transparent 3px, transparent 8px),
+    repeating - linear - gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 55, 0.03) 2px, rgba(31, 41, 55, 0.03) 3px, transparent 3px, transparent 8px)
+        `,
+                    }}
+                />
+
+                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 sticky top-0 z-10 flex items-center justify-between shadow-sm">
+                    <div className="flex items-center space-x-3">
+                        <button
+                            onClick={() => setIsMobileMenuOpen(true)}
+                            className="p-2 -ml-2 rounded-xl text-gray-600 hover:bg-gray-100 md:hidden transition-colors"
+                        >
+                            <Menu size={24} />
+                        </button>
+                        <Logo className="w-8 h-8 md:hidden" />
+                        <span className="text-xl font-bold text-primary md:hidden">Ufriends</span>
+                        <div className="hidden md:block">
+                            <h2 className="text-lg font-bold text-gray-800">Welcome back, {user?.firstName || 'User'}!</h2>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4">
+                        <Link to="/dashboard/notifications" className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+                            <Bell size={24} />
+                            {unreadNotifications > 0 && (
+                                <span className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                                    {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                                </span>
+                            )}
+                        </Link>
+                    </div>
+                </header>
+                <div className="p-6 relative z-10 max-w-7xl mx-auto">
+                    <Outlet />
+                </div>
+            </main>
+        </div>
+    );
+}

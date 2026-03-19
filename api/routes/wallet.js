@@ -1,0 +1,245 @@
+const express = require('express');
+const router = express.Router();
+const prisma = require('../../prisma/client');
+const jwt = require('jsonwebtoken');
+const { z } = require('zod');
+
+const authenticateUser = require('../middleware/auth');
+
+// Get wallet balance
+router.get('/balance', authenticateUser, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: { wallet: true, refWallet: true, bankName: true, bankNo: true, firstName: true, lastName: true }
+        });
+
+        res.json({
+            wallet: user.wallet,
+            refWallet: user.refWallet,
+            total: user.wallet + user.refWallet,
+            bankName: user.bankName,
+            bankNo: user.bankNo,
+            accountName: `${user.firstName} ${user.lastName}`.toUpperCase()
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get wallet statistics
+router.get('/stats', authenticateUser, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const now = new Date();
+        const oneWeekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+        // Fetch wallet to get refWallet for cashback
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { refWallet: true }
+        });
+
+        // Get total transactions count
+        const totalTransactions = await prisma.transaction.count({
+            where: { userId }
+        });
+
+        const [
+            weeklySpentAgg,
+            monthlySpentAgg,
+            totalSpentAgg,
+            totalFundingAgg
+        ] = await Promise.all([
+            prisma.transaction.aggregate({
+                where: { userId, status: 0, amount: { lt: 0 }, date: { gte: oneWeekAgo } },
+                _sum: { amount: true }
+            }),
+            prisma.transaction.aggregate({
+                where: { userId, status: 0, amount: { lt: 0 }, date: { gte: oneMonthAgo } },
+                _sum: { amount: true }
+            }),
+            prisma.transaction.aggregate({
+                where: { userId, status: 0, amount: { lt: 0 } },
+                _sum: { amount: true }
+            }),
+            prisma.transaction.aggregate({
+                where: { userId, status: 0, amount: { gt: 0 } },
+                _sum: { amount: true }
+            })
+        ]);
+
+        // For chart data (last 7 days)
+        const last7DaysStart = new Date(now);
+        last7DaysStart.setHours(0, 0, 0, 0);
+        last7DaysStart.setDate(last7DaysStart.getDate() - 6);
+
+        const recentTransactions = await prisma.transaction.findMany({
+            where: {
+                userId,
+                status: 0,
+                date: { gte: last7DaysStart }
+            },
+            select: { amount: true, date: true }
+        });
+
+        const last7Days = [...Array(7)].map((_, i) => {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            return {
+                dateStr: d.toISOString().split('T')[0],
+                name: d.toLocaleDateString('en-US', { weekday: 'short' })
+            };
+        }).reverse();
+
+        const chartData = last7Days.map(({ dateStr, name }) => {
+            const dayTxs = recentTransactions.filter(tx => {
+                // Handle different timezones safely by string matching
+                const txDateStr = new Date(tx.date).toISOString().split('T')[0];
+                return txDateStr === dateStr;
+            });
+            const spent = dayTxs.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+            const funded = dayTxs.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
+
+            return {
+                name,
+                spent,
+                funded
+            };
+        });
+
+        res.json({
+            totalTransactions,
+            weeklySpent: Math.abs(weeklySpentAgg._sum.amount || 0),
+            monthlySpent: Math.abs(monthlySpentAgg._sum.amount || 0),
+            totalSpent: Math.abs(totalSpentAgg._sum.amount || 0),
+            totalFunding: totalFundingAgg._sum.amount || 0,
+            cashback: user.refWallet || 0,
+            chartData
+        });
+    } catch (error) {
+        console.error('Stats error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get transaction history
+router.get('/transactions', authenticateUser, async (req, res) => {
+    try {
+        const { limit = 50, offset = 0, type, status, search, startDate, endDate } = req.query;
+
+        const where = { userId: req.user.id };
+
+        if (type && type !== 'all') {
+            where.type = type;
+        }
+
+        if (status && status !== 'all') {
+            where.status = parseInt(status);
+        }
+
+        if (startDate && endDate) {
+            where.date = {
+                gte: new Date(startDate),
+                lte: new Date(endDate)
+            };
+        } else if (startDate) {
+            where.date = { gte: new Date(startDate) };
+        } else if (endDate) {
+            where.date = { lte: new Date(endDate) };
+        }
+
+        if (search) {
+            where.OR = [
+                { reference: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { serviceName: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
+        const [transactions, total] = await Promise.all([
+            prisma.transaction.findMany({
+                where,
+                orderBy: { date: 'desc' },
+                take: parseInt(limit),
+                skip: parseInt(offset)
+            }),
+            prisma.transaction.count({ where })
+        ]);
+
+        // Add slipUrl if it exists for professional transactions
+        const transactionsWithSlips = await Promise.all(transactions.map(async (tx) => {
+            if (tx.type === 'professional') {
+                const ninReport = await prisma.ninReport.findUnique({
+                    where: { transactionRef: tx.reference },
+                    select: { pdfUrl: true }
+                });
+                if (ninReport?.pdfUrl) return { ...tx, slipUrl: ninReport.pdfUrl };
+
+                const bvnReport = await prisma.bvnReport.findUnique({
+                    where: { transactionRef: tx.reference },
+                    select: { pdfUrl: true }
+                });
+                if (bvnReport?.pdfUrl) return { ...tx, slipUrl: bvnReport.pdfUrl };
+            }
+            return tx;
+        }));
+
+        res.json({
+            transactions: transactionsWithSlips,
+            pagination: {
+                total,
+                limit: parseInt(limit),
+                offset: parseInt(offset)
+            }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get single transaction
+router.get('/transactions/:reference', authenticateUser, async (req, res) => {
+    try {
+        const transaction = await prisma.transaction.findFirst({
+            where: {
+                reference: req.params.reference,
+                userId: req.user.id
+            }
+        });
+
+        if (!transaction) {
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+
+        // Add slipUrl if it's a professional transaction
+        let slipUrl = null;
+        if (transaction.type === 'professional') {
+            const ninReport = await prisma.ninReport.findUnique({
+                where: { transactionRef: transaction.reference },
+                select: { pdfUrl: true }
+            });
+            if (ninReport?.pdfUrl) {
+                slipUrl = ninReport.pdfUrl;
+            } else {
+                const bvnReport = await prisma.bvnReport.findUnique({
+                    where: { transactionRef: transaction.reference },
+                    select: { pdfUrl: true }
+                });
+                if (bvnReport?.pdfUrl) slipUrl = bvnReport.pdfUrl;
+            }
+        }
+
+        res.json({
+            transaction: { ...transaction, slipUrl }
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+module.exports = router;

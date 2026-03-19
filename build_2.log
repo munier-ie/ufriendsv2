@@ -1,0 +1,20 @@
+
+> main-2.0@1.0.0 build
+> vite build
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+vite v5.4.21 building for production...
+transforming...
+(node:77602) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/unknown/Desktop/Ufriends 2.0/main 2.0/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✓ 327 modules transformed.
+x Build failed in 3.29s
+error during build:
+Could not resolve "../../../components/ui/Switch" from "src/pages/dashboard/admin/NetworkSettings.jsx"
+file: /home/unknown/Desktop/Ufriends 2.0/main 2.0/src/pages/dashboard/admin/NetworkSettings.jsx
+    at getRollupError (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/parseAst.js:402:41)
+    at error (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/parseAst.js:398:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/node-entry.js:21687:24)
+    at file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/node-entry.js:21647:26

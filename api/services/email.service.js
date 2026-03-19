@@ -1,0 +1,197 @@
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '465'),
+    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+    },
+});
+
+/**
+ * Generic send email function
+ */
+async function sendEmail(to, subject, html) {
+    if (!process.env.SMTP_USER || process.env.SMTP_STATUS === 'Off') {
+        console.log('Email sending disabled or not configured');
+        return;
+    }
+
+    try {
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Ufriends Support" <support@ufriends.com>',
+            to,
+            subject,
+            html,
+        });
+
+        console.log('Message sent: %s', info.messageId);
+        return info;
+    } catch (error) {
+        console.error('Error sending email:', error);
+    }
+}
+
+/**
+ * Send Welcome Email
+ */
+async function sendWelcomeEmail(user) {
+    const subject = 'Welcome to Ufriends!';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #007bff;">Welcome to Ufriends, ${user.firstName}!</h2>
+            <p>We are excited to have you on board. Your account has been successfully created.</p>
+            <p>You can now log in and start enjoying our services:</p>
+            <ul>
+                <li>Buy Data & Airtime</li>
+                <li>Pay Utility Bills</li>
+                <li>Upgrade your account for better rates</li>
+            </ul>
+            <p>If you have any questions, feel free to contact our support team.</p>
+            <br>
+            <p>Best regards,</p>
+            <p>The Ufriends Team</p>
+        </div>
+    `;
+    return sendEmail(user.email, subject, html);
+}
+
+/**
+ * Send Login Alert
+ */
+async function sendLoginAlert(user, deviceInfo) {
+    const subject = 'New Login Alert - Ufriends';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #dc3545;">New Login Detected</h2>
+            <p>Hello ${user.firstName},</p>
+            <p>We detected a new login to your Ufriends account.</p>
+            <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+            <p><strong>Device:</strong> ${deviceInfo || 'Unknown Device'}</p>
+            <br>
+            <p>If this was you, you can ignore this email. If you did not authorize this login, please contact support immediately and change your password.</p>
+            <br>
+            <p>Best regards,</p>
+            <p>The Ufriends Team</p>
+        </div>
+    `;
+    return sendEmail(user.email, subject, html);
+}
+
+/**
+ * Send Transaction Receipt
+ */
+async function sendTransactionReceipt(user, transaction) {
+    const subject = `Transaction Receipt - ${transaction.status === 0 || transaction.status === 'success' ? 'Success' : 'Failed'}`;
+    const color = transaction.status === 0 || transaction.status === 'success' ? '#28a745' : '#dc3545';
+
+    // Format amount properly (handle negative signs if present)
+    const amount = Math.abs(parseFloat(transaction.amount)).toLocaleString();
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+            <h2 style="color: ${color}; text-align: center;">Transaction ${transaction.status === 0 || transaction.status === 'success' ? 'Successful' : 'Failed'}</h2>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <h1 style="text-align: center; margin: 0; color: #333;">₦${amount}</h1>
+                <p style="text-align: center; color: #666; margin-top: 5px;">${transaction.serviceName}</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Description</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right;">${transaction.description}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Date</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right;">${new Date().toLocaleString()}</td>
+                </tr>
+                 <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Reference</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right;">${transaction.reference}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; color: #666;">New Balance</td>
+                    <td style="padding: 10px; font-weight: bold; text-align: right;">₦${parseFloat(transaction.newBalance).toLocaleString()}</td>
+                </tr>
+            </table>
+
+            <br>
+            <p style="text-align: center; font-size: 12px; color: #999;">Thank you for using Ufriends.</p>
+        </div>
+    `;
+    return sendEmail(user.email, subject, html);
+}
+
+/**
+ * Send Admin Alert
+ */
+async function sendAdminAlert(subject, message) {
+    if (!process.env.ADMIN_EMAIL) return;
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #dc3545; border-radius: 5px; padding: 20px;">
+            <h2 style="color: #dc3545;">System Alert</h2>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Message:</strong></p>
+            <pre style="background: #eee; padding: 10px;">${message}</pre>
+            <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+    `;
+    return sendEmail(process.env.ADMIN_EMAIL, `[Admin Alert] ${subject}`, html);
+}
+
+/**
+ * Send Admin Service Request Notification
+ */
+async function sendAdminServiceRequestNotification(user, serviceType, amount, transRef, detailsHtml) {
+    if (!process.env.ADMIN_EMAIL) return;
+
+    const subject = `New Manual Service Request: ${serviceType}`;
+    const amountStr = Math.abs(parseFloat(amount)).toLocaleString();
+
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #17a2b8; border-radius: 5px; padding: 20px;">
+            <h2 style="color: #17a2b8;">New Service Request Submitted</h2>
+            <div style="padding: 15px; background-color: #f8f9fa; border-left: 4px solid #17a2b8; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 16px;"><strong>${user.firstName} ${user.lastName}</strong> (${user.email} / ${user.phone}) has submitted a new request requiring your attention.</p>
+            </div>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Service Type</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right;">${serviceType}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Amount Paid</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right; color: #28a745;">₦${amountStr}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Reference</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right;">${transRef}</td>
+                </tr>
+            </table>
+            
+            <h3 style="color: #333; margin-top: 25px;">Submission Details:</h3>
+            <div style="background: #fdfdfd; border: 1px solid #e9ecef; padding: 15px; border-radius: 5px;">
+                ${detailsHtml}
+            </div>
+
+            <br>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard" style="background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Review in Dashboard</a>
+            </div>
+        </div>
+    `;
+    return sendEmail(process.env.ADMIN_EMAIL, `[Action Required] ${subject}`, html);
+}
+
+module.exports = {
+    sendEmail,
+    sendWelcomeEmail,
+    sendLoginAlert,
+    sendTransactionReceipt,
+    sendAdminAlert,
+    sendAdminServiceRequestNotification
+};
+

@@ -1,0 +1,26 @@
+
+> main-2.0@1.0.0 build
+> vite build
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+vite v5.4.21 building for production...
+transforming...
+(node:78797) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to /home/unknown/Desktop/Ufriends 2.0/main 2.0/package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+✓ 1657 modules transformed.
+x Build failed in 5.50s
+error during build:
+[vite]: Rollup failed to resolve import "@headlessui/react" from "/home/unknown/Desktop/Ufriends 2.0/main 2.0/src/components/ui/Modal.jsx".
+This is most likely unintended because it can break your application at runtime.
+If you do want to externalize this module explicitly add it to
+`build.rollupOptions.external`
+    at viteWarn (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65855:17)
+    at onwarn (/home/unknown/Desktop/Ufriends 2.0/main 2.0/node_modules/@vitejs/plugin-react/dist/index.cjs:112:7)
+    at onRollupWarning (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65885:5)
+    at onwarn (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:65550:7)
+    at file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/node-entry.js:20972:13
+    at Object.logger [as onLog] (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/node-entry.js:22945:9)
+    at ModuleLoader.handleInvalidResolvedId (file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/node-entry.js:21689:26)
+    at file:///home/unknown/Desktop/Ufriends%202.0/main%202.0/node_modules/rollup/dist/es/shared/node-entry.js:21647:26
