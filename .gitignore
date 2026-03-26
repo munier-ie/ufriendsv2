@@ -1,3 +1,18 @@
 node_modules
 private_seeds/
 .env
+
+
+## development folders
+## development folders
+scripts/tests/
+scripts/*.sql
+scripts/*.db
+scripts/*.log
+test/
+*.log
+
+## editor dirs
+.vscode
+.agents
+.agent
