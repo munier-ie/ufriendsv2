@@ -71,8 +71,12 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
             return res.status(400).json({ error: 'Insufficient referral balance' });
         }
 
-        if (withdrawAmount < 10) { // Minimum withdrawal
-            return res.status(400).json({ error: 'Minimum withdrawal is N10' });
+        // Get minimum withdrawal from settings
+        const settingsService = require('../services/settings.service');
+        const minWithdrawal = await settingsService.getSetting('referralMinBalance', 100);
+
+        if (withdrawAmount < minWithdrawal) {
+            return res.status(400).json({ error: `Minimum withdrawal is ₦${minWithdrawal}` });
         }
 
         // Perform Transfer

@@ -47,10 +47,13 @@ export default function DashboardLayout() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [siteName, setSiteName] = useState('Ufriends');
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         const token = localStorage.getItem('token');
+
+        fetchGlobalSettings();
 
         if (adminToken) {
             setIsAdmin(true);
@@ -65,6 +68,33 @@ export default function DashboardLayout() {
             navigate('/login');
         }
     }, [location.pathname]);
+
+    const fetchGlobalSettings = async () => {
+        try {
+            // Use public settings endpoint for branding
+            const res = await axios.get('/api/admin/config/public-settings');
+            const { settings } = res.data;
+            if (settings) {
+                setSiteName(settings.siteName || 'Ufriends');
+                // Apply visual theme
+                if (settings.primaryColor) {
+                    document.documentElement.style.setProperty('--primary', settings.primaryColor);
+                }
+                if (settings.secondaryColor) {
+                    document.documentElement.style.setProperty('--secondary', settings.secondaryColor);
+                }
+                // Update branding
+                if (settings.faviconUrl) {
+                    const favicon = document.querySelector('link[rel="icon"]');
+                    if (favicon) favicon.href = settings.faviconUrl;
+                }
+                // Dynamic page title per route could be done here too
+                document.title = settings.siteName || 'Ufriends 2.0';
+            }
+        } catch (error) {
+            console.error('Failed to fetch site settings', error);
+        }
+    };
 
     const fetchUnreadCount = async () => {
         try {
@@ -178,24 +208,24 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex h-screen bg-tertiary overflow-hidden">
-            {/* Mobile Sidebar Overlay */}
+            {/* Mobile Sidebar Overlay — must sit above topbar (z-30) but managed with sidebar */}
             {isMobileMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden transition-opacity duration-300"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] md:hidden transition-opacity duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
-            {/* Sidebar */}
+            {/* Sidebar — z-[60] so it sits above the overlay on mobile and above topbar always */}
             <aside
-                className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-[60] w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 md:z-auto ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                         <Logo className="w-8 h-8" />
                         <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                            Ufriends
+                            {siteName}
                         </span>
                     </div>
                     {/* Close button for mobile inside sidebar */}
@@ -250,7 +280,8 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                     }}
                 />
 
-                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 sticky top-0 z-10 flex items-center justify-between shadow-sm">
+                {/* Topbar — z-30 keeps it above page content when scrolling, below mobile sidebar overlay */}
+                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
                     <div className="flex items-center space-x-3">
                         <button
                             onClick={() => setIsMobileMenuOpen(true)}
@@ -259,7 +290,7 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                             <Menu size={24} />
                         </button>
                         <Logo className="w-8 h-8 md:hidden" />
-                        <span className="text-xl font-bold text-primary md:hidden">Ufriends</span>
+                        <span className="text-xl font-bold text-primary md:hidden">{siteName}</span>
                         <div className="hidden md:block">
                             <h2 className="text-lg font-bold text-gray-800">Welcome back, {user?.firstName || 'User'}!</h2>
                         </div>

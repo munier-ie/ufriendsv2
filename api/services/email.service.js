@@ -11,7 +11,10 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
- * Generic send email function
+ * Generic send email function.
+ * NOTE: Errors are swallowed here by design so non-critical emails
+ * (welcome, alerts) never crash the calling flow.
+ * Use sendEmailStrict() when the caller needs to know about failures.
  */
 async function sendEmail(to, subject, html) {
     if (!process.env.SMTP_USER || process.env.SMTP_STATUS === 'Off') {
@@ -20,18 +23,45 @@ async function sendEmail(to, subject, html) {
     }
 
     try {
+        const settingsService = require('./settings.service');
+        const siteName = await settingsService.getSetting('siteName', 'Ufriends');
+        const siteEmail = await settingsService.getSetting('siteEmail', 'support@ufriends.com');
+
         const info = await transporter.sendMail({
-            from: process.env.EMAIL_FROM || '"Ufriends Support" <support@ufriends.com>',
+            from: process.env.EMAIL_FROM || `"${siteName} Support" <${siteEmail}>`,
             to,
             subject,
             html,
         });
-
         console.log('Message sent: %s', info.messageId);
         return info;
     } catch (error) {
         console.error('Error sending email:', error);
     }
+}
+
+/**
+ * Strict send email — throws on any failure.
+ * Use for transactional emails where the caller must know if delivery failed.
+ */
+async function sendEmailStrict(to, subject, html) {
+    if (!process.env.SMTP_USER || process.env.SMTP_STATUS === 'Off') {
+        throw new Error('EMAIL_NOT_CONFIGURED');
+    }
+
+    const settingsService = require('./settings.service');
+    const siteName = await settingsService.getSetting('siteName', 'Ufriends');
+    const siteEmail = await settingsService.getSetting('siteEmail', 'support@ufriends.com');
+
+    const info = await transporter.sendMail({
+        from: process.env.EMAIL_FROM || `"${siteName} Support" <${siteEmail}>`,
+        to,
+        subject,
+        html,
+    });
+
+    console.log('Password reset email sent: %s', info.messageId);
+    return info;
 }
 
 /**
@@ -179,7 +209,7 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
 
             <br>
             <div style="text-align: center; margin-top: 20px;">
-                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard" style="background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Review in Dashboard</a>
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/dashboard" style="background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Review in Dashboard</a>
             </div>
         </div>
     `;
@@ -188,6 +218,7 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
 
 module.exports = {
     sendEmail,
+    sendEmailStrict,
     sendWelcomeEmail,
     sendLoginAlert,
     sendTransactionReceipt,

@@ -52,10 +52,13 @@ async function performCredit(user, referrer, serviceType, customCommission) {
     if (customCommission !== null && customCommission !== undefined) {
         bonusAmount = parseFloat(customCommission);
     } else {
-        // Fallback to legacy environment variables
+        // Fallback to database settings
+        const settingsService = require('./settings.service');
+        const defaultBonus = await settingsService.getSetting('referralBonus', 0);
+
         switch (serviceType) {
             case 'upgrade':
-                bonusAmount = parseFloat(process.env.REFERRAL_BONUS_UPGRADE || 0);
+                bonusAmount = defaultBonus;
                 break;
             case 'airtime':
                 bonusAmount = parseFloat(process.env.REFERRAL_BONUS_AIRTIME || 0);

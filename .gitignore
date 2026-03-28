@@ -5,6 +5,7 @@ private_seeds/
 
 ## development folders
 ## development folders
+scripts/*
 scripts/tests/
 scripts/*.sql
 scripts/*.db

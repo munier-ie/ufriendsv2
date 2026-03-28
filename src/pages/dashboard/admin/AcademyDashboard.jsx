@@ -102,7 +102,7 @@ function ContentModal({ initial, onClose, onSaved }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-8 px-4"
+            className="fixed inset-0 z-[100] flex items-start justify-center bg-black/60 backdrop-blur-sm overflow-y-auto py-8 px-4"
             onClick={(e) => e.target === e.currentTarget && onClose()}
         >
             <motion.div
@@ -537,7 +537,7 @@ export default function AcademyDashboard() {
             <AnimatePresence>
                 {deleteTarget && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+                        className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4">
                         <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} exit={{ scale: 0.95 }}
                             className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 text-center">
                             <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">

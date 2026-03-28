@@ -127,18 +127,12 @@ src AS (
     u.email,
     u."passwordHash"                                                              AS password,
     u."transactionPin"                                                            AS "transactionPin",
-    -- Role → type
     CASE u.role
       WHEN 'ADMIN'    THEN 9
       WHEN 'MARKETER' THEN 2
       ELSE 1
     END                                                                           AS type,
-    -- firstName: everything before the first space in Profile.name
-    COALESCE(
-      SPLIT_PART(p.name, ' ', 1),
-      'Unknown'
-    )                                                                             AS "firstName",
-    -- lastName: everything after the first space (may be empty)
+    COALESCE(SPLIT_PART(p.name, ' ', 1), 'Unknown')                               AS "firstName",
     COALESCE(
       CASE
         WHEN STRPOS(p.name, ' ') > 0
@@ -148,13 +142,9 @@ src AS (
       ''
     )                                                                             AS "lastName",
     COALESCE(p.phone, '')                                                         AS phone,
-    -- Wallet balance
     COALESCE(w.balance, 0.00)                                                     AS wallet,
-    -- referralCode: prefer MarketerProfile code, else generate
     COALESCE(mp."referralCode", REPLACE(gen_random_uuid()::TEXT, '-', ''))        AS "referralCode",
-    -- KYC status
     u."isKycVerified"                                                             AS "kycStatus",
-    -- PIN state
     CASE WHEN u."transactionPin" IS NOT NULL THEN 1 ELSE 0 END                    AS "pinStatus",
     CASE WHEN u."transactionPin" IS NOT NULL THEN true ELSE false END             AS "pinEnabled",
     u."createdAt"
@@ -162,6 +152,11 @@ src AS (
   LEFT JOIN old."Profile"         p  ON p."userId" = u.id
   LEFT JOIN old."Wallet"          w  ON w."userId" = u.id
   LEFT JOIN old."MarketerProfile" mp ON mp."userId" = u.id
+),
+
+-- Deduplicate src by phone to avoid NEW schema unique constraint errors
+src_unique AS (
+  SELECT DISTINCT ON (phone) * FROM src ORDER BY phone, "createdAt" DESC
 ),
 
 -- Insert and capture the new IDs
@@ -180,19 +175,23 @@ inserted AS (
     src."lastName",
     src.email,
     src.phone,
-    src.password,         -- ← password HASH preserved exactly; NOT re-hashed
+    src.password,
     src."transactionPin",
     src.type,
     src.wallet,
-    0.0,                  -- refWallet: commission wallet (not in old schema)
+    0.0,
     src."referralCode",
     src."kycStatus",
     src."pinStatus",
     src."pinEnabled",
     src."createdAt",
-    NOW()                 -- updatedAt
-  FROM src
-  ON CONFLICT (email) DO NOTHING
+    NOW()
+  FROM src_unique src
+  WHERE NOT EXISTS (
+    SELECT 1 FROM "User" target 
+    WHERE target.email = src.email 
+       OR (src.phone <> '' AND target.phone = src.phone)
+  )
   RETURNING id, email
 )
 

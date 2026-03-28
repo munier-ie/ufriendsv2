@@ -25,6 +25,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Global Maintenance Middleware
+const maintenance = require('./middleware/maintenance');
+app.use(maintenance);
+
 // Serve uploaded CAC documents
 app.use('/api/uploads/cac', express.static(path.join(__dirname, 'uploads/cac')));
 // Serve manual service proof uploads

@@ -3,18 +3,50 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
 
-// Site Settings Model - we'll use a simple key-value approach
-// Settings are stored in a "settings" table or use existing config
+// Site Settings Logic
+// GET /api/admin/config/public-settings - Safe public settings for frontend branding
+router.get('/public-settings', async (req, res) => {
+    try {
+        const settingsService = require('../services/settings.service');
+        const allSettings = await settingsService.getAllSettings();
+        
+        // Filter only non-sensitive keys for the public
+        const publicKeys = [
+            'siteName', 'sitePhone', 'siteEmail', 
+            'primaryColor', 'secondaryColor', 
+            'logoUrl', 'faviconUrl', 
+            'registrationEnabled', 'maintenanceMode'
+        ];
+        
+        const settings = {};
+        publicKeys.forEach(key => {
+            if (allSettings[key] !== undefined) {
+                settings[key] = allSettings[key];
+            } else {
+                // Add defaults if missing in DB
+                const defaults = {
+                    siteName: 'Ufriends 2.0',
+                    primaryColor: '#004687',
+                    secondaryColor: '#1E90FF',
+                    registrationEnabled: true,
+                    maintenanceMode: false
+                };
+                if (defaults[key]) settings[key] = defaults[key];
+            }
+        });
+
+        res.json({ success: true, settings });
+    } catch (error) {
+        console.error('Get public settings error:', error);
+        res.status(500).json({ error: 'Failed to fetch site branding' });
+    }
+});
 
 // GET /api/admin/config/settings - Get all site settings
 router.get('/settings', adminAuth, async (req, res) => {
     try {
-        // Fetch custom settings from AppSetting table
-        const appSettings = await prisma.appSetting.findMany();
-        const customConfig = {};
-        appSettings.forEach(s => customConfig[s.key] = s.value);
-
-        const settings = {
+        // Default settings as fallback
+        const defaultSettings = {
             siteName: 'Ufriends 2.0',
             siteEmail: 'support@ufriends.com',
             sitePhone: '+234 800 000 0000',
@@ -39,11 +71,41 @@ router.get('/settings', adminAuth, async (req, res) => {
             secondaryColor: '#10B981',
             logoUrl: '/logo.png',
             faviconUrl: '/favicon.ico',
-            // WhatsApp Settings
-            adminWhatsappNumber: customConfig.admin_whatsapp_number || '',
-            whatsappApiKey: customConfig.whatsapp_api_key || '',
-            whatsappApiUrl: customConfig.whatsapp_api_url || ''
+            adminWhatsappNumber: '',
+            whatsappApiKey: '',
+            whatsappApiUrl: ''
         };
+
+        // Fetch all settings from AppSetting table
+        const dbSettings = await prisma.appSetting.findMany();
+        const settings = { ...defaultSettings };
+
+        const stringOnlyKeys = ['siteName', 'siteEmail', 'sitePhone', 'logoUrl', 'faviconUrl', 'adminWhatsappNumber', 'primaryColor', 'secondaryColor'];
+
+        dbSettings.forEach(s => {
+            let value = s.value;
+            const key = s.key;
+
+            if (stringOnlyKeys.includes(key)) {
+                // Keep as string
+                settings[key] = value;
+                return;
+            }
+
+            // Attempt to parse other types (for objects/arrays/numbers/booleans)
+            try {
+                if (value === 'true') value = true;
+                else if (value === 'false') value = false;
+                else if (value.startsWith('{') || value.startsWith('[')) {
+                    value = JSON.parse(value);
+                } else if (!isNaN(value) && value.trim() !== '') {
+                    value = parseFloat(value);
+                }
+            } catch (e) {
+                // Stay as string if parsing fails
+            }
+            settings[key] = value;
+        });
 
         res.json({ success: true, settings });
     } catch (error) {
@@ -56,22 +118,30 @@ router.get('/settings', adminAuth, async (req, res) => {
 router.put('/settings', adminAuth, async (req, res) => {
     try {
         const settings = req.body;
+        const settingsService = require('../services/settings.service');
 
-        // Save WhatsApp settings to AppSetting table
-        const whatsappKeys = {
-            'adminWhatsappNumber': 'admin_whatsapp_number',
-            'whatsappApiKey': 'whatsapp_api_key',
-            'whatsappApiUrl': 'whatsapp_api_url'
-        };
+        // Use transaction to ensure all settings are saved or none
+        await prisma.$transaction(
+            Object.entries(settings).map(([key, value]) => {
+                // Handle null/undefined safely
+                let stringValue = '';
+                if (value !== null && value !== undefined) {
+                    stringValue = typeof value === 'object' ? JSON.stringify(value) : value.toString();
+                }
 
-        for (const [settingsKey, dbKey] of Object.entries(whatsappKeys)) {
-            if (settings[settingsKey] !== undefined) {
-                await prisma.appSetting.upsert({
-                    where: { key: dbKey },
-                    update: { value: settings[settingsKey].toString() },
-                    create: { key: dbKey, value: settings[settingsKey].toString() }
+                return prisma.appSetting.upsert({
+                    where: { key },
+                    update: { value: stringValue },
+                    create: { key, value: stringValue }
                 });
-            }
+            })
+        );
+
+        // Invalidate cache in SettingsService
+        if (settingsService.cache) {
+            console.log('[Admin] Invalidating SettingsService cache');
+            settingsService.cache = null;
+            settingsService.lastFetch = 0;
         }
 
         res.json({
@@ -81,7 +151,7 @@ router.put('/settings', adminAuth, async (req, res) => {
         });
     } catch (error) {
         console.error('Update settings error:', error);
-        res.status(500).json({ error: 'Failed to update settings' });
+        res.status(500).json({ error: 'Failed to update settings: ' + error.message });
     }
 });
 

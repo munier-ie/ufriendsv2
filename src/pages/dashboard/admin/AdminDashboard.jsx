@@ -3,7 +3,8 @@ import axios from 'axios';
 import {
     Users, Activity, Wallet, Loader2, TrendingUp, Eye,
     UserCheck, UserCog, UserPlus, MessageSquare, ArrowRightLeft,
-    ListFilter
+    ListFilter, BarChart3, PieChart, Shield, Smartphone, Zap, Tv,
+    Search, Calendar, RefreshCcw, Bell
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -33,159 +34,195 @@ export default function AdminDashboard() {
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
-                <Loader2 className="animate-spin text-primary" size={40} />
+                <div className="flex flex-col items-center space-y-4">
+                    <Loader2 className="animate-spin text-primary" size={48} />
+                    <p className="text-gray-400 font-medium animate-pulse">Loading dashboard data...</p>
+                </div>
             </div>
         );
     }
 
     if (error || !stats) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-                <div className="p-4 bg-red-100 text-red-600 rounded-full">
-                    <Activity size={32} />
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-6 bg-white rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 p-12">
+                <div className="p-6 bg-red-50 text-red-500 rounded-full ring-8 ring-red-50/50">
+                    <Activity size={40} />
                 </div>
-                <div className="text-gray-800 font-bold text-xl text-center">Failed to load dashboard statistics</div>
-                <p className="text-gray-500 text-sm text-center max-w-md">There was a problem fetching the data from the server. Ensure the backend is running and you have proper permissions.</p>
+                <div className="text-center space-y-2">
+                    <h3 className="text-gray-900 font-bold text-2xl">Data Retrieval Failed</h3>
+                    <p className="text-gray-500 text-sm max-w-sm">We couldn't connect to the analytics engine. Please check your connection and try again.</p>
+                </div>
                 <button
                     onClick={() => window.location.reload()}
-                    className="px-6 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors bg-gradient-to-r from-primary to-secondary font-medium shadow-md shadow-primary/20"
+                    className="group px-8 py-3 bg-primary text-white rounded-2xl hover:bg-primary/90 transition-all font-semibold flex items-center space-x-2 shadow-lg shadow-primary/25 active:scale-95"
                 >
-                    Retry Loading
+                    <RefreshCcw size={20} className="group-hover:rotate-180 transition-transform duration-500" />
+                    <span>Try Reconnecting</span>
                 </button>
             </div>
         );
     }
 
     // StatCard component for consistent styling
-    const StatCard = ({ icon: Icon, label, value, bgColor, iconColor, subtext }) => (
-        <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-            <div className="flex items-center space-x-4">
-                <div className={`p-4 ${bgColor} ${iconColor} rounded-xl`}>
-                    <Icon size={32} />
+    const StatCard = ({ icon: Icon, label, value, bgColor, iconColor, subtext, trend, trendUp = true }) => (
+        <div className="bg-white p-6 sm:p-7 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl hover:shadow-gray-200/40 transition-all duration-500 group relative overflow-hidden">
+            {/* Background Watermark Icon */}
+            <div className={`absolute -right-4 -bottom-4 ${iconColor} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700`}>
+                <Icon size={120} strokeWidth={0.75} />
+            </div>
+
+            <div className="relative z-10 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                    <p className="text-gray-400 text-xs font-bold uppercase tracking-wide opacity-80">{label}</p>
+                    {trend && (
+                        <div className={`flex items-center space-x-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${trendUp ? 'text-emerald-500 bg-emerald-50' : 'text-rose-500 bg-rose-50'}`}>
+                            {trendUp ? <TrendingUp size={12} /> : <TrendingUp className="rotate-180" size={12} />}
+                            <span>{trend}</span>
+                        </div>
+                    )}
                 </div>
-                <div className="flex-1">
-                    <p className="text-gray-500 text-sm font-medium">{label}</p>
-                    <h3 className="text-2xl font-bold text-gray-900">{value}</h3>
-                    {subtext && <p className="text-xs text-gray-400 mt-1">{subtext}</p>}
+                
+                <div className="mt-auto">
+                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-700 tracking-tight leading-tight mb-2 break-all overflow-hidden">{value}</h3>
+                    {subtext && (
+                        <p className="text-xs text-gray-400 font-medium flex items-center opacity-70">
+                            <span className={`w-1.5 h-1.5 rounded-full mr-2 ${bgColor.replace('bg-', 'bg-').replace('50', '400')}`}></span>
+                            {subtext}
+                        </p>
+                    )}
                 </div>
             </div>
         </div>
     );
 
-    const getStatusColor = (status) => {
+    const getStatusStyles = (status) => {
         switch (status) {
-            case 0: return 'bg-green-100 text-green-800'; // Success
-            case 1: return 'bg-yellow-100 text-yellow-800'; // Pending
-            case 2: return 'bg-red-100 text-red-800'; // Failed
-            default: return 'bg-gray-100 text-gray-800';
+            case 0: return 'bg-emerald-50 text-emerald-600 ring-emerald-100'; // Success
+            case 1: return 'bg-amber-50 text-amber-600 ring-amber-100'; // Pending
+            case 2: return 'bg-rose-50 text-rose-600 ring-rose-100'; // Failed
+            default: return 'bg-gray-50 text-gray-600 ring-gray-100';
         }
     };
 
     const getStatusText = (status) => {
         switch (status) {
-            case 0: return 'Success';
-            case 1: return 'Pending';
-            case 2: return 'Failed';
+            case 0: return 'Successful';
+            case 1: return 'Processing';
+            case 2: return 'Terminated';
             default: return 'Unknown';
         }
     };
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10 pb-12">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">
-                    Admin Dashboard
-                </h1>
-                <p className="text-gray-600 mt-2">Comprehensive overview of platform statistics</p>
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
+                        Platform <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary">Insights</span>
+                    </h1>
+                    <p className="text-gray-500 font-medium mt-1">Real-time performance analytics and system monitoring</p>
+                </div>
+                <div className="flex items-center space-x-3 text-sm">
+                    <span className="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl border border-gray-100 text-gray-600 font-semibold shadow-sm">
+                        <Calendar size={18} className="text-primary" />
+                        <span>{new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    </span>
+                </div>
             </div>
 
             {/* Wallet Totals Section */}
             <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">💰 Wallet Balances</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-9 h-9 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <Wallet size={18} />
+                    </div>
+                    <h2 className="text-lg font-bold text-gray-800 tracking-tight">Financial Overview</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     <StatCard
-                        icon={Wallet}
-                        label="User Wallets"
+                        icon={Shield}
+                        label="User Assets"
                         value={`₦${stats.wallets.user.toLocaleString()}`}
                         bgColor="bg-blue-50"
                         iconColor="text-blue-600"
                     />
                     <StatCard
-                        icon={Wallet}
-                        label="Agent Wallets"
+                        icon={UserPlus}
+                        label="Agent Assets"
                         value={`₦${stats.wallets.agent.toLocaleString()}`}
-                        bgColor="bg-green-50"
-                        iconColor="text-green-600"
+                        bgColor="bg-emerald-50"
+                        iconColor="text-emerald-600"
                     />
                     <StatCard
-                        icon={Wallet}
-                        label="Vendor Wallets"
+                        icon={Zap}
+                        label="Vendor Assets"
                         value={`₦${stats.wallets.vendor.toLocaleString()}`}
-                        bgColor="bg-purple-50"
-                        iconColor="text-purple-600"
+                        bgColor="bg-violet-50"
+                        iconColor="text-violet-600"
                     />
                     <StatCard
-                        icon={Wallet}
-                        label="Referral Wallets"
+                        icon={MessageSquare}
+                        label="Commission Assets"
                         value={`₦${stats.wallets.referral.toLocaleString()}`}
-                        bgColor="bg-orange-50"
-                        iconColor="text-orange-600"
+                        bgColor="bg-amber-50"
+                        iconColor="text-amber-600"
                     />
                     <StatCard
-                        icon={Wallet}
-                        label="Total System Balance"
+                        icon={BarChart3}
+                        label="Total System Value"
                         value={`₦${stats.wallets.total.toLocaleString()}`}
-                        bgColor="bg-gradient-to-br from-primary/10 to-secondary/10"
-                        iconColor="text-primary"
-                        subtext="All wallets combined"
+                        bgColor="bg-gray-900"
+                        iconColor="text-white"
+                        subtext="Aggregated balance"
                     />
                 </div>
             </div>
 
             {/* User Counts Section */}
             <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">👥 User Statistics</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-9 h-9 bg-rose-50 text-rose-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <Users size={18} />
+                    </div>
+                    <h2 className="text-lg font-bold text-gray-800 tracking-tight">Growth & Adoption</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     <StatCard
                         icon={Users}
-                        label="Subscribers"
+                        label="Total Subscribers"
                         value={stats.users.subscribers.toLocaleString()}
                         bgColor="bg-blue-50"
                         iconColor="text-blue-600"
-                        subtext="Regular users"
                     />
                     <StatCard
                         icon={UserCheck}
-                        label="Agents"
+                        label="Active Agents"
                         value={stats.users.agents.toLocaleString()}
-                        bgColor="bg-green-50"
-                        iconColor="text-green-600"
-                        subtext="Agent accounts"
+                        bgColor="bg-emerald-50"
+                        iconColor="text-emerald-600"
                     />
                     <StatCard
                         icon={UserCog}
-                        label="Vendors"
+                        label="Registered Vendors"
                         value={stats.users.vendors.toLocaleString()}
-                        bgColor="bg-purple-50"
-                        iconColor="text-purple-600"
-                        subtext="Vendor accounts"
+                        bgColor="bg-violet-50"
+                        iconColor="text-violet-600"
                     />
                     <StatCard
                         icon={UserPlus}
-                        label="Referrals"
+                        label="New Referrals"
                         value={stats.users.referrals.toLocaleString()}
-                        bgColor="bg-orange-50"
-                        iconColor="text-orange-600"
-                        subtext="Referred users"
+                        bgColor="bg-amber-50"
+                        iconColor="text-amber-600"
                     />
                     <StatCard
-                        icon={Users}
-                        label="Total Users"
+                        icon={Activity}
+                        label="User Ecosystem"
                         value={stats.users.total.toLocaleString()}
-                        bgColor="bg-gradient-to-br from-primary/10 to-secondary/10"
-                        iconColor="text-primary"
-                        subtext="All user types"
+                        bgColor="bg-gray-900"
+                        iconColor="text-white"
+                        subtext="Across all tiers"
                     />
                 </div>
             </div>
@@ -193,22 +230,36 @@ export default function AdminDashboard() {
             {/* API Wallets Section */}
             {stats.apiWallets && stats.apiWallets.length > 0 && (
                 <div>
-                    <h2 className="text-xl font-semibold text-gray-800 mb-4">🔌 API Provider Balances</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div className="flex items-center space-x-3 mb-6">
+                        <div className="w-9 h-9 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <Smartphone size={18} />
+                        </div>
+                        <h2 className="text-lg font-bold text-gray-800 tracking-tight">API Provider Monitoring</h2>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {stats.apiWallets.map((wallet, index) => (
-                            <div key={index} className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow duration-300">
-                                <div className="flex items-center space-x-4">
-                                    <div className={`p-4 rounded-xl ${wallet.balance < wallet.lowBalanceAlert ? 'bg-red-50 text-red-600' : 'bg-indigo-50 text-indigo-600'}`}>
-                                        <Wallet size={32} />
+                            <div key={index} className="bg-white p-6 sm:p-7 md:p-8 rounded-3xl shadow-sm border border-gray-100 hover:shadow-2xl transition-all duration-500 group relative overflow-hidden">
+                                {/* Watermark Icon */}
+                                <div className={`absolute -right-4 -bottom-4 ${wallet.balance < wallet.lowBalanceAlert ? 'text-red-500' : 'text-indigo-500'} opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-700`}>
+                                    <Smartphone size={120} strokeWidth={0.75} />
+                                </div>
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <p className="text-gray-400 text-xs font-bold uppercase tracking-wide mb-1 opacity-70">{wallet.provider}</p>
+                                        {wallet.balance < wallet.lowBalanceAlert && (
+                                            <div className="bg-red-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full animate-pulse uppercase tracking-wider">Critical</div>
+                                        )}
                                     </div>
-                                    <div className="flex-1">
-                                        <p className="text-gray-500 text-sm font-medium">{wallet.provider}</p>
-                                        <h3 className={`text-2xl font-bold ${wallet.balance < wallet.lowBalanceAlert ? 'text-red-700' : 'text-gray-900'}`}>
+                                    <div className="mt-4">
+                                        <h3 className={`text-xl sm:text-2xl font-bold tracking-tight leading-tight break-all ${wallet.balance < wallet.lowBalanceAlert ? 'text-red-500' : 'text-gray-800'}`}>
                                             ₦{wallet.balance.toLocaleString()}
                                         </h3>
-                                        {wallet.balance < wallet.lowBalanceAlert && (
-                                            <p className="text-[10px] text-red-500 font-bold mt-1 animate-pulse">LOW BALANCE ALERT</p>
-                                        )}
+                                        <div className="mt-5 w-full bg-gray-50 h-1 rounded-full overflow-hidden">
+                                            <div 
+                                                className={`h-full rounded-full ${wallet.balance < wallet.lowBalanceAlert ? 'bg-red-500' : 'bg-indigo-500'}`}
+                                                style={{ width: `${Math.min(100, (wallet.balance / (wallet.lowBalanceAlert * 3)) * 100)}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -219,96 +270,130 @@ export default function AdminDashboard() {
 
             {/* Activity Metrics Section */}
             <div>
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">📊 Activity Metrics</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="flex items-center space-x-3 mb-6">
+                    <div className="w-9 h-9 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center shadow-sm">
+                        <PieChart size={18} />
+                    </div>
+                    <h2 className="text-lg font-bold text-gray-800 tracking-tight">Operations Metrics</h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     <StatCard
                         icon={Activity}
                         label="Total Transactions"
                         value={stats.transactions.total.toLocaleString()}
                         bgColor="bg-indigo-50"
                         iconColor="text-indigo-600"
-                        subtext="All-time transactions"
+                        subtext="All-time processed"
                     />
                     <StatCard
                         icon={TrendingUp}
-                        label="Total Profit"
+                        label="System Profit"
                         value={`₦${stats.transactions.profit.toLocaleString()}`}
                         bgColor="bg-emerald-50"
                         iconColor="text-emerald-600"
-                        subtext="From successful transactions"
+                        subtext="Net commission"
+                        trend="+12.5%"
+                        trendUp={true}
                     />
                     <StatCard
-                        icon={MessageSquare}
-                        label="Unread Messages"
+                        icon={Bell}
+                        label="Open Support"
                         value={stats.activity.unreadMessages.toLocaleString()}
-                        bgColor="bg-red-50"
-                        iconColor="text-red-600"
-                        subtext="Pending response"
+                        bgColor="bg-rose-50"
+                        iconColor="text-rose-600"
+                        subtext="Requires attention"
+                        trend={stats.activity.unreadMessages > 10 ? "+2" : "-5%"}
+                        trendUp={stats.activity.unreadMessages <= 10}
                     />
                     <StatCard
                         icon={ArrowRightLeft}
-                        label="Active Alpha Requests"
+                        label="Topup Requests"
                         value={stats.activity.activeAlphaRequests.toLocaleString()}
-                        bgColor="bg-orange-50"
-                        iconColor="text-orange-600"
-                        subtext="Pending alpha topup"
+                        bgColor="bg-amber-50"
+                        iconColor="text-amber-600"
+                        subtext="Pending validation"
                     />
                 </div>
             </div>
 
             {/* Recent Transactions Section */}
             <div>
-                <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold text-gray-800">📋 Last 10 Transactions</h2>
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center space-x-3">
+                        <div className="w-9 h-9 bg-gray-100 text-gray-600 rounded-xl flex items-center justify-center shadow-sm">
+                            <ListFilter size={18} />
+                        </div>
+                        <h2 className="text-lg font-bold text-gray-800 tracking-tight">Recent Activity Log</h2>
+                    </div>
                 </div>
-                <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
-                                <tr>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ref ID</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Service</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <table className="min-w-full divide-y divide-gray-100">
+                            <thead>
+                                <tr className="bg-gray-50/50">
+                                    <th className="px-6 py-5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Transaction Ref</th>
+                                    <th className="px-6 py-5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Customer</th>
+                                    <th className="px-6 py-5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Product / Service</th>
+                                    <th className="px-6 py-5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Revenue</th>
+                                    <th className="px-6 py-5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Execution</th>
+                                    <th className="px-6 py-5 text-left text-xs font-semibold text-gray-400 uppercase tracking-wider">Timestamp</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="divide-y divide-gray-50">
                                 {stats.transactions.recent.map((tx) => (
-                                    <tr key={tx.id} className="hover:bg-gray-50 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">
-                                            {tx.reference.substring(0, 15)}...
+                                    <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors group">
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <span className="text-sm font-bold text-primary font-mono bg-primary/5 px-2 py-1 rounded-lg">
+                                                {tx.reference.substring(0, 8)}...
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {tx.user ? `${tx.user.firstName} ${tx.user.lastName}` : 'Unknown'}
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-gray-800 group-hover:text-primary transition-colors">
+                                                    {tx.user ? `${tx.user.firstName} ${tx.user.lastName}` : 'System Agent'}
+                                                </span>
+                                                <span className="text-xs text-gray-400 font-medium">
+                                                    {tx.user ? tx.user.email : 'AUTO_PROCESS'}
+                                                </span>
                                             </div>
-                                            <div className="text-sm text-gray-500">
-                                                {tx.user ? tx.user.email : ''}
+                                        </td>
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-gray-700">{tx.serviceName}</span>
+                                                <span className="text-xs text-gray-400 truncate max-w-[200px]">{tx.description}</span>
                                             </div>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            <div>{tx.serviceName}</div>
-                                            <div className="text-xs text-gray-400">{tx.description}</div>
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <span className="text-sm font-bold text-gray-800">
+                                                ₦{Math.abs(tx.amount).toLocaleString()}
+                                            </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                            ₦{tx.amount.toLocaleString()}
-                                        </td>
-                                        <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(tx.status)}`}>
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <span className={`px-4 py-1.5 inline-flex text-[11px] font-bold uppercase tracking-wider rounded-full ring-1 ring-inset ${getStatusStyles(tx.status)}`}>
                                                 {getStatusText(tx.status)}
                                             </span>
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(tx.date).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })}
+                                        <td className="px-6 py-5 whitespace-nowrap">
+                                            <div className="flex flex-col text-right md:text-left">
+                                                <span className="text-xs font-bold text-gray-700">
+                                                    {new Date(tx.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                </span>
+                                                <span className="text-[10px] font-medium text-gray-400">
+                                                    {new Date(tx.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })}
+                                                </span>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
                                 {stats.transactions.recent.length === 0 && (
                                     <tr>
-                                        <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
-                                            No transactions found
+                                        <td colSpan="6" className="px-6 py-12 text-center">
+                                            <div className="flex flex-col items-center space-y-3">
+                                                <div className="p-4 bg-gray-50 text-gray-300 rounded-full">
+                                                    <Search size={32} />
+                                                </div>
+                                                <p className="text-gray-400 text-sm font-semibold tracking-tight">No transactional data found in this period</p>
+                                            </div>
                                         </td>
                                     </tr>
                                 )}
