@@ -142,7 +142,7 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
             await prisma.$transaction([
                 prisma.transaction.update({
                     where: { id: transaction.id },
-                    data: { status: 1, description: `${transaction.description} [FAILED: ${result.message}]` } // 1 = Failed
+                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` } // 2 = Failed
                 }),
                 prisma.user.update({
                     where: { id: transaction.userId },
@@ -159,7 +159,7 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SYSTEM ERROR]` }
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
             }),
             prisma.user.update({
                 where: { id: transaction.userId },
@@ -272,13 +272,13 @@ async function vendData(transaction, service, phone, network) {
         if (result.status === 'success') {
             await prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SUCCESS]` }
+                data: { status: 0, description: `${transaction.description} [SUCCESS]` } // 0 = Success
             });
         } else if (result.status === 'failed') {
             await prisma.$transaction([
                 prisma.transaction.update({
                     where: { id: transaction.id },
-                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` }
+                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` } // 2 = Failed
                 }),
                 prisma.user.update({
                     where: { id: transaction.userId },
@@ -294,7 +294,7 @@ async function vendData(transaction, service, phone, network) {
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SYSTEM ERROR]` }
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
             }),
             prisma.user.update({
                 where: { id: transaction.userId },
@@ -357,7 +357,7 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
         if (result.status === 'success') {
             await prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SUCCESS]` }
+                data: { status: 0, description: `${transaction.description} [SUCCESS]` } // 0 = Success
             });
         } else if (result.status === 'failed') {
             await prisma.$transaction([
@@ -379,7 +379,7 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SYSTEM ERROR]` }
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
             }),
             prisma.user.update({
                 where: { id: transaction.userId },
@@ -442,13 +442,13 @@ async function vendElectricity(transaction, service, meterNo, phone, meterType =
         if (result.status === 'success') {
             await prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SUCCESS] Token: ${result.token || 'N/A'}` }
+                data: { status: 0, description: `${transaction.description} [SUCCESS] Token: ${result.token || 'N/A'}` } // 0 = Success
             });
         } else if (result.status === 'failed') {
             await prisma.$transaction([
                 prisma.transaction.update({
                     where: { id: transaction.id },
-                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` }
+                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` } // 2 = Failed
                 }),
                 prisma.user.update({
                     where: { id: transaction.userId },
@@ -464,7 +464,7 @@ async function vendElectricity(transaction, service, meterNo, phone, meterType =
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SYSTEM ERROR]` }
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
             }),
             prisma.user.update({
                 where: { id: transaction.userId },
@@ -550,7 +550,7 @@ async function vendExam(transaction, service, quantity, phone) {
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SYSTEM ERROR]` }
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
             }),
             prisma.user.update({
                 where: { id: transaction.userId },
@@ -639,7 +639,7 @@ async function vendDataPin(transaction, service, quantity, phone, businessName) 
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
-                data: { status: 1, description: `${transaction.description} [SYSTEM ERROR]` }
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
             }),
             prisma.user.update({
                 where: { id: transaction.userId },

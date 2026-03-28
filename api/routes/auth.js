@@ -35,6 +35,13 @@ router.post('/register', async (req, res) => {
             return res.status(400).json({ error: validation.error.errors[0].message });
         }
 
+        // Check if registration is enabled
+        const settingsService = require('../services/settings.service');
+        const registrationEnabled = await settingsService.getSetting('registrationEnabled', true);
+        if (!registrationEnabled) {
+            return res.status(403).json({ error: 'Registration is temporarily disabled by the administrator.' });
+        }
+
         const { firstName, lastName, email, phone, password, pin, state, referral, type } = validation.data;
 
         // Check existing
@@ -392,7 +399,108 @@ router.get('/pin/status', async (req, res) => {
 
         res.json({ pinEnabled: user.pinEnabled || false });
     } catch (error) {
-        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Forgot Password
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        // Security: always return the same generic message when user is not found
+        // to prevent email enumeration attacks.
+        if (!user) {
+            return res.json({ message: 'Password reset link has been sent to your email if you have an account.' });
+        }
+
+        // Build a one-time token — signing it with the user's current password hash
+        // means the token auto-invalidates the moment the password is successfully changed.
+        const secret = process.env.JWT_SECRET + user.password;
+        const token = jwt.sign({ userId: user.id, email: user.email }, secret, { expiresIn: '5m' });
+
+        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}&id=${user.id}`;
+
+        const { sendEmailStrict } = require('../services/email.service');
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h2 style="color: #004687; margin: 0;">Password Reset Request</h2>
+                </div>
+                <p style="color: #374151;">Hello <strong>${user.firstName}</strong>,</p>
+                <p style="color: #374151;">You requested to reset your Ufriends account password. Click the button below to choose a new password.</p>
+                <p style="color: #6b7280; font-size: 13px;">This link expires in <strong>5 minutes</strong> and can only be used once.</p>
+                <div style="text-align: center; margin: 28px 0;">
+                    <a href="${resetLink}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                        Reset My Password
+                    </a>
+                </div>
+                <p style="color: #9ca3af; font-size: 12px; text-align: center;">If you didn't request this, you can safely ignore this email. Your password will not change.</p>
+            </div>
+        `;
+
+        // Use strict send — awaits actual SMTP delivery and throws on failure
+        await sendEmailStrict(user.email, 'Password Reset Request – Ufriends', html);
+
+        res.json({ message: 'Password reset link has been sent to your email if you have an account.' });
+    } catch (error) {
+        console.error('Forgot password error:', error);
+
+        // Distinguish SMTP/config errors from other server errors
+        if (error.message === 'EMAIL_NOT_CONFIGURED') {
+            return res.status(503).json({
+                error: 'EMAIL_UNAVAILABLE',
+                message: 'Our email service is currently unavailable. Please try again later or contact support.'
+            });
+        }
+
+        // SMTP delivery failure (wrong credentials, network issue, etc.)
+        return res.status(503).json({
+            error: 'EMAIL_SEND_FAILED',
+            message: 'We could not deliver the email at this time. Please try again in a moment.'
+        });
+    }
+});
+
+// Reset Password
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { id, token, newPassword } = req.body;
+
+        if (!id || !token || !newPassword) {
+            return res.status(400).json({ error: 'Invalid request parameters' });
+        }
+        
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid or expired reset token' });
+        }
+
+        const secret = process.env.JWT_SECRET + user.password;
+        
+        try {
+            jwt.verify(token, secret);
+        } catch (err) {
+            // Token is expired or password was already changed (secret changed)
+            return res.status(400).json({ error: 'Invalid or expired reset token. Please request a new one.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { password: hashedPassword }
+        });
+
+        res.json({ message: 'Password has been reset successfully. You can now login.' });
+    } catch (error) {
+        console.error('Reset password error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

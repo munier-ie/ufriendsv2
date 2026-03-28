@@ -357,8 +357,19 @@ router.post('/purchase', authenticateUser, async (req, res) => {
 
         let finalAmount;
         if (service.type === 'airtime') {
-            // Treat the price as a percentage. e.g. 98 means user pays 98% of face value
-            finalAmount = amount * (userPrice / 100);
+            // Check for global airtime discount from settings
+            const settingsService = require('../services/settings.service');
+            const globalDiscounts = await settingsService.getSetting('airtimeDiscount', {});
+            const network = service.provider.toLowerCase();
+            const globalDiscount = globalDiscounts[network];
+
+            if (globalDiscount !== undefined) {
+                // If global discount is set to 2.5%, user pays 97.5%
+                finalAmount = amount * ((100 - globalDiscount) / 100);
+            } else {
+                // Fallback to service price (percentage based)
+                finalAmount = amount * (userPrice / 100);
+            }
         } else {
             finalAmount = userPrice;
         }
