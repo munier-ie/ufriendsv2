@@ -25,18 +25,18 @@ const PROVIDER_LOGOS = {
     'glo': 'GLO',
     '9mobile': '9MOBILE',
     // Cable
-    'dstv': 'DSTV',
-    'gotv': 'GOTV',
-    'startimes': 'STARTIMES',
+    'dstv': '/cable_tv/DSTV.jpg',
+    'gotv': '/cable_tv/GOTV.png',
+    'startimes': '/cable_tv/STARTIMES.jpg',
     // Electricity
-    'ikeja': 'IKEDC',
-    'eko': 'EKEDC',
-    'abuja': 'AEDC',
-    'kano': 'KEDCO',
-    'port harcourt': 'PHED',
-    'jos': 'JED',
-    'ibadan': 'IBEDC',
-    'kaduna': 'KAEDCO'
+    'ikeja': '/electricity/ikeja.png',
+    'eko': '/electricity/ekedc.png',
+    'abuja': '/electricity/abuja.png',
+    'kano': '/electricity/kedco.png',
+    'port harcourt': '/electricity/portharcourt.png',
+    'jos': '/electricity/jos.jpg',
+    'ibadan': '/electricity/ibadan.png',
+    'kaduna': '/electricity/kaduna.jpg'
 };
 
 export default function Services() {
@@ -67,7 +67,8 @@ export default function Services() {
         iucNumber: '', // For cable
         meterNumber: '', // For electricity
         meterType: 'prepaid', // prepaid, postpaid
-        portedNumber: false // For airtime validator
+        portedNumber: false, // For airtime validator
+        accessToken: '' // Set during verify for providers like subandgain
     });
 
     const [amountToPay, setAmountToPay] = useState(0);
@@ -145,7 +146,8 @@ export default function Services() {
             iucNumber: '',
             meterNumber: '',
             meterType: 'prepaid',
-            portedNumber: false
+            portedNumber: false,
+            accessToken: ''
         });
         setVerifiedName(null);
         setMessage({ type: '', text: '' });
@@ -161,6 +163,16 @@ export default function Services() {
             return;
         }
 
+        // Determine the provider to verify against.
+        // Priority: selected plan's provider > networkId (set by icon click) > nothing
+        const selectedService = services.find(s => s.id == formData.serviceId);
+        const providerForVerify = selectedService?.provider || formData.networkId?.toLowerCase();
+
+        if (!providerForVerify) {
+            setMessage({ type: 'error', text: `Please select a ${activeTab === 'cable' ? 'Cable TV provider' : 'Disco/Provider'} first` });
+            return;
+        }
+
         setVerifying(true);
         setMessage({ type: '', text: '' });
 
@@ -168,7 +180,7 @@ export default function Services() {
             const token = localStorage.getItem('token');
             const res = await axios.post('/api/services/verify', {
                 type: activeTab,
-                provider: services.find(s => s.id == formData.serviceId)?.provider,
+                provider: providerForVerify,
                 number: numberToVerify,
                 meterType: activeTab === 'electricity' ? formData.meterType : undefined
             }, {
@@ -177,6 +189,9 @@ export default function Services() {
 
             if (res.data.valid) {
                 setVerifiedName(res.data.customerName);
+                if (res.data.accessToken) {
+                    setFormData(prev => ({ ...prev, accessToken: res.data.accessToken }));
+                }
                 setMessage({ type: 'success', text: `Verified: ${res.data.customerName}` });
             } else {
                 setMessage({ type: 'error', text: 'Verification failed' });
@@ -216,11 +231,14 @@ export default function Services() {
             const token = localStorage.getItem('token');
             const endpoint = (activeTab === 'data_pin' || activeTab === 'pins' || activeTab === 'exam') ? '/api/pins/purchase' : '/api/services/purchase';
 
+            const isPinTab = (activeTab === 'data_pin' || activeTab === 'pins' || activeTab === 'exam');
             const payload = {
                 ...formData,
                 serviceId: parseInt(formData.serviceId),
                 amount: parseFloat(formData.amount),
-                quantity: parseInt(formData.quantity)
+                // For exam/pin services, quantity is encoded in the service name/DB (NEONE=1, NETWO=2 etc.)
+                // Always send 1 so the backend uses examPin.quantity to determine the actual eduType code
+                quantity: isPinTab ? 1 : (parseInt(formData.quantity) || 1)
             };
 
             const res = await axios.post(endpoint, payload, {
@@ -306,8 +324,16 @@ export default function Services() {
         if (activeTab === 'data' && formData.dataType) {
             const type = formData.dataType.toUpperCase();
             const nameUpper = s.name.toUpperCase();
-            // Match exact type in parentheses, e.g. '(SME)' or '(CORPORATE)'
-            if (!nameUpper.includes(`(${type})`)) return false;
+            
+            if (type === 'CORPORATE') {
+                if (!nameUpper.includes('CORPORATE') && !nameUpper.includes('C.G')) return false;
+            } else if (type === 'GIFTING') {
+                // If GIFTING, it might match CORPORATE GIFTING, which is fine
+                if (!nameUpper.includes('GIFTING')) return false;
+            } else {
+                // e.g. SME will match SME and SME2
+                if (!nameUpper.includes(type)) return false;
+            }
         }
 
         return true;
@@ -316,6 +342,11 @@ export default function Services() {
     // Sort data plans from smallest to largest size
     const sortedPlans = activeTab === 'data'
         ? [...filteredPlans].sort((a, b) => parseDataSize(a.name) - parseDataSize(b.name))
+        : activeTab === 'exam'
+        ? [...filteredPlans].sort((a, b) => {
+            if (a.examType !== b.examType) return a.examType < b.examType ? -1 : 1;
+            return (a.quantity || 0) - (b.quantity || 0);
+          })
         : filteredPlans;
 
     return (
@@ -398,14 +429,19 @@ export default function Services() {
                                             <CheckCircle size={14} />
                                         </div>
                                     )}
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${key === 'mtn' ? 'bg-yellow-400 text-yellow-900' :
-                                        key === 'glo' ? 'bg-green-600 text-white' :
-                                            key === 'airtel' ? 'bg-red-500 text-white' :
-                                                key === '9mobile' ? 'bg-green-800 text-white' :
-                                                    ['dstv', 'gotv', 'startimes'].includes(key) ? 'bg-blue-600 text-white' :
-                                                        'bg-gray-800 text-white'
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 overflow-hidden ${PROVIDER_LOGOS[key].startsWith('/') ? 'bg-white border border-gray-100' :
+                                        (key === 'mtn' ? 'bg-yellow-400 text-yellow-900' :
+                                            key === 'glo' ? 'bg-green-600 text-white' :
+                                                key === 'airtel' ? 'bg-red-500 text-white' :
+                                                    key === '9mobile' ? 'bg-green-800 text-white' :
+                                                        ['dstv', 'gotv', 'startimes'].includes(key) ? 'bg-blue-600 text-white' :
+                                                            'bg-gray-800 text-white')
                                         }`}>
-                                        <span className="font-bold text-[10px]">{PROVIDER_LOGOS[key].substring(0, 3)}</span>
+                                        {PROVIDER_LOGOS[key].startsWith('/') ? (
+                                            <img src={PROVIDER_LOGOS[key]} alt={key} className="w-full h-full object-contain p-1" />
+                                        ) : (
+                                            <span className="font-bold text-[10px]">{PROVIDER_LOGOS[key].substring(0, 3)}</span>
+                                        )}
                                     </div>
                                     <span className="font-bold text-xs uppercase tracking-wider">{key}</span>
                                 </motion.button>
@@ -414,53 +450,7 @@ export default function Services() {
                     )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Service Selection */}
-                        <div className="space-y-1">
-                            <label className="block text-sm font-medium text-gray-700">Service Provider</label>
-                            <select
-                                className="w-full rounded-lg border border-gray-300 px-3 py-2 min-h-[44px] focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
-                                value={formData.serviceId}
-                                onChange={(e) => {
-                                    const service = services.find(s => s.id == e.target.value);
-                                    setFormData({
-                                        ...formData,
-                                        serviceId: e.target.value,
-                                        // Preserve networkId for data/airtime (set by icon click). Only update for cable/electricity.
-                                        networkId: (activeTab === 'data' || activeTab === 'airtime')
-                                            ? formData.networkId
-                                            : service?.provider,
-                                        // Only set amount if it's not airtime (Airtime is variable)
-                                        amount: (service && activeTab !== 'airtime') ? service.price : ''
-                                    });
-                                }}
-                                required
-                            >
-                                <option value="">Select a plan</option>
-                                {sortedPlans.map((s) => (
-                                    <option key={s.id} value={s.id}>
-                                        {s.name} {(s.price > 0 && activeTab !== 'airtime') ? `(₦${s.price})` : ''}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        {/* Airtime Specific: Network Type */}
-                        {activeTab === 'airtime' && (
-                            <div className="space-y-1">
-                                <label className="block text-sm font-medium text-gray-700">Network Type</label>
-                                <select
-                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 min-h-[44px] outline-none"
-                                    value={formData.networkType}
-                                    onChange={(e) => setFormData({ ...formData, networkType: e.target.value })}
-                                >
-                                    <option value="VTU">VTU</option>
-                                    <option value="Share">Share & Sell</option>
-                                    <option value="Momo">Momo</option>
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Data Specific: Data Type */}
+                        {/* Data Specific: Data Type moved above Plan dropdown */}
                         {activeTab === 'data' && (
                             <div className="space-y-1">
                                 <label className="block text-sm font-medium text-gray-700">Data Type</label>
@@ -480,6 +470,67 @@ export default function Services() {
                                 </select>
                             </div>
                         )}
+
+                        {/* Service Selection */}
+                        <div className="space-y-1">
+                            <label className="block text-sm font-medium text-gray-700">Service Provider / Plan</label>
+                            <select
+                                className="w-full rounded-lg border border-gray-300 px-3 py-2 min-h-[44px] focus:ring-2 focus:ring-primary focus:border-primary transition-all outline-none"
+                                value={formData.serviceId}
+                                onChange={(e) => {
+                                    const service = services.find(s => s.id == e.target.value);
+                                    setFormData({
+                                        ...formData,
+                                        serviceId: e.target.value,
+                                        // Preserve networkId for data/airtime (set by icon click). Only update for cable/electricity.
+                                        networkId: (activeTab === 'data' || activeTab === 'airtime')
+                                            ? formData.networkId
+                                            : service?.provider,
+                                        // Only set amount if it's not airtime (Airtime is variable)
+                                        amount: (service && activeTab !== 'airtime') ? service.price : ''
+                                    });
+                                }}
+                                required
+                            >
+                                <option value="">Select a plan</option>
+                                {sortedPlans.map((s) => {
+                                    // For exam pins, display "NECO - 1 Token" or "WAEC - 3 Tokens"
+                                    let label;
+                                    if (activeTab === 'exam' && s.quantity) {
+                                        const qty = s.quantity;
+                                        const qtyLabel = qty === 1 ? '1 Token' : `${qty} Tokens`;
+                                        label = `${s.examType || s.code || s.name.split(' ')[0]} - ${qtyLabel} (₦${s.price?.toLocaleString()})`;
+                                    } else {
+                                        // Clean plan name (strip Days etc.)
+                                        const cleanName = s.name.replace(/\s*Days?\s*\)/ig, ')').replace(/\{GIFTING\}/ig, '').trim();
+                                        label = `${cleanName}${(s.price > 0 && activeTab !== 'airtime') ? ` (₦${s.price?.toLocaleString()})` : ''}`;
+                                    }
+                                    return (
+                                        <option key={s.id} value={s.id}>
+                                            {label}
+                                        </option>
+                                    );
+                                })}
+                            </select>
+                        </div>
+
+                        {/* Airtime Specific: Network Type */}
+                        {activeTab === 'airtime' && (
+                            <div className="space-y-1">
+                                <label className="block text-sm font-medium text-gray-700">Network Type</label>
+                                <select
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 min-h-[44px] outline-none"
+                                    value={formData.networkType}
+                                    onChange={(e) => setFormData({ ...formData, networkType: e.target.value })}
+                                >
+                                    <option value="VTU">VTU</option>
+                                    <option value="Share">Share & Sell</option>
+                                    <option value="Momo">Momo</option>
+                                </select>
+                            </div>
+                        )}
+
+                        {/* Removed Data Type from here as it was correctly moved up */}
 
                         {/* Cable Specific: Subscription Type */}
                         {activeTab === 'cable' && (
@@ -583,15 +634,8 @@ export default function Services() {
 
                         {isPinService && (
                             <>
-                                <Input
-                                    label="Quantity"
-                                    type="number"
-                                    min="1"
-                                    max="10"
-                                    value={formData.quantity}
-                                    onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-                                    required
-                                />
+                                {/* Quantity removed as per requirements */}
+
                                 {activeTab === 'data_pin' && (
                                     <Input
                                         label="Business Name (On Card)"

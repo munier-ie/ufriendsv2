@@ -105,7 +105,7 @@ export default function Transactions() {
                 </div>
             );
         }
-        if (name.includes('cable') || name.includes('tv') || name.includes('dstv') || name.includes('gotv')) {
+        if (name.includes('cable') || name.includes('tv') || name.includes('dstv') || name.includes('gotv') || name.includes('startimes')) {
             return (
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
                     <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -190,6 +190,29 @@ export default function Transactions() {
                             onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                             className="pl-10 pr-4 py-2 w-full rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
                         />
+                    </div>
+
+                    {/* Type/Service Filter */}
+                    <div className="relative w-full md:w-40">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <select
+                            value={filters.type}
+                            onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                            className="pl-10 pr-8 py-2 w-full rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary appearance-none bg-white cursor-pointer"
+                        >
+                            <option value="all">All Services</option>
+                            <option value="airtime">Airtime</option>
+                            <option value="data">Data</option>
+                            <option value="cable">Cable TV</option>
+                            <option value="electricity">Electricity</option>
+                            <option value="exam">Exam Pins</option>
+                            <option value="data_pin">Data Pins</option>
+                            <option value="nin_slip">NIN Slips</option>
+                            <option value="bvn_slip">BVN Slips</option>
+                            <option value="transfer">Transfers</option>
+                            <option value="funding">Funding</option>
+                            <option value="manual_service">Manual Service</option>
+                        </select>
                     </div>
 
                     {/* Status Filter */}

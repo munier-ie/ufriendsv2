@@ -16,6 +16,7 @@ const STATUS_LABELS = {
     0: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700', icon: Clock },
     1: { label: 'Approved', color: 'bg-green-100  text-green-700', icon: CheckCircle },
     2: { label: 'Rejected', color: 'bg-red-100    text-red-700', icon: XCircle },
+    3: { label: 'In Progress', color: 'bg-blue-100 text-blue-700', icon: Settings },
 };
 
 const SERVICE_LABELS = {
@@ -113,6 +114,7 @@ export default function ManualServicesDashboard() {
         try {
             const params = { limit: 50 };
             if (activeView === 'pending') params.status = 0;
+            if (activeView === 'in_progress') params.status = 3;
             if (filterType) params.serviceType = filterType;
 
             const res = await axios.get('/api/admin/manual-services/requests', {
@@ -150,7 +152,10 @@ export default function ManualServicesDashboard() {
     };
 
     const handleProcess = async (id, status) => {
-        const action = status === 1 ? 'APPROVE' : 'REJECT';
+        let action = 'REJECT';
+        if (status === 1) action = 'APPROVE';
+        else if (status === 3) action = 'mark as IN PROGRESS';
+
         if (!window.confirm(`Are you sure you want to ${action} this request?`)) return;
 
         setProcessingId(id);
@@ -219,6 +224,7 @@ export default function ManualServicesDashboard() {
             <div className="flex space-x-1 border-b border-gray-200 overflow-x-auto no-scrollbar">
                 {[
                     { id: 'pending', label: 'Pending' },
+                    { id: 'in_progress', label: 'In Progress' },
                     { id: 'all', label: 'All History' },
                     { id: 'settings', label: 'Settings' },
                 ].map(tab => (
@@ -379,9 +385,8 @@ export default function ManualServicesDashboard() {
                                     <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider">Request Summary</h4>
                                     <div className="grid grid-cols-2 gap-3">
                                         <DetailRow label="Service" value={SERVICE_LABELS[selectedReq.serviceType] || selectedReq.serviceType} />
-                                        <DetailRow label="Sub-type" value={selectedReq.subType?.replace(/_/g, ' ')} />
+                                        <DetailRow label="Sub-type" value={selectedReq.subType?.replace(/_/g, ' ') || 'N/A'} />
                                         <DetailRow label="Ref" value={selectedReq.transRef} />
-                                        <DetailRow label="Amount" value={`₦${selectedReq.amount?.toLocaleString()}`} />
                                         <DetailRow label="Date" value={new Date(selectedReq.createdAt).toLocaleString('en-NG')} />
                                         <DetailRow label="Status" value={STATUS_LABELS[selectedReq.status]?.label} />
                                     </div>
@@ -474,16 +479,41 @@ export default function ManualServicesDashboard() {
                                             onClick={() => handleProcess(selectedReq.id, 2)}
                                             loading={processingId === selectedReq.id}
                                             variant="outline"
-                                            className="flex-1 border-red-300 text-red-600 hover:bg-red-50"
+                                            className="flex-1 border-red-300 text-red-600 hover:bg-red-50 p-2"
                                         >
-                                            Reject &amp; Refund
+                                            Reject
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleProcess(selectedReq.id, 3)}
+                                            loading={processingId === selectedReq.id}
+                                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white p-2"
+                                        >
+                                            Mark In Progress
                                         </Button>
                                         <Button
                                             onClick={() => handleProcess(selectedReq.id, 1)}
                                             loading={processingId === selectedReq.id}
-                                            className="flex-1 bg-green-600 hover:bg-green-700"
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white p-2"
                                         >
                                             Approve
+                                        </Button>
+                                    </div>
+                                ) : selectedReq.status === 3 ? (
+                                    <div className="flex gap-3 pt-2">
+                                         <Button
+                                            onClick={() => handleProcess(selectedReq.id, 2)}
+                                            loading={processingId === selectedReq.id}
+                                            variant="outline"
+                                            className="flex-1 border-red-300 text-red-600 hover:bg-red-50 p-2"
+                                        >
+                                            Reject
+                                        </Button>
+                                        <Button
+                                            onClick={() => handleProcess(selectedReq.id, 1)}
+                                            loading={processingId === selectedReq.id}
+                                            className="flex-1 bg-green-600 hover:bg-green-700 text-white p-2"
+                                        >
+                                            Approve & Complete
                                         </Button>
                                     </div>
                                 ) : (

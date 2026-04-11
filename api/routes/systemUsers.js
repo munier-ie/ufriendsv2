@@ -19,7 +19,8 @@ const adminUserSchema = z.object({
     password: z.string().min(6).optional(), // Optional for update
     role: z.number().int().min(1).max(3),
     pinToken: z.string().length(4).optional().or(z.literal('')),
-    status: z.number().int().default(1) // 1 = Active, 0 = Inactive
+    status: z.number().int().default(1), // 1 = Active, 0 = Inactive
+    permissions: z.any().optional()
 });
 
 // Middleware to check for Super Admin role
@@ -41,7 +42,7 @@ router.get('/', adminAuth, superAdminOnly, async (req, res) => {
                 role: true,
                 status: true,
                 createdAt: true,
-                lastLoginAt: true // Assuming exists or add to select
+                permissions: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -78,7 +79,8 @@ router.post('/', adminAuth, superAdminOnly, async (req, res) => {
                 password: hashedPassword,
                 role: data.role,
                 status: data.status,
-                pinToken: data.pinToken || null
+                pinToken: data.pinToken || null,
+                permissions: data.permissions || {}
             },
             select: {
                 id: true,
@@ -86,6 +88,7 @@ router.post('/', adminAuth, superAdminOnly, async (req, res) => {
                 username: true,
                 role: true,
                 status: true,
+                permissions: true,
                 createdAt: true
             }
         });
@@ -107,7 +110,8 @@ router.put('/:id', adminAuth, superAdminOnly, async (req, res) => {
             name: data.name,
             username: data.username,
             role: data.role,
-            status: data.status
+            status: data.status,
+            permissions: data.permissions || {}
         };
 
         if (data.password) {
@@ -126,6 +130,7 @@ router.put('/:id', adminAuth, superAdminOnly, async (req, res) => {
                 name: true,
                 username: true,
                 role: true,
+                permissions: true,
                 status: true
             }
         });

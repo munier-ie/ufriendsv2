@@ -2,39 +2,53 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
-const { z } = require('zod');
 const axios = require('axios');
 
-// GET /api/admin/api-wallets - List all wallets
+// Load all provider handlers
+const providerHandlers = {
+    'alrahuz':    require('../utils/providers/alrahuz'),
+    'maskawasub': require('../utils/providers/maskawasub'),
+    'subandgain': require('../utils/providers/subandgain'),
+    'vtpass':     require('../utils/providers/vtpass'),
+    'basic':      require('../utils/providers/basic'),
+    'prembly':    require('../utils/providers/prembly'),
+};
+
+/**
+ * Normalize a provider's DB name into a handler lookup key.
+ * e.g. "Maskawa Sub" → "maskawasub", "N3TDATA247" → "n3tdata247"
+ */
+function resolveHandler(providerName) {
+    const key = (providerName || '').toLowerCase().replace(/\s+/g, '');
+    if (providerHandlers[key]) return providerHandlers[key];
+    // Partial match fallback
+    for (const [k, h] of Object.entries(providerHandlers)) {
+        if (key.includes(k)) return h;
+    }
+    return null;
+}
+
+// ============================================================
+// GET /api/admin/api-wallets — List all wallets
+// ============================================================
 router.get('/', adminAuth, async (req, res) => {
     try {
-        // Fetch all providers and their wallet info
-        // If a provider doesn't have a wallet entry, create one
-        let providers = await prisma.apiProvider.findMany({
-            include: {
-                apiWallets: true
-            }
+        // Fetch all providers, auto-creating a wallet if one doesn't exist yet
+        const providers = await prisma.apiProvider.findMany({
+            include: { apiWallet: true }   // ← correct relation name
         });
 
-        // Check if any provider is missing a wallet and create it
         for (const provider of providers) {
-            if (provider.apiWallets.length === 0) {
+            if (provider.apiWallet.length === 0) {
                 await prisma.apiWallet.create({
-                    data: {
-                        apiProviderId: provider.id,
-                        balance: 0,
-                        lowBalanceAlert: 1000
-                    }
+                    data: { apiProviderId: provider.id, balance: 0, lowBalanceAlert: 1000 }
                 });
             }
         }
 
-        // Re-fetch with wallets guaranteed
         const wallets = await prisma.apiWallet.findMany({
             include: {
-                apiProvider: {
-                    select: { id: true, name: true, active: true }
-                }
+                apiProvider: { select: { id: true, name: true, active: true } }
             },
             orderBy: { apiProvider: { name: 'asc' } }
         });
@@ -46,7 +60,9 @@ router.get('/', adminAuth, async (req, res) => {
     }
 });
 
-// PUT /api/admin/api-wallets/:id/update-balance - Manually update balance
+// ============================================================
+// PUT /api/admin/api-wallets/:id/update-balance — Manual update
+// ============================================================
 router.put('/:id/update-balance', adminAuth, async (req, res) => {
     try {
         const { id } = req.params;
@@ -55,13 +71,11 @@ router.put('/:id/update-balance', adminAuth, async (req, res) => {
         const updated = await prisma.apiWallet.update({
             where: { id: parseInt(id) },
             data: {
-                balance: balance !== undefined ? parseFloat(balance) : undefined,
-                lowBalanceAlert: lowBalanceAlert !== undefined ? parseFloat(lowBalanceAlert) : undefined,
+                balance:         balance         !== undefined ? parseFloat(balance)         : undefined,
+                lowBalanceAlert: lowBalanceAlert !== undefined ? parseFloat(lowBalanceAlert)  : undefined,
                 lastChecked: new Date()
             },
-            include: {
-                apiProvider: { select: { name: true } }
-            }
+            include: { apiProvider: { select: { name: true } } }
         });
 
         res.json({ success: true, message: 'Wallet updated', wallet: updated });
@@ -71,25 +85,13 @@ router.put('/:id/update-balance', adminAuth, async (req, res) => {
     }
 });
 
-// GET /api/admin/api-wallets/check-balances - Auto-check balances (Mock/Placeholder)
+// ============================================================
+// GET /api/admin/api-wallets/check-balances
+// Live-fetch each provider's balance via its API and update DB.
+// Returns per-provider results so the frontend can show them.
+// ============================================================
 router.get('/check-balances', adminAuth, async (req, res) => {
     try {
-        const vtpass = require('../utils/providers/vtpass');
-        const basicProvider = require('../utils/providers/basic');
-        const subandgain = require('../utils/providers/subandgain');
-        const maskawasub = require('../utils/providers/maskawasub');
-
-        const providers = {
-            'vtpass': vtpass,
-            'n3tdata': basicProvider,
-            'n3tdata247': basicProvider,
-            'legitdataway': basicProvider,
-            'bilalsadasub': basicProvider,
-            'rabdata360': basicProvider,
-            'subandgain': subandgain,
-            'maskawasub': maskawasub
-        };
-
         const wallets = await prisma.apiWallet.findMany({
             include: { apiProvider: true }
         });
@@ -97,51 +99,72 @@ router.get('/check-balances', adminAuth, async (req, res) => {
         const results = [];
 
         for (const wallet of wallets) {
-            const apiProvider = wallet.apiProvider;
-            const providerKey = apiProvider.name.toLowerCase().replace(/\s+/g, '');
-
-            // Find handler
-            let handler = providers[providerKey];
-            if (!handler) {
-                // Try partial match
-                const keys = Object.keys(providers);
-                for (const key of keys) {
-                    if (providerKey.includes(key)) {
-                        handler = providers[key];
-                        break;
-                    }
-                }
+            const provider = wallet.apiProvider;
+            if (!provider) {
+                results.push({ provider: 'Unknown', status: 'Skipped', balance: wallet.balance, error: 'No provider record' });
+                continue;
             }
 
-            if (handler && handler.checkBalance) {
-                const config = {
-                    baseUrl: apiProvider.baseUrl,
-                    apiKey: apiProvider.apiKey,
-                    secretKey: apiProvider.apiToken,
-                    username: apiProvider.username || '',
-                    userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
-                };
+            const handler = resolveHandler(provider.name);
 
+            if (!handler || typeof handler.checkBalance !== 'function') {
+                results.push({
+                    provider: provider.name,
+                    status: 'skipped',
+                    balance: wallet.balance,
+                    message: 'No live balance API integrated for this provider'
+                });
+                continue;
+            }
+
+            const config = {
+                baseUrl:   provider.baseUrl,
+                apiKey:    provider.apiKey,
+                secretKey: provider.apiToken,
+                username:  provider.username || ''
+            };
+
+            try {
                 const balanceResult = await handler.checkBalance(config);
 
                 if (balanceResult.success) {
-                    await prisma.apiWallet.update({
+                    const updated = await prisma.apiWallet.update({
                         where: { id: wallet.id },
-                        data: {
-                            balance: balanceResult.balance,
-                            lastChecked: new Date()
-                        }
+                        data: { balance: balanceResult.balance, lastChecked: new Date() }
                     });
-                    results.push({ provider: apiProvider.name, status: 'Updated', balance: balanceResult.balance });
+                    results.push({
+                        provider:   provider.name,
+                        status:     'updated',
+                        balance:    balanceResult.balance,
+                        message:    'Balance refreshed from live API'
+                    });
                 } else {
-                    results.push({ provider: apiProvider.name, status: `Failed: ${balanceResult.message}`, balance: wallet.balance });
+                    results.push({
+                        provider:   provider.name,
+                        status:     'failed',
+                        balance:    wallet.balance,
+                        message:    balanceResult.message || 'API returned an error'
+                    });
                 }
-            } else {
-                results.push({ provider: apiProvider.name, status: 'Skipped (No integration)', balance: wallet.balance });
+            } catch (providerErr) {
+                results.push({
+                    provider: provider.name,
+                    status:   'error',
+                    balance:  wallet.balance,
+                    message:  providerErr.message
+                });
             }
         }
 
-        res.json({ success: true, results });
+        const updated = results.filter(r => r.status === 'updated').length;
+        const failed  = results.filter(r => r.status === 'failed' || r.status === 'error').length;
+        const skipped = results.filter(r => r.status === 'skipped').length;
+
+        res.json({
+            success: true,
+            summary: { updated, failed, skipped, total: results.length },
+            results
+        });
     } catch (error) {
         console.error('Check balances error:', error);
         res.status(500).json({ error: 'Failed to check balances' });

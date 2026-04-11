@@ -44,6 +44,7 @@ app.use('/api/user', userRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/pins', pinsRoutes);
 app.use('/api/verify', verifyRoutes);
+app.use('/api/twofa', require('./routes/twofa')); // 2FA authentication routes
 app.use('/api/admin', adminRoutes);
 app.use('/api/admin/auth', adminAuthRoutes); // Separate admin authentication
 app.use('/api/kyc', kycRoutes); // KYC verification routes

@@ -61,6 +61,7 @@ const STATUS_MAP = {
     0: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
     1: { label: 'Approved', color: 'bg-green-100  text-green-700' },
     2: { label: 'Rejected', color: 'bg-red-100    text-red-700' },
+    3: { label: 'In Progress', color: 'bg-blue-100 text-blue-700' }
 };
 
 const SERVICE_DISPLAY = {
@@ -275,6 +276,7 @@ export default function ManualServices() {
     const [historyLoading, setHistoryLoading] = useState(false);
     const [showHistory, setShowHistory] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState(null);
 
     // grouped tabs
     const bvnTabs = [
@@ -739,7 +741,13 @@ export default function ManualServices() {
                                                 <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${statusInfo.color}`}>
                                                     {statusInfo.label}
                                                 </span>
-                                                {req.status === 1 && req.proofUrl && (
+                                                <button
+                                                    onClick={() => setSelectedRequest(req)}
+                                                    className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-bold rounded-lg hover:bg-gray-200 transition-colors border border-gray-200"
+                                                >
+                                                    Details
+                                                </button>
+                                                {req.proofUrl && (
                                                     <a
                                                         href={req.proofUrl}
                                                         target="_blank"
@@ -747,7 +755,7 @@ export default function ManualServices() {
                                                         className="flex items-center gap-1 px-3 py-1.5 bg-green-600 text-white text-xs font-bold rounded-lg hover:bg-green-700 transition-colors"
                                                     >
                                                         <Eye size={12} />
-                                                        View Proof
+                                                        Proof
                                                     </a>
                                                 )}
                                                 {req.adminNote && (
@@ -762,6 +770,70 @@ export default function ManualServices() {
                             </div>
                         )}
                     </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Details Modal */}
+            <AnimatePresence>
+                {selectedRequest && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden relative max-h-[80vh] flex flex-col"
+                        >
+                            <div className="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50 sticky top-0">
+                                <h3 className="font-bold text-gray-900">Request Details</h3>
+                                <button onClick={() => setSelectedRequest(null)} className="text-gray-400 hover:text-gray-600 font-bold text-xl px-2">×</button>
+                            </div>
+                            <div className="p-5 overflow-y-auto flex-1 text-sm space-y-4">
+                                <div className="flex justify-between items-center border-b pb-2">
+                                    <span className="text-gray-500">Service</span>
+                                    <span className="font-semibold text-gray-900">{SERVICE_DISPLAY[selectedRequest.serviceType] || selectedRequest.serviceType}</span>
+                                </div>
+                                <div className="flex justify-between items-center border-b pb-2">
+                                    <span className="text-gray-500">Status</span>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${STATUS_MAP[selectedRequest.status]?.color}`}>
+                                        {STATUS_MAP[selectedRequest.status]?.label}
+                                    </span>
+                                </div>
+                                {selectedRequest.adminNote && (
+                                    <div className="border-b pb-2">
+                                        <span className="text-gray-500 block mb-1">Admin Note</span>
+                                        <p className="text-sm bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-amber-900 font-medium">{selectedRequest.adminNote}</p>
+                                    </div>
+                                )}
+                                {selectedRequest.subType && (
+                                    <div className="flex justify-between items-center border-b pb-2">
+                                        <span className="text-gray-500">Sub Type</span>
+                                        <span className="font-semibold text-gray-900">{selectedRequest.subType.replace(/_/g, ' ')}</span>
+                                    </div>
+                                )}
+                                <div>
+                                    <h4 className="font-semibold text-gray-700 mb-2 mt-4 text-xs uppercase tracking-wider">Submitted Data</h4>
+                                    <div className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
+                                        {Object.entries(JSON.parse(selectedRequest.details || '{}')).map(([k, v]) => {
+                                            if (k === 'idFileUrl') return null;
+                                            return (
+                                                <div key={k} className="flex justify-between items-start gap-4">
+                                                    <span className="text-gray-500 capitalize">{k.replace(/([A-Z])/g, ' $1').trim()}</span>
+                                                    <span className="font-medium text-gray-900 text-right break-all">{v || 'N/A'}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                {JSON.parse(selectedRequest.details || '{}').idFileUrl && (
+                                    <div className="pt-2">
+                                        <a href={JSON.parse(selectedRequest.details || '{}').idFileUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 font-medium">
+                                            <ExternalLink size={16} /> View Uploaded Document
+                                        </a>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
 

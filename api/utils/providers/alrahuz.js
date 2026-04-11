@@ -1,8 +1,15 @@
-const axios = require('axios');
+const baseAxios = require('axios');
+const https = require('https');
+
+// Alrahuz has a broken IPv6 configuration which causes ENETUNREACH/ETIMEDOUT. 
+// We create an axios instance that forces IPv4 to ensure stable connections.
+const axios = baseAxios.create({
+    httpsAgent: new https.Agent({ family: 4 })
+});
 
 // Helper: ensure the base URL ends at /api so all endpoints include /api/
 function getApiBase(baseUrl) {
-    const stripped = (baseUrl || '').replace(/\/+$/, ''); // remove trailing slashes
+    const stripped = (baseUrl || '').trim().replace(/\/+$/, ''); // remove trailing slashes and spaces
     if (stripped.endsWith('/api')) return stripped;
     return `${stripped}/api`;
 }
@@ -23,6 +30,29 @@ function sanitizeAlrahuzError(message) {
     }
     return message;
 }
+
+const CABLE_MAP = {
+    'gotv': 1,
+    'dstv': 2,
+    'startimes': 3,
+    'startime': 3
+};
+
+const DISCO_MAP = {
+    'ikeja-electric': 1,
+    'eko-electric': 2,
+    'kano-electric': 3,
+    'port-harcourt-electric': 4,
+    'ph-electric': 4,
+    'jos-electric': 5,
+    'ibadan-electric': 6,
+    'kaduna-electric': 7,
+    'abuja-electric': 8,
+    'enugu-electric': 9,
+    'yola-electric': 10,
+    'benin-electric': 11,
+    'aedc-electric': 8
+};
 
 async function purchaseAirtime(details, config) {
     try {
@@ -146,15 +176,23 @@ async function verifyTV(details, config) {
         const { cableId, number } = details;
         const { baseUrl, apiKey } = config;
 
-        // https://alrahuzdata.com.ng/api/validateiuc?smart_card_number=iuc&&cablename=id
-        const url = `${getApiBase(baseUrl)}/validateiuc?smart_card_number=${number}&cablename=${cableId}`;
+        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || cableId;
+
+        // https://alrahuzdata.com.ng/api/validateiuc/?smart_card_number=iuc&&cablename=id
+        const url = `${getApiBase(baseUrl)}/validateiuc/?smart_card_number=${number}&cablename=${mappedCable}`;
 
         const response = await axios.get(url, {
-            headers: { 'Authorization': `Token ${apiKey}` }
+            headers: { 'Authorization': `Token ${apiKey}` },
+            timeout: 10000
         });
 
         const result = response.data;
-        if (result.name || result.Customer_Name) {
+        if (result.invalid || String(result.name || result.Customer_Name || '').toUpperCase().includes('INVALID')) {
+            return {
+                valid: false,
+                message: result.name || result.Customer_Name || result.msg || result.message || 'Invalid Smart Card Number'
+            };
+        } else if (result.name || result.Customer_Name) {
             return {
                 valid: true,
                 customerName: result.name || result.Customer_Name,
@@ -167,7 +205,11 @@ async function verifyTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz TV Verify Error:', error.response?.data || error.message);
+        console.error('Alrahuz TV Verify Error:', {
+            url: error.config?.url,
+            message: error.message,
+            data: error.response?.data
+        });
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -180,11 +222,13 @@ async function purchaseTV(details, config) {
         const { cableId, planId, number } = details;
         const { baseUrl, apiKey } = config;
 
+        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || cableId;
+
         // https://alrahuzdata.com.ng/api/cablesub/
         const url = `${getApiBase(baseUrl)}/cablesub/`;
 
         const payload = {
-            cablename: cableId,
+            cablename: mappedCable,
             cableplan: planId,
             smart_card_number: number
         };
@@ -237,15 +281,27 @@ async function verifyElectricity(details, config) {
         const { discoId, number, type } = details;
         const { baseUrl, apiKey } = config;
 
-        // https://alrahuzdata.com.ng/api/validatemeter?meternumber=meter&disconame=id&mtype=metertype
-        const url = `${getApiBase(baseUrl)}/validatemeter?meternumber=${number}&disconame=${discoId}&mtype=${type}`;
+        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || discoId;
+
+        let mType = type || 'prepaid';
+        if (mType.toLowerCase() === 'prepaid') mType = '1';
+        if (mType.toLowerCase() === 'postpaid') mType = '2';
+
+        // https://alrahuzdata.com.ng/api/validatemeter/?meternumber=meter&disconame=id&mtype=metertype
+        const url = `${getApiBase(baseUrl)}/validatemeter/?meternumber=${number}&disconame=${mappedDisco}&mtype=${mType}`;
 
         const response = await axios.get(url, {
-            headers: { 'Authorization': `Token ${apiKey}` }
+            headers: { 'Authorization': `Token ${apiKey}` },
+            timeout: 10000
         });
 
         const result = response.data;
-        if (result.name || result.Customer_Name || result.customerName) {
+        if (result.invalid || String(result.name || result.Customer_Name || result.customerName || '').toUpperCase().includes('INVALID')) {
+            return {
+                valid: false,
+                message: result.name || result.Customer_Name || result.customerName || result.msg || result.message || 'Invalid Meter Number'
+            };
+        } else if (result.name || result.Customer_Name || result.customerName) {
             return {
                 valid: true,
                 customerName: result.name || result.Customer_Name || result.customerName,
@@ -258,7 +314,11 @@ async function verifyElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz Electricity Verify Error:', error.response?.data || error.message);
+        console.error('Alrahuz Electricity Verify Error:', {
+            url: error.config?.url,
+            message: error.message,
+            data: error.response?.data
+        });
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -271,14 +331,20 @@ async function purchaseElectricity(details, config) {
         const { discoId, number, type, amount } = details;
         const { baseUrl, apiKey } = config;
 
+        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || discoId;
+
+        let mType = type || 'prepaid';
+        if (mType.toLowerCase() === 'prepaid') mType = '1';
+        if (mType.toLowerCase() === 'postpaid') mType = '2';
+
         // https://alrahuzdata.com.ng/api/billpayment/
         const url = `${getApiBase(baseUrl)}/billpayment/`;
 
         const payload = {
-            disco_name: discoId,
+            disco_name: mappedDisco,
             amount: amount,
             meter_number: number,
-            MeterType: type
+            MeterType: mType
         };
 
         const response = await axios.post(url, payload, {
@@ -334,7 +400,7 @@ async function purchaseExam(details, config) {
         const url = `${getApiBase(baseUrl)}/epin/`;
 
         const payload = {
-            exam_name: examId,
+            exam_name: details.eduType || examId,
             quantity: quantity || 1
         };
 
@@ -460,6 +526,7 @@ async function purchaseDataPin(details, config) {
 
 /**
  * Fetch all data plans from Alrahuz for price syncing and discovery.
+ * Alrahuz /api/network/ returns both data plans (plan[]) and cable plans (cableplan[]).
  */
 async function fetchDataPlans(config) {
     try {
@@ -474,7 +541,7 @@ async function fetchDataPlans(config) {
 
         const plans = res.data.plan.map(plan => ({
             network: (plan.plan_network || '').toUpperCase().trim(),
-            dataName: plan.plan, // e.g. "1.0GB"
+            dataName: plan.plan,
             dataType: (plan.plan_type || '').toUpperCase().trim(),
             planId: String(plan.dataplan_id),
             apiPrice: parseFloat(plan.plan_amount),
@@ -483,7 +550,92 @@ async function fetchDataPlans(config) {
 
         return { success: true, plans };
     } catch (error) {
-        console.error('Alrahuz Fetch Error:', error.message);
+        console.error('Alrahuz fetchDataPlans Error:', error.message, error.response?.data);
+        return { success: false, message: error.message };
+    }
+}
+
+/**
+ * Fetch all Cable TV plans from Alrahuz.
+ * Same /api/network/ endpoint also returns cableplan[] with cable subscription bundles.
+ */
+async function fetchCablePlans(config) {
+    try {
+        const { baseUrl, apiKey } = config;
+        const res = await axios.get(`${getApiBase(baseUrl)}/network/`, {
+            headers: { Authorization: `Token ${apiKey}` }
+        });
+
+        if (!res.data || !res.data.cableplan) {
+            return { success: false, message: 'cableplan property missing from Alrahuz response' };
+        }
+
+        const SERVICE_MAP = { DSTV: 'dstv', GOTV: 'gotv', STARTIMES: 'startimes', STARTIME: 'startimes' };
+        const plans = [];
+
+        for (const plan of res.data.cableplan) {
+            const providerSlug = SERVICE_MAP[String(plan.cable || '').toUpperCase()];
+            if (!providerSlug) continue;
+            const apiPrice = parseFloat(plan.plan_amount ?? 0);
+            if (isNaN(apiPrice) || apiPrice <= 0) continue;
+
+            plans.push({
+                provider: providerSlug,
+                name: plan.package || plan.name || String(plan.cableplan_id || plan.id),
+                code: String(plan.cableplan_id || plan.id),
+                apiPrice
+            });
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No cable plans returned from Alrahuz' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        console.error('Alrahuz fetchCablePlans Error:', error.message, error.response?.data);
+        return { success: false, message: error.message };
+    }
+}
+
+/**
+ * Fetch all Exam Pin plans from Alrahuz.
+ * Endpoint: /api/epinprices/ — returns exam types and their prices.
+ */
+async function fetchExamPlans(config) {
+    try {
+        const { baseUrl, apiKey } = config;
+        const res = await axios.get(`${getApiBase(baseUrl)}/epinprices/`, {
+            headers: { Authorization: `Token ${apiKey}` },
+            timeout: 15000
+        });
+
+        const data = res.data;
+        const plans = [];
+
+        // Handle array format: [{ exam_name, name/package, price }]
+        const raw = Array.isArray(data) ? data : (data.results || data.plans || []);
+        for (const plan of raw) {
+            const code = plan.exam_name || plan.code || plan.eduType;
+            if (!code) continue;
+            const apiPrice = parseFloat(plan.price ?? plan.plan_amount ?? 0);
+            if (isNaN(apiPrice) || apiPrice <= 0) continue;
+
+            plans.push({
+                examType: (plan.exam_type || code).toUpperCase(),
+                name: plan.name || plan.package || code,
+                code: String(code),
+                apiPrice
+            });
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No exam plans returned from Alrahuz' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        console.error('Alrahuz fetchExamPlans Error:', error.message, error.response?.data);
         return { success: false, message: error.message };
     }
 }
@@ -498,5 +650,7 @@ module.exports = {
     purchaseExam,
     purchaseDataPin,
     fetchDataPlans,
+    fetchCablePlans,
+    fetchExamPlans,
     checkBalance
 };

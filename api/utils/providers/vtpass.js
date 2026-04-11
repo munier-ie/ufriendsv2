@@ -509,7 +509,7 @@ async function fetchDataPlans(config) {
                         allPlans.push({
                             network: serviceID.split('-')[0].toUpperCase(),
                             dataName: v.name,
-                            dataType: 'GIFTING', // VTPass data is often gifting/direct
+                            dataType: 'GIFTING',
                             planId: v.variation_code,
                             apiPrice: parseFloat(v.variation_amount),
                             duration: '30 days'
@@ -517,7 +517,7 @@ async function fetchDataPlans(config) {
                     });
                 }
             } catch (err) {
-                console.error(`VTPass Fetch Error for ${serviceID}:`, err.message);
+                console.error(`VTPass fetchDataPlans Error for ${serviceID}:`, err.message);
             }
         }
 
@@ -527,4 +527,88 @@ async function fetchDataPlans(config) {
     }
 }
 
-module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, checkBalance, fetchDataPlans };
+/**
+ * Fetch all Cable TV plans from VTPass for price syncing and discovery.
+ * Uses the service-variations endpoint for dstv, gotv, and startimes.
+ */
+async function fetchCablePlans(config) {
+    try {
+        const { apiKey, secretKey, baseUrl } = config;
+        const headers = { 'api-key': apiKey, 'secret-key': secretKey };
+
+        const cableServices = ['dstv', 'gotv', 'startimes'];
+        const plans = [];
+
+        for (const serviceID of cableServices) {
+            try {
+                const res = await axios.get(`${baseUrl}/service-variations?serviceID=${serviceID}`, { headers });
+                if (res.data && res.data.content && res.data.content.varations) {
+                    res.data.content.varations.forEach(v => {
+                        plans.push({
+                            provider: serviceID,              // 'dstv' | 'gotv' | 'startimes'
+                            name: v.name,
+                            code: v.variation_code,           // used as `code` in Service table
+                            apiPrice: parseFloat(v.variation_amount)
+                        });
+                    });
+                }
+            } catch (err) {
+                console.error(`VTPass fetchCablePlans Error for ${serviceID}:`, err.message);
+            }
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No cable plans returned from VTPass' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+}
+
+/**
+ * Fetch all Exam Pin plans from VTPass for price syncing and discovery.
+ * Uses the service-variations endpoint for waec and neco.
+ */
+async function fetchExamPlans(config) {
+    try {
+        const { apiKey, secretKey, baseUrl } = config;
+        const headers = { 'api-key': apiKey, 'secret-key': secretKey };
+
+        const examServices = [
+            { serviceID: 'waec', examType: 'WAEC' },
+            { serviceID: 'neco', examType: 'NECO' },
+            { serviceID: 'nabteb', examType: 'NABTEB' }
+        ];
+        const plans = [];
+
+        for (const { serviceID, examType } of examServices) {
+            try {
+                const res = await axios.get(`${baseUrl}/service-variations?serviceID=${serviceID}`, { headers });
+                if (res.data && res.data.content && res.data.content.varations) {
+                    res.data.content.varations.forEach(v => {
+                        plans.push({
+                            examType,
+                            name: v.name,
+                            code: v.variation_code,
+                            apiPrice: parseFloat(v.variation_amount)
+                        });
+                    });
+                }
+            } catch (err) {
+                console.error(`VTPass fetchExamPlans Error for ${serviceID}:`, err.message);
+            }
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No exam plans returned from VTPass' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+}
+
+module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, checkBalance, fetchDataPlans, fetchCablePlans, fetchExamPlans };

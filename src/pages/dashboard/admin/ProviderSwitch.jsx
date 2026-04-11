@@ -30,6 +30,9 @@ export default function ProviderSwitch() {
 
     const [botStats, setBotStats] = useState({ lastSync: null, status: 'offline', pendingDiscoveries: 0 });
     const [syncing, setSyncing] = useState(false);
+    const [botSchedule, setBotSchedule] = useState({ expression: '0 * * * *', mode: 'hourly', label: 'Every hour' });
+    const [scheduleForm, setScheduleForm] = useState({ mode: 'hourly', value: 2, hour: 8, customCron: '' });
+    const [savingSchedule, setSavingSchedule] = useState(false);
 
     const fetchBotStats = async () => {
         try {
@@ -38,8 +41,28 @@ export default function ProviderSwitch() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setBotStats(res.data.stats);
+            if (res.data.stats?.schedule) {
+                setBotSchedule(res.data.stats.schedule);
+                setScheduleForm(f => ({ ...f, mode: res.data.stats.schedule.mode || 'hourly' }));
+            }
         } catch (error) {
             console.error('Failed to fetch bot stats', error);
+        }
+    };
+
+    const handleSaveSchedule = async () => {
+        setSavingSchedule(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.put('/api/admin/bot/schedule', scheduleForm, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await fetchBotStats();
+            alert('✅ Bot schedule updated successfully!');
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to update schedule');
+        } finally {
+            setSavingSchedule(false);
         }
     };
 
@@ -219,7 +242,120 @@ export default function ProviderSwitch() {
                 </div>
             </div>
 
-            {/* Global Provider Switch */}
+            {/* Bot Schedule Manager */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                    <div>
+                        <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                            🕐 Bot Schedule Management
+                        </h2>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            Current: <span className="font-mono font-semibold text-indigo-600">{botSchedule.expression}</span>
+                            &nbsp;—&nbsp;<span className="text-gray-700">{botSchedule.label}</span>
+                        </p>
+                    </div>
+                </div>
+                <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Mode Selector */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Run Frequency</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    { key: 'hourly',       label: 'Every Hour' },
+                                    { key: 'every_n_hours', label: 'Every N Hours' },
+                                    { key: 'daily',        label: 'Once Daily' },
+                                    { key: 'custom',       label: 'Custom Cron' },
+                                ].map(opt => (
+                                    <button
+                                        key={opt.key}
+                                        onClick={() => setScheduleForm(f => ({ ...f, mode: opt.key }))}
+                                        className={`px-3 py-2.5 rounded-xl text-sm font-medium border text-left transition-all
+                                            ${scheduleForm.mode === opt.key
+                                                ? 'bg-indigo-600 border-indigo-600 text-white shadow-md'
+                                                : 'bg-white border-gray-200 text-gray-700 hover:border-indigo-300'}`}
+                                    >
+                                        {opt.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Dynamic Sub-Option */}
+                        <div>
+                            {scheduleForm.mode === 'hourly' && (
+                                <div className="h-full flex items-center">
+                                    <div className="w-full p-4 bg-indigo-50 rounded-xl border border-indigo-100 text-sm text-indigo-700 font-medium">
+                                        🔄 Bot will run <strong>every hour</strong> automatically.
+                                        <div className="font-mono text-xs mt-1 text-indigo-500">Cron: 0 * * * *</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {scheduleForm.mode === 'every_n_hours' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Run every <span className="text-indigo-600 font-bold">{scheduleForm.value}</span> hour(s)
+                                    </label>
+                                    <input
+                                        type="range" min="1" max="23"
+                                        value={scheduleForm.value}
+                                        onChange={e => setScheduleForm(f => ({ ...f, value: parseInt(e.target.value) }))}
+                                        className="w-full accent-indigo-600"
+                                    />
+                                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                        <span>1h</span><span>12h</span><span>23h</span>
+                                    </div>
+                                    <div className="mt-2 text-xs font-mono text-gray-500">Cron: 0 */{scheduleForm.value} * * *</div>
+                                </div>
+                            )}
+
+                            {scheduleForm.mode === 'daily' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Run daily at <span className="text-indigo-600 font-bold">{String(scheduleForm.hour).padStart(2,'0')}:00</span>
+                                    </label>
+                                    <input
+                                        type="range" min="0" max="23"
+                                        value={scheduleForm.hour}
+                                        onChange={e => setScheduleForm(f => ({ ...f, hour: parseInt(e.target.value) }))}
+                                        className="w-full accent-indigo-600"
+                                    />
+                                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                                        <span>12:00 AM</span><span>12:00 PM</span><span>11:00 PM</span>
+                                    </div>
+                                    <div className="mt-2 text-xs font-mono text-gray-500">Cron: 0 {scheduleForm.hour} * * *</div>
+                                </div>
+                            )}
+
+                            {scheduleForm.mode === 'custom' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Cron Expression</label>
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. 0 */2 * * * or 30 6 * * 1-5"
+                                        value={scheduleForm.customCron}
+                                        onChange={e => setScheduleForm(f => ({ ...f, customCron: e.target.value }))}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    />
+                                    <p className="text-xs text-gray-400 mt-1">Format: minute hour day month weekday</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="mt-5 flex justify-end">
+                        <button
+                            onClick={handleSaveSchedule}
+                            disabled={savingSchedule}
+                            className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-60 shadow-md"
+                        >
+                            {savingSchedule ? <Loader2 className="animate-spin w-4 h-4" /> : '💾'}
+                            {savingSchedule ? 'Saving...' : 'Save Schedule'}
+                        </button>
+                    </div>
+                </div>
+            </div>
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 bg-gray-50/50">
                     <h2 className="text-lg font-semibold text-gray-900">Global Default Configuration</h2>

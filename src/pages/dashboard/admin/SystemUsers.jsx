@@ -103,13 +103,22 @@ export default function SystemUsers() {
 
     const openEditModal = (user) => {
         setEditingUser(user);
+        
+        let initialPerms = {};
+        if (typeof user.permissions === 'string') {
+            try { initialPerms = JSON.parse(user.permissions); } catch(e){}
+        } else if (user.permissions) {
+            initialPerms = user.permissions;
+        }
+
         setFormData({
             name: user.name,
             username: user.username,
             password: '', // Empty for security
             role: user.role,
             pinToken: '',
-            status: user.status
+            status: user.status,
+            permissions: initialPerms
         });
         setIsModalOpen(true);
     };
@@ -239,6 +248,46 @@ export default function SystemUsers() {
                                     <option value={3}>Support</option>
                                 </select>
                             </div>
+
+                            {formData.role !== 1 && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Module Permissions</label>
+                                    <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border border-gray-200 rounded-lg bg-gray-50">
+                                        {[
+                                            { id: 'users', label: 'Users Mgmt' },
+                                            { id: 'services', label: 'Services' },
+                                            { id: 'providers', label: 'Providers' },
+                                            { id: 'transactions', label: 'Transactions' },
+                                            { id: 'reports', label: 'Sales Reports' },
+                                            { id: 'settings', label: 'Settings' },
+                                            { id: 'contact', label: 'Messages/Contact' },
+                                            { id: 'manual-services', label: 'Manual Services' },
+                                            { id: 'api-wallets', label: 'API Wallets' },
+                                            { id: 'cac', label: 'CAC/Tasks' }
+                                        ].map(mod => (
+                                            <label key={mod.id} className="flex items-center space-x-2 text-sm text-gray-700">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={formData.permissions?.[mod.id] !== false}
+                                                    onChange={(e) => {
+                                                        const allow = e.target.checked;
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            permissions: {
+                                                                ...(prev.permissions || {}),
+                                                                [mod.id]: allow
+                                                            }
+                                                        }));
+                                                    }}
+                                                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                                                />
+                                                <span>{mod.label}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">Uncheck a module to restrict this admin's access to it.</p>
+                                </div>
+                            )}
 
                             <Input
                                 label="PIN (4 digits)"

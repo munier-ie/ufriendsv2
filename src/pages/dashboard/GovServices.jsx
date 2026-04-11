@@ -325,10 +325,12 @@ export default function GovServices() {
     const tabs = [
         {
             id: 'nin', label: 'NIN Slip', icon: Landmark,
+            image: '/assets/nin/nimc-services.jpg',
             price: ninPricing?.[selectedSlipType] || 150
         },
         {
             id: 'bvn', label: 'BVN Slip', icon: FileText,
+            image: '/assets/nin/bvn-services.jpg',
             price: bvnPricing?.[selectedBvnSlipType] || 500,
             active: bvnPricing?.active !== false
         },
@@ -358,7 +360,11 @@ export default function GovServices() {
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                             }`}
                     >
-                        <tab.icon size={18} />
+                        {tab.image ? (
+                            <img src={tab.image} alt={tab.label} className="w-5 h-5 rounded-sm object-cover" />
+                        ) : (
+                            <tab.icon size={18} />
+                        )}
                         <span className="font-medium">{tab.label}</span>
                         {tab.active === false ? (
                             <span className="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full">Inactive</span>

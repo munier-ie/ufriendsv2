@@ -19,10 +19,10 @@ async function getVerificationSettings() {
         bvnAgentPrice: 450,
         bvnVendorPrice: 400,
         bvnApiPrice: 300,
-        ninUserPrice: 500,
-        ninAgentPrice: 450,
-        ninVendorPrice: 400,
-        ninApiPrice: 300,
+        ninRegularUserPrice: 150,
+        ninRegularAgentPrice: 140,
+        ninRegularVendorPrice: 130,
+        ninRegularApiPrice: 100,
         active: false // Inactive until admin configures API keys
       }
     });

@@ -91,13 +91,16 @@ export default function UpgradePlanManagement() {
         <div className="space-y-6">
             <div>
                 <h1 className="text-2xl font-bold text-gray-900">Account Upgrade Management</h1>
-                <p className="text-gray-500">Manage fees and features for Agent and Vendor tiers</p>
+                <p className="text-gray-500">Manage fees and features for all account tiers (Regular, Agent, Vendor)</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                 {plans.map((plan, index) => (
                     <div key={plan.type} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-                        <div className={`px-6 py-4 flex justify-between items-center text-white ${plan.type === 2 ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-gradient-to-r from-purple-600 to-pink-600'
+                        <div className={`px-6 py-4 flex justify-between items-center text-white ${
+                            plan.type === 1 ? 'bg-gradient-to-r from-gray-600 to-gray-800' :
+                            plan.type === 2 ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 
+                            'bg-gradient-to-r from-purple-600 to-pink-600'
                             }`}>
                             <div className="flex items-center space-x-3">
                                 <Crown size={24} />
