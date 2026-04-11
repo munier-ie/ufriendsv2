@@ -116,7 +116,7 @@ router.post('/login', async (req, res) => {
         res.json({
             success: true,
             token,
-            admin: { id: admin.id, name: admin.name, username: admin.username, role: admin.role }
+            admin: { id: admin.id, name: admin.name, username: admin.username, role: admin.role, permissions: admin.permissions }
         });
 
     } catch (error) {
@@ -168,7 +168,7 @@ router.post('/verify-2fa', async (req, res) => {
         res.json({
             success: true,
             token,
-            admin: { id: admin.id, name: admin.name, username: admin.username, role: admin.role }
+            admin: { id: admin.id, name: admin.name, username: admin.username, role: admin.role, permissions: admin.permissions }
         });
     } catch (error) {
         console.error('Admin verify 2FA error:', error);
@@ -188,7 +188,10 @@ router.get('/me', adminAuthMiddleware, async (req, res) => {
                 username: true,
                 role: true,
                 pinStatus: true,
-                createdAt: true
+                permissions: true,
+                createdAt: true,
+                twoFaEnabled: true,
+                twoFaMethod: true
             }
         });
         res.json({ success: true, admin });

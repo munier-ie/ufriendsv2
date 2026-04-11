@@ -39,6 +39,7 @@ import Menu from 'lucide-react/dist/esm/icons/menu';
 import X from 'lucide-react/dist/esm/icons/x';
 import Code from 'lucide-react/dist/esm/icons/code';
 import Bot from 'lucide-react/dist/esm/icons/bot';
+import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
 import Logo from '../ui/Logo';
 
 export default function DashboardLayout() {
@@ -60,6 +61,7 @@ export default function DashboardLayout() {
             setIsAdmin(true);
             const adminUser = localStorage.getItem('adminUser');
             if (adminUser) setUser(JSON.parse(adminUser));
+            fetchAdminProfile();
         } else if (token) {
             const storedUser = localStorage.getItem('user');
             if (storedUser) setUser(JSON.parse(storedUser));
@@ -107,6 +109,20 @@ export default function DashboardLayout() {
             setUnreadNotifications(res.data.unreadCount);
         } catch (error) {
             console.error('Failed to fetch unread count', error);
+        }
+    };
+
+    const fetchAdminProfile = async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+            const res = await axios.get('/api/admin/auth/me', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setUser(res.data.admin);
+            localStorage.setItem('adminUser', JSON.stringify(res.data.admin));
+        } catch (error) {
+            console.error('Failed to fetch admin profile', error);
         }
     };
 
@@ -158,6 +174,7 @@ export default function DashboardLayout() {
         { icon: Globe, label: 'Reseller Website', path: '/dashboard/reseller' },
         { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
         { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },
+        { icon: HelpCircle, label: 'Support Center', path: '/dashboard/support' },
         { icon: User, label: 'Profile', path: '/dashboard/profile' },
     ];
 
@@ -170,42 +187,65 @@ export default function DashboardLayout() {
 
     const adminSidebarItems = [
         { icon: LayoutDashboard, label: 'Admin Home', path: '/admin/dashboard' },
-        { icon: Users, label: 'Users', path: '/admin/dashboard/users' },
-        { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services' },
-        { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers' },
-        { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans' },
-        { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions' },
-        { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales' },
-        { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings' },
-        { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments' },
-        { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks' },
-        { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist' },
-        { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users' },
-        { icon: Wallet, label: 'API Wallets', path: '/admin/dashboard/api-wallets' },
-        { icon: PhoneCall, label: 'Airtime 2 Cash', path: '/admin/dashboard/airtime-cash' },
-        { icon: Crown, label: 'Alpha Topup', path: '/admin/dashboard/alpha-topup' },
-        { icon: FileText, label: 'CAC Registration', path: '/admin/dashboard/cac' },
-        { icon: Send, label: 'Messages', path: '/admin/dashboard/contact' },
-        { icon: Wifi, label: 'Smile Data', path: '/admin/dashboard/smile-plans' },
-        { icon: GraduationCap, label: 'Exam Pins', path: '/admin/dashboard/exam-pins' },
-        { icon: Tag, label: 'Pin Stock', path: '/admin/dashboard/pins' },
-        { icon: Users, label: 'Referrals', path: '/admin/dashboard/referrals' },
-        { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades' },
-        { icon: Code, label: 'Software Options', path: '/admin/dashboard/settings/software' },
-        { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing' },
-        { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast' },
-        { icon: BarChart, label: 'Analytics', path: '/admin/dashboard/reports' },
-        { icon: Tv, label: 'Cable TV', path: '/admin/dashboard/cable' },
-        { icon: Zap, label: 'Electricity', path: '/admin/dashboard/electricity' },
-        { icon: MessageSquare, label: 'Bulk SMS', path: '/admin/dashboard/sms' },
-        { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts' },
-        { icon: FileEdit, label: 'Manual Services', path: '/admin/dashboard/manual-services' },
-        { icon: GraduationCap, label: 'Academy', path: '/admin/dashboard/academy' },
+        { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
+        { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services', moduleId: 'services' },
+        { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers', moduleId: 'providers' },
+        { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans', moduleId: 'services' },
+        { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
+        { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales', moduleId: 'reports' },
+        { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings', moduleId: 'settings' },
+        { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments', moduleId: 'settings' },
+        { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks', moduleId: 'settings' },
+        { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist', moduleId: 'settings' },
+        { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
+        { icon: Wallet, label: 'API Wallets', path: '/admin/dashboard/api-wallets', moduleId: 'api-wallets' },
+        { icon: PhoneCall, label: 'Airtime 2 Cash', path: '/admin/dashboard/airtime-cash', moduleId: 'services' },
+        { icon: Crown, label: 'Alpha Topup', path: '/admin/dashboard/alpha-topup', moduleId: 'services' },
+        { icon: FileText, label: 'CAC Registration', path: '/admin/dashboard/cac', moduleId: 'cac' },
+        { icon: Send, label: 'Messages', path: '/admin/dashboard/contact', moduleId: 'contact' },
+        { icon: Wifi, label: 'Smile Data', path: '/admin/dashboard/smile-plans', moduleId: 'services' },
+        { icon: GraduationCap, label: 'Exam Pins', path: '/admin/dashboard/exam-pins', moduleId: 'services' },
+        { icon: Tag, label: 'Pin Stock', path: '/admin/dashboard/pins', moduleId: 'services' },
+        { icon: Users, label: 'Referrals', path: '/admin/dashboard/referrals', moduleId: 'users' },
+        { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades', moduleId: 'settings' },
+        { icon: Code, label: 'Software Options', path: '/admin/dashboard/settings/software', moduleId: 'settings' },
+        { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing', moduleId: 'settings' },
+        { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast', moduleId: 'contact' },
+        { icon: BarChart, label: 'Analytics', path: '/admin/dashboard/reports', moduleId: 'reports' },
+        { icon: Tv, label: 'Cable TV', path: '/admin/dashboard/cable', moduleId: 'services' },
+        { icon: Zap, label: 'Electricity', path: '/admin/dashboard/electricity', moduleId: 'services' },
+        { icon: MessageSquare, label: 'Bulk SMS', path: '/admin/dashboard/sms', moduleId: 'services' },
+        { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },
+        { icon: FileEdit, label: 'Manual Services', path: '/admin/dashboard/manual-services', moduleId: 'manual-services' },
+        { icon: GraduationCap, label: 'Academy', path: '/admin/dashboard/academy', moduleId: 'services' },
         { icon: User, label: 'My Account', path: '/admin/dashboard/profile' },
     ];
 
+    const getFilteredAdminItems = () => {
+        let perms = {};
+        if (user?.permissions) {
+            if (typeof user.permissions === 'string') {
+                try { perms = JSON.parse(user.permissions); } catch (e) { }
+            } else {
+                perms = user.permissions;
+            }
+        }
+
+        return adminSidebarItems.filter(item => {
+            if (user?.role === 1) return true; // Super Admin sees all
+
+            if (item.moduleId === 'system-users') return false; // Hidden for non-super admins
+            
+            if (item.moduleId && perms[item.moduleId] === false) {
+                return false;
+            }
+
+            return true;
+        });
+    };
+
     const sidebarItems = isAdmin
-        ? adminSidebarItems
+        ? getFilteredAdminItems()
         : (user?.accountType === 'vendor' ? [...userSidebarItems, ...vendorSidebarItems] : userSidebarItems);
 
     return (

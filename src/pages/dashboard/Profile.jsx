@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import User from 'lucide-react/dist/esm/icons/user';
 import Mail from 'lucide-react/dist/esm/icons/mail';
@@ -182,6 +182,19 @@ export default function Profile() {
     const handleLogout = () => {
         localStorage.removeItem('token');
         navigate('/login');
+    };
+
+    const handleGenerateApiKey = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.post('/api/auth/generate-api-key', {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert('API Key Generated Successfully!');
+            setProfileData(prev => ({ ...prev, apiKey: response.data.apiKey }));
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to generate API Key');
+        }
     };
 
     if (loading) {
@@ -567,7 +580,17 @@ export default function Profile() {
                     >
                         <div className="space-y-4">
                             <div className="bg-purple-50 rounded-xl p-4">
-                                <p className="text-sm text-purple-600 mb-2">Your API Key</p>
+                                <div className="flex justify-between items-center mb-2">
+                                    <p className="text-sm text-purple-600">Your API Key</p>
+                                    {!profileData?.apiKey && (
+                                        <button
+                                            onClick={handleGenerateApiKey}
+                                            className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition"
+                                        >
+                                            Generate Key
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex items-center space-x-2">
                                     <input
                                         type={showApiKey ? 'text' : 'password'}
@@ -590,20 +613,20 @@ export default function Profile() {
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
-                                <a
-                                    href="/api-docs"
+                                <Link
+                                    to="/dashboard/api-docs"
                                     className="flex items-center justify-center space-x-2 bg-white border-2 border-primary text-primary py-3 rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors"
                                 >
                                     <Code size={20} />
                                     <span>API Docs</span>
-                                </a>
-                                <a
-                                    href="/dashboard/pricing"
+                                </Link>
+                                <Link
+                                    to="/dashboard/pricing"
                                     className="flex items-center justify-center space-x-2 bg-white border-2 border-secondary text-secondary py-3 rounded-lg font-semibold hover:bg-secondary hover:text-white transition-colors"
                                 >
                                     <CreditCard size={20} />
                                     <span>View Pricing</span>
-                                </a>
+                                </Link>
                             </div>
                         </div>
                     </AccordionItem>

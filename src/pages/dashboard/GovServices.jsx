@@ -325,12 +325,12 @@ export default function GovServices() {
     const tabs = [
         {
             id: 'nin', label: 'NIN Slip', icon: Landmark,
-            image: '/assets/nin/nimc-services.jpg',
+            image: '/assets/nin/ninIcon.png',
             price: ninPricing?.[selectedSlipType] || 150
         },
         {
             id: 'bvn', label: 'BVN Slip', icon: FileText,
-            image: '/assets/nin/bvn-services.jpg',
+            image: '/assets/nin/bvn-slip.jpg',
             price: bvnPricing?.[selectedBvnSlipType] || 500,
             active: bvnPricing?.active !== false
         },
@@ -468,29 +468,55 @@ export default function GovServices() {
 
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700">Select Slip Type</label>
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                    {['regular', 'standard', 'premium', 'vnin'].map((type) => (
-                                        <button
-                                            key={type}
-                                            type="button"
-                                            onClick={() => setSelectedSlipType(type)}
-                                            className={`p-4 border-2 rounded-xl transition-all text-left ${selectedSlipType === type
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="font-bold text-lg capitalize">{type} Slip</span>
-                                                {selectedSlipType === type ? <CheckCircle size={20} className="text-primary" /> : null}
-                                            </div>
-                                            <p className="text-2xl font-black text-primary mb-2">
-                                                ₦{ninPricing?.[type]?.toLocaleString() || (type === 'vnin' ? '1,000' : type === 'regular' ? '150' : '200')}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                {type === 'regular' ? 'Basic NIMC table format' : type === 'standard' ? 'ID card with QR code' : type === 'premium' ? 'Premium ID card design' : 'Verification-as-a-Service report'}
-                                            </p>
-                                        </button>
-                                    ))}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {['regular', 'standard', 'premium', 'vnin'].map((type) => {
+                                        const sampleImg = {
+                                            regular: '/assets/nin/samples/nin-regular.png',
+                                            standard: '/assets/nin/samples/nin-standard.png',
+                                            premium: '/assets/nin/samples/nin-premium.png',
+                                            vnin: '/assets/nin/samples/nin-vnin.jpg'
+                                        }[type];
+
+                                        return (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => setSelectedSlipType(type)}
+                                                className={`p-4 border-2 rounded-xl transition-all text-left flex flex-col h-full ${selectedSlipType === type
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-gray-200 hover:border-gray-300'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-bold text-lg capitalize">{type} Slip</span>
+                                                    {selectedSlipType === type ? <CheckCircle size={20} className="text-primary" /> : null}
+                                                </div>
+
+                                                {sampleImg ? (
+                                                    <div className="mb-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 h-32 flex items-center justify-center">
+                                                        <img
+                                                            src={sampleImg}
+                                                            alt={`${type} slip sample`}
+                                                            className="w-full h-full object-contain hover:scale-105 transition-transform"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="mb-3 rounded-lg border border-gray-100 bg-gray-50 h-32 flex items-center justify-center">
+                                                        <Landmark size={40} className="text-gray-300" />
+                                                    </div>
+                                                )}
+
+                                                <div className="mt-auto">
+                                                    <p className="text-2xl font-black text-primary mb-2">
+                                                        ₦{ninPricing?.[type]?.toLocaleString() || (type === 'vnin' ? '1,000' : type === 'regular' ? '150' : '200')}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {type === 'regular' ? 'Basic NIMC table format' : type === 'standard' ? 'ID card with QR code' : type === 'premium' ? 'Premium ID card design' : 'Verification-as-a-Service report'}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -539,28 +565,52 @@ export default function GovServices() {
                             <div className="space-y-3">
                                 <label className="block text-sm font-medium text-gray-700">Select Slip Type</label>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {['regular', 'plastic'].map((type) => (
-                                        <button
-                                            key={type}
-                                            type="button"
-                                            onClick={() => setSelectedBvnSlipType(type)}
-                                            className={`p-4 border-2 rounded-xl transition-all text-left ${selectedBvnSlipType === type
-                                                ? 'border-primary bg-primary/5'
-                                                : 'border-gray-200 hover:border-gray-300'
-                                                }`}
-                                        >
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className="font-bold text-lg capitalize">{type === 'plastic' ? 'Premium Plastic' : 'Regular'} Slip</span>
-                                                {selectedBvnSlipType === type ? <CheckCircle size={20} className="text-primary" /> : null}
-                                            </div>
-                                            <p className="text-2xl font-black text-primary mb-2">
-                                                ₦{bvnPricing?.[type]?.toLocaleString() || (type === 'regular' ? '500' : '1,000')}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                {type === 'regular' ? 'Basic table format for verification' : 'Premium plastic card design (Ideal for printing)'}
-                                            </p>
-                                        </button>
-                                    ))}
+                                    {['regular', 'plastic'].map((type) => {
+                                        const sampleImg = {
+                                            regular: '/assets/nin/samples/bvn-regular.jpeg',
+                                            plastic: '/assets/nin/samples/bvn-plastic.jpg'
+                                        }[type];
+
+                                        return (
+                                            <button
+                                                key={type}
+                                                type="button"
+                                                onClick={() => setSelectedBvnSlipType(type)}
+                                                className={`p-4 border-2 rounded-xl transition-all text-left flex flex-col h-full ${selectedBvnSlipType === type
+                                                    ? 'border-primary bg-primary/5'
+                                                    : 'border-gray-200 hover:border-gray-300'
+                                                    }`}
+                                            >
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <span className="font-bold text-lg capitalize">{type === 'plastic' ? 'Premium Plastic' : 'Regular'} Slip</span>
+                                                    {selectedBvnSlipType === type ? <CheckCircle size={20} className="text-primary" /> : null}
+                                                </div>
+
+                                                {sampleImg ? (
+                                                    <div className="mb-3 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 h-40 flex items-center justify-center">
+                                                        <img
+                                                            src={sampleImg}
+                                                            alt={`${type} slip sample`}
+                                                            className="w-full h-full object-contain hover:scale-105 transition-transform"
+                                                        />
+                                                    </div>
+                                                ) : (
+                                                    <div className="mb-3 rounded-lg border border-gray-100 bg-gray-50 h-40 flex items-center justify-center">
+                                                        <FileText size={48} className="text-gray-300" />
+                                                    </div>
+                                                )}
+
+                                                <div className="mt-auto">
+                                                    <p className="text-2xl font-black text-primary mb-2">
+                                                        ₦{bvnPricing?.[type]?.toLocaleString() || (type === 'regular' ? '500' : '1,000')}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500">
+                                                        {type === 'regular' ? 'Basic table format for verification' : 'Premium plastic card design (Ideal for printing)'}
+                                                    </p>
+                                                </div>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 

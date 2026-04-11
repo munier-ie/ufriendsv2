@@ -265,4 +265,46 @@ router.get('/software-options', authenticateUser, async (req, res) => {
     }
 });
 
+// GET /api/user/support - Get user's support messages
+router.get('/support', authenticateUser, async (req, res) => {
+    try {
+        const messages = await prisma.contactMessage.findMany({
+            where: { email: req.user.email },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ success: true, messages });
+    } catch (error) {
+        console.error('Fetch support messages error:', error);
+        res.status(500).json({ error: 'Failed to fetch messages' });
+    }
+});
+
+// POST /api/user/support - Create a new support message
+router.post('/support', authenticateUser, async (req, res) => {
+    try {
+        const { subject, message } = z.object({
+            subject: z.string().min(3),
+            message: z.string().min(10)
+        }).parse(req.body);
+
+        const newMessage = await prisma.contactMessage.create({
+            data: {
+                name: `${req.user.firstName} ${req.user.lastName}`,
+                email: req.user.email,
+                subject,
+                message,
+                status: 0
+            }
+        });
+
+        res.json({ success: true, message: 'Message sent successfully', data: newMessage });
+    } catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: 'Invalid input. Please provide a valid subject and message.' });
+        }
+        console.error('Create support message error:', error);
+        res.status(500).json({ error: 'Failed to send message' });
+    }
+});
+
 module.exports = router;
