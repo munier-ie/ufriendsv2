@@ -395,14 +395,14 @@ export default function DashboardHome() {
 
                     <Link to="/dashboard/gov-services?tab=bvn" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/bvn-services.jpg" alt="BVN Slip" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/bvn-slip.jpg" alt="BVN Slip" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">BVN Slip</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services?tab=nin" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/nimc-services.jpg" alt="NIN Slip" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/ninIcon.png" alt="NIN Slip" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">NIN Slip</span>
                     </Link>

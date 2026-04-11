@@ -27,6 +27,7 @@ import SmileData from './pages/dashboard/SmileData';
 import BulkSMS from './pages/dashboard/BulkSMS';
 import SellPin from './pages/dashboard/SellPin';
 import Reseller from './pages/dashboard/Reseller';
+import Support from './pages/dashboard/Support';
 import NotFound from './pages/NotFound';
 
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard';
@@ -107,6 +108,7 @@ export default function App() {
                     <Route path="reseller" element={<Reseller />} />
                     <Route path="manual-services" element={<ManualServices />} />
                     <Route path="academy" element={<Academy />} />
+                    <Route path="support" element={<Support />} />
                 </Route>
 
                 {/* Protected Admin Routes */}

@@ -10,7 +10,8 @@ export default function BroadcastMessage() {
     const [formData, setFormData] = useState({
         title: '',
         message: '',
-        userType: ''
+        userType: '',
+        sendEmail: false
     });
     const [sending, setSending] = useState(false);
 
@@ -27,7 +28,7 @@ export default function BroadcastMessage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             alert(res.data.message);
-            setFormData({ title: '', message: '', userType: '' });
+            setFormData({ title: '', message: '', userType: '', sendEmail: false });
         } catch (error) {
             console.error(error);
             alert(error.response?.data?.error || 'Failed to send broadcast');
@@ -81,6 +82,19 @@ export default function BroadcastMessage() {
                             placeholder="Type your message here..."
                             required
                         />
+                    </div>
+
+                    <div className="flex items-center mt-2">
+                        <input
+                            type="checkbox"
+                            id="sendEmail"
+                            className="w-4 h-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+                            checked={formData.sendEmail}
+                            onChange={e => setFormData({ ...formData, sendEmail: e.target.checked })}
+                        />
+                        <label htmlFor="sendEmail" className="ml-2 block text-sm text-gray-900">
+                            Send copy via Email
+                        </label>
                     </div>
 
                     <Button type="submit" loading={sending} className="w-full flex justify-center items-center">

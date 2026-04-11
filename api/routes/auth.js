@@ -465,7 +465,9 @@ router.get('/profile', async (req, res) => {
                 kycStatus: true,
                 pinEnabled: true,
                 apiKey: true,
-                referralCode: true
+                referralCode: true,
+                twoFaEnabled: true,
+                twoFaMethod: true
             }
         });
 
@@ -494,6 +496,8 @@ router.get('/profile', async (req, res) => {
             pinEnabled: user.pinEnabled || false,
             apiKey: user.type === 3 ? user.apiKey : null,
             referralCode: user.referralCode,
+            twoFaEnabled: user.twoFaEnabled || false,
+            twoFaMethod: user.twoFaMethod || 'totp',
             totalReferrals
         });
     } catch (error) {
@@ -740,6 +744,38 @@ router.post('/reset-password', async (req, res) => {
         res.json({ message: 'Password has been reset successfully. You can now login.' });
     } catch (error) {
         console.error('Reset password error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Generate / Regenerate API Key
+router.post('/generate-api-key', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        // Re-check user to ensure they are a vendor (type === 3)
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.userId }
+        });
+
+        if (!user || user.type !== 3) {
+            return res.status(403).json({ error: 'Only vendors can generate API keys.' });
+        }
+
+        const crypto = require('crypto');
+        const newApiKey = crypto.randomBytes(32).toString('hex');
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { apiKey: newApiKey }
+        });
+
+        res.json({ message: 'API Key generated successfully', apiKey: newApiKey });
+    } catch (error) {
+        console.error('API Key generation error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

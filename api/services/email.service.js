@@ -75,9 +75,12 @@ async function sendWelcomeEmail(user) {
             <p>We are excited to have you on board. Your account has been successfully created.</p>
             <p>You can now log in and start enjoying our services:</p>
             <ul>
-                <li>Buy Data & Airtime</li>
-                <li>Pay Utility Bills</li>
-                <li>Upgrade your account for better rates</li>
+                <li>Buy Internet Data & Airtime</li>
+                <li>Pay Electricity & Cable TV Bills (DStv, GOtv, Startimes)</li>
+                <li>Purchase Educational PINs (WAEC, NECO, NABTEB)</li>
+                <li>Access Government Services (CAC, NIN, BVN)</li>
+                <li>Convert Airtime to Cash</li>
+                <li>Developer API Access (Vendors only)</li>
             </ul>
             <p>If you have any questions, feel free to contact our support team.</p>
             <br>

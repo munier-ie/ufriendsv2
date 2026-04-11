@@ -948,13 +948,14 @@ router.post('/transactions/:id/retry', adminAuth, async (req, res) => {
 // POST /api/admin/broadcast - Send broadcast notification
 router.post('/broadcast', adminAuth, async (req, res) => {
     try {
-        const { title, message, userType } = req.body;
+        const { title, message, userType, sendEmail } = req.body;
+        const emailService = require('../services/email.service');
 
         // Get users based on type filter
         const where = userType ? { type: parseInt(userType) } : {};
         const users = await prisma.user.findMany({
             where,
-            select: { id: true }
+            select: { id: true, email: true }
         });
 
         // Create notification for each user
@@ -969,9 +970,28 @@ router.post('/broadcast', adminAuth, async (req, res) => {
             data: notifications
         });
 
+        if (sendEmail) {
+            // Asynchronously dispatch emails so the request doesn't hang
+            const emailHtml = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #1e90ff; border-radius: 12px; padding: 30px; background-color: #ffffff;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h2 style="color: #1e90ff; margin: 0; font-size: 24px;">Ufriends Notification</h2>
+                    </div>
+                    <p style="color: #333333; font-size: 16px; margin-bottom: 20px;"><strong>${title}</strong></p>
+                    <div style="color: #555555; font-size: 15px; line-height: 1.5; margin-bottom: 25px; white-space: pre-wrap;">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            Promise.allSettled(
+                users.map(u => u.email ? emailService.sendEmail(u.email, title, emailHtml) : Promise.resolve())
+            ).catch(err => console.error("Email broadcast error:", err));
+        }
+
         res.json({
             success: true,
-            message: `Broadcast sent to ${notifications.length} users`
+            message: `Broadcast sent to ${notifications.length} users${sendEmail ? ' and queued for email delivery' : ''}`
         });
     } catch (error) {
         console.error('Broadcast error:', error);
