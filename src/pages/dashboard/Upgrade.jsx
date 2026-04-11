@@ -43,23 +43,17 @@ export default function Upgrade() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            // Add the default 'Regular' tier for display if not in DB
             const dbTiers = res.data.plans.map(plan => ({
                 ...plan,
-                color: plan.type === 2 ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800',
-                border: plan.type === 2 ? 'border-blue-200' : 'border-purple-200'
+                color: plan.type === 1 ? 'bg-gray-100 text-gray-800' :
+                       plan.type === 2 ? 'bg-blue-100 text-blue-800' : 
+                       'bg-amber-100 text-amber-800',
+                border: plan.type === 1 ? 'border-gray-200' :
+                        plan.type === 2 ? 'border-blue-200' : 
+                        'border-amber-200'
             }));
 
-            const regularTier = {
-                type: 1,
-                name: 'Regular',
-                price: 0,
-                features: ['Basic Usage', 'Standard Support', 'Standard Prices'],
-                color: 'bg-gray-100 text-gray-800',
-                active: true
-            };
-
-            setTiers([regularTier, ...dbTiers]);
+            setTiers(dbTiers);
         } catch (error) {
             console.error('Failed to fetch tiers:', error);
         }
@@ -188,7 +182,8 @@ export default function Upgrade() {
                                 loading={upgrading && canUpgrade} // Only show loader on the active button
                                 className={`w-full py-3 font-bold ${isCurrent ? 'bg-gray-100 text-gray-500 cursor-default hover:bg-gray-100' :
                                     isLower ? 'bg-gray-50 text-gray-400 cursor-not-allowed hover:bg-gray-50' :
-                                        tier.type === 3 ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white' :
+                                        tier.type === 3 ? 'bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white' :
+                                        tier.type === 2 ? 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white' :
                                             'bg-primary hover:bg-primary/90'
                                     }`}
                             >

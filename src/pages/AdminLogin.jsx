@@ -17,6 +17,10 @@ export default function AdminLogin() {
     const [pinRequired, setPinRequired] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
 
+    const [step, setStep] = useState('login');
+    const [adminId, setAdminId] = useState(null);
+    const [verificationCode, setVerificationCode] = useState('');
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
@@ -34,7 +38,10 @@ export default function AdminLogin() {
 
             const response = await axios.post('/api/admin/auth/login', payload);
 
-            if (response.data.success) {
+            if (response.data.twoFaRequired) {
+                setAdminId(response.data.adminId);
+                setStep('2fa-verify');
+            } else if (response.data.success) {
                 localStorage.setItem('adminToken', response.data.token);
                 localStorage.setItem('adminUser', JSON.stringify(response.data.admin));
                 navigate('/admin/dashboard');
@@ -46,6 +53,29 @@ export default function AdminLogin() {
             } else {
                 setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
             }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleVerifySubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        try {
+            const { data } = await axios.post('/api/admin/auth/verify-2fa', {
+                adminId,
+                code: verificationCode
+            });
+
+            if (data.success) {
+                localStorage.setItem('adminToken', data.token);
+                localStorage.setItem('adminUser', JSON.stringify(data.admin));
+                navigate('/admin/dashboard');
+            }
+        } catch (err) {
+            setError(err.response?.data?.error || 'Verification failed. Please check the code.');
         } finally {
             setLoading(false);
         }
@@ -73,9 +103,11 @@ export default function AdminLogin() {
                             <Logo className="w-16 h-16" />
                         </div>
                         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-600 to-red-400">
-                            Admin Panel
+                            {step === 'login' ? 'Admin Panel' : '2FA Required'}
                         </h1>
-                        <p className="text-gray-600 mt-2">Sign in to access the admin dashboard</p>
+                        <p className="text-gray-600 mt-2">
+                            {step === 'login' ? 'Sign in to access the admin dashboard' : 'Enter your authenticator code'}
+                        </p>
                     </div>
 
                     {/* Error Message */}
@@ -86,6 +118,7 @@ export default function AdminLogin() {
                     )}
 
                     {/* Login Form */}
+                    {step === 'login' && (
                     <form onSubmit={handleSubmit} className="space-y-5">
                         <Input
                             label="Username"
@@ -160,6 +193,38 @@ export default function AdminLogin() {
                             Sign In
                         </Button>
                     </form>
+                    )}
+
+                    {step === '2fa-verify' && (
+                        <form onSubmit={handleVerifySubmit} className="space-y-5">
+                            <Input
+                                label="2FA Code"
+                                type="text"
+                                maxLength="6"
+                                value={verificationCode}
+                                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
+                                required
+                                placeholder="Enter 6-digit code"
+                                className="text-center tracking-widest text-xl font-mono"
+                            />
+                            
+                            <Button
+                                type="submit"
+                                className="w-full py-4 text-lg font-bold bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 shadow-lg shadow-red-500/25"
+                                loading={loading}
+                            >
+                                Verify Identity
+                            </Button>
+
+                            <button 
+                                type="button" 
+                                onClick={() => { setStep('login'); setVerificationCode(''); setError(''); }}
+                                className="w-full text-center text-sm font-medium text-gray-500 hover:text-gray-700 outline-none"
+                            >
+                                Cancel & Return to Login
+                            </button>
+                        </form>
+                    )}
 
                     {/* Back to User Login */}
                     <div className="mt-6 text-center">

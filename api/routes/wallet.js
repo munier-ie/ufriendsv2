@@ -133,7 +133,65 @@ router.get('/transactions', authenticateUser, async (req, res) => {
         const where = { userId: req.user.id };
 
         if (type && type !== 'all') {
-            where.type = type;
+            if (type === 'airtime') {
+                where.serviceName = { contains: 'airtime', mode: 'insensitive' };
+            } else if (type === 'data' && !type.includes('pin')) {
+                // Data plans: serviceName contains 'MB' or 'GB' or 'Data' but NOT airtime, pin, exam
+                where.AND = [
+                    { OR: [
+                        { serviceName: { contains: 'MB', mode: 'insensitive' } },
+                        { serviceName: { contains: 'GB', mode: 'insensitive' } },
+                        { serviceName: { contains: 'data', mode: 'insensitive' } }
+                    ]},
+                    { NOT: { serviceName: { contains: 'airtime', mode: 'insensitive' } } },
+                    { NOT: { serviceName: { contains: 'pin', mode: 'insensitive' } } },
+                    { NOT: { serviceName: { contains: 'exam', mode: 'insensitive' } } }
+                ];
+            } else if (type === 'cable') {
+                where.OR = [
+                    { serviceName: { contains: 'dstv', mode: 'insensitive' } },
+                    { serviceName: { contains: 'gotv', mode: 'insensitive' } },
+                    { serviceName: { contains: 'startimes', mode: 'insensitive' } },
+                    { serviceName: { contains: 'cable', mode: 'insensitive' } },
+                    { serviceName: { contains: 'showmax', mode: 'insensitive' } }
+                ];
+            } else if (type === 'electricity') {
+                where.OR = [
+                    { serviceName: { contains: 'electricity', mode: 'insensitive' } },
+                    { serviceName: { contains: 'prepaid', mode: 'insensitive' } },
+                    { serviceName: { contains: 'postpaid', mode: 'insensitive' } },
+                    { serviceName: { contains: 'keco', mode: 'insensitive' } },
+                    { serviceName: { contains: 'ikeja', mode: 'insensitive' } },
+                    { serviceName: { contains: 'eko', mode: 'insensitive' } },
+                    { serviceName: { contains: 'disco', mode: 'insensitive' } },
+                    { serviceName: { contains: 'unit', mode: 'insensitive' } }
+                ];
+            } else if (type === 'exam') {
+                where.OR = [
+                    { serviceName: { contains: 'waec', mode: 'insensitive' } },
+                    { serviceName: { contains: 'neco', mode: 'insensitive' } },
+                    { serviceName: { contains: 'exam', mode: 'insensitive' } },
+                    { serviceName: { contains: 'result checker', mode: 'insensitive' } }
+                ];
+            } else if (type === 'data_pin') {
+                where.AND = [
+                    { type: 'pin' },
+                    { NOT: { serviceName: { contains: 'waec', mode: 'insensitive' } } },
+                    { NOT: { serviceName: { contains: 'neco', mode: 'insensitive' } } }
+                ];
+            } else if (type === 'nin_slip') {
+                where.AND = [
+                    { type: 'professional' },
+                    { serviceName: { contains: 'nin', mode: 'insensitive' } }
+                ];
+            } else if (type === 'bvn_slip') {
+                where.AND = [
+                    { type: 'professional' },
+                    { serviceName: { contains: 'bvn', mode: 'insensitive' } }
+                ];
+            } else {
+                where.type = type;
+            }
         }
 
         if (status && status !== 'all') {
@@ -152,11 +210,22 @@ router.get('/transactions', authenticateUser, async (req, res) => {
         }
 
         if (search) {
-            where.OR = [
+            const searchConditions = [
                 { reference: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
                 { serviceName: { contains: search, mode: 'insensitive' } }
             ];
+            // Merge search into existing AND if present, or just set OR
+            if (where.AND) {
+                where.AND.push({ OR: searchConditions });
+            } else if (where.OR) {
+                // Already have an OR for type filter — wrap everything in AND
+                const existingOR = where.OR;
+                delete where.OR;
+                where.AND = [{ OR: existingOR }, { OR: searchConditions }];
+            } else {
+                where.OR = searchConditions;
+            }
         }
 
         const [transactions, total] = await Promise.all([

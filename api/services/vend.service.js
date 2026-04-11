@@ -172,13 +172,16 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
 
 // Helper to find handler
 function findProviderHandler(name) {
+    if (!name) return null;
+    const normalizedName = name.toLowerCase().replace(/\s+/g, '');
+    
     // Check exact match
-    if (providers[name]) return providers[name];
+    if (providers[normalizedName]) return providers[normalizedName];
 
     // Check partial (e.g. n3tdata matches n3tdata247)
     const keys = Object.keys(providers);
     for (const key of keys) {
-        if (name.includes(key)) return providers[key];
+        if (normalizedName.includes(key)) return providers[key];
     }
     return null;
 }
@@ -312,8 +315,9 @@ async function vendData(transaction, service, phone, network) {
  * @param {string} iuc - IUC/SmartCard number
  * @param {string} phone - Customer phone number
  * @param {string} subscriptionType - change, renew
+ * @param {string} accessToken - auth token returned from verification process
  */
-async function vendCable(transaction, service, iuc, phone, subscriptionType = 'change') {
+async function vendCable(transaction, service, iuc, phone, subscriptionType = 'change', accessToken = null) {
     try {
         console.log(`Attempting to vend TV for ${iuc} using ${service.provider}`);
 
@@ -344,12 +348,13 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
         const details = {
             serviceID: service.provider.toLowerCase(), // e.g. 'dstv', 'gotv'
             cableId: service.provider.toLowerCase(),
-            variationCode: service.apiPlanId || service.providerPlanId,
-            planId: service.apiPlanId || service.providerPlanId,
+            variationCode: service.code || service.apiPlanId || service.providerPlanId,
+            planId: service.code || service.apiPlanId || service.providerPlanId,
             number: iuc,
             phone: phone,
             requestId: transaction.reference,
-            subscriptionType
+            subscriptionType,
+            accessToken // ensure accessToken is passed downward
         };
 
         const result = await handler.purchaseTV(details, config);
@@ -396,9 +401,11 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
  * @param {Object} service - The service object
  * @param {string} meterNo - Meter number
  * @param {string} phone - Customer phone
+ * @param {number} baseAmount - Base electricity amount without admin fee
  * @param {string} meterType - prepaid, postpaid
+ * @param {string} accessToken - auth token returned from verify phase
  */
-async function vendElectricity(transaction, service, meterNo, phone, meterType = 'prepaid') {
+async function vendElectricity(transaction, service, meterNo, phone, baseAmount, meterType = 'prepaid', accessToken = null) {
     try {
         console.log(`Attempting to vend Electricity for ${meterNo} using ${service.provider}`);
 
@@ -431,10 +438,11 @@ async function vendElectricity(transaction, service, meterNo, phone, meterType =
             discoId: service.provider.toLowerCase(),
             variationCode: meterType,
             number: meterNo,
-            amount: Math.abs(transaction.amount),
+            amount: baseAmount || Math.abs(transaction.amount),
             phone: phone,
             requestId: transaction.reference,
-            type: meterType
+            type: meterType,
+            accessToken // ensure accessToken is passed downward
         };
 
         const result = await handler.purchaseElectricity(details, config);
@@ -482,6 +490,20 @@ async function vendElectricity(transaction, service, meterNo, phone, meterType =
  * @param {number} quantity
  * @param {string} phone - Recipient phone
  */
+// Map quantity number to provider eduType codes
+const NECO_QTY_MAP = { 1: 'NEONE', 2: 'NETWO', 3: 'NETHR', 4: 'NEFOUR', 5: 'NEFIVE' };
+const WAEC_QTY_MAP = { 1: 'WAONE', 2: 'WATWO', 3: 'WATHR', 4: 'WAFOUR', 5: 'WAFIVE' };
+
+function getExamEduTypeCode(examType, quantity) {
+    const type = (examType || '').toUpperCase();
+    const qty = parseInt(quantity) || 1;
+
+    if (type.includes('NECO')) return NECO_QTY_MAP[qty] || `NEFIVE`;
+    if (type.includes('WAEC')) return WAEC_QTY_MAP[qty] || `WAFIVE`;
+    // Fallback: return quantity as-is for other exam types
+    return qty;
+}
+
 async function vendExam(transaction, service, quantity, phone) {
     try {
         console.log(`Attempting to vend Exam Pin for ${phone} using ${service.provider}`);
@@ -510,11 +532,18 @@ async function vendExam(transaction, service, quantity, phone) {
             userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
         };
 
+        // Determine the correct quantity format/code for the provider
+        const examType = service.provider || service.name || '';
+        const eduTypeCode = getExamEduTypeCode(examType, quantity);
+
+        console.log(`[ExamVend] examType=${examType}, quantity=${quantity}, eduTypeCode=${eduTypeCode}`);
+
         const details = {
             serviceID: service.provider.toLowerCase(),
             examId: service.provider.toLowerCase(),
             variationCode: service.apiPlanId || service.providerPlanId,
             quantity: quantity,
+            eduType: eduTypeCode,   // Provider-specific quantity code (NEONE, WATWO etc.)
             phone: phone,
             requestId: transaction.reference
         };

@@ -297,6 +297,75 @@ router.post('/users/:id/fund', adminAuth, async (req, res) => {
     }
 });
 
+// POST /api/admin/users/:id/debit
+router.post('/users/:id/debit', adminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { amount, description } = req.body;
+
+        if (!amount || parseFloat(amount) <= 0) {
+            return res.status(400).json({ error: 'Invalid amount' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const debitAmount = parseFloat(amount);
+        if (user.wallet < debitAmount) {
+            return res.status(400).json({ error: `Insufficient wallet balance. User has ₦${user.wallet.toFixed(2)}` });
+        }
+
+        const newBalance = user.wallet - debitAmount;
+
+        const [updatedUser, transaction] = await prisma.$transaction([
+            prisma.user.update({
+                where: { id: parseInt(id) },
+                data: { wallet: newBalance }
+            }),
+            prisma.transaction.create({
+                data: {
+                    reference: `ADMIN-DEBIT-${Date.now()}`,
+                    serviceName: 'Admin Debit',
+                    description: description || 'Admin wallet debit',
+                    amount: -debitAmount,
+                    status: 0,
+                    oldBalance: user.wallet,
+                    newBalance: newBalance,
+                    userId: parseInt(id),
+                    type: 'debit'
+                }
+            })
+        ]);
+
+        // Log the action
+        await prisma.userAction.create({
+            data: {
+                userId: parseInt(id),
+                action: 'WALLET_DEBITED',
+                details: JSON.stringify({ amount: debitAmount, description, adminName: req.admin.name }),
+                adminId: req.admin.id
+            }
+        });
+
+        res.json({
+            success: true,
+            message: `Debited ₦${debitAmount.toLocaleString()} from user wallet successfully`,
+            user: {
+                id: updatedUser.id,
+                wallet: updatedUser.wallet
+            },
+            transaction
+        });
+    } catch (error) {
+        console.error('Debit user error:', error);
+        res.status(500).json({ error: 'Failed to debit user wallet' });
+    }
+});
+
+
+
 // PUT /api/admin/users/:id/status
 router.put('/users/:id/status', adminAuth, async (req, res) => {
     try {

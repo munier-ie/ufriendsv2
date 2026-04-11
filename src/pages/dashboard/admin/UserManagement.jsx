@@ -26,6 +26,8 @@ export default function UserManagement() {
 
     // Action states
     const [fundingAmount, setFundingAmount] = useState('');
+    const [debitAmount, setDebitAmount] = useState('');
+    const [debitDescription, setDebitDescription] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     // Add User State
@@ -98,6 +100,31 @@ export default function UserManagement() {
             fetchUsers(); // Refresh list list wallet balance
         } catch (error) {
             alert(error.response?.data?.error || 'Failed to fund wallet');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleDebitWallet = async (e) => {
+        e.preventDefault();
+        if (!debitAmount) return;
+        if (!confirm(`Are you sure you want to debit ₦${debitAmount} from this user?`)) return;
+        setSubmitting(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.post(`/api/admin/users/${selectedUser.id}/debit`, { 
+                amount: debitAmount,
+                description: debitDescription
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert('Wallet debited successfully');
+            setDebitAmount('');
+            setDebitDescription('');
+            fetchUserDetail(selectedUser.id);
+            fetchUsers();
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to debit wallet');
         } finally {
             setSubmitting(false);
         }
@@ -371,17 +398,40 @@ export default function UserManagement() {
                                                     <p className="text-3xl font-bold text-gray-900">₦{userDetail.wallet?.toLocaleString()}</p>
                                                 </div>
 
-                                                <div className="max-w-md">
-                                                    <h3 className="font-bold mb-3">Fund Wallet</h3>
-                                                    <div className="flex gap-2">
-                                                        <Input
-                                                            type="number"
-                                                            placeholder="Amount"
-                                                            value={fundingAmount}
-                                                            onChange={e => setFundingAmount(e.target.value)}
-                                                            className="flex-1"
-                                                        />
-                                                        <Button onClick={handleFundWallet} loading={submitting}>Fund</Button>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div className="max-w-md bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                        <h3 className="font-bold mb-3 text-green-700">Fund Wallet (Credit)</h3>
+                                                        <div className="flex gap-2">
+                                                            <Input
+                                                                type="number"
+                                                                placeholder="Amount (₦)"
+                                                                value={fundingAmount}
+                                                                onChange={e => setFundingAmount(e.target.value)}
+                                                                className="flex-1"
+                                                            />
+                                                            <Button onClick={handleFundWallet} loading={submitting} className="bg-green-600 hover:bg-green-700">Fund</Button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="max-w-md bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                        <h3 className="font-bold mb-3 text-red-700">Debit Wallet (Deduct)</h3>
+                                                        <div className="space-y-3">
+                                                            <Input
+                                                                type="number"
+                                                                placeholder="Amount (₦)"
+                                                                value={debitAmount}
+                                                                onChange={e => setDebitAmount(e.target.value)}
+                                                            />
+                                                            <Input
+                                                                type="text"
+                                                                placeholder="Reason / Description (optional)"
+                                                                value={debitDescription}
+                                                                onChange={e => setDebitDescription(e.target.value)}
+                                                            />
+                                                            <Button onClick={handleDebitWallet} loading={submitting} className="w-full bg-red-600 hover:bg-red-700 border-none">
+                                                                Debit Account
+                                                            </Button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>

@@ -3,6 +3,7 @@ const vtpass = require('../utils/providers/vtpass');
 const basicProvider = require('../utils/providers/basic');
 const subandgain = require('../utils/providers/subandgain');
 const maskawasub = require('../utils/providers/maskawasub');
+const alrahuz = require('../utils/providers/alrahuz');
 
 const providers = {
     'vtpass': vtpass,
@@ -11,7 +12,9 @@ const providers = {
     'legitdataway': basicProvider,
     'bilalsadasub': basicProvider,
     'subandgain': subandgain,
-    'maskawasub': maskawasub
+    'maskawasub': maskawasub,
+    'alrahuzdata': alrahuz,
+    'alrahuz': alrahuz
 };
 
 function findProviderHandler(name) {
@@ -40,9 +43,17 @@ async function verifyUtility(type, providerName, number, meterType = 'prepaid') 
         });
 
         let apiProvider;
-        if (service && service.apiProviderId) {
+        
+        // Force Subandgain for Cable and Electricity verifications
+        if (type === 'cable' || type === 'electricity') {
+            apiProvider = await prisma.apiProvider.findFirst({
+                where: { name: { contains: 'subandgain', mode: 'insensitive' }, active: true }
+            });
+        }
+
+        if (!apiProvider && service && service.apiProviderId) {
             apiProvider = await prisma.apiProvider.findUnique({ where: { id: service.apiProviderId } });
-        } else {
+        } else if (!apiProvider) {
             // Fallback to highest priority active provider
             apiProvider = await prisma.apiProvider.findFirst({
                 where: { active: true },

@@ -357,4 +357,36 @@ router.get('/:id/proof', authenticateUser, async (req, res) => {
     }
 });
 
+// ============================================================
+// GET /api/manual-services/:id - View single request details (no amount)
+// ============================================================
+router.get('/:id', authenticateUser, async (req, res) => {
+    try {
+        const request = await prisma.manualServiceRequest.findFirst({
+            where: { id: parseInt(req.params.id), userId: req.user.id }
+        });
+        if (!request) return res.status(404).json({ error: 'Request not found' });
+
+        // Return all fields except amount (user should not see charges)
+        const { amount: _amount, ...safeRequest } = request;
+        let parsedDetails = {};
+        try { parsedDetails = JSON.parse(request.details || '{}'); } catch {}
+
+        const STATUS_LABELS = { 0: 'Pending', 1: 'Approved', 2: 'Rejected', 3: 'In Progress' };
+
+        res.json({
+            success: true,
+            request: {
+                ...safeRequest,
+                details: parsedDetails,
+                statusLabel: STATUS_LABELS[request.status] || 'Unknown'
+            }
+        });
+    } catch (err) {
+        console.error('Manual services view error:', err);
+        res.status(500).json({ error: 'Failed to fetch request' });
+    }
+});
+
 module.exports = router;
+

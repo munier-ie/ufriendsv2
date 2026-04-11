@@ -38,6 +38,7 @@ import FileEdit from 'lucide-react/dist/esm/icons/file-edit';
 import Menu from 'lucide-react/dist/esm/icons/menu';
 import X from 'lucide-react/dist/esm/icons/x';
 import Code from 'lucide-react/dist/esm/icons/code';
+import Bot from 'lucide-react/dist/esm/icons/bot';
 import Logo from '../ui/Logo';
 
 export default function DashboardLayout() {
@@ -172,6 +173,7 @@ export default function DashboardLayout() {
         { icon: Users, label: 'Users', path: '/admin/dashboard/users' },
         { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services' },
         { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers' },
+        { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans' },
         { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions' },
         { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales' },
         { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings' },

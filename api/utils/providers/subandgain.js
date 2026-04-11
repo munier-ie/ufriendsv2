@@ -1,5 +1,29 @@
 const axios = require('axios');
 
+const CABLE_MAP = {
+    'gotv': 'GOTV',
+    'dstv': 'DSTV',
+    'startimes': 'STARTIMES',
+    'startime': 'STARTIMES'
+};
+
+const DISCO_MAP = {
+    'ikeja-electric': 'IKEDC',
+    'eko-electric': 'EKEDC',
+    'kano-electric': 'KEDC',
+    'kedco': 'KEDC',
+    'kedc': 'KEDC',
+    'kano': 'KEDC',
+    'port-harcourt-electric': 'PHED',
+    'ph-electric': 'PHED',
+    'jos-electric': 'JED',
+    'ibadan-electric': 'IBEDC',
+    'kaduna-electric': 'KAEDCO',
+    'abuja-electric': 'AEDC',
+    'enugu-electric': 'EEDC',
+    'yola-electric': 'YEDC',
+    'benin-electric': 'BEDC'
+};
 /**
  * Purchase Airtime via Subandgain
  * @param {Object} details
@@ -125,12 +149,16 @@ async function verifyTV(details, config) {
         const { cableId, number } = details;
         const { apiKey, username } = config;
 
+        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || String(cableId).toUpperCase();
+
+        console.log(`Subandgain TV Verify: cableId="${cableId}" → service="${mappedCable}", smartNumber="${number}"`);
+
         // API: verify_bills.php?username=****&apiKey=****&service=****&smartNumber=****
         const url = 'https://subandgain.com/api/verify_bills.php';
         const params = {
             username: username,
             apiKey: apiKey,
-            service: (cableId || 'DSTV').toUpperCase(),
+            service: mappedCable,
             smartNumber: number
         };
 
@@ -170,12 +198,14 @@ async function purchaseTV(details, config) {
         const { cableId, planId, number } = details;
         const { apiKey, username } = config;
 
+        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || String(cableId).toUpperCase();
+
         // API: bills.php?username=****&apiKey=****&service=****&bills_code=****&smartNumber=****
         const url = 'https://subandgain.com/api/bills.php';
         const params = {
             username: username,
             apiKey: apiKey,
-            service: (cableId || 'DSTV').toUpperCase(),
+            service: mappedCable,
             bills_code: planId,
             smartNumber: number
         };
@@ -222,12 +252,16 @@ async function verifyElectricity(details, config) {
         const { discoId, number, type } = details;
         const { apiKey, username } = config;
 
+        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || String(discoId).toUpperCase();
+
+        console.log(`Subandgain Electricity Verify: discoId="${discoId}" → service="${mappedDisco}", meterNumber="${number}", meterType="${type}"`);
+
         // API: verify_electricity.php?username=****&apiKey=****&service=****&meterNumber=****&meterType=****
         const url = 'https://subandgain.com/api/verify_electricity.php';
         const params = {
             username: username,
             apiKey: apiKey,
-            service: discoId.toUpperCase(),
+            service: mappedDisco,
             meterNumber: number,
             meterType: (type || 'prepaid').toUpperCase() === 'PREPAID' ? 'PRE' : 'POST'
         };
@@ -270,12 +304,14 @@ async function purchaseElectricity(details, config) {
         const { discoId, number, type, amount, accessToken } = details;
         const { apiKey, username } = config;
 
+        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || String(discoId).toUpperCase();
+
         // API: electricity.php?username=****&apiKey=****&service=****&meterNumber=****&meterType=****&accessToken=****&amount=****
         const url = 'https://subandgain.com/api/electricity.php';
         const params = {
             username: username,
             apiKey: apiKey,
-            service: discoId.toUpperCase(),
+            service: mappedDisco,
             meterNumber: number,
             meterType: (type || 'prepaid').toUpperCase() === 'PREPAID' ? 'PRE' : 'POST',
             amount: amount
@@ -322,38 +358,19 @@ async function purchaseElectricity(details, config) {
  */
 async function purchaseExam(details, config) {
     try {
-        const { examId, quantity } = details;
         const { apiKey, username } = config;
 
-        // Map Exam ID and Quantity to Subandgain codes
-        // Mapping: {EXAM_TYPE}: {quantity: code}
-        const codeMap = {
-            'NECO': {
-                1: 'NEONE',
-                2: 'NETWO',
-                3: 'NETHR',
-                4: 'NEFOUR',
-                5: 'NEFIVE'
-            },
-            'WAEC': {
-                1: 'WAONE',
-                2: 'WATWO',
-                3: 'WATHR',
-                4: 'WAFOUR',
-                5: 'WAFIVE'
-            }
-        };
+        // eduType is pre-computed by vend.service.js from the ExamPin DB record's quantity field.
+        // e.g. NECO qty=1 → NEONE, NECO qty=2 → NETWO, WAEC qty=1 → WAONE etc.
+        // No need to send quantity separately — it's embedded in the code itself.
+        const eduType = details.eduType;
 
-        const type = examId.toUpperCase();
-        const qty = parseInt(quantity) || 1;
-
-        let eduType = type; // Fallback
-        if (codeMap[type] && codeMap[type][qty]) {
-            eduType = codeMap[type][qty];
-        } else if (codeMap[type]) {
-            // Fallback to 1 piece if quantity match not found but exam exists
-            eduType = codeMap[type][1];
+        if (!eduType) {
+            console.error('[Subandgain Exam] Missing eduType in details:', details);
+            return { status: 'failed', message: 'Invalid exam type configuration' };
         }
+
+        console.log(`[Subandgain Exam] Sending eduType=${eduType} (no quantity param)`);
 
         // API: education.php?username=****&apiKey=****&eduType=****
         const url = 'https://subandgain.com/api/education.php';
@@ -473,15 +490,153 @@ async function checkBalance(config) {
 
 /**
  * Fetch all data plans from Subandgain for price syncing and discovery.
+ * Endpoint: https://subandgain.com/api/databundles.php
+ * Returns list of plans per network (MTN, GLO, AIRTEL, 9MOBILE).
  */
 async function fetchDataPlans(config) {
     try {
-        // Subandgain usually doesn't have a standardized 'list all' JSON endpoint easy to find.
-        // We will implement this as a placeholder or use a known endpoint if applicable.
-        return { success: false, message: 'Dynamic fetching not yet supported for Subandgain' };
+        const { apiKey, username } = config;
+        const res = await axios.get('https://subandgain.com/api/databundles.php', {
+            params: { username, apiKey },
+            timeout: 30000
+        });
+
+        const data = res.data;
+        if (!data || typeof data !== 'object') {
+            return { success: false, message: 'Invalid response from Subandgain databundles' };
+        }
+
+        const plans = [];
+        // API returns an object keyed by network name: { "MTN": [...], "GLO": [...], ... }
+        // Each item: { id, plan, type, price, ... }
+        for (const [networkKey, networkPlans] of Object.entries(data)) {
+            if (!Array.isArray(networkPlans)) continue;
+            const network = networkKey.toUpperCase().trim();
+            for (const plan of networkPlans) {
+                const planId = String(plan.id ?? plan.dataplan_id ?? '');
+                const apiPrice = parseFloat(plan.price ?? plan.plan_amount ?? 0);
+                if (!planId || isNaN(apiPrice) || apiPrice <= 0) continue;
+
+                plans.push({
+                    network,
+                    dataName: plan.plan || plan.name || planId,
+                    dataType: (plan.type || plan.plan_type || 'SME').toUpperCase().trim(),
+                    planId,
+                    apiPrice,
+                    duration: plan.validity || plan.month_validate || '30 days'
+                });
+            }
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No data plans returned from Subandgain' };
+        }
+
+        return { success: true, plans };
     } catch (error) {
+        console.error('Subandgain fetchDataPlans Error:', error.message);
         return { success: false, message: error.message };
     }
 }
 
-module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, checkBalance, fetchDataPlans };
+/**
+ * Fetch all Cable TV plans from Subandgain for price syncing and discovery.
+ * Endpoint: https://subandgain.com/api/cablebundles.php
+ * Returns array of { SERVICE, BUNDLE: [{ billsCode, package, price, status }] }
+ */
+async function fetchCablePlans(config) {
+    try {
+        const { apiKey, username } = config;
+        const res = await axios.get('https://subandgain.com/api/cablebundles.php', {
+            params: { username, apiKey },
+            timeout: 30000
+        });
+
+        const bundles = res.data;
+        if (!Array.isArray(bundles)) {
+            return { success: false, message: 'Invalid response from Subandgain cablebundles' };
+        }
+
+        const SERVICE_MAP = { DSTV: 'dstv', GOTV: 'gotv', STARTIMES: 'startimes', STARTIME: 'startimes' };
+        const plans = [];
+
+        for (const bundle of bundles) {
+            const providerSlug = SERVICE_MAP[(bundle.SERVICE || '').toUpperCase()];
+            if (!providerSlug) continue;
+
+            const packageList = bundle.BUNDLE || [];
+            for (const plan of packageList) {
+                if (plan.status && plan.status !== 'Active') continue;
+                const apiPrice = parseFloat(plan.price ?? 0);
+                if (isNaN(apiPrice) || apiPrice <= 0) continue;
+
+                plans.push({
+                    provider: providerSlug,       // 'dstv' | 'gotv' | 'startimes'
+                    name: plan.package || plan.name || plan.billsCode,
+                    code: String(plan.billsCode), // used as `code` in Service table
+                    apiPrice
+                });
+            }
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No cable plans returned from Subandgain' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        console.error('Subandgain fetchCablePlans Error:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+/**
+ * Fetch all Exam Pin plans from Subandgain for price syncing and discovery.
+ * Endpoint: https://subandgain.com/api/edu_prices.php
+ * Returns exam types with their prices.
+ */
+async function fetchExamPlans(config) {
+    try {
+        const { apiKey, username } = config;
+        const res = await axios.get('https://subandgain.com/api/edu_prices.php', {
+            params: { username, apiKey },
+            timeout: 30000
+        });
+
+        const data = res.data;
+        if (!data || typeof data !== 'object') {
+            return { success: false, message: 'Invalid response from Subandgain edu_prices' };
+        }
+
+        const plans = [];
+        // Expected: { "NECO": [...], "WAEC": [...] }
+        // Each item: { eduType, package/name, price }
+        for (const [examKey, examPlans] of Object.entries(data)) {
+            if (!Array.isArray(examPlans)) continue;
+            for (const plan of examPlans) {
+                const code = plan.eduType || plan.code || plan.id;
+                if (!code) continue;
+                const apiPrice = parseFloat(plan.price ?? plan.amount ?? 0);
+                if (isNaN(apiPrice) || apiPrice <= 0) continue;
+
+                plans.push({
+                    examType: examKey.toUpperCase(),
+                    name: plan.package || plan.name || code,
+                    code: String(code),  // eduType code e.g. 'NEONE', 'WAONE'
+                    apiPrice
+                });
+            }
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No exam plans returned from Subandgain' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        console.error('Subandgain fetchExamPlans Error:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, checkBalance, fetchDataPlans, fetchCablePlans, fetchExamPlans };

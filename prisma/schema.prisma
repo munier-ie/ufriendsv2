@@ -49,6 +49,12 @@ model User {
   updatedAt            DateTime               @updatedAt
   lastVisit            DateTime?
   visitCount           Int                    @default(0)
+  emailVerified        Boolean                @default(false)
+  emailVerifyCode      Int?
+  emailVerifyExpiry    DateTime?
+  twoFaEnabled         Boolean                @default(false)
+  twoFaMethod          String?
+  twoFaSecret          String?
   airtimeToCash        AirtimeToCash[]
   apiLogs              ApiLog[]
   beneficiaries        Beneficiary[]
@@ -94,9 +100,15 @@ model AdminUser {
   role                    Int
   pinToken                String?
   pinStatus               Int                       @default(0)
-  status                  Int                       @default(0)
+  status                  Int                       @default(1)
   createdAt               DateTime                  @default(now())
   updatedAt               DateTime                  @updatedAt
+  twoFaEnabled            Boolean                   @default(false)
+  twoFaMethod             String?
+  twoFaSecret             String?
+  emailVerifyCode         Int?
+  emailVerifyExpiry       DateTime?
+  permissions             Json?
   airtimeToCashRequest    AirtimeToCashRequest[]
   alphaTopupOrder         AlphaTopupOrder[]
   blacklistedNumber       BlacklistedNumber[]
@@ -317,24 +329,24 @@ model Service {
 }
 
 model ApiProvider {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique
-  baseUrl   String?
-  apiKey    String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  active    Boolean     @default(true)
-  apiToken  String?
-  priority  Int         @default(0)
-  username  String?
-  service   Service[]
-  apiWallet       ApiWallet[]
-  cablePlan       CablePlan[]
-  dataPlan        DataPlan[]
-  examPin         ExamPin[]
-  smilePlan       SmilePlan[]
-  activeProviders ActiveProvider[]
+  id               Int               @id @default(autoincrement())
+  name             String            @unique
+  baseUrl          String?
+  apiKey           String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  active           Boolean           @default(true)
+  apiToken         String?
+  priority         Int               @default(0)
+  username         String?
+  service          Service[]
+  activeProviders  ActiveProvider[]
+  apiWallet        ApiWallet[]
+  cablePlan        CablePlan[]
+  dataPlan         DataPlan[]
+  examPin          ExamPin[]
   providerRoutings ProviderRouting[]
+  smilePlan        SmilePlan[]
 }
 
 model CACRegistration {
@@ -391,40 +403,44 @@ model UserAction {
 }
 
 model VerificationSettings {
-  id                     Int      @id @default(autoincrement())
-  apiKey                 String?
-  appId                  String?
-  baseUrl                String   @default("https://api.prembly.com/identitypass/verification")
-  active                 Boolean  @default(true)
-  bvnUserPrice           Float    @default(500)
-  bvnAgentPrice          Float    @default(450)
-  bvnVendorPrice         Float    @default(400)
-  bvnApiPrice            Float    @default(300)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-  ninActive              Boolean  @default(true)
-  ninPremiumAgentPrice   Float    @default(190)
-  ninPremiumApiPrice     Float    @default(150)
-  ninPremiumUserPrice    Float    @default(200)
-  ninPremiumVendorPrice  Float    @default(180)
-  ninRegularAgentPrice   Float    @default(140)
-  ninRegularApiPrice     Float    @default(100)
-  ninRegularUserPrice    Float    @default(150)
-  ninRegularVendorPrice  Float    @default(130)
-  ninStandardAgentPrice  Float    @default(190)
-  ninStandardApiPrice    Float    @default(150)
-  ninStandardUserPrice   Float    @default(200)
-  ninStandardVendorPrice Float    @default(180)
-  referralCommission     Float    @default(0)
-  bvnPlasticUserPrice    Float    @default(1000)
-  bvnPlasticAgentPrice   Float    @default(900)
-  bvnPlasticVendorPrice  Float    @default(800)
-  bvnPlasticApiPrice     Float    @default(600)
-  ninVninUserPrice       Float    @default(1000)
-  ninVninAgentPrice      Float    @default(900)
-  ninVninVendorPrice     Float    @default(800)
-  ninVninApiPrice        Float    @default(600)
-  ninVerificationAgentId String   @default("JZLHTW-8978")
+  id                            Int      @id @default(autoincrement())
+  apiKey                        String?
+  appId                         String?
+  baseUrl                       String   @default("https://api.prembly.com/identitypass/verification")
+  active                        Boolean  @default(true)
+  bvnUserPrice                  Float    @default(500)
+  bvnAgentPrice                 Float    @default(450)
+  bvnVendorPrice                Float    @default(400)
+  bvnApiPrice                   Float    @default(300)
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+  ninActive                     Boolean  @default(true)
+  ninPremiumAgentPrice          Float    @default(190)
+  ninPremiumApiPrice            Float    @default(150)
+  ninPremiumUserPrice           Float    @default(200)
+  ninPremiumVendorPrice         Float    @default(180)
+  ninRegularAgentPrice          Float    @default(140)
+  ninRegularApiPrice            Float    @default(100)
+  ninRegularUserPrice           Float    @default(150)
+  ninRegularVendorPrice         Float    @default(130)
+  ninStandardAgentPrice         Float    @default(190)
+  ninStandardApiPrice           Float    @default(150)
+  ninStandardUserPrice          Float    @default(200)
+  ninStandardVendorPrice        Float    @default(180)
+  referralCommission            Float    @default(0)
+  bvnPlasticUserPrice           Float    @default(1000)
+  bvnPlasticAgentPrice          Float    @default(900)
+  bvnPlasticVendorPrice         Float    @default(800)
+  bvnPlasticApiPrice            Float    @default(600)
+  ninVninUserPrice              Float    @default(1000)
+  ninVninAgentPrice             Float    @default(900)
+  ninVninVendorPrice            Float    @default(800)
+  ninVninApiPrice               Float    @default(600)
+  ninVerificationAgentId        String   @default("JZLHTW-8978")
+  bvnReferralCommission         Float    @default(0)
+  ninRegularReferralCommission  Float    @default(0)
+  ninStandardReferralCommission Float    @default(0)
+  ninPremiumReferralCommission  Float    @default(0)
 
   @@map("verification_settings")
 }
@@ -896,24 +912,24 @@ model AppSetting {
 
 model ActiveProvider {
   id            Int         @id @default(autoincrement())
-  serviceType   String      @unique // e.g. "data", "airtime", "cable", "electricity", "exam"
+  serviceType   String      @unique
   apiProviderId Int
-  apiProvider   ApiProvider @relation(fields: [apiProviderId], references: [id])
   updatedAt     DateTime    @updatedAt
+  apiProvider   ApiProvider @relation(fields: [apiProviderId], references: [id])
 
   @@map("active_providers")
 }
 
 model ProviderRouting {
   id            Int         @id @default(autoincrement())
-  serviceType   String      // e.g. 'data', 'airtime'
-  network       String      // e.g. 'MTN', 'GLO'
-  networkType   String      // e.g. 'SME', 'Gifting', 'Corporate', 'VTU', 'Share_Sell'
+  serviceType   String
+  network       String
+  networkType   String
   apiProviderId Int
-  apiProvider   ApiProvider @relation(fields: [apiProviderId], references: [id])
   active        Boolean     @default(true)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  apiProvider   ApiProvider @relation(fields: [apiProviderId], references: [id])
 
   @@unique([serviceType, network, networkType])
   @@map("provider_routings")

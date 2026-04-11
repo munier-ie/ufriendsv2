@@ -30,7 +30,8 @@ router.post('/verify', authenticateUser, async (req, res) => {
     try {
         const validation = verifyServiceSchema.safeParse(req.body);
         if (!validation.success) {
-            return res.status(400).json({ error: validation.error.errors[0].message });
+            const firstError = validation.error.issues?.[0]?.message || 'Invalid request data';
+            return res.status(400).json({ error: firstError });
         }
 
         const { type, provider, number } = validation.data;
@@ -211,6 +212,8 @@ router.get('/:type', authenticateUser, async (req, res) => {
                     type: 'exam',
                     provider: pin.apiProvider?.name || 'subandgain',
                     code: pin.examType,
+                    examType: pin.examType,
+                    quantity: pin.quantity,
                     price,
                     active: pin.active,
                     apiProviderId: pin.apiProviderId
@@ -370,13 +373,19 @@ router.post('/purchase', authenticateUser, async (req, res) => {
                 // Fallback to service price (percentage based)
                 finalAmount = amount * (userPrice / 100);
             }
+        } else if (service.type === 'electricity') {
+            // Electricity is a variable amount input by the user. 
+            // userPrice (service.price) represents the fixed service charge (e.g. N100 fee).
+            finalAmount = amount + userPrice;
         } else {
-            finalAmount = userPrice;
+            // For cable, data, exams - the price is strictly defined by the plan (userPrice) * quantity
+            const qty = validation.data.quantity || 1;
+            finalAmount = userPrice * qty;
         }
 
         // 4. Check Balance
         if (req.user.wallet < finalAmount) {
-            return res.status(400).json({ error: 'Insufficient wallet balance' });
+            return res.status(400).json({ error: `Insufficient wallet balance. You need ₦${finalAmount.toFixed(2)}` });
         }
 
         // 5. Calculate Profit
@@ -386,8 +395,12 @@ router.post('/purchase', authenticateUser, async (req, res) => {
             const apiCostPercentage = service.apiPrice || userPrice;
             const adminCost = amount * (apiCostPercentage / 100);
             profit = finalAmount - adminCost;
+        } else if (service.type === 'electricity') {
+            // Profit is the service charge collected from user minus any API charge
+            profit = userPrice - (service.apiPrice || 0);
         } else {
-            profit = service.apiPrice ? (finalAmount - service.apiPrice) : 0;
+            const qty = validation.data.quantity || 1;
+            profit = service.apiPrice ? (finalAmount - (service.apiPrice * qty)) : 0;
         }
 
         // 6. Execute Transaction (Atomic Deduction)
@@ -444,7 +457,8 @@ router.post('/purchase', authenticateUser, async (req, res) => {
                 service,
                 req.body.iucNumber,
                 recipient,
-                req.body.subscriptionType
+                req.body.subscriptionType,
+                req.body.accessToken
             );
         } else if (service.type === 'electricity') {
             vendResult = await vendElectricity(
@@ -452,7 +466,9 @@ router.post('/purchase', authenticateUser, async (req, res) => {
                 service,
                 req.body.meterNumber || req.body.iucNumber, // frontend might use either
                 recipient,
-                req.body.meterType || 'prepaid'
+                amount, // Explicitly pass base amount via validation
+                req.body.meterType || 'prepaid',
+                req.body.accessToken
             );
         } else {
             vendResult = { status: 'success', message: 'Purchase processed (mock)' };

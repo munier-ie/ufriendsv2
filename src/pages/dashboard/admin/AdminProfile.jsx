@@ -4,9 +4,11 @@ import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Shield from 'lucide-react/dist/esm/icons/shield';
 import Key from 'lucide-react/dist/esm/icons/key';
 import Lock from 'lucide-react/dist/esm/icons/lock';
+import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
 import History from 'lucide-react/dist/esm/icons/history';
 import User from 'lucide-react/dist/esm/icons/user';
 import LogOut from 'lucide-react/dist/esm/icons/log-out';
+import Mail from 'lucide-react/dist/esm/icons/mail';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { useNavigate } from 'react-router-dom';
@@ -22,6 +24,14 @@ export default function AdminProfile() {
     const [passwordForm, setPasswordForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
     const [pinForm, setPinForm] = useState({ pin: '', confirmPin: '', enable: false });
     const [submitting, setSubmitting] = useState(false);
+
+    // 2FA state
+    const [twoFaStep, setTwoFaStep] = useState('initial'); // 'initial', 'choose', 'setup_totp', 'setup_email'
+    const [twoFaMethod, setTwoFaMethod] = useState('totp');
+    const [twoFaQrCode, setTwoFaQrCode] = useState('');
+    const [twoFaToken, setTwoFaToken] = useState('');
+    const [twoFaCode, setTwoFaCode] = useState('');
+    const [disableTwoFaCode, setDisableTwoFaCode] = useState('');
 
     useEffect(() => {
         fetchProfile();
@@ -84,6 +94,63 @@ export default function AdminProfile() {
             alert(error.response?.data?.error || 'Failed to update PIN');
         } finally {
             setSubmitting(false);
+        }
+    };
+
+    const handleTwoFaSetup = async (method = 'totp') => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (method === 'totp') {
+                const response = await axios.post('/api/admin/auth/setup-2fa', {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setTwoFaQrCode(response.data.qrCode);
+                setTwoFaToken(response.data.tempToken);
+                setTwoFaStep('setup_totp');
+                setTwoFaMethod('totp');
+            } else {
+                await axios.post('/api/admin/auth/setup-email-2fa', {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setTwoFaStep('setup_email');
+                setTwoFaMethod('email');
+            }
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to initialize 2FA setup');
+        }
+    };
+
+    const handleTwoFaEnable = async () => {
+        try {
+            const token = localStorage.getItem('adminToken');
+            const endpoint = twoFaMethod === 'totp' ? '/api/admin/auth/enable-2fa' : '/api/admin/auth/enable-email-2fa';
+            await axios.post(endpoint, {
+                tempToken: twoFaMethod === 'totp' ? twoFaToken : undefined,
+                code: twoFaCode
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert('2FA enabled successfully!');
+            fetchProfile();
+            setTwoFaStep('initial');
+            setTwoFaCode('');
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to verify and enable 2FA');
+        }
+    };
+
+    const handleTwoFaDisable = async () => {
+        if (!confirm('Are you certain you want to disable Two-Factor Authentication?')) return;
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.post('/api/admin/auth/disable-2fa', { code: disableTwoFaCode }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert('2FA disabled successfully');
+            fetchProfile();
+            setDisableTwoFaCode('');
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to disable 2FA');
         }
     };
 
@@ -201,6 +268,145 @@ export default function AdminProfile() {
                                             <Button loading={submitting} type="submit">Update PIN Settings</Button>
                                         </div>
                                     </form>
+
+                                    <div className="h-px bg-gray-100" />
+
+                                    <div className="space-y-4">
+                                        <h3 className="font-bold text-gray-900 mb-4 flex items-center"><Smartphone size={18} className="mr-2" /> Two-Factor Authentication</h3>
+                                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-4">
+                                            <span className="font-medium text-gray-700">2FA Status</span>
+                                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile?.twoFaEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                {profile?.twoFaEnabled ? 'Enabled' : 'Disabled'}
+                                            </span>
+                                        </div>
+
+                                        {!profile?.twoFaEnabled ? (
+                                            <div className="space-y-4">
+                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                                    <p className="text-sm text-blue-800">
+                                                        Enable two-factor authentication to protect your administrative account.
+                                                    </p>
+                                                </div>
+                                                {twoFaStep === 'initial' && (
+                                                    <Button onClick={() => setTwoFaStep('choose')} className="w-full">
+                                                        Setup 2FA
+                                                    </Button>
+                                                )}
+                                                {twoFaStep === 'choose' && (
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <button
+                                                            onClick={() => handleTwoFaSetup('totp')}
+                                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center bg-white"
+                                                        >
+                                                            <Smartphone className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                                            <span className="block font-medium text-gray-900">Authenticator</span>
+                                                            <span className="text-xs text-gray-500">Google Auth / Authy</span>
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleTwoFaSetup('email')}
+                                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center bg-white"
+                                                        >
+                                                            <Mail className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                                            <span className="block font-medium text-gray-900">Email OTP</span>
+                                                            <span className="text-xs text-gray-500">Verify via email</span>
+                                                        </button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() => setTwoFaStep('initial')}
+                                                            className="col-span-2"
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                                {twoFaStep === 'setup_totp' && (
+                                                    <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
+                                                        <p className="text-sm text-gray-600 font-medium">1. Scan this QR code with your authenticator</p>
+                                                        <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200 w-fit mx-auto">
+                                                            <img src={twoFaQrCode} alt="2FA QR Code" />
+                                                        </div>
+                                                        <p className="text-sm text-gray-600 font-medium">2. Enter the 6-digit code to verify</p>
+                                                        <input
+                                                            type="text"
+                                                            maxLength={6}
+                                                            value={twoFaCode}
+                                                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                                            placeholder="000000"
+                                                        />
+                                                        <Button
+                                                            onClick={handleTwoFaEnable}
+                                                            disabled={twoFaCode.length !== 6}
+                                                            className="w-full"
+                                                        >
+                                                            Verify & Enable
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() => setTwoFaStep('choose')}
+                                                            className="w-full"
+                                                        >
+                                                            Back
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                                {twoFaStep === 'setup_email' && (
+                                                    <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
+                                                        <p className="text-sm text-gray-600 font-medium text-center">We've sent a 6-digit code to your admin email.</p>
+                                                        <input
+                                                            type="text"
+                                                            maxLength={6}
+                                                            value={twoFaCode}
+                                                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                                            placeholder="000000"
+                                                        />
+                                                        <Button
+                                                            onClick={handleTwoFaEnable}
+                                                            disabled={twoFaCode.length !== 6}
+                                                            className="w-full"
+                                                        >
+                                                            Verify & Enable Email 2FA
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            onClick={() => setTwoFaStep('choose')}
+                                                            className="w-full"
+                                                        >
+                                                            Back
+                                                        </Button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                                    <p className="text-sm text-yellow-800">
+                                                        ⚠️ Disabling 2FA makes your admin account significantly less secure.
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Authenticator Code to Disable</label>
+                                                    <input
+                                                        type="text"
+                                                        maxLength={6}
+                                                        value={disableTwoFaCode}
+                                                        onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                                        placeholder="000000"
+                                                    />
+                                                </div>
+                                                <Button
+                                                    onClick={handleTwoFaDisable}
+                                                    disabled={disableTwoFaCode.length !== 6}
+                                                    className="w-full bg-red-600 hover:bg-red-700 border-none"
+                                                >
+                                                    Disable 2FA
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             )}
 

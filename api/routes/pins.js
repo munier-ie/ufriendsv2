@@ -100,7 +100,8 @@ router.post('/purchase', authenticateUser, async (req, res) => {
                 vendorPrice: examPin.vendorPrice,
                 apiPrice: examPin.apiPrice,
                 active: examPin.active,
-                apiProviderId: examPin.apiProviderId
+                apiProviderId: examPin.apiProviderId,
+                examQuantity: examPin.quantity
             };
         } else {
             service = await prisma.service.findUnique({ where: { id: serviceId } });
@@ -229,7 +230,8 @@ async function handleApiPinVending(req, res, service, quantity, totalCost, busin
     // 3. Call Vending Service
     let result;
     if (service.type === 'exam') {
-        result = await vendService.vendExam(transaction, service, quantity, req.user.phone);
+        const vendQty = service.examQuantity || quantity;
+        result = await vendService.vendExam(transaction, service, vendQty, req.user.phone);
     } else {
         result = await vendService.vendDataPin(transaction, service, quantity, req.user.phone, businessName);
     }

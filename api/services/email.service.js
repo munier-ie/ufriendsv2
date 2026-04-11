@@ -216,6 +216,32 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
     return sendEmail(process.env.ADMIN_EMAIL, `[Action Required] ${subject}`, html);
 }
 
+/**
+ * Send 2FA OTP Email
+ */
+async function send2FaOtpEmail(user, otpCode, isLoginPage = true) {
+    const subject = isLoginPage ? 'Ufriends 2FA Login Code' : 'Ufriends 2FA Setup Code';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #1e90ff; border-radius: 12px; padding: 30px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #1e90ff; margin: 0; font-size: 24px;">Security Verification</h2>
+            </div>
+            <p style="color: #333333; font-size: 16px; margin-bottom: 20px;">Hello <strong>${user.firstName}</strong>,</p>
+            <p style="color: #555555; font-size: 15px; line-height: 1.5; margin-bottom: 25px;">
+                ${isLoginPage ? 'Someone is trying to log into your Ufriends account.' : 'You are setting up two-factor authentication on your account.'} 
+                Use the verification code below to complete the process.
+            </p>
+            <div style="background-color: #f8fbff; border: 2px dashed #1e90ff; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 30px;">
+                <span style="font-family: monospace; font-size: 42px; font-weight: bold; letter-spacing: 8px; color: #1e90ff;">${otpCode}</span>
+            </div>
+            <p style="color: #999999; font-size: 12px; text-align: center; margin-bottom: 0;">
+                This code expires in 10 minutes. If you did not request this, please change your password immediately.
+            </p>
+        </div>
+    `;
+    return sendEmail(user.email, subject, html);
+}
+
 module.exports = {
     sendEmail,
     sendEmailStrict,
@@ -223,6 +249,7 @@ module.exports = {
     sendLoginAlert,
     sendTransactionReceipt,
     sendAdminAlert,
-    sendAdminServiceRequestNotification
+    sendAdminServiceRequestNotification,
+    send2FaOtpEmail
 };
 

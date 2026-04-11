@@ -12,6 +12,7 @@ import Award from 'lucide-react/dist/esm/icons/award';
 import Users from 'lucide-react/dist/esm/icons/users';
 import Lock from 'lucide-react/dist/esm/icons/lock';
 import Key from 'lucide-react/dist/esm/icons/key';
+import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
 import Code from 'lucide-react/dist/esm/icons/code';
 import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
 import LogOut from 'lucide-react/dist/esm/icons/log-out';
@@ -45,6 +46,14 @@ export default function Profile() {
         confirmPin: '',
         currentPin: ''
     });
+
+    // 2FA state
+    const [twoFaStep, setTwoFaStep] = useState('initial'); // 'initial', 'choose', 'setup_totp', 'setup_email'
+    const [twoFaMethod, setTwoFaMethod] = useState('totp');
+    const [twoFaQrCode, setTwoFaQrCode] = useState('');
+    const [twoFaToken, setTwoFaToken] = useState('');
+    const [twoFaCode, setTwoFaCode] = useState('');
+    const [disableTwoFaCode, setDisableTwoFaCode] = useState('');
 
     useEffect(() => {
         fetchProfileData();
@@ -107,6 +116,66 @@ export default function Profile() {
             setPinForm({ pin: '', confirmPin: '', currentPin: '' });
         } catch (error) {
             alert(error.response?.data?.message || `Failed to ${action} PIN`);
+        }
+    };
+
+    const handleTwoFaSetup = async (method = 'totp') => {
+        try {
+            const token = localStorage.getItem('token');
+            if (method === 'totp') {
+                const response = await axios.post('/api/twofa/setup', {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setTwoFaQrCode(response.data.qrCode);
+                setTwoFaToken(response.data.tempToken);
+                setTwoFaStep('setup_totp');
+                setTwoFaMethod('totp');
+            } else {
+                await axios.post('/api/twofa/setup-email', {}, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                setTwoFaStep('setup_email');
+                setTwoFaMethod('email');
+            }
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to initialize 2FA setup');
+        }
+    };
+
+    const handleTwoFaEnable = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('/api/twofa/enable', {
+                tempToken: twoFaMethod === 'totp' ? twoFaToken : undefined,
+                code: twoFaCode,
+                method: twoFaMethod
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert('2FA enabled successfully!');
+            fetchProfileData();
+            setTwoFaStep('initial');
+            setTwoFaCode('');
+            toggleSection(null);
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to verify and enable 2FA');
+        }
+    };
+
+    const handleTwoFaDisable = async () => {
+        if (!window.confirm('Are you certain you want to disable Two-Factor Authentication? This will make your account less secure.')) return;
+        try {
+            const token = localStorage.getItem('token');
+            // We can just verify and disable, or trust the token. In our logic, disable is POST /api/twofa/disable
+            const response = await axios.post('/api/twofa/disable', { code: disableTwoFaCode }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            alert('2FA disabled successfully');
+            fetchProfileData();
+            setDisableTwoFaCode('');
+            toggleSection(null);
+        } catch (error) {
+            alert(error.response?.data?.error || 'Failed to disable 2FA');
         }
     };
 
@@ -337,6 +406,151 @@ export default function Profile() {
                                     className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
                                 >
                                     Disable PIN
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </AccordionItem>
+
+                {/* Two-Factor Authentication */}
+                <AccordionItem
+                    title="Two-Factor Authentication"
+                    icon={Smartphone}
+                    isOpen={openSection === 'twofa'}
+                    onToggle={() => toggleSection('twofa')}
+                >
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                            <span className="font-medium text-gray-700">2FA Status</span>
+                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${profileData?.twoFaEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                {profileData?.twoFaEnabled ? 'Enabled' : 'Disabled'}
+                            </span>
+                        </div>
+
+                        {!profileData?.twoFaEnabled ? (
+                            <div className="space-y-4">
+                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                    <p className="text-sm text-blue-800">
+                                        <Shield className="w-4 h-4 inline mr-2" />
+                                        Secure your account with two-factor authentication.
+                                    </p>
+                                </div>
+                                {twoFaStep === 'initial' && (
+                                    <button
+                                        onClick={() => setTwoFaStep('choose')}
+                                        className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+                                    >
+                                        Setup 2FA
+                                    </button>
+                                )}
+                                {twoFaStep === 'choose' && (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <button
+                                            onClick={() => handleTwoFaSetup('totp')}
+                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center"
+                                        >
+                                            < Smartphone className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                            <span className="block font-medium text-gray-900">Authenticator App</span>
+                                            <span className="text-xs text-gray-500">Use Google Auth or Authy</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleTwoFaSetup('email')}
+                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center"
+                                        >
+                                            <Mail className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                            <span className="block font-medium text-gray-900">Email OTP</span>
+                                            <span className="text-xs text-gray-500">Get codes via email</span>
+                                        </button>
+                                        <button
+                                            onClick={() => setTwoFaStep('initial')}
+                                            className="col-span-2 text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </div>
+                                )}
+                                {twoFaStep === 'setup_totp' && (
+                                    <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
+                                        <p className="text-sm text-gray-600 font-medium">1. Scan this QR code with your authenticator app</p>
+                                        <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200 w-fit mx-auto">
+                                            <img src={twoFaQrCode} alt="2FA QR Code" />
+                                        </div>
+                                        <p className="text-sm text-gray-600 font-medium">2. Enter the 6-digit code to verify</p>
+                                        <input
+                                            type="text"
+                                            maxLength={6}
+                                            value={twoFaCode}
+                                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                            placeholder="000000"
+                                        />
+                                        <button
+                                            onClick={handleTwoFaEnable}
+                                            disabled={twoFaCode.length !== 6}
+                                            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                                        >
+                                            Verify & Enable
+                                        </button>
+                                        <button
+                                            onClick={() => setTwoFaStep('choose')}
+                                            className="w-full text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm mt-2"
+                                        >
+                                            Back
+                                        </button>
+                                    </div>
+                                )}
+                                {twoFaStep === 'setup_email' && (
+                                    <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
+                                        <p className="text-sm text-gray-600 font-medium text-center">We've sent a 6-digit code to {profileData?.email}</p>
+                                        <input
+                                            type="text"
+                                            maxLength={6}
+                                            value={twoFaCode}
+                                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                            placeholder="000000"
+                                        />
+                                        <button
+                                            onClick={handleTwoFaEnable}
+                                            disabled={twoFaCode.length !== 6}
+                                            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                                        >
+                                            Verify & Enable Email 2FA
+                                        </button>
+                                        <button
+                                            onClick={() => setTwoFaStep('choose')}
+                                            className="w-full text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm mt-2"
+                                        >
+                                            Back
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                    <p className="text-sm text-yellow-800">
+                                        ⚠️ Disabling 2FA will make your account significantly less secure. Proceed with caution.
+                                    </p>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Enter 6-digit Authenticator Code to Disable</label>
+                                    <input
+                                        type="text"
+                                        maxLength={6}
+                                        value={disableTwoFaCode}
+                                        onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                        placeholder="000000"
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleTwoFaDisable}
+                                    disabled={disableTwoFaCode.length !== 6}
+                                    className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors disabled:opacity-50"
+                                >
+                                    Disable 2FA
                                 </button>
                             </div>
                         )}

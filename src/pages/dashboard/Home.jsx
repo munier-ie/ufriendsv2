@@ -373,52 +373,50 @@ export default function DashboardHome() {
                     </Link>
 
                     <Link to="/dashboard/services?type=exam" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/exam-pin.jpg" alt="Exam Pin" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Exam Pin</span>
                     </Link>
 
                     <Link to="/dashboard/airtime-cash" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/airtime-to-cash.jpg" alt="Air Swap" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Air Swap</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-amber-500 to-yellow-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <Landmark className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/coat-of-arm.png" alt="Gov Services" className="w-full h-full object-contain p-2" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Gov Services</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services?tab=bvn" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <FileCheck className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/bvn-services.jpg" alt="BVN Slip" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">BVN Slip</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services?tab=nin" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <FileCode className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/nimc-services.jpg" alt="NIN Slip" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">NIN Slip</span>
                     </Link>
 
                     <Link to="/dashboard/manual-services" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <FileEdit className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/bvn-services.jpg" alt="BVN Services" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">BVN Services</span>
                     </Link>
 
                     <Link to="/dashboard/manual-services" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
-                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-sky-600 to-cyan-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
-                            <ShieldCheck className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/nimc-services.jpg" alt="NIN Services" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">NIN Services</span>
                     </Link>

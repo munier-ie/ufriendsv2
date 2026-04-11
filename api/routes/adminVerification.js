@@ -11,35 +11,39 @@ const updateSettingsSchema = z.object({
     appId: z.string().optional(),
     baseUrl: z.string().url().optional(),
     active: z.boolean().optional(),
-    bvnUserPrice: z.number().positive().optional(),
-    bvnAgentPrice: z.number().positive().optional(),
-    bvnVendorPrice: z.number().positive().optional(),
-    bvnApiPrice: z.number().positive().optional(),
+    bvnUserPrice: z.number().nonnegative().optional(),
+    bvnAgentPrice: z.number().nonnegative().optional(),
+    bvnVendorPrice: z.number().nonnegative().optional(),
+    bvnApiPrice: z.number().nonnegative().optional(),
+    bvnReferralCommission: z.number().nonnegative().optional(),
     // BVN Plastic Slip
-    bvnPlasticUserPrice: z.number().positive().optional(),
-    bvnPlasticAgentPrice: z.number().positive().optional(),
-    bvnPlasticVendorPrice: z.number().positive().optional(),
-    bvnPlasticApiPrice: z.number().positive().optional(),
+    bvnPlasticUserPrice: z.number().nonnegative().optional(),
+    bvnPlasticAgentPrice: z.number().nonnegative().optional(),
+    bvnPlasticVendorPrice: z.number().nonnegative().optional(),
+    bvnPlasticApiPrice: z.number().nonnegative().optional(),
     // NIN Regular Slip
-    ninRegularUserPrice: z.number().positive().optional(),
-    ninRegularAgentPrice: z.number().positive().optional(),
-    ninRegularVendorPrice: z.number().positive().optional(),
-    ninRegularApiPrice: z.number().positive().optional(),
+    ninRegularUserPrice: z.number().nonnegative().optional(),
+    ninRegularAgentPrice: z.number().nonnegative().optional(),
+    ninRegularVendorPrice: z.number().nonnegative().optional(),
+    ninRegularApiPrice: z.number().nonnegative().optional(),
+    ninRegularReferralCommission: z.number().nonnegative().optional(),
     // NIN Standard Slip
-    ninStandardUserPrice: z.number().positive().optional(),
-    ninStandardAgentPrice: z.number().positive().optional(),
-    ninStandardVendorPrice: z.number().positive().optional(),
-    ninStandardApiPrice: z.number().positive().optional(),
+    ninStandardUserPrice: z.number().nonnegative().optional(),
+    ninStandardAgentPrice: z.number().nonnegative().optional(),
+    ninStandardVendorPrice: z.number().nonnegative().optional(),
+    ninStandardApiPrice: z.number().nonnegative().optional(),
+    ninStandardReferralCommission: z.number().nonnegative().optional(),
     // NIN Premium Slip
-    ninPremiumUserPrice: z.number().positive().optional(),
-    ninPremiumAgentPrice: z.number().positive().optional(),
-    ninPremiumVendorPrice: z.number().positive().optional(),
-    ninPremiumApiPrice: z.number().positive().optional(),
+    ninPremiumUserPrice: z.number().nonnegative().optional(),
+    ninPremiumAgentPrice: z.number().nonnegative().optional(),
+    ninPremiumVendorPrice: z.number().nonnegative().optional(),
+    ninPremiumApiPrice: z.number().nonnegative().optional(),
+    ninPremiumReferralCommission: z.number().nonnegative().optional(),
     // NIN VNIN Slip
-    ninVninUserPrice: z.number().positive().optional(),
-    ninVninAgentPrice: z.number().positive().optional(),
-    ninVninVendorPrice: z.number().optional(),
-    ninVninApiPrice: z.number().optional(),
+    ninVninUserPrice: z.number().nonnegative().optional(),
+    ninVninAgentPrice: z.number().nonnegative().optional(),
+    ninVninVendorPrice: z.number().nonnegative().optional(),
+    ninVninApiPrice: z.number().nonnegative().optional(),
     ninVerificationAgentId: z.string().optional(),
     referralCommission: z.number().nonnegative().optional(),
     ninActive: z.boolean().optional()
@@ -60,11 +64,12 @@ router.get('/settings', adminAuth, async (req, res) => {
                     bvnAgentPrice: 450,
                     bvnVendorPrice: 400,
                     bvnApiPrice: 300,
-                    ninUserPrice: 500,
-                    ninAgentPrice: 450,
-                    ninVendorPrice: 400,
-                    ninApiPrice: 300,
-                    active: false
+                    ninRegularUserPrice: 150,
+                    ninRegularAgentPrice: 140,
+                    ninRegularVendorPrice: 130,
+                    ninRegularApiPrice: 100,
+                    active: false,
+                    ninActive: true
                 }
             });
         }
@@ -96,14 +101,14 @@ router.put('/settings', adminAuth, async (req, res) => {
             settings = await prisma.verificationSettings.create({
                 data: {
                     ...validatedData,
-                    bvnUserPrice: validatedData.bvnUserPrice || 500,
-                    bvnAgentPrice: validatedData.bvnAgentPrice || 450,
-                    bvnVendorPrice: validatedData.bvnVendorPrice || 400,
-                    bvnApiPrice: validatedData.bvnApiPrice || 300,
-                    ninUserPrice: validatedData.ninUserPrice || 500,
-                    ninAgentPrice: validatedData.ninAgentPrice || 450,
-                    ninVendorPrice: validatedData.ninVendorPrice || 400,
-                    ninApiPrice: validatedData.ninApiPrice || 300
+                    bvnUserPrice: validatedData.bvnUserPrice ?? 500,
+                    bvnAgentPrice: validatedData.bvnAgentPrice ?? 450,
+                    bvnVendorPrice: validatedData.bvnVendorPrice ?? 400,
+                    bvnApiPrice: validatedData.bvnApiPrice ?? 300,
+                    ninRegularUserPrice: validatedData.ninRegularUserPrice ?? 150,
+                    ninRegularAgentPrice: validatedData.ninRegularAgentPrice ?? 140,
+                    ninRegularVendorPrice: validatedData.ninRegularVendorPrice ?? 130,
+                    ninRegularApiPrice: validatedData.ninRegularApiPrice ?? 100
                 }
             });
         }
@@ -115,7 +120,9 @@ router.put('/settings', adminAuth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid input', details: error.errors });
         }
         console.error('Update verification settings error:', error);
-        res.status(500).json({ error: 'Failed to update settings' });
+        if (error.code) console.error('Prisma Error Code:', error.code);
+        if (error.meta) console.error('Prisma Error Meta:', error.meta);
+        res.status(500).json({ error: 'Failed to update settings', details: error.message });
     }
 });
 

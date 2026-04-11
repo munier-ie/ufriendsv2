@@ -64,6 +64,7 @@ import Academy from './pages/dashboard/Academy';
 import AcademyDashboard from './pages/dashboard/admin/AcademyDashboard';
 import SoftwareOptionManagement from './pages/dashboard/admin/SoftwareOptionManagement';
 import ProviderSwitch from './pages/dashboard/admin/ProviderSwitch';
+import BotDiscoveredPlans from './pages/dashboard/admin/BotDiscoveredPlans';
 
 export default function App() {
     return (
@@ -143,6 +144,7 @@ export default function App() {
                     <Route path="settings/upgrades" element={<UpgradePlanManagement />} />
                     <Route path="settings/software" element={<SoftwareOptionManagement />} />
                     <Route path="settings/routing" element={<ProviderSwitch />} />
+                    <Route path="bot-plans" element={<BotDiscoveredPlans />} />
                     <Route path="academy" element={<AcademyDashboard />} />
                 </Route>
 

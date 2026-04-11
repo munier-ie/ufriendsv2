@@ -179,35 +179,35 @@ export default function VerificationSettings() {
                         label="User Price (₦)"
                         type="number"
                         value={settings?.bvnUserPrice || 0}
-                        onChange={(e) => handleUpdate('bvnUserPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnUserPrice', parseFloat(e.target.value) || 0)}
                         placeholder="500"
                     />
                     <Input
                         label="Agent Price (₦)"
                         type="number"
                         value={settings?.bvnAgentPrice || 0}
-                        onChange={(e) => handleUpdate('bvnAgentPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnAgentPrice', parseFloat(e.target.value) || 0)}
                         placeholder="450"
                     />
                     <Input
                         label="Vendor Price (₦)"
                         type="number"
                         value={settings?.bvnVendorPrice || 0}
-                        onChange={(e) => handleUpdate('bvnVendorPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnVendorPrice', parseFloat(e.target.value) || 0)}
                         placeholder="400"
                     />
                     <Input
                         label="API Cost (₦)"
                         type="number"
                         value={settings?.bvnApiPrice || 0}
-                        onChange={(e) => handleUpdate('bvnApiPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnApiPrice', parseFloat(e.target.value) || 0)}
                         placeholder="300"
                     />
                     <Input
                         label="Ref Commission (₦)"
                         type="number"
                         value={settings?.bvnReferralCommission || 0}
-                        onChange={(e) => handleUpdate('bvnReferralCommission', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnReferralCommission', parseFloat(e.target.value) || 0)}
                         placeholder="0"
                     />
                 </div>
@@ -224,28 +224,28 @@ export default function VerificationSettings() {
                         label="User Price (₦)"
                         type="number"
                         value={settings?.bvnPlasticUserPrice || 0}
-                        onChange={(e) => handleUpdate('bvnPlasticUserPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnPlasticUserPrice', parseFloat(e.target.value) || 0)}
                         placeholder="1000"
                     />
                     <Input
                         label="Agent Price (₦)"
                         type="number"
                         value={settings?.bvnPlasticAgentPrice || 0}
-                        onChange={(e) => handleUpdate('bvnPlasticAgentPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnPlasticAgentPrice', parseFloat(e.target.value) || 0)}
                         placeholder="950"
                     />
                     <Input
                         label="Vendor Price (₦)"
                         type="number"
                         value={settings?.bvnPlasticVendorPrice || 0}
-                        onChange={(e) => handleUpdate('bvnPlasticVendorPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnPlasticVendorPrice', parseFloat(e.target.value) || 0)}
                         placeholder="900"
                     />
                     <Input
                         label="API Cost (₦)"
                         type="number"
                         value={settings?.bvnPlasticApiPrice || 0}
-                        onChange={(e) => handleUpdate('bvnPlasticApiPrice', parseFloat(e.target.value))}
+                        onChange={(e) => handleUpdate('bvnPlasticApiPrice', parseFloat(e.target.value) || 0)}
                         placeholder="800"
                     />
                 </div>
@@ -278,35 +278,35 @@ export default function VerificationSettings() {
                                 label="User Price (₦)"
                                 type="number"
                                 value={settings?.ninRegularUserPrice || 0}
-                                onChange={(e) => handleUpdate('ninRegularUserPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninRegularUserPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="150"
                             />
                             <Input
                                 label="Agent Price (₦)"
                                 type="number"
                                 value={settings?.ninRegularAgentPrice || 0}
-                                onChange={(e) => handleUpdate('ninRegularAgentPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninRegularAgentPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="140"
                             />
                             <Input
                                 label="Vendor Price (₦)"
                                 type="number"
                                 value={settings?.ninRegularVendorPrice || 0}
-                                onChange={(e) => handleUpdate('ninRegularVendorPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninRegularVendorPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="130"
                             />
                             <Input
                                 label="API Cost (₦)"
                                 type="number"
                                 value={settings?.ninRegularApiPrice || 0}
-                                onChange={(e) => handleUpdate('ninRegularApiPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninRegularApiPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="100"
                             />
                             <Input
                                 label="Ref Commission (₦)"
                                 type="number"
                                 value={settings?.ninRegularReferralCommission || 0}
-                                onChange={(e) => handleUpdate('ninRegularReferralCommission', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninRegularReferralCommission', parseFloat(e.target.value) || 0)}
                                 placeholder="0"
                             />
                         </div>
@@ -320,35 +320,35 @@ export default function VerificationSettings() {
                                 label="User Price (₦)"
                                 type="number"
                                 value={settings?.ninStandardUserPrice || 0}
-                                onChange={(e) => handleUpdate('ninStandardUserPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninStandardUserPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="200"
                             />
                             <Input
                                 label="Agent Price (₦)"
                                 type="number"
                                 value={settings?.ninStandardAgentPrice || 0}
-                                onChange={(e) => handleUpdate('ninStandardAgentPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninStandardAgentPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="190"
                             />
                             <Input
                                 label="Vendor Price (₦)"
                                 type="number"
                                 value={settings?.ninStandardVendorPrice || 0}
-                                onChange={(e) => handleUpdate('ninStandardVendorPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninStandardVendorPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="180"
                             />
                             <Input
                                 label="API Cost (₦)"
                                 type="number"
                                 value={settings?.ninStandardApiPrice || 0}
-                                onChange={(e) => handleUpdate('ninStandardApiPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninStandardApiPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="150"
                             />
                             <Input
                                 label="Ref Commission (₦)"
                                 type="number"
                                 value={settings?.ninStandardReferralCommission || 0}
-                                onChange={(e) => handleUpdate('ninStandardReferralCommission', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninStandardReferralCommission', parseFloat(e.target.value) || 0)}
                                 placeholder="0"
                             />
                         </div>
@@ -362,35 +362,35 @@ export default function VerificationSettings() {
                                 label="User Price (₦)"
                                 type="number"
                                 value={settings?.ninPremiumUserPrice || 0}
-                                onChange={(e) => handleUpdate('ninPremiumUserPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninPremiumUserPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="200"
                             />
                             <Input
                                 label="Agent Price (₦)"
                                 type="number"
                                 value={settings?.ninPremiumAgentPrice || 0}
-                                onChange={(e) => handleUpdate('ninPremiumAgentPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninPremiumAgentPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="190"
                             />
                             <Input
                                 label="Vendor Price (₦)"
                                 type="number"
                                 value={settings?.ninPremiumVendorPrice || 0}
-                                onChange={(e) => handleUpdate('ninPremiumVendorPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninPremiumVendorPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="180"
                             />
                             <Input
                                 label="API Cost (₦)"
                                 type="number"
                                 value={settings?.ninPremiumApiPrice || 0}
-                                onChange={(e) => handleUpdate('ninPremiumApiPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninPremiumApiPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="150"
                             />
                             <Input
                                 label="Ref Commission (₦)"
                                 type="number"
                                 value={settings?.ninPremiumReferralCommission || 0}
-                                onChange={(e) => handleUpdate('ninPremiumReferralCommission', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninPremiumReferralCommission', parseFloat(e.target.value) || 0)}
                                 placeholder="0"
                             />
                         </div>
@@ -404,28 +404,28 @@ export default function VerificationSettings() {
                                 label="User Price (₦)"
                                 type="number"
                                 value={settings?.ninVninUserPrice || 0}
-                                onChange={(e) => handleUpdate('ninVninUserPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninVninUserPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="1000"
                             />
                             <Input
                                 label="Agent Price (₦)"
                                 type="number"
                                 value={settings?.ninVninAgentPrice || 0}
-                                onChange={(e) => handleUpdate('ninVninAgentPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninVninAgentPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="900"
                             />
                             <Input
                                 label="Vendor Price (₦)"
                                 type="number"
                                 value={settings?.ninVninVendorPrice || 0}
-                                onChange={(e) => handleUpdate('ninVninVendorPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninVninVendorPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="800"
                             />
                             <Input
                                 label="API Cost (₦)"
                                 type="number"
                                 value={settings?.ninVninApiPrice || 0}
-                                onChange={(e) => handleUpdate('ninVninApiPrice', parseFloat(e.target.value))}
+                                onChange={(e) => handleUpdate('ninVninApiPrice', parseFloat(e.target.value) || 0)}
                                 placeholder="600"
                             />
                             <Input

@@ -1,5 +1,35 @@
 const axios = require('axios');
 
+// Helper: Ensure base URL ends at /api
+function getApiBase(baseUrl) {
+    const stripped = (baseUrl || '').trim().replace(/\/+$/, '');
+    if (stripped.endsWith('/api')) return stripped;
+    return `${stripped}/api`;
+}
+
+const CABLE_MAP = {
+    'gotv': 1,
+    'dstv': 2,
+    'startimes': 3,
+    'startime': 3
+};
+
+const DISCO_MAP = {
+    'ikeja-electric': 1,
+    'eko-electric': 2,
+    'kano-electric': 3,
+    'port-harcourt-electric': 4,
+    'ph-electric': 4,
+    'jos-electric': 5,
+    'ibadan-electric': 6,
+    'kaduna-electric': 7,
+    'abuja-electric': 8,
+    'enugu-electric': 9,
+    'yola-electric': 10,
+    'benin-electric': 11,
+    'aedc-electric': 8
+};
+
 /**
  * Extract a human-readable error message from a Maskawa API error response.
  * Maskawa returns errors as { error: ["message"] } or { error: "message" } or { detail: "message" }
@@ -47,7 +77,7 @@ async function purchaseAirtime(details, config) {
         const { networkId, amount, phone, airtimeType } = details;
         const { baseUrl, apiKey } = config;
 
-        const url = `${baseUrl.replace(/\/$/, '')}/topup/`;
+        const url = `${getApiBase(baseUrl)}/topup/`;
 
         const payload = {
             network: networkId,
@@ -109,7 +139,7 @@ async function purchaseData(details, config) {
         const { networkId, phone, planId } = details;
         const { baseUrl, apiKey } = config;
 
-        const url = `${baseUrl.replace(/\/$/, '')}/data/`;
+        const url = `${getApiBase(baseUrl)}/data/`;
 
         const payload = {
             network: networkId,
@@ -168,15 +198,14 @@ async function verifyTV(details, config) {
         const { cableId, number } = details;
         const { baseUrl, apiKey } = config;
 
-        let formattedCableName = String(cableId).toUpperCase();
-        if (formattedCableName === 'STARTIMES') formattedCableName = 'STARTIME';
+        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || cableId;
 
-        const url = `${baseUrl.replace(/\/$/, '')}/validateiuc/`;
+        const url = `${getApiBase(baseUrl)}/validateiuc/`;
 
         const response = await axios.get(url, {
             params: {
                 smart_card_number: number,
-                cablename: formattedCableName
+                cablename: mappedCable
             },
             headers: {
                 'Authorization': `Token ${apiKey}`,
@@ -222,15 +251,9 @@ async function purchaseTV(details, config) {
         const { cableId, planId, number } = details;
         const { baseUrl, apiKey } = config;
 
-        const cableMap = {
-            'gotv': 1,
-            'dstv': 2,
-            'startimes': 3,
-            'startime': 3
-        };
-        const numericCableId = cableMap[String(cableId).toLowerCase()] || cableId;
+        const numericCableId = CABLE_MAP[String(cableId).toLowerCase()] || cableId;
 
-        const url = `${baseUrl.replace(/\/$/, '')}/cablesub/`;
+        const url = `${getApiBase(baseUrl)}/cablesub/`;
 
         const payload = {
             cablename: numericCableId,
@@ -287,6 +310,8 @@ async function verifyElectricity(details, config) {
         const { discoId, number, type } = details;
         const { baseUrl, apiKey } = config;
 
+        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || discoId;
+
         // format: PREPAID:1, POSTPAID:2 (some APIs expect strings though)
         // /api/validatemeter?meternumber=meter&disconame=id&mtype=metertype
 
@@ -294,12 +319,12 @@ async function verifyElectricity(details, config) {
         if (mType.toLowerCase() === 'prepaid') mType = '1';
         if (mType.toLowerCase() === 'postpaid') mType = '2';
 
-        const url = `${baseUrl.replace(/\/$/, '')}/validatemeter/`;
+        const url = `${getApiBase(baseUrl)}/validatemeter/`;
 
         const response = await axios.get(url, {
             params: {
                 meternumber: number,
-                disconame: discoId,
+                disconame: mappedDisco,
                 mtype: mType
             },
             headers: {
@@ -346,14 +371,16 @@ async function purchaseElectricity(details, config) {
         const { discoId, number, type, amount } = details;
         const { baseUrl, apiKey } = config;
 
+        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || discoId;
+
         let mType = type || 'prepaid';
         if (mType.toLowerCase() === 'prepaid') mType = '1';
         if (mType.toLowerCase() === 'postpaid') mType = '2';
 
-        const url = `${baseUrl.replace(/\/$/, '')}/billpayment/`;
+        const url = `${getApiBase(baseUrl)}/billpayment/`;
 
         const payload = {
-            disco_name: discoId,
+            disco_name: mappedDisco,
             amount: amount,
             meter_number: number,
             MeterType: mType
@@ -408,10 +435,10 @@ async function purchaseExam(details, config) {
         const { examId, quantity } = details;
         const { baseUrl, apiKey } = config;
 
-        const url = `${baseUrl.replace(/\/$/, '')}/epin/`;
+        const url = `${getApiBase(baseUrl)}/epin/`;
 
         const payload = {
-            exam_name: examId,
+            exam_name: details.eduType || examId,
             quantity: String(quantity || 1)
         };
 
@@ -454,7 +481,7 @@ async function checkBalance(config) {
     try {
         const { baseUrl, apiKey } = config;
 
-        const url = `${baseUrl.replace(/\/$/, '')}/user/`;
+        const url = `${getApiBase(baseUrl)}/user/`;
 
         const response = await axios.get(url, {
             headers: { 'Authorization': `Token ${apiKey}` }
@@ -475,21 +502,44 @@ async function checkBalance(config) {
     }
 }
 
+// Helper: Ensure base URL ends at /api
+function getApiBase(baseUrl) {
+    const stripped = (baseUrl || '').replace(/\/+$/, '');
+    if (stripped.endsWith('/api')) return stripped;
+    return `${stripped}/api`;
+}
+
 /**
  * Fetch all data plans from Maskawa for price syncing and discovery.
  */
 async function fetchDataPlans(config) {
     try {
         const { baseUrl, apiKey } = config;
-        const res = await axios.get(`${baseUrl.replace(/\/$/, '')}/network/`, {
-            headers: { Authorization: `Token ${apiKey}` }
+        const url = `${getApiBase(baseUrl)}/network/`;
+        
+        const res = await axios.get(url, {
+            headers: { Authorization: `Token ${apiKey}` },
+            timeout: 30000
         });
 
-        if (!res.data || !res.data.plan) {
-            return { success: false, message: 'Invalid response from provider' };
+        let plans = [];
+        if (res.data && res.data.plan) {
+            plans = res.data.plan;
+        } else if (res.data) {
+            // Maskawa style: MTN_PLAN, GLO_PLAN, etc.
+            const possibleKeys = ['MTN_PLAN', 'GLO_PLAN', 'AIRTEL_PLAN', '9MOBILE_PLAN'];
+            for (const key of possibleKeys) {
+                if (Array.isArray(res.data[key])) {
+                    plans = plans.concat(res.data[key]);
+                }
+            }
         }
 
-        const plans = res.data.plan.map(plan => ({
+        if (plans.length === 0) {
+            return { success: false, message: 'No plans found in provider response' };
+        }
+
+        const formattedPlans = plans.map(plan => ({
             network: (plan.plan_network || '').toUpperCase().trim(),
             dataName: plan.plan,
             dataType: (plan.plan_type || '').toUpperCase().trim(),
@@ -498,9 +548,111 @@ async function fetchDataPlans(config) {
             duration: plan.month_validate || '30 days'
         }));
 
+        return { success: true, plans: formattedPlans };
+    } catch (error) {
+        console.error('Maskawa fetchDataPlans Error:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+/**
+ * Fetch all Cable TV plans from Maskawa Sub.
+ * Endpoint: /api/cable/ — returns GOTVPLAN[], DSTVPLAN[], STARTIME[]
+ */
+async function fetchCablePlans(config) {
+    try {
+        const { baseUrl, apiKey } = config;
+        const url = `${getApiBase(baseUrl)}/cable/`;
+
+        const res = await axios.get(url, {
+            headers: { Authorization: `Token ${apiKey}` },
+            timeout: 30000
+        });
+
+        const data = res.data;
+        const SERVICE_MAP = { GOTV: 'gotv', DSTV: 'dstv', STARTIMES: 'startimes', STARTIME: 'startimes' };
+
+        // Collect plans from known Maskawa cable keys
+        const rawPlans = [
+            ...(Array.isArray(data.GOTVPLAN) ? data.GOTVPLAN.map(p => ({ ...p, _cable: 'GOTV' })) : []),
+            ...(Array.isArray(data.DSTVPLAN) ? data.DSTVPLAN.map(p => ({ ...p, _cable: 'DSTV' })) : []),
+            ...(Array.isArray(data.STARTIME) ? data.STARTIME.map(p => ({ ...p, _cable: 'STARTIMES' })) : []),
+        ];
+
+        if (rawPlans.length === 0) {
+            return { success: false, message: 'No cable plans returned from Maskawa' };
+        }
+
+        const plans = [];
+        for (const plan of rawPlans) {
+            const cableType = plan._cable || String(plan.cable || plan.type || '').toUpperCase();
+            const providerSlug = SERVICE_MAP[cableType];
+            if (!providerSlug) continue;
+
+            const apiPrice = parseFloat(plan.amount ?? plan.price ?? plan.plan_amount ?? 0);
+            if (isNaN(apiPrice) || apiPrice <= 0) continue;
+
+            const code = String(plan.cableplan_id ?? plan.id ?? plan.plan_id ?? '');
+            if (!code) continue;
+
+            plans.push({
+                provider: providerSlug,
+                name: plan.package || plan.name || `${providerSlug} Plan ${code}`,
+                code,
+                apiPrice
+            });
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No valid cable plans parsed from Maskawa response' };
+        }
+
         return { success: true, plans };
     } catch (error) {
-        console.error('Maskawa Fetch Error:', error.message);
+        console.error('Maskawa fetchCablePlans Error:', error.message);
+        return { success: false, message: error.message };
+    }
+}
+
+/**
+ * Fetch all Exam Pin plans from Maskawa Sub.
+ * Endpoint: /api/epinprices/ — returns exam types and their prices.
+ */
+async function fetchExamPlans(config) {
+    try {
+        const { baseUrl, apiKey } = config;
+        const url = `${getApiBase(baseUrl)}/epinprices/`;
+
+        const res = await axios.get(url, {
+            headers: { Authorization: `Token ${apiKey}` },
+            timeout: 15000
+        });
+
+        const data = res.data;
+        const plans = [];
+
+        const raw = Array.isArray(data) ? data : (data.results || data.plans || []);
+        for (const plan of raw) {
+            const code = plan.exam_name || plan.code || plan.eduType;
+            if (!code) continue;
+            const apiPrice = parseFloat(plan.price ?? plan.plan_amount ?? 0);
+            if (isNaN(apiPrice) || apiPrice <= 0) continue;
+
+            plans.push({
+                examType: (plan.exam_type || code).toUpperCase(),
+                name: plan.name || plan.package || code,
+                code: String(code),
+                apiPrice
+            });
+        }
+
+        if (plans.length === 0) {
+            return { success: false, message: 'No exam plans returned from Maskawa' };
+        }
+
+        return { success: true, plans };
+    } catch (error) {
+        console.error('Maskawa fetchExamPlans Error:', error.message);
         return { success: false, message: error.message };
     }
 }
@@ -515,6 +667,8 @@ module.exports = {
     purchaseExam,
     checkBalance,
     fetchDataPlans,
+    fetchCablePlans,
+    fetchExamPlans,
     // Add purchaseDataPin alias to purchaseExam to prevent undefined crashes if called
     purchaseDataPin: async () => ({ status: 'failed', message: 'Data Pin not explicitly supported via Maskawa API documentation' })
 };

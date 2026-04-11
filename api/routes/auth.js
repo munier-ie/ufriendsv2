@@ -147,6 +147,83 @@ router.post('/login', async (req, res) => {
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
 
+        // Email Verification Check (First Login)
+        if (user.emailVerified === false) {
+            const otpCode = Math.floor(100000 + Math.random() * 900000);
+            const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+            });
+            
+            const nodemailer = require('nodemailer');
+            try {
+                const transporter = nodemailer.createTransport({
+                    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                    port: process.env.SMTP_PORT || 587,
+                    secure: process.env.SMTP_PORT === '465',
+                    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+                });
+                await transporter.sendMail({
+                    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+                    to: user.email,
+                    subject: 'UFriends Email Verification',
+                    html: `<p>Hello ${user.firstName},</p>
+                           <p>Welcome to Ufriends! Please verify your email.</p>
+                           <p>Your verification code is: <strong style="font-size:24px;">${otpCode}</strong></p>
+                           <p>This code expires in 15 minutes.</p>`
+                });
+            } catch (err) {
+                console.error("Failed to send OTP email", err);
+            }
+
+            return res.json({ 
+                success: true, 
+                emailVerificationRequired: true, 
+                userId: user.id,
+                message: 'Please verify your email to continue. We have sent an OTP to your email.'
+            });
+        }
+
+        // 2FA Check
+        if (user.twoFaEnabled) {
+            if (user.twoFaMethod === 'email') {
+                const otpCode = Math.floor(100000 + Math.random() * 900000);
+                const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry } // reuse columns for 2fa
+                });
+                const nodemailer = require('nodemailer');
+                try {
+                    const transporter = nodemailer.createTransport({
+                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                        port: process.env.SMTP_PORT || 587,
+                        secure: process.env.SMTP_PORT === '465',
+                        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+                    });
+                    await transporter.sendMail({
+                        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+                        to: user.email,
+                        subject: 'UFriends 2FA Login',
+                        html: `<p>Hello ${user.firstName},</p>
+                               <p>Your 2FA login code is: <strong style="font-size:24px;">${otpCode}</strong></p>
+                               <p>This code expires in 10 minutes.</p>`
+                    });
+                } catch (err) {
+                    console.error("Failed to send 2FA email", err);
+                }
+            }
+
+            return res.json({ 
+                success: true, 
+                twoFaRequired: true, 
+                twoFaMethod: user.twoFaMethod || 'totp',
+                userId: user.id,
+                message: 'Two-factor authentication required.'
+            });
+        }
+
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
 
         // Single Device Login Logic
@@ -194,6 +271,168 @@ router.post('/login', async (req, res) => {
         }
 
         res.json({ token, user: { id: user.id, name: `${user.firstName} ${user.lastName}` } });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+/**
+ * Handle completing the login process after email verify or 2fa success.
+ * Factor out the shared logic.
+ */
+async function completeLoginProcess(user, req, res) {
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+
+    // Single Device Login Logic / Invalidate all previous sessions
+    await prisma.userLogin.deleteMany({
+        where: { userId: user.id }
+    });
+
+    // Create new session
+    await prisma.userLogin.create({
+        data: { userId: user.id, token: token }
+    });
+
+    // Send Login Alert
+    sendLoginAlert(user, req.headers['user-agent']).catch(err => console.error('Email error:', err));
+
+    // Auto-generate Virtual Account if missing
+    if (!user.bankNo) {
+        paymentpointService.createVirtualAccount({
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+            phoneNumber: user.phone,
+            bankCodes: ['20946'] // Palmpay
+        }).then(async (paymentpointResponse) => {
+            if (paymentpointResponse.success) {
+                const accountDetails = paymentpointResponse.accountDetails;
+                if (accountDetails.bankAccounts?.[0]?.accountNumber) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            bankName: 'Palmpay (PaymentPoint)',
+                            bankNo: accountDetails.bankAccounts[0].accountNumber,
+                            accountReference: `PP_${user.phone}_${user.id}`
+                        }
+                    });
+                }
+            }
+        }).catch(err => console.error(`Failed to auto-generate virtual account on login for ${user.email}:`, err.message));
+    }
+
+    return res.json({ token, user: { id: user.id, name: `${user.firstName} ${user.lastName}` } });
+}
+
+// POST /verify-email
+router.post('/verify-email', async (req, res) => {
+    try {
+        const { userId, code } = req.body;
+        if (!userId || !code) return res.status(400).json({ error: 'Missing userId or code' });
+
+        const user = await prisma.user.findUnique({ where: { id: parseInt(userId) } });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (user.emailVerified) {
+            return res.status(400).json({ error: 'Email already verified' });
+        }
+
+        if (!user.emailVerifyCode || !user.emailVerifyExpiry || user.emailVerifyExpiry < new Date()) {
+            return res.status(400).json({ error: 'Code expired or invalid. Please login again to resend.' });
+        }
+
+        if (user.emailVerifyCode !== parseInt(code)) {
+            return res.status(400).json({ error: 'Incorrect verification code.' });
+        }
+
+        // Success - Update user
+        const updatedUser = await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerified: true, emailVerifyCode: null, emailVerifyExpiry: null }
+        });
+
+        // If they have 2FA enabled, they still need to do 2FA immediately after fixing email verification
+        if (updatedUser.twoFaEnabled) {
+            if (updatedUser.twoFaMethod === 'email') {
+                const otpCode = Math.floor(100000 + Math.random() * 900000);
+                const expiry = new Date(Date.now() + 10 * 60 * 1000);
+                await prisma.user.update({
+                    where: { id: user.id },
+                    data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+                });
+                const nodemailer = require('nodemailer');
+                try {
+                    const transporter = nodemailer.createTransport({
+                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                        port: process.env.SMTP_PORT || 587,
+                        secure: process.env.SMTP_PORT === '465',
+                        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+                    });
+                    await transporter.sendMail({
+                        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+                        to: user.email,
+                        subject: 'UFriends 2FA Login',
+                        html: `<p>Your 2FA login code is: <strong>${otpCode}</strong></p>`
+                    });
+                } catch (err) {}
+            }
+
+            return res.json({ 
+                success: true, 
+                twoFaRequired: true, 
+                twoFaMethod: updatedUser.twoFaMethod || 'totp',
+                userId: updatedUser.id,
+                message: 'Two-factor authentication required.'
+            });
+        }
+
+        // Finish login
+        return completeLoginProcess(updatedUser, req, res);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /verify-2fa
+router.post('/verify-2fa', async (req, res) => {
+    try {
+        const { userId, code } = req.body;
+        if (!userId || !code) return res.status(400).json({ error: 'Missing userId or code' });
+
+        const user = await prisma.user.findUnique({ where: { id: parseInt(userId) } });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (user.twoFaMethod === 'email') {
+            if (!user.emailVerifyCode || !user.emailVerifyExpiry || user.emailVerifyExpiry < new Date()) {
+                return res.status(400).json({ error: 'Code expired or invalid. Please login again.' });
+            }
+            if (user.emailVerifyCode !== parseInt(code)) {
+                return res.status(400).json({ error: 'Incorrect 2FA code.' });
+            }
+            // Clear the OTP fields
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { emailVerifyCode: null, emailVerifyExpiry: null }
+            });
+        } else if (user.twoFaMethod === 'totp') {
+            const speakeasy = require('speakeasy');
+            const verified = speakeasy.totp.verify({
+                secret: user.twoFaSecret,
+                encoding: 'base32',
+                token: code,
+                window: 1
+            });
+            if (!verified) {
+                // Return 400 with general error for safety, or specific
+                return res.status(400).json({ error: 'Invalid Google Authenticator code.' });
+            }
+        } else {
+            return res.status(400).json({ error: 'Unknown 2FA method.' });
+        }
+
+        // Finish login
+        return completeLoginProcess(user, req, res);
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
