@@ -98,4 +98,12 @@ app.get('/api', (req, res) => {
     res.json({ message: 'Ufriends 2.0 API is running' });
 });
 
+// Serve static files from the Vite build directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// Handle React routing, return all requests to React app
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/index.html'));
+});
+
 module.exports = app;
