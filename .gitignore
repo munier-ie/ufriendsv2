@@ -15,8 +15,9 @@ test/
 
 ## editor dirs
 .vscode
-.agents
-.agent
+.agents/
+.agent/
 sample/ufriends
 sync_log.txt
 sync_v2.txt
+dist/
