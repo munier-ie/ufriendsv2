@@ -15,33 +15,28 @@ export default function Receipt({ transaction, onClose }) {
 
     const handlePrint = () => {
         const printContent = receiptRef.current.innerHTML;
-        const originalContent = document.body.innerHTML;
+        // Get all styles from the main document to preserve Tailwind classes
+        const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+            .map(el => el.outerHTML)
+            .join('\n');
 
-        // Custom styling for print
         const printStyles = `
             <style>
                 @media print {
-                    body * { visibility: hidden; }
-                    #print-section, #print-section * { visibility: visible; }
-                    #print-section { 
-                        position: absolute; 
-                        left: 0; 
-                        top: 0; 
-                        width: 100%; 
-                        padding: 40px;
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background: white !important;
+                    }
+                    /* Force background colors to print */
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     .no-print { display: none !important; }
                 }
-                body { font-family: 'Inter', sans-serif; }
-                .receipt-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                .receipt-table th, .receipt-table td { 
-                    border: 1px solid #e5e7eb; 
-                    padding: 12px; 
-                    text-align: left; 
-                }
-                .receipt-table th { background-color: #f9fafb; font-weight: 600; text-transform: uppercase; font-size: 12px; width: 40%; }
-                .receipt-header { text-align: center; margin-bottom: 30px; }
-                .logo-container { display: flex; justify-content: center; margin-bottom: 10px; }
+                body { background: white; min-height: 100vh; font-family: 'Inter', sans-serif; }
+                #print-section { padding: 40px; max-width: 800px; margin: 0 auto; }
             </style>
         `;
 
@@ -50,16 +45,19 @@ export default function Receipt({ transaction, onClose }) {
             <html>
                 <head>
                     <title>Receipt - ${transaction.reference}</title>
+                    ${styles}
                     ${printStyles}
                 </head>
-                <body>
+                <body class="bg-white">
                     <div id="print-section">
                         ${printContent}
                     </div>
                     <script>
                         window.onload = () => {
-                            window.print();
-                            window.close();
+                            setTimeout(() => {
+                                window.print();
+                                window.close();
+                            }, 250);
                         };
                     </script>
                 </body>

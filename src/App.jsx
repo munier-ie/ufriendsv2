@@ -29,6 +29,10 @@ import SellPin from './pages/dashboard/SellPin';
 import Reseller from './pages/dashboard/Reseller';
 import Support from './pages/dashboard/Support';
 import NotFound from './pages/NotFound';
+import LandingPage from './pages/LandingPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import TermsOfService from './pages/TermsOfService';
+import HomepageEditor from './pages/dashboard/admin/HomepageEditor';
 
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard';
 import UserManagement from './pages/dashboard/admin/UserManagement';
@@ -148,10 +152,13 @@ export default function App() {
                     <Route path="settings/routing" element={<ProviderSwitch />} />
                     <Route path="bot-plans" element={<BotDiscoveredPlans />} />
                     <Route path="academy" element={<AcademyDashboard />} />
+                    <Route path="homepage" element={<HomepageEditor />} />
                 </Route>
 
-                {/* Default Redirect */}
-                <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                {/* Landing Page & Fallback */}
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/privacy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<TermsOfService />} />
                 <Route path="*" element={<NotFound />} />
             </Routes>
         </Router>

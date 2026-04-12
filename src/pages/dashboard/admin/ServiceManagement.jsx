@@ -259,7 +259,7 @@ export default function ServiceManagement() {
                                     onChange={e => setNewService({ ...newService, apiPrice: e.target.value })}
                                 />
                                  <Input
-                                     label={`Referral Commission ${newService.type === "airtime" ? "(%)" : "(N)"}`}
+                                     label={`Referral Commission ${newService.type === "airtime" || newService.type === "data" ? "(%)" : "(₦)"}`}
                                      type="number"
                                      value={newService.referralCommission}
                                      onChange={e => setNewService({ ...newService, referralCommission: e.target.value })}
@@ -347,7 +347,7 @@ export default function ServiceManagement() {
                                     onChange={e => setEditingService({ ...editingService, vendorPrice: e.target.value })}
                                 />
                                  <Input
-                                     label={`Referral Commission ${editingService.type === "airtime" ? "(%)" : "(N)"}`}
+                                     label={`Referral Commission ${editingService.type === "airtime" || editingService.type === "data" ? "(%)" : "(₦)"}`}
                                      type="number"
                                      value={editingService.referralCommission || ""}
                                      onChange={e => setEditingService({ ...editingService, referralCommission: e.target.value })}

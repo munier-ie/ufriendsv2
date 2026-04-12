@@ -122,6 +122,38 @@ export default function SiteSettings() {
                     </div>
                 </div>
 
+                {/* Social & Community */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                    <h2 className="text-xl font-semibold mb-4 flex items-center">
+                        <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
+                            <span className="text-xl">💬</span>
+                        </div>
+                        Social & Community Links
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp Group Link</label>
+                            <input
+                                type="url"
+                                value={settings?.whatsappGroupLink || ''}
+                                onChange={(e) => setSettings({ ...settings, whatsappGroupLink: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                                placeholder="https://chat.whatsapp.com/..."
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Support WhatsApp Number</label>
+                            <input
+                                type="tel"
+                                value={settings?.contactWhatsapp || ''}
+                                onChange={(e) => setSettings({ ...settings, contactWhatsapp: e.target.value })}
+                                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                                placeholder="+2348000000000"
+                            />
+                        </div>
+                    </div>
+                </div>
+
                 {/* Airtime Discount Settings */}
                 <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
                     <h2 className="text-xl font-semibold mb-4 flex items-center">

@@ -28,6 +28,7 @@ export default function Register() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [agreedToTerms, setAgreedToTerms] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -56,6 +57,9 @@ export default function Register() {
         }
         if (!formData.state) {
             return setError('Please select your state');
+        }
+        if (!agreedToTerms) {
+            return setError('You must agree to the Terms of Service and Privacy Policy to continue');
         }
 
         setLoading(true);
@@ -199,7 +203,25 @@ export default function Register() {
                         className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
                     />
 
-                    <div className="pt-4">
+                    {/* Terms & Privacy Checkbox */}
+                    <div className="flex items-start space-x-3 p-4 bg-gray-50 rounded-xl border border-gray-200">
+                        <input
+                            id="terms-checkbox"
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => { setAgreedToTerms(e.target.checked); setError(''); }}
+                            className="mt-0.5 w-4 h-4 text-primary border-gray-300 rounded focus:ring-primary/20 cursor-pointer shrink-0"
+                        />
+                        <label htmlFor="terms-checkbox" className="text-sm text-gray-600 cursor-pointer leading-relaxed">
+                            I have read and agree to the{' '}
+                            <Link to="/terms" target="_blank" className="text-primary font-semibold hover:underline">Terms of Service</Link>
+                            {' '}and{' '}
+                            <Link to="/privacy" target="_blank" className="text-primary font-semibold hover:underline">Privacy Policy</Link>
+                            {' '}of UFriends IT. I confirm I am at least 18 years old and that all verification activities I perform will have the explicit consent of the individual being verified.
+                        </label>
+                    </div>
+
+                    <div className="pt-2">
                         <Button
                             type="submit"
                             className="w-full py-3 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/25 transition-all duration-300 transform hover:-translate-y-0.5"

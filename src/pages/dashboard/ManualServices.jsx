@@ -16,6 +16,7 @@ import Hash from 'lucide-react/dist/esm/icons/hash';
 import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -268,6 +269,9 @@ export default function ManualServices() {
     const [activeSub, setActiveSub] = useState('BVN_MODIFICATION');
     const [settings, setSettings] = useState(null);
     const [formData, setFormData] = useState({});
+    const navigate = useNavigate();
+    const [prices, setPrices] = useState({ bvnMod: 3000, ninMod: 3000 });
+    const [ninAgreed, setNinAgreed] = useState(false);
     const [message, setMessage] = useState({ type: '', text: '' });
     const [submitting, setSubmitting] = useState(false);
     const [showPinModal, setShowPinModal] = useState(false);
@@ -598,8 +602,66 @@ export default function ManualServices() {
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {activeSub === 'NIN_MODIFICATION' && !ninAgreed ? (
+                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 border border-gray-100 max-w-2xl mx-auto">
+                    <div className="text-center mb-8">
+                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <ShieldCheck className="w-8 h-8 text-blue-600" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-gray-900">NIN Modification Agreement</h2>
+                        <p className="text-gray-500 mt-2 text-sm">
+                            If you are seeing this, you are chosen as an agent for this service under the following circumstances. Read it carefully; if you can abide by these terms, click on "I Agreed." If not, click on "Not Agreed."
+                        </p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-8 max-h-96 overflow-y-auto custom-scrollbar">
+                        <ul className="space-y-4 text-blue-900 text-sm list-disc pl-5">
+                            <li>I authorize this platform and its agents to access and use my personal data, including my NIN, to process and modify my NIN record as requested.</li>
+                            <li>
+                                I understand this platform is not affiliated with NIMC but I fully give my consent for this platform and its trusted agents to help me modify my NIN details on my behalf. This applies whether I am submitting the request myself or asking someone else (an agent) to do it for me.
+                                <ul className="list-circle pl-5 mt-2 space-y-2 text-blue-800">
+                                    <li>NIMC recommends that NIN modifications be done personally by the NIN owner using their own device. However, by using this platform, you confirm that due to illiteracy or difficulty using the official portal, you voluntarily authorize us to proceed with the modification on your behalf, despite NIMC's guideline.</li>
+                                    <li>You confirm that you are either the NIN owner or have full consent and authorization from the NIN owner to act on their behalf, regardless of the device being used.</li>
+                                    <li>If in the future, NIMC enforces a rule that modifications must strictly be done on the owner's device, this platform may no longer be able to process such requests unless compliant access is available.</li>
+                                </ul>
+                            </li>
+                            <li>I agree to pay the platform fixed service fee and authorize the platform to use any method or technology necessary to complete my modification even uploading document the platform wishes.</li>
+                            <li><strong>Alias Emails:</strong> This platform uses alias email addresses for all modifications, which can only be used for login but all inboxes are not accessible and NIMC may decide to stop accepting it for both login and signup (I agreed to use it). And If I prefer to use my own email, I must request an email update directly from NIMC after the modification is complete. If login credentials are provided upon request, I agree to use them exactly as given and understand that I must initiate a delinking request with NIMC if I intend to use the account on a different device. Any unauthorized changes that may compromise the account are strictly prohibited, and the platform bears no responsibility for any resulting issues.</li>
+                            <li><strong>Update Delays:</strong> Modifications reflect immediately on the NIMC and immigration portal, but banks and SIM providers may delay syncing. If I need updates urgently for banking, I understand proceed.</li>
+                            <li><strong>Non-Withdrawal Policy:</strong> Wallet funds are non-withdrawable. This platform is designed for agents using it as part of their business, not as a banking tool.</li>
+                            <li><strong>Failed Services:</strong> If a service fails, the payment is refunded to my wallet but still cannot be withdrawn.</li>
+                            <li><strong>No Double Submission:</strong> I will not submit the same request on another platform while it is being processed here. Doing so forfeits my payment due to processing costs.</li>
+                            <li><strong>Third-Party Authorization:</strong> If I am submitting on behalf of someone else, I confirm that the NIN owner has authorized me to access and request modification of their details.</li>
+                            <li>This agreement applies to all past, current, and future modification requests submitted through this platform.</li>
+                            <li>When we make changes to your NIN, these updates are immediately reflected in the NIMC database and the immigration portal. However, please be aware that banks and SIM card providers do not read real-time information; they save records, and it takes a longer time for these updates to be reflected in their systems. If you are modifying your NIN primarily for bank purposes and cannot afford to wait for these updates, we advise you not to proceed with the modification at this time.</li>
+                            <li>If there is a delay, issue, or network failure from NIMC, I agree to wait patiently until NIMC resolves the issue. I understand that submitting during such periods may result in failure, and I should not send new requests until the issue is fixed.</li>
+                        </ul>
+                    </div>
+                    
+                    <p className="text-center font-semibold text-gray-800 mb-6 font-medium">
+                        I agree to the terms above and authorize this platform to proceed with my NIN modification.
+                    </p>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate('/dashboard')}
+                            className="flex-1 py-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                        >
+                            Not Agree
+                        </Button>
+                        <Button
+                            onClick={() => setNinAgreed(true)}
+                            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+                        >
+                            I Agree & Continue
+                        </Button>
+                    </div>
+                </div>
+            ) : (
+                <>
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Manual Services</h1>
                     <p className="text-sm text-gray-500">BVN &amp; NIN administrative services processed by our agents</p>
@@ -905,6 +967,8 @@ export default function ManualServices() {
                     </div>
                 )}
             </AnimatePresence>
+            </>
+            )}
         </div>
     );
 }

@@ -1,0 +1,57 @@
+[SmartRoutingBot] Starting Smart Routing Sync...
+[SmartRoutingBot] Found 4 active provider(s): prembly, alrahuz data, subandgain, maskawa sub
+[SmartRoutingBot] --- Phase 1: Data Plans ---
+[SmartRoutingBot] Data fetch skipped for prembly: Request failed with status code 404
+[SmartRoutingBot] Data fetch skipped for alrahuz data: Request failed with status code 404
+[SmartRoutingBot] Data fetch skipped for subandgain: No data plans returned from Subandgain
+[SmartRoutingBot] Data: fetched 195 plans from maskawa sub
+[SmartRoutingBot] --- Phase 2: Cable TV Plans ---
+[SmartRoutingBot] Cable: fetched 27 plans from subandgain
+[SmartRoutingBot] Cable: fetched 41 plans from maskawa sub
+[SmartRoutingBot] --- Phase 3: Exam Pins ---
+[SmartRoutingBot] Exam fetch skipped for subandgain: No exam plans returned from Subandgain
+Maskawa fetchExamPlans Error: Request failed with status code 404
+[SmartRoutingBot] Exam fetch skipped for maskawa sub: Request failed with status code 404
+[SmartRoutingBot] No exam plans fetched. Skipping exam sync.
+[SmartRoutingBot] --- Phase 4: Smart Routing Switch ---
+[SmartRoutingBot] No valid/funded provider found for MTN CORPORATE GIFTING 2
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN CORPORATE GIFTING 2 have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for 9MOBILE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for 9MOBILE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN DATA COUPONS
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN DATA COUPONS have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN SME2
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN SME2 have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN DATA SHARE
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN DATA SHARE have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL DATA AWOOF
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL DATA AWOOF have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO DATA AWOOF
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO DATA AWOOF have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for 9MOBILE CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for 9MOBILE CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for 9MOBILE SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for 9MOBILE SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN DATA AWOOF
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN DATA AWOOF have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL AWOOF GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL AWOOF GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] Sync & Routing Complete.

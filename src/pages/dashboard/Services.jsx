@@ -494,12 +494,10 @@ export default function Services() {
                             >
                                 <option value="">Select a plan</option>
                                 {sortedPlans.map((s) => {
-                                    // For exam pins, display "NECO - 1 Token" or "WAEC - 3 Tokens"
                                     let label;
-                                    if (activeTab === 'exam' && s.quantity) {
-                                        const qty = s.quantity;
-                                        const qtyLabel = qty === 1 ? '1 Token' : `${qty} Tokens`;
-                                        label = `${s.examType || s.code || s.name.split(' ')[0]} - ${qtyLabel} (₦${s.price?.toLocaleString()})`;
+                                    if (activeTab === 'exam') {
+                                        // API now returns formatted name e.g. "NECO - 1 Token"
+                                        label = `${s.name} (₦${s.price?.toLocaleString()})`;
                                     } else {
                                         // Clean plan name (strip Days etc.)
                                         const cleanName = s.name.replace(/\s*Days?\s*\)/ig, ')').replace(/\{GIFTING\}/ig, '').trim();

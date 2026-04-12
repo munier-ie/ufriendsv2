@@ -14,9 +14,10 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// Import provider handlers
 const providerHandlers = {
     'alrahuz': require('../utils/providers/alrahuz'),
+    'alrahuzdata': require('../utils/providers/alrahuz'), // Alias for Alrahuz Data
+    'maskawa': require('../utils/providers/maskawasub'), // Alias for Maskawa
     'maskawasub': require('../utils/providers/maskawasub'),
     'subandgain': require('../utils/providers/subandgain'),
     'vtpass': require('../utils/providers/vtpass'),

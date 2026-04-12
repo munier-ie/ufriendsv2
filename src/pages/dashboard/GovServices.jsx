@@ -336,6 +336,7 @@ export default function GovServices() {
         },
         {
             id: 'cac', label: 'CAC Registration', icon: Briefcase,
+            image: '/assets/nin/samples/cac.jpg',
             price: getCacPrice(),
             active: cacPricing?.active !== false
         }

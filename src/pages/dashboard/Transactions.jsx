@@ -18,6 +18,7 @@ import Button from '../../components/ui/Button';
 import Receipt from '../../components/dashboard/Receipt';
 import FileText from 'lucide-react/dist/esm/icons/file-text';
 import Download from 'lucide-react/dist/esm/icons/download';
+import ServiceIcon from '../../components/dashboard/ServiceIcon';
 
 export default function Transactions() {
     const [transactions, setTransactions] = useState([]);
@@ -84,70 +85,8 @@ export default function Transactions() {
         // Could show a toast here
     };
 
-    const getServiceIcon = (serviceName) => {
-        const name = serviceName?.toLowerCase() || '';
-
-        if (name.includes('airtime') && !name.includes('swap')) {
-            return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                </div>
-            );
-        }
-        if (name.includes('data')) {
-            return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
-                    </svg>
-                </div>
-            );
-        }
-        if (name.includes('cable') || name.includes('tv') || name.includes('dstv') || name.includes('gotv') || name.includes('startimes')) {
-            return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                </div>
-            );
-        }
-        if (name.includes('electricity') || name.includes('bill')) {
-            return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                    </svg>
-                </div>
-            );
-        }
-        if (name.includes('pin') || name.includes('exam')) {
-            return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                    </svg>
-                </div>
-            );
-        }
-        if (name.includes('swap') || name.includes('cash')) {
-            return (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow-md">
-                    <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                </div>
-            );
-        }
-
-        // Default
-        return (
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                <div className="w-5 h-5 border-2 border-gray-400 rounded-full" />
-            </div>
-        );
+    const renderServiceIcon = (serviceName) => {
+        return <ServiceIcon serviceName={serviceName} />;
     };
 
     const getStatusBadge = (status) => {
@@ -296,7 +235,7 @@ export default function Transactions() {
                                         <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="flex items-center gap-3">
-                                                    {getServiceIcon(tx.serviceName)}
+                                                    {renderServiceIcon(tx.serviceName)}
                                                     <div>
                                                         <span className="block text-sm font-bold text-gray-900">{tx.serviceName}</span>
                                                         <span className="block text-xs text-gray-500 truncate max-w-[150px]">{tx.description}</span>

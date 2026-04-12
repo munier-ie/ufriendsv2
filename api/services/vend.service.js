@@ -532,11 +532,17 @@ async function vendExam(transaction, service, quantity, phone) {
             userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
         };
 
-        // Determine the correct quantity format/code for the provider
-        const examType = service.provider || service.name || '';
-        const eduTypeCode = getExamEduTypeCode(examType, quantity);
+        // If the service already has the eduType code (e.g. NEONE, WATWO) in service.code,
+        // use it directly. Otherwise fall back to deriving it from examType + quantity.
+        let eduTypeCode;
+        if (service.code && /^(NE|WA|NA)(ONE|TWO|THR|FOUR|FIVE)/i.test(service.code)) {
+            eduTypeCode = service.code.toUpperCase();
+        } else {
+            const examType = service.provider || service.examType || service.name || '';
+            eduTypeCode = getExamEduTypeCode(examType, quantity);
+        }
 
-        console.log(`[ExamVend] examType=${examType}, quantity=${quantity}, eduTypeCode=${eduTypeCode}`);
+        console.log(`[ExamVend] service.code=${service.code}, eduTypeCode=${eduTypeCode}`);
 
         const details = {
             serviceID: service.provider.toLowerCase(),

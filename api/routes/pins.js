@@ -22,31 +22,16 @@ router.get('/available/:serviceId', authenticateUser, async (req, res) => {
     try {
         const { serviceId } = req.params;
         const id = parseInt(serviceId);
-        let service = await prisma.service.findUnique({ where: { id } });
-
-        // Check ExamPin table first for collision or if missing from Service table
-        const examPin = await prisma.examPin.findUnique({ where: { id } });
-        if (examPin) {
-            service = {
-                id: examPin.id,
-                type: 'exam',
-                name: `${examPin.examType} Result Checker`,
-                active: examPin.active
-            };
-        }
+        const service = await prisma.service.findUnique({ where: { id } });
 
         if (!service) return res.status(404).json({ error: 'Service not found' });
 
-        // If it's an API vending service, we might assume availability unless we check API balance
-        // For now, if stock-based, return count. If API-based, return a high number or "API"
+        // Check physical stock
         const count = await prisma.pin.count({
-            where: {
-                serviceId: parseInt(serviceId),
-                status: 0 // Available
-            }
+            where: { serviceId: parseInt(serviceId), status: 0 }
         });
 
-        // Heuristic: If it's Exam or Data Pin and stock is 0, it might be API-vending
+        // Exam and Data Pin services fall back to API vending when stock is 0
         if (count === 0 && (service.type === 'exam' || service.type === 'data_pin')) {
             return res.json({ available: 100, isApiVending: true });
         }
@@ -81,31 +66,8 @@ router.post('/purchase', authenticateUser, async (req, res) => {
             return res.status(400).json({ error: 'No transaction PIN set.' });
         }
 
-        // 2. Get Service details
-        // Prioritize ExamPin table to avoid ID collision with Service table
-        let service = null;
-        const examPin = await prisma.examPin.findUnique({
-            where: { id: serviceId },
-            include: { apiProvider: true }
-        });
-
-        if (examPin) {
-            service = {
-                id: examPin.id,
-                type: 'exam',
-                name: `${examPin.examType} Result Checker`,
-                provider: examPin.examType, // Should be WAEC, NECO etc. for the vending service
-                price: examPin.userPrice,
-                agentPrice: examPin.agentPrice,
-                vendorPrice: examPin.vendorPrice,
-                apiPrice: examPin.apiPrice,
-                active: examPin.active,
-                apiProviderId: examPin.apiProviderId,
-                examQuantity: examPin.quantity
-            };
-        } else {
-            service = await prisma.service.findUnique({ where: { id: serviceId } });
-        }
+        // 2. Get Service details — all services (including exam) now live in the Service table
+        let service = await prisma.service.findUnique({ where: { id: serviceId } });
 
         if (!service || !service.active) {
             return res.status(404).json({ error: 'Service not available' });
@@ -230,8 +192,9 @@ async function handleApiPinVending(req, res, service, quantity, totalCost, busin
     // 3. Call Vending Service
     let result;
     if (service.type === 'exam') {
-        const vendQty = service.examQuantity || quantity;
-        result = await vendService.vendExam(transaction, service, vendQty, req.user.phone);
+        // service.code already contains the eduType (NEONE, WATWO etc.)
+        // vend.service.js reads service.code directly, quantity is just a formality here
+        result = await vendService.vendExam(transaction, service, 1, req.user.phone);
     } else {
         result = await vendService.vendDataPin(transaction, service, quantity, req.user.phone, businessName);
     }

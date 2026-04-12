@@ -1,0 +1,151 @@
+[SmartRoutingBot] Starting Smart Routing Sync...
+[SmartRoutingBot] Found 4 active provider(s): prembly, alrahuz data, subandgain, maskawa sub
+[SmartRoutingBot] --- Phase 1: Data Plans ---
+[SmartRoutingBot] Data fetch skipped for prembly: Request failed with status code 404
+[SmartRoutingBot] Data: fetched 244 plans from alrahuz data
+[SmartRoutingBot] Data: fetched 96 plans from subandgain
+[SmartRoutingBot] Data: fetched 195 plans from maskawa sub
+[SmartRoutingBot] New data plan discovered: MTN 2.5GB (DATA COUPONS) [619] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2.5GB (DATA COUPONS) [ID: 619] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: GLO 3.0GB (CORPORATE GIFTING) [621] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: GLO 3.0GB (CORPORATE GIFTING) [ID: 621] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 2.5GB (GIFTING) [510] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2.5GB (GIFTING) [ID: 510] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 2.5GB (DATA COUPONS) [511] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2.5GB (DATA COUPONS) [ID: 511] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 2.0GB (GIFTING) [410] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2.0GB (GIFTING) [ID: 410] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 2.0GB (DATA COUPONS) [431] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2.0GB (DATA COUPONS) [ID: 431] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 2.5GB (DATA COUPONS) [433] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2.5GB (DATA COUPONS) [ID: 433] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: GLO 3.0GB (CORPORATE GIFTING) [620] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: GLO 3.0GB (CORPORATE GIFTING) [ID: 620] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 3.5GB (GIFTING) [627] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 3.5GB (GIFTING) [ID: 627] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 3.5GB (DATA COUPONS) [628] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 3.5GB (DATA COUPONS) [ID: 628] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 3.5GB (SME2) [629] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 3.5GB (SME2) [ID: 629] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: GLO 5.0GB (CORPORATE GIFTING) [625] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: GLO 5.0GB (CORPORATE GIFTING) [ID: 625] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: GLO 5.0GB (CORPORATE GIFTING) [626] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: GLO 5.0GB (CORPORATE GIFTING) [ID: 626] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 3.5GB (SME2) [465] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 3.5GB (SME2) [ID: 465] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 11.0GB (GIFTING) [379] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 11.0GB (GIFTING) [ID: 379] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] Price lowered: AIRTEL 10.0GB [ID: 521] 3960 → 3910
+[SmartRoutingBot] New data plan discovered: MTN 20.0GB (GIFTING) [513] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 20.0GB (GIFTING) [ID: 513] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 20.0GB (DATA COUPONS) [514] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 20.0GB (DATA COUPONS) [ID: 514] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] Price lowered: AIRTEL 18.0GB [ID: 523] 5890 → 5870
+[SmartRoutingBot] New data plan discovered: AIRTEL 60.0GB (SME) [490] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: AIRTEL 60.0GB (SME) [ID: 490] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: AIRTEL 60.0GB (GIFTING) [604] via alrahuz data
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: AIRTEL 60.0GB (GIFTING) [ID: 604] via alrahuz data. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 2GB (GIFTING) [25] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 2GB (GIFTING) [ID: 25] via subandgain. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 1.5GB (GIFTING) [93] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 1.5GB (GIFTING) [ID: 93] via subandgain. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: MTN 3.5GB (GIFTING) [123] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: MTN 3.5GB (GIFTING) [ID: 123] via subandgain. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: AIRTEL 10GB (GIFTING) [71] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: AIRTEL 10GB (GIFTING) [ID: 71] via subandgain. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: AIRTEL 1GB (AWOOF GIFTING) [105] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: AIRTEL 1GB (AWOOF GIFTING) [ID: 105] via subandgain. Awaiting your review.
+[SmartRoutingBot] New data plan discovered: AIRTEL 1.5GB (AWOOF GIFTING) [107] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: AIRTEL 1.5GB (AWOOF GIFTING) [ID: 107] via subandgain. Awaiting your review.
+[SmartRoutingBot] Price lowered: MTN 1GB [ID: 138] 450 → 283
+[SmartRoutingBot] New data plan discovered: GLO 3GB (SME) [140] via subandgain
+[SmartRoutingBot] ALERT: New Data Plan Discovered - New plan found: GLO 3GB (SME) [ID: 140] via subandgain. Awaiting your review.
+[SmartRoutingBot] --- Phase 2: Cable TV Plans ---
+[SmartRoutingBot] Cable: fetched 35 plans from alrahuz data
+[SmartRoutingBot] Cable: fetched 27 plans from subandgain
+[SmartRoutingBot] Cable: fetched 41 plans from maskawa sub
+[SmartRoutingBot] Cable price raised: dstv DStv Padi [6] 2500 → 6000
+[SmartRoutingBot] ALERT: Cable TV Prices Auto-Adjusted (Increase) - alrahuz data raised price of DSTV - DStv Padi [6] from ₦2500 → ₦6000. Selling prices updated.
+[SmartRoutingBot] Cable price raised: dstv DStv Yanga [7] 3500 → 19000
+[SmartRoutingBot] ALERT: Cable TV Prices Auto-Adjusted (Increase) - alrahuz data raised price of DSTV - DStv Yanga [7] from ₦3500 → ₦19000. Selling prices updated.
+[SmartRoutingBot] Cable price raised: dstv DStv Confam [8] 6200 → 30000
+[SmartRoutingBot] ALERT: Cable TV Prices Auto-Adjusted (Increase) - alrahuz data raised price of DSTV - DStv Confam [8] from ₦6200 → ₦30000. Selling prices updated.
+[SmartRoutingBot] Cable price raised: dstv DStv Compact [9] 10500 → 44500
+[SmartRoutingBot] ALERT: Cable TV Prices Auto-Adjusted (Increase) - alrahuz data raised price of DSTV - DStv Compact [9] from ₦10500 → ₦44500. Selling prices updated.
+[SmartRoutingBot] --- Phase 3: Exam Pins ---
+Alrahuz fetchExamPlans Error: Request failed with status code 404 
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Not Found</title>
+</head>
+<body>
+  <h1>Not Found</h1><p>The requested resource was not found on this server.</p>
+</body>
+</html>
+
+[SmartRoutingBot] Exam fetch skipped for alrahuz data: Request failed with status code 404
+[SmartRoutingBot] Exam: fetched 10 plans from subandgain
+[SmartRoutingBot] Exam fetch skipped for maskawa sub: Exam endpoint not supported by provider
+[SmartRoutingBot] New exam plan discovered: NECO - NEONE [NEONE] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: NECO - NEONE [Code: NEONE] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: NECO - NETWO [NETWO] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: NECO - NETWO [Code: NETWO] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: NECO - NETHR [NETHR] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: NECO - NETHR [Code: NETHR] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: NECO - NEFOUR [NEFOUR] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: NECO - NEFOUR [Code: NEFOUR] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: NECO - NEFIVE [NEFIVE] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: NECO - NEFIVE [Code: NEFIVE] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: WAEC - WAONE [WAONE] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: WAEC - WAONE [Code: WAONE] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: WAEC - WATWO [WATWO] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: WAEC - WATWO [Code: WATWO] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: WAEC - WATHR [WATHR] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: WAEC - WATHR [Code: WATHR] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: WAEC - WAFOUR [WAFOUR] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: WAEC - WAFOUR [Code: WAFOUR] via subandgain. Awaiting your review.
+[SmartRoutingBot] New exam plan discovered: WAEC - WAFIVE [WAFIVE] via subandgain
+[SmartRoutingBot] ALERT: New Exam Pin Plan Discovered - New exam plan: WAEC - WAFIVE [Code: WAFIVE] via subandgain. Awaiting your review.
+[SmartRoutingBot] --- Phase 4: Smart Routing Switch ---
+[SmartRoutingBot] No valid/funded provider found for AIRTEL CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN CORPORATE GIFTING 2
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN CORPORATE GIFTING 2 have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for 9MOBILE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for 9MOBILE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN DATA COUPONS
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN DATA COUPONS have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN SME2
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN SME2 have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN DATA SHARE
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN DATA SHARE have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL DATA AWOOF
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL DATA AWOOF have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO DATA AWOOF
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO DATA AWOOF have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for 9MOBILE CORPORATE GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for 9MOBILE CORPORATE GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for GLO SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for GLO SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for 9MOBILE SME
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for 9MOBILE SME have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for MTN DATA AWOOF
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for MTN DATA AWOOF have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] No valid/funded provider found for AIRTEL AWOOF GIFTING
+[SmartRoutingBot] ALERT: CRITICAL: No Funded Provider - All providers for AIRTEL AWOOF GIFTING have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.
+[SmartRoutingBot] Sync & Routing Complete.
