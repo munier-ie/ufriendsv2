@@ -8,7 +8,7 @@ export default function CtaSection() {
   const c = content.cta;
 
   return (
-    <section className="py-20 lg:py-32 bg-gradient-to-br from-primary/5 via-white to-secondary/10 relative overflow-hidden">
+    <section className="py-20 lg:py-32 bg-gradient-to-br from-primary/5 via-transparent to-secondary/10 relative overflow-hidden">
       <div className="absolute top-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-0 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
       <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -19,7 +19,7 @@ export default function CtaSection() {
           </h2>
           <p className="text-lg sm:text-xl text-gray-600 mb-10 max-w-2xl mx-auto">{c.subheading}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <Link to="/register" className="inline-flex items-center px-10 py-4 bg-primary text-white font-semibold text-lg rounded-xl hover:bg-primary/90 transition-all shadow-xl shadow-primary/30 hover:-translate-y-0.5">
+            <Link to="/register" className="inline-flex items-center px-10 py-4 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white font-semibold text-lg rounded-xl hover:from-[#1e90ff]/90 hover:to-[#004687]/90 transition-all shadow-xl hover:-translate-y-0.5">
               {c.primaryBtn}<ArrowRight className="ml-2 h-5 w-5" />
             </Link>
             <Link to="/login" className="inline-flex items-center px-10 py-4 border-2 border-primary text-primary font-semibold text-lg rounded-xl hover:bg-primary hover:text-white transition-all">

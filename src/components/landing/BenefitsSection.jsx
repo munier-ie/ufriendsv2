@@ -15,7 +15,7 @@ export default function BenefitsSection() {
   const b = content.benefits;
 
   return (
-    <section id="benefits" className="py-20 lg:py-32 bg-white">
+    <section id="benefits" className="py-20 lg:py-32 bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
           <span className="inline-block text-sm font-semibold text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">{b.sectionBadge}</span>

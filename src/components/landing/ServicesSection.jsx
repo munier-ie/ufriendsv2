@@ -32,7 +32,7 @@ export default function ServicesSection() {
   const activeServices = content.services.filter((s) => s.active !== false);
 
   return (
-    <section id="services" className="py-20 lg:py-32 bg-gray-50/60">
+    <section id="services" className="py-20 lg:py-32 bg-transparent">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div className="text-center mb-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} viewport={{ once: true }}>
           <span className="inline-block text-sm font-semibold text-primary bg-primary/10 px-4 py-1.5 rounded-full mb-4">Everything You Need</span>
@@ -66,7 +66,7 @@ export default function ServicesSection() {
 
         <motion.div className="text-center mt-16" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2 }} viewport={{ once: true }}>
           <p className="text-gray-500 mb-6">Need a custom solution? We're here to help.</p>
-          <Link to="/register" className="inline-flex items-center px-8 py-4 bg-primary text-white font-semibold rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 hover:shadow-xl">
+          <Link to="/register" className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white font-semibold rounded-xl hover:from-[#1e90ff]/90 hover:to-[#004687]/90 transition-all shadow-lg hover:shadow-xl">
             Create Free Account <ArrowRight className="ml-2 h-5 w-5" />
           </Link>
         </motion.div>
