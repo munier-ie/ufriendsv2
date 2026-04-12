@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Landmark from 'lucide-react/dist/esm/icons/landmark';
@@ -106,6 +106,7 @@ export default function GovServices() {
     const [loadingHistory, setLoadingHistory] = useState(false);
 
     const [formData, setFormData] = useState(INITIAL_FORM);
+    const [termsAgreed, setTermsAgreed] = useState(false);
 
     const updateField = useCallback((field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -194,6 +195,11 @@ export default function GovServices() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        if (!termsAgreed) {
+            setMessage({ type: 'error', text: 'You must agree to the Terms of Service & Privacy Policy' });
+            return;
+        }
 
         if (activeTab === 'bvn' && formData.bvn.length !== 11) {
             setMessage({ type: 'error', text: 'BVN must be exactly 11 digits' });
@@ -753,14 +759,26 @@ export default function GovServices() {
                     ) : null}
 
                     {/* Submit Button */}
-                    <div className="pt-4">
+                    <div className="pt-4 space-y-4">
+                        <label className="flex items-start gap-3 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={termsAgreed}
+                                onChange={(e) => setTermsAgreed(e.target.checked)}
+                                className="mt-1 w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                            />
+                            <span className="text-sm text-gray-600">
+                                I agree to the <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+                            </span>
+                        </label>
                         <Button
                             type="submit"
                             className="w-full py-4 text-lg font-bold bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/25"
                             loading={loading}
                             disabled={
                                 (activeTab === 'bvn' && currentTab.active === false) ||
-                                (activeTab === 'cac' && cacPricing?.active === false)
+                                (activeTab === 'cac' && cacPricing?.active === false) ||
+                                !termsAgreed
                             }
                         >
                             {activeTab === 'bvn' ? 'Verify BVN' : activeTab === 'nin' ? 'Verify NIN' : 'Submit CAC Registration'}

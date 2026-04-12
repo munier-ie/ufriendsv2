@@ -123,7 +123,7 @@ export default function LandingNavbar() {
             </Link>
             <Link
               to="/register"
-              className="px-5 py-2 text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-xl transition-all shadow-sm hover:shadow-md"
+              className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-all shadow-sm hover:shadow-md"
             >
               Sign Up
             </Link>
@@ -163,7 +163,7 @@ export default function LandingNavbar() {
               })}
               <div className="pt-3 border-t border-gray-100 flex flex-col space-y-2">
                 <Link to="/login" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">Login</Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-semibold text-white bg-primary hover:bg-primary/90 rounded-xl transition-colors">Sign Up Free</Link>
+                <Link to="/register" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-colors">Sign Up Free</Link>
               </div>
             </div>
           </motion.div>

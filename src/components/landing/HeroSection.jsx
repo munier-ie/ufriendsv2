@@ -23,12 +23,12 @@ export default function HeroSection() {
   };
 
   return (
-    <section className="relative pt-28 pb-20 lg:pt-36 lg:pb-32 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-cyan-50 pointer-events-none" />
+    <section className="relative min-h-screen pt-28 pb-20 lg:pt-36 lg:pb-32 overflow-hidden">
+      {/* Removed grid since it is now global */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-20 right-10 w-80 h-80 bg-secondary/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Left Content */}
           <motion.div className="space-y-8" initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8, delay: 0.2 }}>
@@ -47,7 +47,7 @@ export default function HeroSection() {
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">{hero.subtitle}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/register" className="inline-flex items-center justify-center px-8 py-4 bg-primary text-white font-semibold text-lg rounded-xl hover:bg-primary/90 transition-all shadow-lg shadow-primary/30 hover:shadow-xl hover:-translate-y-0.5">
+              <Link to="/register" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white font-semibold text-lg rounded-xl hover:from-[#1e90ff]/90 hover:to-[#004687]/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
                 {hero.primaryBtn}<ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <button onClick={scrollToServices} className="inline-flex items-center justify-center px-8 py-4 border-2 border-primary text-primary font-semibold text-lg rounded-xl hover:bg-primary hover:text-white transition-all">
@@ -85,7 +85,7 @@ export default function HeroSection() {
                       <p className="text-xs text-gray-500">Trusted by 50,000+ users</p>
                     </div>
                     <div className="mb-5">
-                      <Link to="/register" className="block w-full text-center bg-primary text-white rounded-xl py-2.5 text-sm font-semibold">{hero.primaryBtn}</Link>
+                      <Link to="/register" className="block w-full text-center bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white rounded-xl py-2.5 text-sm font-semibold">{hero.primaryBtn}</Link>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mb-4">
                       {phoneIcons.map(({ icon: Icon, label }) => (

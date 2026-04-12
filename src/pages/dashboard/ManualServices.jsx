@@ -16,7 +16,7 @@ import Hash from 'lucide-react/dist/esm/icons/hash';
 import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -281,6 +281,7 @@ export default function ManualServices() {
     const [showHistory, setShowHistory] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
+    const [termsAgreed, setTermsAgreed] = useState(false);
 
     // grouped tabs
     const bvnTabs = [
@@ -400,6 +401,11 @@ export default function ManualServices() {
 
     const handleSubmit = (e) => {
         e.preventDefault();
+
+        if (!termsAgreed) {
+            setMessage({ type: 'error', text: 'You must agree to the Terms of Service & Privacy Policy' });
+            return;
+        }
 
         // Extra validation for uploads
         if (activeSub === 'BVN_MODIFICATION' && formData.idType && formData.idType !== 'nin' && !formData.idFileUrl) {
@@ -747,11 +753,23 @@ export default function ManualServices() {
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {renderForm()}
-                        <div className="pt-4">
+                        <div className="pt-4 space-y-4">
+                            <label className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={termsAgreed}
+                                    onChange={(e) => setTermsAgreed(e.target.checked)}
+                                    className="mt-1 w-4 h-4 text-primary rounded border-gray-300 focus:ring-primary"
+                                />
+                                <span className="text-sm text-gray-600">
+                                    I agree to the <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>
+                                </span>
+                            </label>
                             <Button
                                 type="submit"
                                 className="w-full py-4 text-lg font-bold bg-gradient-to-r from-primary to-secondary"
                                 loading={submitting}
+                                disabled={!termsAgreed}
                             >
                                 Submit Request
                             </Button>
