@@ -15,7 +15,8 @@ router.get('/public-settings', async (req, res) => {
             'siteName', 'sitePhone', 'siteEmail', 
             'primaryColor', 'secondaryColor', 
             'logoUrl', 'faviconUrl', 
-            'registrationEnabled', 'maintenanceMode'
+            'registrationEnabled', 'maintenanceMode',
+            'whatsappGroupLink', 'contactWhatsapp'
         ];
         
         const settings = {};
@@ -73,14 +74,16 @@ router.get('/settings', adminAuth, async (req, res) => {
             faviconUrl: '/favicon.ico',
             adminWhatsappNumber: '',
             whatsappApiKey: '',
-            whatsappApiUrl: ''
+            whatsappApiUrl: '',
+            whatsappGroupLink: '',
+            contactWhatsapp: ''
         };
 
         // Fetch all settings from AppSetting table
         const dbSettings = await prisma.appSetting.findMany();
         const settings = { ...defaultSettings };
 
-        const stringOnlyKeys = ['siteName', 'siteEmail', 'sitePhone', 'logoUrl', 'faviconUrl', 'adminWhatsappNumber', 'primaryColor', 'secondaryColor'];
+        const stringOnlyKeys = ['siteName', 'siteEmail', 'sitePhone', 'logoUrl', 'faviconUrl', 'adminWhatsappNumber', 'primaryColor', 'secondaryColor', 'whatsappGroupLink', 'contactWhatsapp'];
 
         dbSettings.forEach(s => {
             let value = s.value;

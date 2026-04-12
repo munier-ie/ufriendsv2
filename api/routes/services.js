@@ -56,14 +56,12 @@ router.get('/all', authenticateUser, async (req, res) => {
     try {
         const [
             services,
-            examPins,
             manualPrices,
             verification,
             alphaRate,
             airtimeCashRates
         ] = await Promise.all([
             prisma.service.findMany({ where: { active: true } }),
-            prisma.examPin.findMany({ where: { active: true } }),
             prisma.manualServicePrice.findMany({ where: { active: true } }),
             prisma.verificationSettings.findFirst(),
             prisma.alphaTopupRate.findFirst({ where: { active: true } }),
@@ -72,7 +70,7 @@ router.get('/all', authenticateUser, async (req, res) => {
 
         const allServices = [];
 
-        // 1. Standard Services
+        // 1. Standard Services (includes exam type now from Service table)
         services.forEach(s => {
             allServices.push({
                 id: `std-${s.id}`,
@@ -81,18 +79,6 @@ router.get('/all', authenticateUser, async (req, res) => {
                 price: s.price,
                 agentPrice: s.agentPrice,
                 vendorPrice: s.vendorPrice
-            });
-        });
-
-        // 2. Exam PINs
-        examPins.forEach(p => {
-            allServices.push({
-                id: `exam-${p.id}`,
-                name: `${p.examType} Result Checker`,
-                type: 'exam',
-                price: p.userPrice,
-                agentPrice: p.agentPrice,
-                vendorPrice: p.vendorPrice
             });
         });
 
@@ -185,38 +171,40 @@ router.get('/:type', authenticateUser, async (req, res) => {
         const { type } = req.params;
         const userType = req.user.type; // 1=Regular, 2=Agent, 3=Vendor
 
-        // Special handling for exam pins - data lives in ExamPin table, not Service table
+        // Exam pins now live in the unified Service table (type='exam')
+        // code = eduType (NEONE, WATWO etc.), provider = exam board (NECO, WAEC)
         if (type === 'exam') {
-            const activeProvider = await prisma.activeProvider.findUnique({
-                where: { serviceType: 'exam' }
-            });
-            const whereClause = { active: true };
-            if (activeProvider && activeProvider.apiProviderId) {
-                whereClause.apiProviderId = activeProvider.apiProviderId;
-            }
-
-            const examPins = await prisma.examPin.findMany({
-                where: whereClause,
+            const examServices = await prisma.service.findMany({
+                where: { type: 'exam', active: true },
                 include: { apiProvider: { select: { name: true } } },
-                orderBy: { examType: 'asc' }
+                orderBy: [{ provider: 'asc' }, { code: 'asc' }]
             });
 
-            const services = examPins.map(pin => {
-                let price = pin.userPrice;
-                if (userType === 2 && pin.agentPrice) price = pin.agentPrice;
-                if (userType === 3 && pin.vendorPrice) price = pin.vendorPrice;
+            // Build human-readable quantity from the eduType code
+            const QTY_MAP = {
+                'NEONE': 1, 'NETWO': 2, 'NETHR': 3, 'NEFOUR': 4, 'NEFIVE': 5,
+                'WAONE': 1, 'WATWO': 2, 'WATHR': 3, 'WAFOUR': 4, 'WAFIVE': 5
+            };
+
+            const services = examServices.map(s => {
+                let price = s.price;
+                if (userType === 2 && s.agentPrice) price = s.agentPrice;
+                if (userType === 3 && s.vendorPrice) price = s.vendorPrice;
+
+                const qty = QTY_MAP[s.code] || 1;
+                const examBoard = s.provider || s.name.replace(/ONE|TWO|THR|FOUR|FIVE|WA|NE/g, '') || 'EXAM';
 
                 return {
-                    id: pin.id,
-                    name: `${pin.examType} Result Checker`,
+                    id: s.id,
+                    name: `${examBoard} - ${qty} Token${qty > 1 ? 's' : ''}`,
                     type: 'exam',
-                    provider: pin.apiProvider?.name || 'subandgain',
-                    code: pin.examType,
-                    examType: pin.examType,
-                    quantity: pin.quantity,
+                    provider: s.provider,
+                    code: s.code,         // eduType: NEONE, WATWO etc.
+                    examType: s.provider, // NECO, WAEC
+                    quantity: qty,
                     price,
-                    active: pin.active,
-                    apiProviderId: pin.apiProviderId
+                    active: s.active,
+                    apiProviderId: s.apiProviderId
                 };
             });
 
@@ -483,7 +471,16 @@ router.post('/purchase', authenticateUser, async (req, res) => {
             });
 
             // Post-process: Referral, Email
-            creditReferralBonus(req.user.id, service.type, service.referralCommission || 0).catch(err => console.error('Bonus error:', err));
+            let referralCommission = service.referralCommission || undefined; // Use db default if null
+            if (service.type === 'data') {
+                if (typeof service.referralCommission === 'number' && service.referralCommission > 0) {
+                    referralCommission = (amount * service.referralCommission) / 100;
+                }
+            } else if (referralCommission === 0) {
+                referralCommission = undefined; // allow falling back to env vars if explicitly 0
+            }
+
+            creditReferralBonus(req.user.id, service.type, referralCommission).catch(err => console.error('Bonus error:', err));
             sendTransactionReceipt(req.user, result.transaction).catch(err => console.error('Email error:', err));
 
         } else {

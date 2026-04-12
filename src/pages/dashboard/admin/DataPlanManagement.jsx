@@ -17,6 +17,7 @@ export default function DataPlanManagement() {
         agentPrice: '',
         vendorPrice: '',
         apiPrice: '',
+        referralCommission: '',
         active: true
     });
 
@@ -106,6 +107,7 @@ export default function DataPlanManagement() {
             agentPrice: plan.agentPrice.toString(),
             vendorPrice: plan.vendorPrice.toString(),
             apiPrice: plan.apiPrice.toString(),
+            referralCommission: plan.referralCommission?.toString() || '',
             active: plan.active
         });
         setShowModal(true);
@@ -123,6 +125,7 @@ export default function DataPlanManagement() {
             agentPrice: '',
             vendorPrice: '',
             apiPrice: '',
+            referralCommission: '',
             active: true
         });
     };
@@ -214,6 +217,7 @@ export default function DataPlanManagement() {
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Agent Price</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Vendor Price</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">API Price</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Ref Comm (%)</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Status</th>
                                         <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase">Actions</th>
                                     </tr>
@@ -241,6 +245,7 @@ export default function DataPlanManagement() {
                                             <td className="px-6 py-4 font-semibold">₦{plan.agentPrice.toLocaleString()}</td>
                                             <td className="px-6 py-4 font-semibold">₦{plan.vendorPrice.toLocaleString()}</td>
                                             <td className="px-6 py-4 font-semibold">₦{plan.apiPrice.toLocaleString()}</td>
+                                            <td className="px-6 py-4 font-semibold text-orange-600">{plan.referralCommission || 0}%</td>
                                             <td className="px-6 py-4">
                                                 {plan.active ? (
                                                     <span className="flex items-center text-green-600">
@@ -393,6 +398,17 @@ export default function DataPlanManagement() {
                                         required
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Referral Commission (%)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    value={formData.referralCommission}
+                                    onChange={(e) => setFormData({ ...formData, referralCommission: e.target.value })}
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary"
+                                />
                             </div>
 
                             <div className="flex items-center">

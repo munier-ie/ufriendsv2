@@ -50,6 +50,7 @@ export default function DashboardLayout() {
     const [unreadNotifications, setUnreadNotifications] = useState(0);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [siteName, setSiteName] = useState('Ufriends');
+    const [globalSettings, setGlobalSettings] = useState(null);
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -78,6 +79,7 @@ export default function DashboardLayout() {
             const res = await axios.get('/api/admin/config/public-settings');
             const { settings } = res.data;
             if (settings) {
+                setGlobalSettings(settings);
                 setSiteName(settings.siteName || 'Ufriends');
                 // Apply visual theme
                 if (settings.primaryColor) {
@@ -193,6 +195,7 @@ export default function DashboardLayout() {
         { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans', moduleId: 'services' },
         { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
         { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales', moduleId: 'reports' },
+        { icon: Globe, label: 'Homepage Editor', path: '/admin/dashboard/homepage', moduleId: 'settings' },
         { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings', moduleId: 'settings' },
         { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments', moduleId: 'settings' },
         { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks', moduleId: 'settings' },
@@ -350,8 +353,24 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                     </div>
                 </header>
                 <div className="p-6 relative z-10 max-w-7xl mx-auto">
-                    <Outlet />
+                    <Outlet context={{ globalSettings }} />
                 </div>
+                
+                {/* Floating WhatsApp Group Icon */}
+                {globalSettings?.whatsappGroupLink && !isAdmin && (
+                    <a
+                        href={globalSettings.whatsappGroupLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="fixed bottom-6 right-6 z-50 bg-green-500 text-white p-4 rounded-full shadow-2xl hover:bg-green-600 transition-all hover:-translate-y-1 hover:shadow-green-500/30 flex items-center justify-center group"
+                        title="Join our WhatsApp Group"
+                    >
+                        <MessageSquare size={28} />
+                        <span className="absolute right-full mr-4 bg-gray-900 text-white text-xs font-bold py-1.5 px-3 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                            Join our community
+                        </span>
+                    </a>
+                )}
             </main>
         </div>
     );

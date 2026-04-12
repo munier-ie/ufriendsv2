@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import User from 'lucide-react/dist/esm/icons/user';
 import Mail from 'lucide-react/dist/esm/icons/mail';
@@ -26,6 +26,7 @@ import X from 'lucide-react/dist/esm/icons/x';
 
 export default function Profile() {
     const navigate = useNavigate();
+    const { globalSettings } = useOutletContext();
     const [loading, setLoading] = useState(true);
     const [profileData, setProfileData] = useState(null);
     const [openSection, setOpenSection] = useState(null);
@@ -640,20 +641,24 @@ export default function Profile() {
                     onToggle={() => toggleSection('contact')}
                 >
                     <div className="space-y-4">
-                        <a href="https://wa.me/2348012345678" className="flex items-center space-x-3 p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors">
-                            <MessageCircle className="w-6 h-6 text-green-600" />
-                            <div>
-                                <p className="font-medium text-gray-900">WhatsApp</p>
-                                <p className="text-sm text-gray-600">+234 801 234 5678</p>
-                            </div>
-                        </a>
-                        <a href="mailto:support@ufriends.com" className="flex items-center space-x-3 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
-                            <Mail className="w-6 h-6 text-blue-600" />
-                            <div>
-                                <p className="font-medium text-gray-900">Email</p>
-                                <p className="text-sm text-gray-600">support@ufriends.com</p>
-                            </div>
-                        </a>
+                        {(globalSettings?.contactWhatsapp || globalSettings?.sitePhone) && (
+                            <a href={`https://wa.me/${String(globalSettings?.contactWhatsapp || globalSettings?.sitePhone || '').replace(/[^0-9]/g, '')}`} className="flex items-center space-x-3 p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors">
+                                <MessageCircle className="w-6 h-6 text-green-600" />
+                                <div>
+                                    <p className="font-medium text-gray-900">WhatsApp</p>
+                                    <p className="text-sm text-gray-600">{globalSettings?.contactWhatsapp || globalSettings?.sitePhone}</p>
+                                </div>
+                            </a>
+                        )}
+                        {globalSettings?.siteEmail && (
+                            <a href={`mailto:${globalSettings?.siteEmail}`} className="flex items-center space-x-3 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
+                                <Mail className="w-6 h-6 text-blue-600" />
+                                <div>
+                                    <p className="font-medium text-gray-900">Email</p>
+                                    <p className="text-sm text-gray-600">{globalSettings?.siteEmail}</p>
+                                </div>
+                            </a>
+                        )}
                     </div>
                 </AccordionItem>
 

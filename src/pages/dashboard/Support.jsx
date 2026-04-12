@@ -14,6 +14,7 @@ export default function Support() {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sending, setSending] = useState(false);
+    const [alertMsg, setAlertMsg] = useState({ type: '', text: '' });
     
     // Form state
     const [subject, setSubject] = useState('');
@@ -57,9 +58,11 @@ export default function Support() {
             setIsModalOpen(false);
             setSubject('');
             setMessageContent('');
-            alert('Your message has been sent to our support team.');
+            setAlertMsg({ type: 'success', text: 'Your message has been sent to our support team.' });
+            setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to send message');
+            setAlertMsg({ type: 'error', text: error.response?.data?.error || 'Failed to send message' });
+            setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
         } finally {
             setSending(false);
         }
@@ -79,6 +82,20 @@ export default function Support() {
                     <Plus size={18} className="mr-2" /> New Request
                 </Button>
             </div>
+
+            <AnimatePresence>
+                {alertMsg.text && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
+                        className={`p-4 rounded-xl flex items-center justify-between border ${alertMsg.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}
+                    >
+                        <span className="font-medium">{alertMsg.text}</span>
+                        <button onClick={() => setAlertMsg({ type: '', text: '' })} className="ml-4 opacity-50 hover:opacity-100 text-xl font-bold">&times;</button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 bg-gray-50">
@@ -136,19 +153,19 @@ export default function Support() {
             {/* New Message Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <>
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => !sending && setIsModalOpen(false)}
-                            className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+                            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                         />
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl p-6 shadow-2xl z-50 w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+                            className="bg-white rounded-2xl p-6 shadow-2xl z-10 w-full max-w-lg max-h-[90vh] overflow-y-auto relative"
                         >
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-xl font-bold text-gray-900">New Support Request</h3>
@@ -201,7 +218,7 @@ export default function Support() {
                                 </div>
                             </form>
                         </motion.div>
-                    </>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

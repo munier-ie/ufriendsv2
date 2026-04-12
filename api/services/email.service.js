@@ -84,6 +84,12 @@ async function sendWelcomeEmail(user) {
             </ul>
             <p>If you have any questions, feel free to contact our support team.</p>
             <br>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                    Login Into Your Account
+                </a>
+            </div>
+            <br>
             <p>Best regards,</p>
             <p>The Ufriends Team</p>
         </div>
@@ -105,6 +111,12 @@ async function sendLoginAlert(user, deviceInfo) {
             <p><strong>Device:</strong> ${deviceInfo || 'Unknown Device'}</p>
             <br>
             <p>If this was you, you can ignore this email. If you did not authorize this login, please contact support immediately and change your password.</p>
+            <br>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                    Log In to Secure Account
+                </a>
+            </div>
             <br>
             <p>Best regards,</p>
             <p>The Ufriends Team</p>

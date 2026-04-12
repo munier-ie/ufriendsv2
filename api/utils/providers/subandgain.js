@@ -507,23 +507,35 @@ async function fetchDataPlans(config) {
         }
 
         const plans = [];
-        // API returns an object keyed by network name: { "MTN": [...], "GLO": [...], ... }
-        // Each item: { id, plan, type, price, ... }
-        for (const [networkKey, networkPlans] of Object.entries(data)) {
-            if (!Array.isArray(networkPlans)) continue;
-            const network = networkKey.toUpperCase().trim();
-            for (const plan of networkPlans) {
-                const planId = String(plan.id ?? plan.dataplan_id ?? '');
-                const apiPrice = parseFloat(plan.price ?? plan.plan_amount ?? 0);
+        
+        // Ensure data is array
+        const rawData = Array.isArray(data) ? data : (data.data || []);
+        
+        for (const item of rawData) {
+            const network = String(item.NETWORK || '').toUpperCase().trim();
+            if (!network || !Array.isArray(item.BUNDLE)) continue;
+            
+            for (const plan of item.BUNDLE) {
+                const planId = String(plan.dataPlan || plan.dataplan_id || plan.id || '');
+                
+                let apiPrice = 0;
+                if (Array.isArray(plan.price) && plan.price.length > 0) {
+                    // Their API puts prices inside an array in 'price' object
+                    apiPrice = parseFloat(plan.price[0].api_user || plan.price[0].value || plan.price[0].basic_user || 0);
+                } else {
+                    apiPrice = parseFloat(plan.price || plan.plan_amount || 0);
+                }
+                
                 if (!planId || isNaN(apiPrice) || apiPrice <= 0) continue;
+                if (plan.status && String(plan.status).toUpperCase() !== 'ACTIVE') continue;
 
                 plans.push({
-                    network,
-                    dataName: plan.plan || plan.name || planId,
-                    dataType: (plan.type || plan.plan_type || 'SME').toUpperCase().trim(),
+                    network, // e.g. MTN
+                    dataName: plan.dataBundle || plan.plan || plan.name || planId,
+                    dataType: String(plan.type || plan.plan_type || 'SME').toUpperCase().trim(),
                     planId,
                     apiPrice,
-                    duration: plan.validity || plan.month_validate || '30 days'
+                    duration: plan.duration || plan.validity || plan.month_validate || '30 days'
                 });
             }
         }
@@ -609,18 +621,24 @@ async function fetchExamPlans(config) {
         }
 
         const plans = [];
-        // Expected: { "NECO": [...], "WAEC": [...] }
-        // Each item: { eduType, package/name, price }
-        for (const [examKey, examPlans] of Object.entries(data)) {
-            if (!Array.isArray(examPlans)) continue;
-            for (const plan of examPlans) {
-                const code = plan.eduType || plan.code || plan.id;
+        
+        const rawData = Array.isArray(data) ? data : [];
+        
+        for (const item of rawData) {
+            const examKey = String(item.SERVICE || '').toUpperCase().trim();
+            if (!examKey || !Array.isArray(item.BUNDLE)) continue;
+            
+            for (const plan of item.BUNDLE) {
+                const code = plan.eduCode || plan.code || plan.id;
                 if (!code) continue;
-                const apiPrice = parseFloat(plan.price ?? plan.amount ?? 0);
+                
+                const apiPrice = parseFloat(plan.price || plan.amount || 0);
                 if (isNaN(apiPrice) || apiPrice <= 0) continue;
+                
+                if (plan.status && String(plan.status).toUpperCase() !== 'ACTIVE') continue;
 
                 plans.push({
-                    examType: examKey.toUpperCase(),
+                    examType: examKey,
                     name: plan.package || plan.name || code,
                     code: String(code),  // eduType code e.g. 'NEONE', 'WAONE'
                     apiPrice

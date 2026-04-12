@@ -26,6 +26,7 @@ import FileCheck from 'lucide-react/dist/esm/icons/file-check';
 import FileCode from 'lucide-react/dist/esm/icons/file-code';
 import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
 import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
+import ServiceIcon from '../../components/dashboard/ServiceIcon';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function DashboardHome() {
@@ -579,13 +580,7 @@ export default function DashboardHome() {
                         transactions.map((tx) => (
                             <div key={tx.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                                 <div className="flex items-center space-x-4">
-                                    <div className={`p-2 rounded-full ${tx.status === 0 ? 'bg-green-100' : tx.status === 1 ? 'bg-red-100' : 'bg-yellow-100'}`}>
-                                        {tx.amount > 0 ? (
-                                            <ArrowDownRight className={tx.status === 0 ? 'text-green-600' : 'text-gray-600'} size={20} />
-                                        ) : (
-                                            <ArrowUpRight className={tx.status === 0 ? 'text-red-600' : 'text-gray-600'} size={20} />
-                                        )}
-                                    </div>
+                                    <ServiceIcon serviceName={tx.serviceName} />
                                     <div>
                                         <p className="font-medium text-gray-900">{tx.serviceName}</p>
                                         <p className="text-sm text-gray-500">{tx.description}</p>

@@ -652,6 +652,9 @@ async function fetchExamPlans(config) {
 
         return { success: true, plans };
     } catch (error) {
+        if (error.response && error.response.status === 404) {
+            return { success: false, message: 'Exam endpoint not supported by provider' };
+        }
         console.error('Maskawa fetchExamPlans Error:', error.message);
         return { success: false, message: error.message };
     }
