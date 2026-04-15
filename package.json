@@ -5,7 +5,8 @@
   "main": "api/index.js",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && npx prisma generate",
+    "build": "vite build",
+    "build:backend": "npx prisma generate",
     "preview": "vite preview",
     "start": "node api/dev-server.js"
   },
