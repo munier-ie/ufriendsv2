@@ -18,6 +18,7 @@ const Input = forwardRef(({
     error,
     className,
     containerClassName,
+    rightElement,
     id: providedId,
     ...props
 }, ref) => {
@@ -36,27 +37,35 @@ const Input = forwardRef(({
                     {label}
                 </label>
             )}
-            <input
-                ref={ref}
-                id={id}
-                className={cn(
-                    // Base styles
-                    'block w-full rounded-lg border border-gray-300 shadow-sm',
-                    'px-3 py-2 min-h-[44px]', // Touch target: 44px min
-                    'text-gray-900 placeholder-gray-400',
-                    'transition-colors duration-200',
-                    // Focus states
-                    'focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
-                    // Error states
-                    error && 'border-red-300 focus:border-red-500 focus:ring-red-500',
-                    // Disabled states
-                    'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
-                    className
+            <div className="relative">
+                <input
+                    ref={ref}
+                    id={id}
+                    className={cn(
+                        // Base styles
+                        'block w-full rounded-lg border border-gray-300 shadow-sm',
+                        'px-3 py-2 min-h-[44px]', // Touch target: 44px min
+                        'text-gray-900 placeholder-gray-400',
+                        'transition-colors duration-200',
+                        // Focus states
+                        'focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500',
+                        // Error states
+                        error && 'border-red-300 focus:border-red-500 focus:ring-red-500',
+                        // Disabled states
+                        'disabled:bg-gray-50 disabled:text-gray-500 disabled:cursor-not-allowed',
+                        rightElement && 'pr-11',
+                        className
+                    )}
+                    aria-invalid={error ? 'true' : 'false'}
+                    aria-describedby={error ? errorId : undefined}
+                    {...props}
+                />
+                {rightElement && (
+                    <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                        {rightElement}
+                    </div>
                 )}
-                aria-invalid={error ? 'true' : 'false'}
-                aria-describedby={error ? errorId : undefined}
-                {...props}
-            />
+            </div>
             {error && (
                 <p
                     id={errorId}

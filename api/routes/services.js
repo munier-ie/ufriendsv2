@@ -302,29 +302,15 @@ router.post('/purchase', authenticateUser, async (req, res) => {
 
         const { serviceId, recipient, amount, pin, networkType } = validation.data;
 
-        console.log(`[Purchase] User: ${req.user.email}, Input PIN: '${pin}'`);
-        console.log(`[Purchase] Has TransactionPin: ${!!req.user.transactionPin}, Has Legacy PIN: ${!!req.user.pin}`);
-
-        // 1. Verify PIN
-        // Prioritize hashed transactionPin if available
-        if (req.user.transactionPin) {
-            const bcrypt = require('bcryptjs');
-            const valid = await bcrypt.compare(pin, req.user.transactionPin);
-            console.log(`[Purchase] Hashed PIN match: ${valid}`);
-
-            if (!valid) {
-                return res.status(400).json({ error: 'Invalid transaction PIN' });
-            }
-        }
-        // Fallback to legacy plain text pin (if transactionPin is not set)
-        else if (req.user.pin && req.user.pin !== pin) {
-            console.log(`[Purchase] Legacy PIN mismatch. Expected: ${req.user.pin}, Got: ${pin}`);
-            return res.status(400).json({ error: 'Invalid transaction PIN' });
-        }
-        // If neither is set, fail? Or allow if no pin set? (Security risk, but user might be new)
-        else if (!req.user.pin && !req.user.transactionPin) {
-            console.log('[Purchase] No PIN set on account');
+        // [SEC-CRIT-01] PIN verification — sensitive data intentionally excluded from logs
+        if (!req.user.transactionPin) {
             return res.status(400).json({ error: 'No transaction PIN set. Please go to settings.' });
+        }
+
+        const bcrypt = require('bcryptjs');
+        const valid = await bcrypt.compare(pin, req.user.transactionPin);
+        if (!valid) {
+            return res.status(400).json({ error: 'Invalid transaction PIN' });
         }
 
         // 2. Get Service

@@ -2,6 +2,11 @@ const crypto = require('crypto');
 
 const ALGORITHM = 'aes-256-cbc';
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'default-key-change-in-production!!';
+
+if (!process.env.ENCRYPTION_KEY || process.env.ENCRYPTION_KEY === 'default-key-change-in-production!!') {
+    throw new Error('FATAL: ENCRYPTION_KEY is not set or uses default value. Set a 32-char random key in .env');
+}
+
 const IV_LENGTH = 16;
 
 /**

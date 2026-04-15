@@ -90,7 +90,7 @@ async function verifyBvn(bvnNumber) {
 
     console.log('BVN Verification Request:');
     console.log('URL:', fullUrl);
-    console.log('Payload:', { number: bvnNumber });
+    console.log('Payload sent to prembly (BVN redacted)');
 
     const response = await axios.post(
       fullUrl,
@@ -489,12 +489,25 @@ async function generateBvnPdf(reportData) {
     const pdfFilename = `${reportData.transactionRef}.pdf`;
     const pdfPath = path.join(uploadsDir, pdfFilename);
 
-    // PDF options
-    const browser = await puppeteer.launch({
-      executablePath: process.env.CHROME_BIN || '/usr/bin/google-chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: 'new'
-    });
+    // Generate PDF using Puppeteer
+    let browser;
+    const chromePath = process.env.CHROME_BIN || '/usr/bin/google-chrome';
+
+    try {
+      // Check if the explicitly provided or default path exists
+      await fs.access(chromePath);
+      browser = await puppeteer.launch({
+        executablePath: chromePath,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: 'new'
+      });
+    } catch (e) {
+      // Fallback to bundled puppeteer browser if path doesn't exist
+      browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: 'new'
+      });
+    }
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
 

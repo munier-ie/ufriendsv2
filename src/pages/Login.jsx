@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import AuthLayout from '../components/layout/AuthLayout';
 import Logo from '../components/ui/Logo';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 export default function Login() {
     const [step, setStep] = useState('login'); // 'login' | 'email-verify' | '2fa-verify'
@@ -19,6 +20,7 @@ export default function Login() {
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -86,6 +88,15 @@ export default function Login() {
 
     return (
         <AuthLayout>
+            <div className="mb-6 flex justify-between items-center px-2">
+                <Link 
+                    to="/" 
+                    className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary transition-colors group"
+                >
+                    <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+                    <span>Go Back Home</span>
+                </Link>
+            </div>
             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full border border-white/50">
                 <div className="text-center mb-8 flex flex-col items-center">
                     <Logo className="w-16 h-16 mb-4" />
@@ -127,12 +138,21 @@ export default function Login() {
                         <Input
                             label="Password"
                             name="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             value={formData.password}
                             onChange={handleChange}
                             placeholder="Enter your password"
                             required
                             className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
+                            rightElement={
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            }
                         />
 
                         <div className="flex items-center justify-between text-sm">

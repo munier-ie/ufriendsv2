@@ -497,7 +497,7 @@ async function checkBalance(config) {
             return { success: false, message: 'Invalid balance format returned' };
         }
     } catch (error) {
-        console.error('Maskawa Balance Error:', error.message);
+        console.error('Maskawa Balance Error Full:', error);
         return { success: false, message: 'Connection Error' };
     }
 }

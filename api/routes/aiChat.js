@@ -15,7 +15,8 @@ router.post('/consult', authenticateUser, async (req, res) => {
             return res.status(400).json({ error: 'Message is required' });
         }
 
-        const reply = await geminiService.chat(history || [], message);
+        const safeHistory = (history || []).slice(-20);
+        const reply = await geminiService.chat(safeHistory, message);
         res.json({ reply });
     } catch (error) {
         console.error('AI Chat Error:', error);

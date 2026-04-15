@@ -97,7 +97,7 @@ async function verifyNin(ninNumber) {
 
     console.log('NIN Verification Request:');
     console.log('URL:', fullUrl);
-    console.log('Payload:', { number_nin: ninNumber });
+    console.log('Payload sent to prembly (NIN redacted)');
     console.log('Headers:', { ...headers, 'x-api-key': '***' });
 
     const response = await axios.post(
@@ -110,6 +110,11 @@ async function verifyNin(ninNumber) {
         timeout: 30000 // 30 second timeout
       }
     );
+
+    // LOG RESPONSE FOR DEBUGGING
+    console.log('--- PREMBLY NIN RESPONSE START ---');
+    console.log(JSON.stringify(response.data, null, 2));
+    console.log('--- PREMBLY NIN RESPONSE END ---');
 
     // Check response status
     if (response.data && response.data.status === true) {
@@ -171,13 +176,18 @@ async function verifyNinByPhone(phoneNumber) {
 
     console.log('NIN by Phone Verification Request:');
     console.log('URL:', fullUrl);
-    console.log('Payload:', { number: phoneNumber });
+    console.log('Payload sent to prembly (Phone redacted)');
 
     const response = await axios.post(
       fullUrl,
       { number: phoneNumber },
       { headers, timeout: 30000 }
     );
+
+    // LOG RESPONSE FOR DEBUGGING
+    console.log('--- PREMBLY PHONE NIN RESPONSE START ---');
+    console.log(JSON.stringify(response.data, null, 2));
+    console.log('--- PREMBLY PHONE NIN RESPONSE END ---');
 
     if (response.data && response.data.status === true) {
       return {
@@ -224,7 +234,7 @@ async function storeNinReport(userId, transactionRef, ninNumber, slipType, verif
         firstName: verificationData.firstName || verificationData.first_name || verificationData.firstname,
         middleName: verificationData.middleName || verificationData.middle_name || verificationData.middlename,
         surname: verificationData.surname || verificationData.last_name || verificationData.lastname,
-        dateOfBirth: verificationData.dateOfBirth || verificationData.date_of_birth || verificationData.birthdate,
+        dateOfBirth: verificationData.dateOfBirth || verificationData.date_of_birth || verificationData.birthdate || verificationData.dob || verificationData.birth_date || verificationData.birthDate,
         gender: verificationData.gender,
         residenceAddress: verificationData.residenceAddress || verificationData.residence_address || verificationData.address,
         residenceLga: verificationData.residenceLga || verificationData.residence_lga || verificationData.lga,
@@ -682,8 +692,33 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
     ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
 
-  const dobDate = reportData.dateOfBirth ? new Date(reportData.dateOfBirth) : null;
-  const dob = dobDate && !isNaN(dobDate) ? `${String(dobDate.getDate()).padStart(2, '0')}/${String(dobDate.getMonth() + 1).padStart(2, '0')}/${dobDate.getFullYear()}` : '';
+  // Robust DOB parsing
+  let dob = '';
+  if (reportData.dateOfBirth) {
+    let dobDate = new Date(reportData.dateOfBirth);
+    
+    // If invalid, try parsing DD-MM-YYYY or DD/MM/YYYY
+    if (isNaN(dobDate.getTime())) {
+      const parts = reportData.dateOfBirth.split(/[-/]/);
+      if (parts.length === 3) {
+        // Assume DD-MM-YYYY or DD/MM/YYYY
+        if (parts[2].length === 4) {
+          dobDate = new Date(parts[2], parts[1] - 1, parts[0]);
+        } 
+        // Assume YYYY-MM-DD
+        else if (parts[0].length === 4) {
+          dobDate = new Date(parts[0], parts[1] - 1, parts[2]);
+        }
+      }
+    }
+
+    if (!isNaN(dobDate.getTime())) {
+      const day = String(dobDate.getDate()).padStart(2, '0');
+      const month = dobDate.toLocaleString('en-GB', { month: 'short' }).toUpperCase();
+      const year = dobDate.getFullYear();
+      dob = `${day} ${month} ${year}`;
+    }
+  }
 
   // Generate main QR (with standard density padding)
   const qrBlob = JSON.stringify({
@@ -697,15 +732,18 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
     address: reportData.residenceAddress || '',
     lga: reportData.residenceLga || '',
     state: reportData.residenceState || '',
-    trackingId: reportData.trackingId || '',
-    pad: "0".repeat(800)
+    trackingId: reportData.trackingId || ''
   });
 
   const qrCodeDataUrl = await generateQRCode(qrBlob, {
     width: 600, errorCorrectionLevel: 'M'
   });
-  const timestamp = reportData.createdAt ? new Date(reportData.createdAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
-  const agentId = reportData.agentId || 'N/A'; // Assuming agentId is available in reportData
+  
+  // Format timestamp with dashes: DD-MM-YYYY HH:mm:ss
+  const now = reportData.createdAt ? new Date(reportData.createdAt) : new Date();
+  const timestamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  
+  const agentId = reportData.agentId || '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -713,9 +751,14 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
   <meta charset="UTF-8">
   <title>VNIN Verification Report</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+    
     @page { size: A4; margin: 0; }
     body { 
-      font-family: 'Helvetica', 'Arial', sans-serif; 
+      font-family: "Roboto", sans-serif !important;
+      font-optical-sizing: auto;
+      font-style: normal;
+      font-variation-settings: "wdth" 100;
       margin: 0; 
       padding: 0; 
       background: #fff;
@@ -748,10 +791,10 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
     /* Photo Overlay */
     .m-photo {
       position: absolute;
-      top: 147mm; 
-      left: 17mm;
-      width: 25.5mm;
-      height: 31mm;
+      top: 72mm; 
+      left: 19mm;
+      width: 14mm;
+      height: 18mm;
       object-fit: cover;
       background: #bbb;
       border-radius: 1px;
@@ -760,83 +803,87 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
     /* Mini-Card Details */
     .m-txt-surname {
       position: absolute;
-      top: 146.5mm; 
-      left: 47mm;
-      font-size: 7pt;
-      font-weight: 900;
+      top: 76mm; 
+      left: 34mm;
+      font-size: 5pt;
+      font-weight: 700;
       color: #000;
     }
     .m-txt-given {
       position: absolute;
-      top: 156mm; 
-      left: 47mm;
-      font-size: 7.5pt;
-      font-weight: 900;
+      top: 82mm; 
+      left: 34mm;
+      font-size: 5pt;
+      font-weight: 700;
       color: #000;
       width: 40mm;
       line-height: 1;
     }
     .m-txt-dob {
       position: absolute;
-      top: 168.5mm; 
-      left: 47mm;
-      font-size: 7pt;
-      font-weight: 900;
+      top: 89mm; 
+      left: 34mm;
+      font-size: 5pt;
+      font-weight: 700;
       color: #000;
     }
 
     /* Center Text Details */
     .d-val-surname {
       position: absolute;
-      top: 144mm;
-      left: 112mm;
-      font-size: 14pt;
+      top: 72.5mm;
+      left: 78mm;
+      font-size: 12pt;
       color: #000;
       font-weight: 900;
     }
     .d-val-given {
       position: absolute;
-      top: 162.5mm;
-      left: 112mm;
-      font-size: 13pt;
+      top: 84mm;
+      left: 78mm;
+      font-size: 12pt;
       color: #000;
       font-weight: 900;
-      width: 80mm;
+      width: 70mm;
       line-height: 1.1;
     }
     
-    /* Main QR */
-    .main-qr {
+    /* Mini QR on Card */
+    .mini-qr {
       position: absolute;
-      top: 111mm;
-      right: 17.5mm;
-      width: 53mm;
-      height: 53mm;
+      top: 74mm;
+      left: 58mm;
+      width: 14mm;
+      height: 14mm;
+    }
+    /* Main QR - Hidden by request */
+    .main-qr {
+      display: none;
     }
     
     /* Table Overlay Data */
     .t-row {
       position: absolute;
-      top: 191mm;
-      left: 15mm;
-      width: 180mm;
+      top: 107.5mm;
+      left: 12mm;
+      width: 186mm;
       height: 10mm;
       display: flex;
       align-items: center;
-      font-size: 8.5pt;
-      font-weight: bold;
+      font-size: 8pt;
+      font-weight: 100;
       color: #000;
-      font-family: 'Consolas', 'Courier New', monospace;
+      font-family: "Roboto", 'Consolas', 'Courier New', monospace !important;
     }
     .t-cell {
       text-align: center;
       white-space: nowrap;
     }
     .t-time { width: 33mm; padding-left:2mm; font-size:7pt;}
-    .t-ref { width: 55mm; font-size: 6.5pt; text-transform: lowercase; }
-    .t-type { width: 30mm; font-size: 6.5pt; letter-spacing: 0.5px;}
-    .t-status { width: 28mm; font-size: 7.5pt; }
-    .t-agent { width: 30mm; font-size: 8pt;} 
+    .t-ref { width: 62mm; font-size: 6.5pt; text-transform: lowercase; }
+    .t-type { width: 28mm; font-size: 6.5pt; letter-spacing: 0.5px;}
+    .t-status { width: 25mm; font-size: 7.5pt; }
+    .t-agent { width: 38mm; font-size: 8pt;} 
 
   </style>
 </head>
@@ -859,13 +906,14 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
       
       <!-- Main QR Code Overlay -->
       <img src="${qrCodeDataUrl}" class="main-qr">
+      <img src="${qrCodeDataUrl}" class="mini-qr">
       
       <!-- Table Data Overlay (Bottom Row) -->
       <div class="t-row">
         <div class="t-cell t-time">${timestamp}</div>
         <div class="t-cell t-ref">${reportData.transactionRef}</div>
-        <div class="t-cell t-type">TOKEN</div>
-        <div class="t-cell t-status">OK</div>
+        <div class="t-cell t-type"></div>
+        <div class="t-cell t-status"></div>
         <div class="t-cell t-agent">${agentId}</div>
       </div>
 
@@ -891,12 +939,25 @@ async function generateNinPdf(reportData, slipType) {
     const pdfFilename = `${reportData.transactionRef}.pdf`;
     const pdfPath = path.join(uploadsDir, pdfFilename);
 
-    // Generate PDF using system Chrome (via Puppeteer)
-    const browser = await puppeteer.launch({
-      executablePath: process.env.CHROME_BIN || '/usr/bin/google-chrome',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: 'new'
-    });
+    // Generate PDF using Puppeteer
+    let browser;
+    const chromePath = process.env.CHROME_BIN || '/usr/bin/google-chrome';
+
+    try {
+      // Check if the explicitly provided or default path exists
+      await fs.access(chromePath);
+      browser = await puppeteer.launch({
+        executablePath: chromePath,
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: 'new'
+      });
+    } catch (e) {
+      // Fallback to bundled puppeteer browser if path doesn't exist
+      browser = await puppeteer.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        headless: 'new'
+      });
+    }
 
     let pdfBuffer;
     try {
@@ -951,13 +1012,18 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
       };
     }
 
-    // 2. Store report in database
-    const report = await storeNinReport(userId, transactionRef, ninNumber, slipType, verificationResult.data);
+    // 2. Extract actual NIN from result (especially important for phone lookup)
+    const actualNin = lookupMethod === 'phone' 
+      ? (verificationResult.data.nin || verificationResult.data.number || ninNumber)
+      : ninNumber;
 
-    // 3. Generate PDF slip
+    // 3. Store report in database
+    const report = await storeNinReport(userId, transactionRef, actualNin, slipType, verificationResult.data);
+
+    // 4. Generate PDF slip
     const pdfUrl = await generateNinPdf(report, slipType);
 
-    // 4. Return success with report details
+    // 5. Return success with report details
     return {
       success: true,
       message: 'NIN verified successfully',

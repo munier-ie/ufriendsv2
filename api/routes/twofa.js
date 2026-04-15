@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
+const crypto = require('crypto');
 const authenticateUser = require('../middleware/auth');
 const speakeasy = require('speakeasy');
 const QRCode = require('qrcode');
@@ -81,7 +82,8 @@ router.post('/enable', authenticateUser, async (req, res) => {
 router.post('/setup-email', authenticateUser, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-        const otpCode = Math.floor(100000 + Math.random() * 900000);
+        // [SEC-HIGH-04] Use cryptographically secure OTP generator
+        const otpCode = crypto.randomInt(100000, 999999);
         const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
         await prisma.user.update({
@@ -115,9 +117,19 @@ router.post('/disable', authenticateUser, async (req, res) => {
                 window: 1
             });
             if (!verified) return res.status(400).json({ error: 'Invalid authenticator code' });
-        } else {
-            // For email disable, we might want to send another OTP? 
-            // For now, let's keep it simple as requested.
+        } else if (user.twoFaMethod === 'email') {
+            // [SEC-MED-05] Email 2FA disable requires OTP re-confirmation to prevent session-hijack bypass
+            if (!user.emailVerifyCode || !user.emailVerifyExpiry || user.emailVerifyExpiry < new Date()) {
+                return res.status(400).json({ error: 'OTP required. Please use the setup-email endpoint to send a new code.' });
+            }
+            if (user.emailVerifyCode !== parseInt(code)) {
+                return res.status(400).json({ error: 'Incorrect verification code.' });
+            }
+            // Clear OTP after verification
+            await prisma.user.update({
+                where: { id: req.user.id },
+                data: { emailVerifyCode: null, emailVerifyExpiry: null }
+            });
         }
 
         await prisma.user.update({

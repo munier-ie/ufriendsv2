@@ -6,6 +6,7 @@ const prisma = require('../../prisma/client');
 const { verifyToken } = require('../middleware/auth');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 /**
  * Bulk Transaction Processing Routes
@@ -86,8 +87,8 @@ router.post('/upload', verifyToken, upload.single('file'), async (req, res) => {
             }
         });
 
-        // Save validated data for processing
-        const dataPath = path.join('uploads', `bulk_${job.id}.json`);
+        // Save validated data for processing into a secure filename
+        const dataPath = path.join('uploads', `bulk_${job.id}_${crypto.randomBytes(8).toString('hex')}.json`);
         fs.writeFileSync(dataPath, JSON.stringify(rows));
 
         // Clean up uploaded file
@@ -243,13 +244,26 @@ async function processBulkJob(jobId, userId, rows) {
             where: { id: userId }
         });
 
+        // [SEC-HIGH-02] Pre-flight balance check for the entire batch
+        const totalRequired = rows.reduce((sum, row) => sum + (parseFloat(row.amount) || 0), 0);
+        if (user.wallet < totalRequired) {
+            await prisma.bulkJob.update({
+                where: { id: jobId },
+                data: { 
+                    status: 'failed',
+                    errorLog: `Job failed: Insufficient wallet balance for the total batch amount (₦${totalRequired.toLocaleString()})`
+                }
+            });
+            return; // Abort processing early
+        }
+
         // Process each row
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
 
             try {
                 // Attempt transaction (simplified - would call actual service routes)
-                const result = await processBulkTransaction(userId, user, row);
+                const result = await processBulkTransaction(userId, row);
 
                 results.push({
                     ...row,
@@ -307,13 +321,8 @@ async function processBulkJob(jobId, userId, rows) {
 }
 
 // Helper: Process single bulk transaction
-async function processBulkTransaction(userId, user, row) {
+async function processBulkTransaction(userId, row) {
     const amount = parseFloat(row.amount);
-
-    // Check balance
-    if (user.wallet < amount) {
-        throw new Error('Insufficient balance');
-    }
 
     // Lookup service to get cost price
     let costPrice = amount; // Default to no profit if service not found
@@ -340,39 +349,49 @@ async function processBulkTransaction(userId, user, row) {
         console.error('Service lookup failed in bulk processing:', e);
     }
 
-    // Generate reference
-    const reference = `BULK-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const reference = `BULK-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-    // Create transaction record
-    await prisma.transaction.create({
-        data: {
-            userId,
-            reference,
-            serviceName: serviceName,
-            type: row.service.toLowerCase(),
-            amount: -amount,
-            status: 0,
-            description: `Bulk ${row.service} purchase for ${row.phone}`,
-            oldBalance: user.wallet,
-            newBalance: user.wallet - amount,
-            profit: amount - costPrice
+    const result = await prisma.$transaction(async (tx) => {
+        const currentUser = await tx.user.findUnique({
+            where: { id: userId },
+            select: { wallet: true }
+        });
+
+        if (currentUser.wallet < amount) {
+            throw new Error('Insufficient balance');
         }
-    });
 
-    // Deduct balance
-    await prisma.user.update({
-        where: { id: userId },
-        data: {
-            wallet: {
-                decrement: amount
+        const newBalance = currentUser.wallet - amount;
+
+        // Deduct balance
+        await tx.user.update({
+            where: { id: userId },
+            data: { wallet: newBalance }
+        });
+
+        // Create transaction record
+        await tx.transaction.create({
+            data: {
+                userId,
+                reference,
+                serviceName: serviceName,
+                type: row.service.toLowerCase(),
+                amount: -amount,
+                status: 0,
+                description: `Bulk ${row.service} purchase for ${row.phone}`,
+                oldBalance: currentUser.wallet,
+                newBalance: newBalance,
+                profit: amount - costPrice
             }
-        }
+        });
+
+        return {
+            reference,
+            message: `${row.service} purchase successful`
+        };
     });
 
-    return {
-        reference,
-        message: `${row.service} purchase successful`
-    };
+    return result;
 }
 
 // Helper: Generate results CSV

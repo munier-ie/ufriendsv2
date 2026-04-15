@@ -142,9 +142,10 @@ class MonnifyService {
      */
     verifyWebhookSignature(signature, payload) {
         const crypto = require('crypto');
+        const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
         const hash = crypto
             .createHmac('sha512', this.secretKey)
-            .update(JSON.stringify(payload))
+            .update(payloadStr)
             .digest('hex');
 
         return hash === signature;

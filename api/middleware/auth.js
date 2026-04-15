@@ -6,11 +6,12 @@ const authenticateUser = async (req, res, next) => {
         const token = req.headers.authorization?.split(' ')[1];
         if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret');
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Check active session (Single Device Login)
-        // const activeSession = await prisma.userLogin.findUnique({ where: { token } });
-        // if (!activeSession) return res.status(401).json({ error: 'Session expired. Logged in on another device.' });
+        // [SEC-HIGH-01] Enforce single device login — validate session is still active in DB.
+        // This ensures that logging out, admin blocks, or forced logouts invalidate existing tokens.
+        const activeSession = await prisma.userLogin.findUnique({ where: { token } });
+        if (!activeSession) return res.status(401).json({ error: 'Session expired. Please log in again.' });
 
         const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
         if (!user) return res.status(401).json({ error: 'User not found' });

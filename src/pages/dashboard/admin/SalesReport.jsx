@@ -11,23 +11,28 @@ import Button from '../../../components/ui/Button';
 const SimpleBarChart = ({ data, color }) => {
     if (!data || data.length === 0) return <div className="h-40 flex items-center justify-center text-gray-400">No data</div>;
 
-    const maxVal = Math.max(...data.map(d => d.value));
+    const maxVal = Math.max(...data.map(d => d.value), 0);
+    const hasData = maxVal > 0;
 
     return (
-        <div className="h-64 flex items-end space-x-2 pt-4">
-            {data.map((item, idx) => (
-                <div key={idx} className="flex-1 flex flex-col items-center group relative">
-                    <div
-                        className={`w-full ${color} rounded-t-sm transition-all duration-500 hover:opacity-80`}
-                        style={{ height: `${(item.value / maxVal) * 100}%` }}
-                    >
-                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
-                            {item.tooltip}
+        <div className="h-64 flex items-end space-x-2 pt-10 pb-2">
+            {data.map((item, idx) => {
+                const heightPercent = hasData ? (item.value / maxVal) * 100 : 0;
+                return (
+                    <div key={idx} className="flex-1 flex flex-col items-center group relative h-full justify-end">
+                        <div
+                            className={`w-full ${color} rounded-t-lg transition-all duration-500 hover:brightness-110 shadow-sm relative`}
+                            style={{ height: `${Math.max(heightPercent, heightPercent > 0 ? 2 : 0)}%` }}
+                        >
+                            <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-[10px] font-bold py-1.5 px-2.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap z-20 shadow-xl pointer-events-none mb-2 border border-white/10">
+                                {item.tooltip}
+                                <div className="absolute bottom-[-4px] left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 border-r border-b border-white/10"></div>
+                            </div>
                         </div>
+                        <div className="text-[10px] font-bold text-gray-400 mt-3 truncate w-full text-center uppercase tracking-tighter">{item.label}</div>
                     </div>
-                    <div className="text-xs text-gray-500 mt-2 truncate w-full text-center">{item.label}</div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 };

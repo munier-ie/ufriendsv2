@@ -205,57 +205,7 @@ export default function BlacklistManagement() {
                 </div>
             )}
 
-            {/* Edit Modal (Manual implementation - needs high Z to clear sidebar) */}
-            {editingUser && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 m-4 animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold">Add to Blacklist</h2>
-                            <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                                <span className="text-2xl">&times;</span>
-                            </button>
-                        </div>
 
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <Input
-                                label="Phone Number"
-                                value={formData.phone}
-                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                placeholder="e.g 08012345678"
-                                required
-                            />
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Reason (Optional)</label>
-                                <textarea
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                                    rows="3"
-                                    value={formData.reason}
-                                    onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
-                                    placeholder="Why is this number being blocked?"
-                                ></textarea>
-                            </div>
-
-                            <div className="flex justify-end space-x-3 mt-6">
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsAddModalOpen(false)}
-                                    type="button"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    type="submit"
-                                    loading={submitting}
-                                    className="bg-red-600 hover:bg-red-700 text-white"
-                                >
-                                    Blacklist Number
-                                </Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 }

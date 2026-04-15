@@ -167,6 +167,7 @@ export default function DashboardLayout() {
         { icon: Wallet, label: 'Transactions', path: '/dashboard/transactions' },
         { icon: ShieldCheck, label: 'Verification', path: '/dashboard/verify' },
         { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
+        { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
         { icon: Landmark, label: 'Gov Services', path: '/dashboard/gov-services' },
         { icon: Tag, label: 'Data PINs', path: '/dashboard/data-pins' },
         { icon: ShoppingBag, label: 'Exam PINs', path: '/dashboard/exam-pins' },
@@ -253,7 +254,7 @@ export default function DashboardLayout() {
         : (user?.accountType === 'vendor' ? [...userSidebarItems, ...vendorSidebarItems] : userSidebarItems);
 
     return (
-        <div className="flex h-screen bg-tertiary overflow-hidden">
+        <div className="flex h-[100dvh] bg-tertiary overflow-hidden">
             {/* Mobile Sidebar Overlay — must sit above topbar (z-30) but managed with sidebar */}
             {isMobileMenuOpen && (
                 <div
@@ -353,7 +354,7 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                         </Link>
                     </div>
                 </header>
-                <div className="p-6 relative z-10 max-w-7xl mx-auto">
+                <div className="p-3 sm:p-6 relative z-10 max-w-7xl mx-auto">
                     <Outlet context={{ globalSettings }} />
                 </div>
                 

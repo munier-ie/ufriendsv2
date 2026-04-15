@@ -1,5 +1,5 @@
 const { RateLimiterMemory } = require('rate-limiter-flexible');
-const prisma = require('../db');
+const prisma = require('../../prisma/client');
 
 /**
  * API Key Security Middleware
@@ -116,7 +116,7 @@ const logApiRequest = async (userId, req, statusCode, responseTime) => {
                 method: req.method,
                 statusCode,
                 responseTime,
-                ipAddress: req.ip || req.connection.remoteAddress,
+                ipAddress: req.ip || req.socket.remoteAddress,
                 userAgent: req.headers['user-agent']
             }
         });

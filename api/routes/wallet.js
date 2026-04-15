@@ -128,7 +128,10 @@ router.get('/stats', authenticateUser, async (req, res) => {
 // Get transaction history
 router.get('/transactions', authenticateUser, async (req, res) => {
     try {
+        // [SEC-HIGH-05] Cap limit to prevent memory-exhaustion DoS (unbounded pagination)
         const { limit = 50, offset = 0, type, status, search, startDate, endDate } = req.query;
+        const rawLimit = Math.min(parseInt(limit) || 50, 200);
+        const rawOffset = Math.max(parseInt(offset) || 0, 0);
 
         const where = { userId: req.user.id };
 
@@ -198,15 +201,22 @@ router.get('/transactions', authenticateUser, async (req, res) => {
             where.status = parseInt(status);
         }
 
-        if (startDate && endDate) {
-            where.date = {
-                gte: new Date(startDate),
-                lte: new Date(endDate)
-            };
-        } else if (startDate) {
-            where.date = { gte: new Date(startDate) };
-        } else if (endDate) {
-            where.date = { lte: new Date(endDate) };
+        // [SEC-MED-06] Validate date filter inputs
+        if (startDate) {
+            const parsedStart = new Date(startDate);
+            if (isNaN(parsedStart.getTime())) {
+                return res.status(400).json({ error: 'Invalid startDate format' });
+            }
+            where.date = { ...where.date, gte: parsedStart };
+        }
+        if (endDate) {
+            const parsedEnd = new Date(endDate);
+            if (isNaN(parsedEnd.getTime())) {
+                return res.status(400).json({ error: 'Invalid endDate format' });
+            }
+            // Include entire day for endDate
+            parsedEnd.setHours(23, 59, 59, 999);
+            where.date = { ...where.date, lte: parsedEnd };
         }
 
         if (search) {
@@ -232,8 +242,8 @@ router.get('/transactions', authenticateUser, async (req, res) => {
             prisma.transaction.findMany({
                 where,
                 orderBy: { date: 'desc' },
-                take: parseInt(limit),
-                skip: parseInt(offset)
+                take: rawLimit,
+                skip: rawOffset
             }),
             prisma.transaction.count({ where })
         ]);
@@ -260,8 +270,8 @@ router.get('/transactions', authenticateUser, async (req, res) => {
             transactions: transactionsWithSlips,
             pagination: {
                 total,
-                limit: parseInt(limit),
-                offset: parseInt(offset)
+                limit: rawLimit,
+                offset: rawOffset
             }
         });
     } catch (error) {

@@ -16,7 +16,9 @@ router.get('/public-settings', async (req, res) => {
             'primaryColor', 'secondaryColor', 
             'logoUrl', 'faviconUrl', 
             'registrationEnabled', 'maintenanceMode',
-            'whatsappGroupLink', 'contactWhatsapp'
+            'whatsappGroupLink', 'contactWhatsapp',
+            'posWhatsappNumber', 'posMessageTemplate',
+            'loanWhatsappNumber', 'loanMessageTemplate'
         ];
         
         const settings = {};
@@ -30,7 +32,9 @@ router.get('/public-settings', async (req, res) => {
                     primaryColor: '#004687',
                     secondaryColor: '#1E90FF',
                     registrationEnabled: true,
-                    maintenanceMode: false
+                    maintenanceMode: false,
+                    posMessageTemplate: 'Hi Admin, I would like to request a POS terminal.\n\nProvider: {{provider}}\nType: {{type}}',
+                    loanMessageTemplate: 'Hi Admin, I want to request a loan.\n\nAmount: ₦{{amount}}\nDuration: {{duration}}\nMoniepoint Account: {{account}}'
                 };
                 if (defaults[key]) settings[key] = defaults[key];
             }
@@ -76,14 +80,18 @@ router.get('/settings', adminAuth, async (req, res) => {
             whatsappApiKey: '',
             whatsappApiUrl: '',
             whatsappGroupLink: '',
-            contactWhatsapp: ''
+            contactWhatsapp: '',
+            posWhatsappNumber: '',
+            posMessageTemplate: 'Hi Admin, I would like to request a POS terminal.\n\nProvider: {{provider}}\nType: {{type}}',
+            loanWhatsappNumber: '',
+            loanMessageTemplate: 'Hi Admin, I want to request a loan.\n\nAmount: ₦{{amount}}\nDuration: {{duration}}\nMoniepoint Account: {{account}}'
         };
 
         // Fetch all settings from AppSetting table
         const dbSettings = await prisma.appSetting.findMany();
         const settings = { ...defaultSettings };
 
-        const stringOnlyKeys = ['siteName', 'siteEmail', 'sitePhone', 'logoUrl', 'faviconUrl', 'adminWhatsappNumber', 'primaryColor', 'secondaryColor', 'whatsappGroupLink', 'contactWhatsapp'];
+        const stringOnlyKeys = ['siteName', 'siteEmail', 'sitePhone', 'logoUrl', 'faviconUrl', 'adminWhatsappNumber', 'primaryColor', 'secondaryColor', 'whatsappGroupLink', 'contactWhatsapp', 'posWhatsappNumber', 'posMessageTemplate', 'loanWhatsappNumber', 'loanMessageTemplate'];
 
         dbSettings.forEach(s => {
             let value = s.value;

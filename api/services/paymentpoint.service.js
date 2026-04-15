@@ -102,14 +102,14 @@ class PaymentPointService {
      */
     async verifyWebhookSignature(signature, payload) {
         const creds = await this.getCredentials();
-        // Implementation depends on PaymentPoint's webhook signature method
-        // Common methods: HMAC-SHA256, HMAC-SHA512
         const crypto = require('crypto');
+
+        const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
 
         // Assuming HMAC-SHA256 (adjust based on actual PaymentPoint documentation)
         const hash = crypto
             .createHmac('sha256', creds.apiSecret)
-            .update(JSON.stringify(payload))
+            .update(payloadStr)
             .digest('hex');
 
         return hash === signature;

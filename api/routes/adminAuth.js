@@ -1,17 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../../prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { z } = require('zod');
 const adminAuthMiddleware = require('../middleware/adminAuth');
-
-const prisma = new PrismaClient();
 
 // Admin login schema
 const adminLoginSchema = z.object({
     username: z.string().min(1, 'Username is required'),
-    password: z.string().min(1, 'Password is required'),
+    password: z.string().min(12, 'Password must be at least 12 characters'),
     pin: z.string().optional()
 });
 
@@ -72,7 +71,8 @@ router.post('/login', async (req, res) => {
         // 2FA Check
         if (admin.twoFaEnabled) {
             if (admin.twoFaMethod === 'email') {
-                const otpCode = Math.floor(100000 + Math.random() * 900000);
+                // [SEC-HIGH-04] Use cryptographically secure OTP generator
+                const otpCode = crypto.randomInt(100000, 999999);
                 const expiry = new Date(Date.now() + 10 * 60 * 1000);
                 await prisma.adminUser.update({
                     where: { id: admin.id },
@@ -95,16 +95,6 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        // Verify PIN if provided and required
-        if (admin.pinStatus === 1 && pin) {
-            const validPin = await bcrypt.compare(pin, admin.pinToken);
-            if (!validPin) {
-                return res.status(401).json({
-                    success: false,
-                    error: 'Invalid PIN'
-                });
-            }
-        }
 
         // Generate JWT token for normal login
         const token = jwt.sign(
@@ -359,7 +349,7 @@ router.get('/activity', adminAuthMiddleware, async (req, res) => {
             where: { adminId: req.admin.id },
             take: 20,
             orderBy: { createdAt: 'desc' },
-            include: { user: { select: { username: true, email: true } } }
+            include: { user: { select: { firstName: true, lastName: true, email: true } } }
         });
         res.json({ success: true, actions });
     } catch (error) {
@@ -372,7 +362,8 @@ router.get('/activity', adminAuthMiddleware, async (req, res) => {
 router.post('/setup-email-2fa', adminAuthMiddleware, async (req, res) => {
     try {
         const admin = await prisma.adminUser.findUnique({ where: { id: req.admin.id } });
-        const otpCode = Math.floor(100000 + Math.random() * 900000);
+        // [SEC-HIGH-04] Use cryptographically secure OTP generator
+        const otpCode = crypto.randomInt(100000, 999999);
         const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
 
         await prisma.adminUser.update({

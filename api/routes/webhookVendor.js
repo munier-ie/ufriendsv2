@@ -22,9 +22,25 @@ router.post('/configure', verifyToken, async (req, res) => {
             return res.status(400).json({ message: 'Webhook URL is required' });
         }
 
-        // Ensure HTTPS in production
-        if (process.env.NODE_ENV === 'production' && !webhookUrl.startsWith('https://')) {
-            return res.status(400).json({ message: 'Webhook URL must use HTTPS in production' });
+        let parsedUrl;
+        try {
+            parsedUrl = new URL(webhookUrl);
+        } catch (e) {
+            return res.status(400).json({ message: 'Invalid Webhook URL format' });
+        }
+        
+        // SSRF Protection: Block private and reserved IP spaces
+        const BLOCKED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '169.254.169.254'];
+        if (BLOCKED_HOSTS.some(b => parsedUrl.hostname === b || parsedUrl.hostname.startsWith(b)) ||
+            parsedUrl.hostname.startsWith('10.') || 
+            parsedUrl.hostname.startsWith('172.16.') || 
+            parsedUrl.hostname.startsWith('192.168.')) {
+            return res.status(400).json({ message: 'Webhook URL cannot target a private or restricted address' });
+        }
+
+        // Ensure HTTPS
+        if (parsedUrl.protocol !== 'https:') {
+            return res.status(400).json({ message: 'Webhook URL must use HTTPS' });
         }
 
         // Generate secure webhook secret
@@ -137,8 +153,7 @@ router.post('/test', verifyToken, async (req, res) => {
             });
 
             res.status(400).json({
-                message: 'Webhook test failed',
-                error: webhookError.message
+                message: 'Webhook test failed. Verify your URL and payload requirements.'
             });
         }
 
@@ -235,6 +250,21 @@ router.get('/config', verifyToken, async (req, res) => {
  */
 const sendWebhookNotification = async (userId, event, data) => {
     try {
+        // [SEC-MED-05] Redact sensitive data before pushing to logs
+        const redactPayload = (p) => {
+            try {
+                const copy = JSON.parse(JSON.stringify(p));
+                if (copy.data) {
+                    if (copy.data.pin) copy.data.pin = '[REDACTED]';
+                    if (copy.data.transactionPin) copy.data.transactionPin = '[REDACTED]';
+                    if (copy.data.password) copy.data.password = '[REDACTED]';
+                }
+                return JSON.stringify(copy);
+            } catch (e) {
+                return JSON.stringify(p);
+            }
+        };
+
         // Get webhook config
         const config = await prisma.webhookConfig.findUnique({
             where: { userId }
@@ -275,7 +305,7 @@ const sendWebhookNotification = async (userId, event, data) => {
                         userId,
                         event,
                         url: config.webhookUrl,
-                        payload: JSON.stringify(payload),
+                        payload: redactPayload(payload),
                         statusCode: response.status,
                         response: JSON.stringify(response.data).substring(0, 1000),
                         attempt,
@@ -292,7 +322,7 @@ const sendWebhookNotification = async (userId, event, data) => {
                         userId,
                         event,
                         url: config.webhookUrl,
-                        payload: JSON.stringify(payload),
+                        payload: redactPayload(payload),
                         statusCode: error.response?.status || 0,
                         response: error.message.substring(0, 1000),
                         attempt,

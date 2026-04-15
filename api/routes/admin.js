@@ -142,6 +142,7 @@ router.get('/stats', adminAuth, async (req, res) => {
 router.get('/users', adminAuth, async (req, res) => {
     try {
         const { limit = 50, offset = 0, search } = req.query;
+        const takeLimit = Math.min(parseInt(limit) || 50, 100);
         const where = {};
 
         if (search) {
@@ -167,8 +168,8 @@ router.get('/users', adminAuth, async (req, res) => {
                     type: true,
                     createdAt: true
                 },
-                take: parseInt(limit),
-                skip: parseInt(offset),
+                take: takeLimit,
+                skip: parseInt(offset) || 0,
                 orderBy: { createdAt: 'desc' }
             }),
             prisma.user.count({ where })
@@ -254,45 +255,46 @@ router.post('/users/:id/fund', adminAuth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid amount' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
+        const result = await prisma.$transaction(async (tx) => {
+            const txUser = await tx.user.findUnique({ where: { id: parseInt(id) } });
+            if (!txUser) throw new Error('User not found');
 
-        const newBalance = user.wallet + parseFloat(amount);
-
-        // Update user wallet and create transaction
-        const [updatedUser, transaction] = await prisma.$transaction([
-            prisma.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: parseInt(id) },
-                data: { wallet: newBalance }
-            }),
-            prisma.transaction.create({
+                data: { wallet: { increment: parseFloat(amount) } }
+            });
+
+            const transaction = await tx.transaction.create({
                 data: {
                     reference: `ADMIN-FUND-${Date.now()}`,
                     serviceName: 'Wallet Funding',
                     description: description || 'Admin wallet funding',
                     amount: parseFloat(amount),
                     status: 0, // Success
-                    oldBalance: user.wallet,
-                    newBalance: newBalance,
+                    oldBalance: txUser.wallet,
+                    newBalance: updatedUser.wallet,
                     userId: parseInt(id),
                     type: 'funding'
                 }
-            })
-        ]);
+            });
+
+            return { updatedUser, transaction };
+        });
 
         res.json({
             success: true,
             message: 'User wallet funded successfully',
             user: {
-                id: updatedUser.id,
-                wallet: updatedUser.wallet
+                id: result.updatedUser.id,
+                wallet: result.updatedUser.wallet
             },
-            transaction
+            transaction: result.transaction
         });
     } catch (error) {
         console.error('Fund user error:', error);
+        if (error.message === 'User not found') {
+            return res.status(404).json({ error: 'User not found' });
+        }
         res.status(500).json({ error: 'Failed to fund user wallet' });
     }
 });
@@ -307,59 +309,66 @@ router.post('/users/:id/debit', adminAuth, async (req, res) => {
             return res.status(400).json({ error: 'Invalid amount' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
         const debitAmount = parseFloat(amount);
-        if (user.wallet < debitAmount) {
-            return res.status(400).json({ error: `Insufficient wallet balance. User has ₦${user.wallet.toFixed(2)}` });
-        }
 
-        const newBalance = user.wallet - debitAmount;
+        const result = await prisma.$transaction(async (tx) => {
+            const txUser = await tx.user.findUnique({ where: { id: parseInt(id) } });
+            if (!txUser) throw new Error('NOT_FOUND');
+            
+            const currentWallet = parseFloat(txUser.wallet);
+            if (currentWallet < debitAmount) {
+                throw new Error(`Insufficient wallet balance. User has ₦${currentWallet.toFixed(2)}`);
+            }
 
-        const [updatedUser, transaction] = await prisma.$transaction([
-            prisma.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: parseInt(id) },
-                data: { wallet: newBalance }
-            }),
-            prisma.transaction.create({
+                data: { wallet: { decrement: debitAmount } }
+            });
+
+            if (updatedUser.wallet < 0) {
+                throw new Error('Insufficient wallet balance'); // Rolled back automatically
+            }
+
+            const transaction = await tx.transaction.create({
                 data: {
                     reference: `ADMIN-DEBIT-${Date.now()}`,
                     serviceName: 'Admin Debit',
                     description: description || 'Admin wallet debit',
                     amount: -debitAmount,
                     status: 0,
-                    oldBalance: user.wallet,
-                    newBalance: newBalance,
+                    oldBalance: currentWallet,
+                    newBalance: updatedUser.wallet,
                     userId: parseInt(id),
                     type: 'debit'
                 }
-            })
-        ]);
+            });
 
-        // Log the action
-        await prisma.userAction.create({
-            data: {
-                userId: parseInt(id),
-                action: 'WALLET_DEBITED',
-                details: JSON.stringify({ amount: debitAmount, description, adminName: req.admin.name }),
-                adminId: req.admin.id
-            }
+            // Log the action
+            await tx.userAction.create({
+                data: {
+                    userId: parseInt(id),
+                    action: 'WALLET_DEBITED',
+                    details: JSON.stringify({ amount: debitAmount, description, adminName: req.admin.name }),
+                    adminId: req.admin.id
+                }
+            });
+
+            return { updatedUser, transaction };
         });
 
         res.json({
             success: true,
             message: `Debited ₦${debitAmount.toLocaleString()} from user wallet successfully`,
             user: {
-                id: updatedUser.id,
-                wallet: updatedUser.wallet
+                id: result.updatedUser.id,
+                wallet: result.updatedUser.wallet
             },
-            transaction
+            transaction: result.transaction
         });
     } catch (error) {
         console.error('Debit user error:', error);
+        if (error.message === 'NOT_FOUND') return res.status(404).json({ error: 'User not found' });
+        if (error.message.includes('Insufficient wallet balance')) return res.status(400).json({ error: error.message });
         res.status(500).json({ error: 'Failed to debit user wallet' });
     }
 });
@@ -552,16 +561,17 @@ router.put('/users/:id/password', adminAuth, async (req, res) => {
 router.get('/users/:id/transactions', adminAuth, async (req, res) => {
     try {
         const { id } = req.params;
-        const { page = 1, limit = 50 } = req.query;
+        const { page = 1, limit = 100 } = req.query;
 
-        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const parsedLimit = Math.min(parseInt(limit) || 100, 100);
+        const skip = (parseInt(page) - 1) * parsedLimit;
 
         const [transactions, total] = await Promise.all([
             prisma.transaction.findMany({
                 where: { userId: parseInt(id) },
                 orderBy: { date: 'desc' },
                 skip,
-                take: parseInt(limit)
+                take: parsedLimit
             }),
             prisma.transaction.count({
                 where: { userId: parseInt(id) }
@@ -614,6 +624,7 @@ router.get('/users/:id/actions', adminAuth, async (req, res) => {
 router.get('/transactions', adminAuth, async (req, res) => {
     try {
         const { limit = 50, offset = 0, search, status } = req.query;
+        const takeLimit = Math.min(parseInt(limit) || 50, 100);
         const where = {};
 
         if (status !== undefined && status !== '') {
@@ -642,8 +653,8 @@ router.get('/transactions', adminAuth, async (req, res) => {
                         }
                     }
                 },
-                take: parseInt(limit),
-                skip: parseInt(offset),
+                take: takeLimit,
+                skip: parseInt(offset) || 0,
                 orderBy: { date: 'desc' }
             }),
             prisma.transaction.count({ where })

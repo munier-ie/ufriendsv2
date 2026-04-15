@@ -56,15 +56,13 @@ router.post('/purchase', authenticateUser, async (req, res) => {
         const { serviceId, quantity, amount, pin, businessName } = validation.data;
 
         // 1. Verify Transaction PIN
-        if (req.user.transactionPin) {
-            const bcrypt = require('bcryptjs');
-            const valid = await bcrypt.compare(pin, req.user.transactionPin);
-            if (!valid) return res.status(400).json({ error: 'Invalid transaction PIN' });
-        } else if (req.user.pin && req.user.pin !== pin) {
-            return res.status(400).json({ error: 'Invalid transaction PIN' });
-        } else if (!req.user.pin && !req.user.transactionPin) {
+        if (!req.user.transactionPin) {
             return res.status(400).json({ error: 'No transaction PIN set.' });
         }
+
+        const bcrypt = require('bcryptjs');
+        const valid = await bcrypt.compare(pin, req.user.transactionPin);
+        if (!valid) return res.status(400).json({ error: 'Invalid transaction PIN' });
 
         // 2. Get Service details — all services (including exam) now live in the Service table
         let service = await prisma.service.findUnique({ where: { id: serviceId } });

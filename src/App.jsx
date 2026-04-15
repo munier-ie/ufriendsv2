@@ -28,6 +28,7 @@ import BulkSMS from './pages/dashboard/BulkSMS';
 import SellPin from './pages/dashboard/SellPin';
 import Reseller from './pages/dashboard/Reseller';
 import Support from './pages/dashboard/Support';
+import BankingFinance from './pages/dashboard/BankingFinance';
 import NotFound from './pages/NotFound';
 import LandingPage from './pages/LandingPage';
 import PrivacyPolicy from './pages/PrivacyPolicy';
@@ -113,6 +114,7 @@ export default function App() {
                     <Route path="manual-services" element={<ManualServices />} />
                     <Route path="academy" element={<Academy />} />
                     <Route path="support" element={<Support />} />
+                    <Route path="banking-finance" element={<BankingFinance />} />
                 </Route>
 
                 {/* Protected Admin Routes */}

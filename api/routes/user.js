@@ -46,6 +46,10 @@ router.get('/me', authenticateUser, async (req, res) => {
             }
         });
 
+        if (user && user.type !== 3) {
+            delete user.apiKey;
+        }
+
         res.json({ user });
     } catch (error) {
         console.error(error);
@@ -137,17 +141,29 @@ router.put('/pin', authenticateUser, async (req, res) => {
 
         const { currentPin, newPin } = validation.data;
 
-        // If user has a PIN, verify it
-        if (req.user.pin && currentPin !== req.user.pin) {
-            return res.status(400).json({ error: 'Current PIN is incorrect' });
+        // Verify current PIN if user has one
+        if (req.user.transactionPin) {
+            if (!currentPin) {
+                return res.status(400).json({ error: 'Current PIN required' });
+            }
+            const valid = await bcrypt.compare(currentPin, req.user.transactionPin);
+            if (!valid) {
+                return res.status(400).json({ error: 'Current PIN is incorrect' });
+            }
         }
+
+        // Hash new PIN
+        const hashedPin = await bcrypt.hash(newPin, 10);
 
         await prisma.user.update({
             where: { id: req.user.id },
-            data: { pin: newPin }
+            data: { 
+                transactionPin: hashedPin,
+                pinEnabled: true
+            }
         });
 
-        res.json({ message: 'PIN updated successfully' });
+        res.json({ message: 'Transaction PIN updated successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });
@@ -192,26 +208,28 @@ router.post('/upgrade', authenticateUser, async (req, res) => {
         const fee = parseFloat(plan.price);
         const upgradeName = `${plan.name} Upgrade`;
 
-        // Check wallet balance
-        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
-        const wallet = parseFloat(user.wallet);
+        // Deduct fee and update type safely with an interactive transaction (Atomic)
+        const result = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.findUnique({ where: { id: req.user.id } });
+            const currentWallet = parseFloat(user.wallet);
 
-        if (wallet < fee) {
-            return res.status(400).json({ error: `Insufficient funds. Wallet balance: ₦${wallet.toLocaleString()}` });
-        }
+            if (currentWallet < fee) {
+                throw new Error(`Insufficient funds. Wallet balance: ₦${currentWallet.toLocaleString()}`);
+            }
 
-        // Deduct fee and update type
-        const newBalance = wallet - fee;
-
-        await prisma.$transaction([
-            prisma.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: user.id },
                 data: {
-                    wallet: newBalance,
+                    wallet: { decrement: fee },
                     type: targetType
                 }
-            }),
-            prisma.transaction.create({
+            });
+
+            if (updatedUser.wallet < 0) {
+                throw new Error('Insufficient funds.'); // Rollback transaction
+            }
+
+            await tx.transaction.create({
                 data: {
                     userId: user.id,
                     type: 'upgrade',
@@ -220,17 +238,19 @@ router.post('/upgrade', authenticateUser, async (req, res) => {
                     description: `Upgraded to ${plan.name}`,
                     status: 0, // Success
                     reference: `UPG_${Date.now()}_${user.id}`,
-                    oldBalance: wallet,
-                    newBalance: newBalance
+                    oldBalance: currentWallet,
+                    newBalance: updatedUser.wallet
                 }
-            })
-        ]);
+            });
+
+            return updatedUser;
+        });
 
         res.json({
             success: true,
             message: `Successfully upgraded to ${plan.name}`,
             newType: targetType,
-            newBalance
+            newBalance: result.wallet
         });
 
         // Credit referral bonus asynchronously
@@ -238,6 +258,9 @@ router.post('/upgrade', authenticateUser, async (req, res) => {
 
     } catch (error) {
         console.error('Upgrade error:', error);
+        if (error.message && error.message.includes('Insufficient funds')) {
+            return res.status(400).json({ error: error.message });
+        }
         res.status(500).json({ error: 'Upgrade failed' });
     }
 });
