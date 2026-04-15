@@ -212,15 +212,16 @@ export default function Profile() {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-primary to-secondary rounded-3xl p-8 text-white shadow-xl"
+                className="bg-gradient-to-r from-primary to-secondary rounded-3xl p-5 sm:p-8 text-white shadow-xl"
             >
-                <div className="flex items-center space-x-6">
-                    <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center">
-                        <User size={40} className="text-white" />
+                <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
+                        <User size={32} className="text-white sm:hidden" />
+                        <User size={40} className="text-white hidden sm:block" />
                     </div>
                     <div>
-                        <h1 className="text-3xl font-bold">{profileData?.name || 'User'}</h1>
-                        <div className="flex items-center space-x-2 mt-2">
+                        <h1 className="text-xl sm:text-3xl font-bold">{profileData?.name || 'User'}</h1>
+                        <div className="flex items-center justify-center sm:justify-start space-x-2 mt-2">
                             <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
                                 {profileData?.accountType || 'User'}
                             </span>

@@ -55,12 +55,9 @@ const cacDetailsSchema = z.object({
 
 // --- Verify transaction PIN helper ---
 async function verifyTransactionPin(user, pin) {
-    if (user.transactionPin) {
-        const bcrypt = require('bcryptjs');
-        return bcrypt.compare(pin, user.transactionPin);
-    }
-    if (user.pin) return user.pin === pin;
-    return null; // no pin set
+    if (!user.transactionPin) return null; // no pin set
+    const bcrypt = require('bcryptjs');
+    return bcrypt.compare(pin, user.transactionPin);
 }
 
 // ============================================================
@@ -133,11 +130,37 @@ router.post(
 
             const data = parsed.data;
 
-            // 2. Validate files
+            // 2. Validate files and check magic numbers (Deep MIME-Type Validation)
+            // Helper function to read magic number
+            const isValidImageBuffer = (filePath) => {
+                try {
+                    const buffer = Buffer.alloc(4);
+                    const fd = fs.openSync(filePath, 'r');
+                    fs.readSync(fd, buffer, 0, 4, 0);
+                    fs.closeSync(fd);
+                    const hex = buffer.toString('hex').toUpperCase();
+                    // JPEG: FFD8FFE0, FFD8FFE1, etc
+                    // PNG: 89504E47
+                    // WebP: 52494646 (RIFF) - actually need to check more bytes for WEBP but RIFF is good enough to prove it's not a php script
+                    // GIF: 47494638
+                    return hex.startsWith('FFD8FF') || hex.startsWith('89504E47') || hex.startsWith('47494638') || hex.startsWith('52494646');
+                } catch(e) {
+                    return false;
+                }
+            };
             const dirIdFile = req.files?.directorIdCard?.[0];
             const passportFile = req.files?.passportPhoto?.[0];
             if (!dirIdFile) return res.status(400).json({ error: 'Director ID card image is required' });
             if (!passportFile) return res.status(400).json({ error: 'Passport photograph is required' });
+
+            if (!isValidImageBuffer(dirIdFile.path)) {
+                fs.unlinkSync(dirIdFile.path); // Delete dangerous file
+                return res.status(400).json({ error: 'Director ID card must be a valid image file' });
+            }
+            if (!isValidImageBuffer(passportFile.path)) {
+                fs.unlinkSync(passportFile.path); // Delete dangerous file
+                return res.status(400).json({ error: 'Passport photograph must be a valid image file' });
+            }
 
             // 3. Verify PIN
             const pinResult = await verifyTransactionPin(req.user, data.pin);

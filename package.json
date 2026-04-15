@@ -26,6 +26,7 @@
     "html-pdf-node": "^1.0.8",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.294.0",
+    "mmmagic": "^0.5.3",
     "moment": "^2.30.1",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",

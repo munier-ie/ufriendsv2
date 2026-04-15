@@ -218,7 +218,32 @@ export default function Transactions() {
                     </div>
                 ) : (
                     <>
-                        <div className="overflow-x-auto">
+                        {/* Mobile Card View */}
+                        <div className="md:hidden divide-y divide-gray-100">
+                            {transactions.map((tx) => (
+                                <div
+                                    key={tx.id}
+                                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    onClick={() => setSelectedTx(tx)}
+                                >
+                                    {renderServiceIcon(tx.serviceName)}
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-bold text-gray-900 truncate">{tx.serviceName}</p>
+                                        <p className="text-xs text-gray-500 truncate">{tx.description}</p>
+                                        <p className="text-xs text-gray-400 mt-0.5">{new Date(tx.date).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                            {tx.amount > 0 ? '-' : '+'}₦{Math.abs(tx.amount).toLocaleString()}
+                                        </p>
+                                        {getStatusBadge(tx.status)}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Desktop Table View */}
+                        <div className="hidden md:block overflow-x-auto">
                             <table className="w-full">
                                 <thead className="bg-gray-50 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                                     <tr>
@@ -274,9 +299,12 @@ export default function Transactions() {
                         </div>
 
                         {/* Pagination Controls */}
-                        <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
-                            <div className="text-sm text-gray-500">
+                        <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between">
+                            <div className="hidden sm:block text-sm text-gray-500">
                                 Showing <span className="font-medium">{Math.min((pagination.page - 1) * pagination.limit + 1, pagination.total)}</span> to <span className="font-medium">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of <span className="font-medium">{pagination.total}</span> results
+                            </div>
+                            <div className="text-sm text-gray-500 sm:hidden">
+                                {pagination.total} total
                             </div>
                             <div className="flex items-center space-x-2">
                                 <button

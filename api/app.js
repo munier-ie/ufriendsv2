@@ -1,10 +1,28 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const { RateLimiterMemory } = require('rate-limiter-flexible');
 const { initCron } = require('./services/smartRouting.service');
 
 // Start smart routing bot cron jobs
 initCron();
+
+// [SEC-CRIT-02] Rate limiters — protect auth endpoints from brute-force
+const authLimiter = new RateLimiterMemory({ points: 10, duration: 60 }); // 10 req/min per IP
+const otpLimiter  = new RateLimiterMemory({ points: 5,  duration: 300 }); // 5 OTP attempts per 5 min per IP
+const forgotLimiter = new RateLimiterMemory({ points: 3, duration: 3600 }); // 3 forgot-password per hour
+const actionLimiter = new RateLimiterMemory({ points: 20, duration: 60 }); // 20 actions per minute per IP
+
+const makeRateLimiter = (limiter) => async (req, res, next) => {
+    try {
+        await limiter.consume(req.ip);
+        next();
+    } catch {
+        res.status(429).json({ error: 'Too many requests. Please try again later.' });
+    }
+};
+
+const actionLimiterMiddleware = makeRateLimiter(actionLimiter);
 
 const authRoutes = require('./routes/auth');
 const walletRoutes = require('./routes/wallet');
@@ -21,38 +39,91 @@ const path = require('path');
 const app = express();
 
 app.use(helmet());
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// [SEC-HIGH-02] Strict CORS — only allow the configured frontend origin
+const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    'http://localhost:5173',
+    'http://localhost:3000'
+].filter(Boolean);
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow server-to-server or same-origin requests (no Origin header)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        callback(new Error('CORS policy: origin not allowed'));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type']
+}));
+
+// [SEC-MED-04] Raw body preservation for webhook signature verification (must come before json parser)
+app.use('/api/webhooks', express.raw({ type: 'application/json' }));
+app.use('/api/webhook-vendor', express.raw({ type: 'application/json' }));
+
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+const authenticateUser = require('./middleware/auth');
+const adminAuth = require('./middleware/adminAuth');
+
+// Combine auth for uploads (Allow either User or Admin)
+const protectedUploads = async (req, res, next) => {
+    // Try user auth first
+    try {
+        await authenticateUser(req, res, () => {
+            next();
+        });
+    } catch (err) {
+        // If user auth fails, try admin auth
+        try {
+            await adminAuth(req, res, next);
+        } catch (adminErr) {
+            res.status(401).json({ error: 'Unauthorized access to documents' });
+        }
+    }
+};
 
 // Global Maintenance Middleware
 const maintenance = require('./middleware/maintenance');
 app.use(maintenance);
 
-// Serve uploaded CAC documents
-app.use('/api/uploads/cac', express.static(path.join(__dirname, 'uploads/cac')));
-// Serve manual service proof uploads
-app.use('/api/uploads/manual-proof', express.static(path.join(__dirname, 'uploads/manual-proof')));
-// Serve manual identification document uploads
-app.use('/api/uploads/manual-ids', express.static(path.join(__dirname, 'uploads/manual-ids')));
-// Serve academy content uploads
-app.use('/api/uploads/academy', express.static(path.join(__dirname, 'uploads/academy')));
+// Serve uploaded CAC documents (Protected)
+app.use('/api/uploads/cac', protectedUploads, express.static(path.join(__dirname, 'uploads/cac')));
+// Serve manual service proof uploads (Protected)
+app.use('/api/uploads/manual-proof', protectedUploads, express.static(path.join(__dirname, 'uploads/manual-proof')));
+// Serve manual identification document uploads (Protected)
+app.use('/api/uploads/manual-ids', protectedUploads, express.static(path.join(__dirname, 'uploads/manual-ids')));
+// Serve academy content uploads (Protected)
+app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dirname, 'uploads/academy')));
+
+// [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
+// This correctly intercepts matching paths and either passes or rejects before the route handler fires
+app.post('/api/auth/login',           makeRateLimiter(authLimiter));
+app.post('/api/auth/register',        makeRateLimiter(authLimiter));
+app.post('/api/auth/verify-email',    makeRateLimiter(otpLimiter));
+app.post('/api/auth/verify-2fa',      makeRateLimiter(otpLimiter));
+app.post('/api/auth/forgot-password', makeRateLimiter(forgotLimiter));
+app.post('/api/admin/auth/login',     makeRateLimiter(authLimiter));
+app.post('/api/admin/auth/verify-2fa', makeRateLimiter(otpLimiter));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/user', userRoutes);
-app.use('/api/services', servicesRoutes);
+app.use('/api/services', actionLimiterMiddleware, servicesRoutes);
 app.use('/api/pins', pinsRoutes);
 app.use('/api/verify', verifyRoutes);
 app.use('/api/twofa', require('./routes/twofa')); // 2FA authentication routes
 app.use('/api/admin', adminRoutes);
-app.use('/api/admin/auth', adminAuthRoutes); // Separate admin authentication
+app.use('/api/admin/auth', adminAuthRoutes); // Rate limiting applied above via specific POST interceptors
 app.use('/api/kyc', kycRoutes); // KYC verification routes
 app.use('/api/virtual-accounts', require('./routes/virtualAccounts')); // Virtual accounts management
 app.use('/api/webhooks', require('./routes/webhooks')); // Payment gateway webhooks
 app.use('/api/referrals', require('./routes/referral')); // Referral system routes
 app.use('/api/airtime-cash', require('./routes/airtimeToCash')); // Airtime to Cash routes
-app.use('/api/transfer', require('./routes/transfer')); // P2P Transfer routes
+app.use('/api/transfer', actionLimiterMiddleware, require('./routes/transfer')); // P2P Transfer routes
 app.use('/api/notifications', require('./routes/notifications')); // Notifications routes
 app.use('/api/professional', require('./routes/professional')); // Professional services (NIN, BVN, CAC)
 app.use('/api/bvn', require('./routes/bvn')); // BVN verification and reports
@@ -89,7 +160,7 @@ app.use('/api/admin/software', require('./routes/adminSoftware')); // Software D
 // Phase 6: Vendor & Developer Tools
 app.use('/api/webhook-vendor', require('./routes/webhookVendor')); // Webhook configuration for vendors
 app.use('/api/analytics', require('./routes/analytics')); // Vendor analytics
-app.use('/api/bulk', require('./routes/bulk')); // Bulk transaction processing
+app.use('/api/bulk', actionLimiterMiddleware, require('./routes/bulk')); // Bulk transaction processing
 app.use('/api/beneficiary', require('./routes/beneficiary')); // Beneficiary management
 app.use('/api/sms', require('./routes/sms')); // Bulk SMS
 app.use('/api/ai-chat', require('./routes/aiChat')); // AI Consultant Chat

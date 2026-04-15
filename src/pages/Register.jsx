@@ -6,6 +6,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import AuthLayout from '../components/layout/AuthLayout';
 import Logo from '../components/ui/Logo';
+import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
 const NIGERIAN_STATES = [
     "Abuja FCT", "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
@@ -29,6 +30,9 @@ export default function Register() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [agreedToTerms, setAgreedToTerms] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [showPin, setShowPin] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -78,6 +82,15 @@ export default function Register() {
 
     return (
         <AuthLayout maxWidth="max-w-2xl">
+            <div className="mb-6 flex justify-between items-center px-2">
+                <Link 
+                    to="/" 
+                    className="flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-primary transition-colors group"
+                >
+                    <ArrowLeft size={18} className="transition-transform group-hover:-translate-x-1" />
+                    <span>Go Back Home</span>
+                </Link>
+            </div>
             <div className="bg-white/90 backdrop-blur-xl p-8 rounded-3xl shadow-2xl w-full border border-white/50">
                 <div className="text-center mb-8 flex flex-col items-center">
                     <Logo className="w-16 h-16 mb-4" />
@@ -146,22 +159,40 @@ export default function Register() {
                         <Input
                             label="Password"
                             name="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             value={formData.password}
                             onChange={handleChange}
                             placeholder="••••••••"
                             required
                             className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
+                            rightElement={
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                >
+                                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            }
                         />
                         <Input
                             label="Confirm Password"
                             name="confirmPassword"
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             value={formData.confirmPassword}
                             onChange={handleChange}
                             placeholder="••••••••"
                             required
                             className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
+                            rightElement={
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                >
+                                    {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            }
                         />
                     </div>
 
@@ -169,13 +200,22 @@ export default function Register() {
                         <Input
                             label="Transaction PIN (4 Digits)"
                             name="pin"
-                            type="password"
+                            type={showPin ? "text" : "password"}
                             maxLength={4}
                             value={formData.pin}
                             onChange={handleChange}
                             placeholder="••••"
                             required
                             className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
+                            rightElement={
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPin(!showPin)}
+                                    className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                >
+                                    {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            }
                         />
                         <div className="space-y-1.5 text-left">
                             <label className="text-sm font-medium text-gray-700 ml-1">State</label>

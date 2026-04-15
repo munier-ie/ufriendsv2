@@ -107,16 +107,7 @@ export default function HeroSection() {
               </div>
               <div className="absolute -top-4 -right-4 w-20 h-20 bg-secondary/20 rounded-full blur-xl" />
               <div className="absolute -bottom-8 -left-8 w-28 h-28 bg-primary/10 rounded-full blur-2xl" />
-              <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }} className="absolute -left-8 top-24 bg-white rounded-2xl shadow-xl px-4 py-3 border border-gray-100">
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center"><span className="text-green-600 text-sm">✓</span></div>
-                  <div><div className="text-xs font-bold text-gray-800">Payment Sent</div><div className="text-xs text-green-600">Instant &amp; Secure</div></div>
-                </div>
-              </motion.div>
-              <motion.div animate={{ y: [0, 8, 0] }} transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }} className="absolute -right-6 bottom-28 bg-white rounded-2xl shadow-xl px-4 py-3 border border-gray-100">
-                <div className="text-xs font-bold text-gray-800">⭐ 4.9/5 Rating</div>
-                <div className="text-xs text-gray-500">2,500+ Reviews</div>
-              </motion.div>
+
             </div>
           </motion.div>
         </div>

@@ -505,6 +505,66 @@ export default function SiteSettings() {
                         </div>
                     </div>
                 </div>
+
+                {/* Banking & Finance Configuration */}
+                <div className="bg-white p-6 rounded-2xl shadow-lg border border-gray-100">
+                    <h2 className="text-xl font-semibold mb-4 flex items-center">
+                        <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center mr-3">
+                            <span className="text-xl">🏛️</span>
+                        </div>
+                        Banking & Finance Configuration
+                    </h2>
+                    <p className="text-sm text-gray-600 mb-4">Configure the WhatsApp numbers and message templates for POS and Loan requests.</p>
+                    <div className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-gray-100 pb-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">POS Requests WhatsApp Number</label>
+                                <input
+                                    type="tel"
+                                    value={settings?.posWhatsappNumber || ''}
+                                    onChange={(e) => setSettings({ ...settings, posWhatsappNumber: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    placeholder="Leave blank to use Support WhatsApp"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">If empty, defaults to the General Support WhatsApp.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">POS Message Template</label>
+                                <textarea
+                                    value={settings?.posMessageTemplate || ''}
+                                    onChange={(e) => setSettings({ ...settings, posMessageTemplate: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent min-h-[100px]"
+                                    placeholder="Supports variables: {{provider}}, {{type}}"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Variables: <code className="bg-gray-100 px-1 rounded">{"{{provider}}"}</code>, <code className="bg-gray-100 px-1 rounded">{"{{type}}"}</code></p>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Loan Requests WhatsApp Number</label>
+                                <input
+                                    type="tel"
+                                    value={settings?.loanWhatsappNumber || ''}
+                                    onChange={(e) => setSettings({ ...settings, loanWhatsappNumber: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    placeholder="Leave blank to use Support WhatsApp"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">If empty, defaults to the General Support WhatsApp.</p>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Loan Message Template</label>
+                                <textarea
+                                    value={settings?.loanMessageTemplate || ''}
+                                    onChange={(e) => setSettings({ ...settings, loanMessageTemplate: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent min-h-[100px]"
+                                    placeholder="Supports variables: {{amount}}, {{duration}}, {{account}}"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Variables: <code className="bg-gray-100 px-1 rounded">{"{{amount}}"}</code>, <code className="bg-gray-100 px-1 rounded">{"{{duration}}"}</code>, <code className="bg-gray-100 px-1 rounded">{"{{account}}"}</code></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Save Button */}

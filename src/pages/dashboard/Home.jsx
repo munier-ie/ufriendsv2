@@ -117,45 +117,48 @@ export default function DashboardHome() {
                     </div>
                 </div>
 
-                <div className="relative z-10 p-8">
-                    <div className="flex justify-between items-start mb-6">
+                <div className="relative z-10 p-5 sm:p-8">
+                    <div className="flex justify-between items-start mb-4 sm:mb-6">
                         <div>
-                            <p className="text-white/80 text-sm font-medium mb-2">Wallet Balance</p>
-                            <div className="flex items-center space-x-3">
-                                <h2 className="text-white text-4xl font-bold">
-                                    {showBalance ? `₦${walletData?.wallet?.toLocaleString() || '0.00'}` : '₦ *********'}
+                            <p className="text-white/80 text-sm font-medium mb-1 sm:mb-2">Wallet Balance</p>
+                            <div className="flex items-center space-x-2 sm:space-x-3">
+                                <h2 className="text-white text-2xl sm:text-4xl font-bold">
+                                    {showBalance ? `₦${walletData?.wallet?.toLocaleString() || '0.00'}` : '₦ *****'}
                                 </h2>
                                 <button
                                     onClick={toggleBalanceVisibility}
-                                    className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    className="p-1.5 sm:p-2 hover:bg-white/10 rounded-lg transition-colors"
                                 >
                                     {showBalance ? (
-                                        <Eye size={24} className="text-white" />
+                                        <Eye size={20} className="text-white" />
                                     ) : (
-                                        <EyeOff size={24} className="text-white" />
+                                        <EyeOff size={20} className="text-white" />
                                     )}
                                 </button>
                             </div>
                         </div>
-                        <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
-                            <Wallet size={32} className="text-white" />
+                        <div className="p-2 sm:p-3 bg-white/10 rounded-xl sm:rounded-2xl backdrop-blur-sm">
+                            <Wallet size={24} className="text-white sm:hidden" />
+                            <Wallet size={32} className="text-white hidden sm:block" />
                         </div>
                     </div>
 
                     {/* Quick Action Buttons */}
-                    <div className="grid grid-cols-2 gap-3 mt-6">
+                    <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-4 sm:mt-6">
                         <Link
                             to="/dashboard/virtual-accounts"
-                            className="flex items-center justify-center space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-3 px-4 rounded-xl transition-all border-2 border-white/30"
+                            className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl transition-all border-2 border-white/30 text-sm sm:text-base"
                         >
-                            <Plus size={20} />
+                            <Plus size={16} className="sm:hidden" />
+                            <Plus size={20} className="hidden sm:block" />
                             <span>Add Money</span>
                         </Link>
                         <Link
                             to="/dashboard/transactions"
-                            className="flex items-center justify-center space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-3 px-4 rounded-xl transition-all border-2 border-white/30"
+                            className="flex items-center justify-center space-x-1.5 sm:space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white font-semibold py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl transition-all border-2 border-white/30 text-sm sm:text-base"
                         >
-                            <History size={20} />
+                            <History size={16} className="sm:hidden" />
+                            <History size={20} className="hidden sm:block" />
                             <span>History</span>
                         </Link>
                     </div>
@@ -253,15 +256,15 @@ export default function DashboardHome() {
                 transition={{ delay: 0.25 }}
                 className="bg-white rounded-3xl shadow-lg p-6 border border-gray-100"
             >
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-bold text-gray-900">Spending Overview</h3>
-                    <div className="flex items-center space-x-4">
-                        <div className="flex items-center space-x-2 text-xs font-medium text-gray-500">
-                            <span className="w-3 h-3 rounded-full bg-primary"></span>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4 sm:mb-6">
+                    <h3 className="text-base sm:text-lg font-bold text-gray-900">Spending Overview</h3>
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                        <div className="flex items-center space-x-1.5 text-xs font-medium text-gray-500">
+                            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-primary"></span>
                             <span>Spent</span>
                         </div>
-                        <div className="flex items-center space-x-2 text-xs font-medium text-gray-500">
-                            <span className="w-3 h-3 rounded-full bg-cyan-400"></span>
+                        <div className="flex items-center space-x-1.5 text-xs font-medium text-gray-500">
+                            <span className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-cyan-400"></span>
                             <span>Funded</span>
                         </div>
                     </div>
@@ -330,129 +333,134 @@ export default function DashboardHome() {
                 className="bg-white rounded-3xl shadow-lg p-6"
             >
                 <h3 className="text-lg font-bold text-gray-900 mb-6">Quick Services</h3>
-
-                <div className="flex overflow-x-auto gap-4 pb-4 snap-x snap-mandatory no-scrollbar md:grid md:grid-cols-4 lg:grid-cols-5 md:gap-y-8 md:gap-x-4 md:pb-0 md:mb-2 md:overflow-visible md:snap-none">
-                    <Link to="/dashboard/services?type=airtime" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                <div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-6 gap-x-2 gap-y-6">
+                    <Link to="/dashboard/services?type=airtime" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                             </svg>
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Airtime</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Airtime</span>
                     </Link>
 
-                    <Link to="/dashboard/services?type=data" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/services?type=data" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0" />
                             </svg>
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Data</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Data</span>
                     </Link>
 
-                    <Link to="/dashboard/services?type=cable" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/services?type=cable" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">TV</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Cable TV</span>
                     </Link>
 
-                    <Link to="/dashboard/services?type=electricity" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/services?type=electricity" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <Zap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Bills</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Electricity</span>
                     </Link>
 
-                    <Link to="/dashboard/services?type=data_pin" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/services?type=data_pin" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <Tag className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Data Pin</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Data Pin</span>
                     </Link>
 
-                    <Link to="/dashboard/services?type=exam" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/services?type=exam" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/exam-pin.jpg" alt="Exam Pin" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Exam Pin</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Exam Pin</span>
                     </Link>
 
-                    <Link to="/dashboard/airtime-cash" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/airtime-cash" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/airtime-to-cash.jpg" alt="Air Swap" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Air Swap</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Air Swap</span>
                     </Link>
 
-                    <Link to="/dashboard/gov-services" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/gov-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/coat-of-arm.png" alt="Gov Services" className="w-full h-full object-contain p-2" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Gov Services</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Gov Services</span>
                     </Link>
 
-                    <Link to="/dashboard/gov-services?tab=bvn" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/gov-services?tab=bvn" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/bvn-slip.jpg" alt="BVN Slip" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">BVN Slip</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">BVN Slip</span>
                     </Link>
 
-                    <Link to="/dashboard/gov-services?tab=nin" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/gov-services?tab=nin" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/ninIcon.png" alt="NIN Slip" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">NIN Slip</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">NIN Slip</span>
                     </Link>
 
-                    <Link to="/dashboard/manual-services" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/manual-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/bvn-services.jpg" alt="BVN Services" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">BVN Services</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">BVN Services</span>
                     </Link>
 
-                    <Link to="/dashboard/manual-services" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/manual-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/nimc-services.jpg" alt="NIN Services" className="w-full h-full object-cover" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">NIN Services</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">NIN Services</span>
                     </Link>
 
+                    <Link to="/dashboard/banking-finance" className="flex flex-col items-center group">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/nin/pos.jpg" alt="POS & Loan" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">POS & Loan</span>
+                    </Link>
 
-                    <Link to="/dashboard/academy" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/academy" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-indigo-600 to-purple-700 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <GraduationCap className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Academy</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Academy</span>
                     </Link>
 
-                    <Link to="/dashboard/verify" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/verify" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-rose-500 to-red-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                             </svg>
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">KYC</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">KYC</span>
                     </Link>
 
-                    <Link to="/dashboard/upgrade" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/upgrade" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <User className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Account</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Account</span>
                     </Link>
 
-                    <Link to="/dashboard/referrals" className="flex flex-col items-center group shrink-0 w-[4.5rem] snap-start md:w-auto md:snap-none">
+                    <Link to="/dashboard/referrals" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg">
                             <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                         </div>
-                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center">Referrals</span>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Referrals</span>
                     </Link>
                 </div>
             </motion.div>
@@ -465,13 +473,13 @@ export default function DashboardHome() {
                 className="bg-white rounded-3xl shadow-lg overflow-hidden"
             >
                 <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-bold text-gray-900">Your Statistics</h3>
+                    <div className="flex flex-wrap justify-between items-center gap-2 mb-4">
+                        <h3 className="text-base sm:text-lg font-bold text-gray-900">Your Statistics</h3>
                         <button
                             onClick={() => setShowNetworkStatus(true)}
-                            className="flex items-center space-x-2 text-sm text-primary hover:text-secondary transition-colors"
+                            className="flex items-center space-x-1.5 text-sm text-primary hover:text-secondary transition-colors"
                         >
-                            <Activity size={18} />
+                            <Activity size={16} />
                             <span>Network Status</span>
                         </button>
                     </div>
@@ -578,16 +586,16 @@ export default function DashboardHome() {
                         </div>
                     ) : (
                         transactions.map((tx) => (
-                            <div key={tx.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                                <div className="flex items-center space-x-4">
+                            <div key={tx.id} className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                                <div className="flex items-center space-x-3">
                                     <ServiceIcon serviceName={tx.serviceName} />
-                                    <div>
-                                        <p className="font-medium text-gray-900">{tx.serviceName}</p>
-                                        <p className="text-sm text-gray-500">{tx.description}</p>
+                                    <div className="min-w-0">
+                                        <p className="font-medium text-gray-900 text-sm sm:text-base truncate">{tx.serviceName}</p>
+                                        <p className="text-xs text-gray-500 truncate max-w-[120px] sm:max-w-xs">{tx.description}</p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className={`font-bold ${tx.status === 0 ? 'text-gray-900' : 'text-gray-500'}`}>
+                                <div className="text-right shrink-0 ml-2">
+                                    <p className={`font-bold text-sm sm:text-base ${tx.status === 0 ? 'text-gray-900' : 'text-gray-500'}`}>
                                         ₦{Math.abs(tx.amount).toLocaleString()}
                                     </p>
                                     <p className="text-xs text-gray-500">

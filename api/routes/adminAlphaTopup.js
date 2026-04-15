@@ -26,7 +26,7 @@ router.get('/orders', adminAuth, async (req, res) => {
                 where,
                 include: {
                     user: {
-                        select: { id: true, username: true, fullName: true, phoneNumber: true }
+                        select: { id: true, firstName: true, lastName: true, phone: true }
                     },
                     adminUser: {
                         select: { username: true }

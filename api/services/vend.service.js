@@ -31,9 +31,17 @@ const BALANCE_KEYWORDS = ['insufficient', 'low balance', 'wallet', 'low fund', '
 
 function sanitizeVendResult(result) {
     if (result && result.status === 'failed' && result.message) {
-        const msgLower = result.message.toLowerCase();
+        // Ensure message is a string before calling toLowerCase
+        const msgStr = Array.isArray(result.message) ? result.message.join(' ') : String(result.message);
+        const msgLower = msgStr.toLowerCase();
+        
         if (BALANCE_KEYWORDS.some(kw => msgLower.includes(kw))) {
             return { ...result, message: 'Service Temporarily Unavailable' };
+        }
+        
+        // If it was an array, returning the joined string is also better for UI
+        if (Array.isArray(result.message)) {
+            return { ...result, message: msgStr };
         }
     }
     return result;
@@ -92,7 +100,7 @@ async function resolveProvider(serviceType, network, networkType, service) {
  */
 async function vendAirtime(transaction, service, phone, network, airtimeType = 'VTU') {
     try {
-        console.log(`Attempting to vend airtime for ${phone} on ${network} using ${service.provider}`);
+        console.log(`Attempting to vend airtime on ${network} using ${service.provider} (phone redacted)`);
 
         // 1. Get Provider Details
         const apiProvider = await resolveProvider('airtime', network, airtimeType, service);
@@ -211,7 +219,7 @@ async function getNetworkIdForProvider(provider, network) {
  */
 async function vendData(transaction, service, phone, network) {
     try {
-        console.log(`Attempting to vend data for ${phone} on ${network} using ${service.provider}`);
+        console.log(`Attempting to vend data on ${network} using ${service.provider} (phone redacted)`);
 
         // Try to identify NetworkType (SME, Gifting, Corporate) from DataPlan based on the service's code (planId)
         let networkType = 'SME'; // Default fallback
@@ -506,7 +514,7 @@ function getExamEduTypeCode(examType, quantity) {
 
 async function vendExam(transaction, service, quantity, phone) {
     try {
-        console.log(`Attempting to vend Exam Pin for ${phone} using ${service.provider}`);
+        console.log(`Attempting to vend Exam Pin using ${service.provider} (phone redacted)`);
 
         let apiProvider = null;
         if (service.apiProviderId) {
@@ -606,7 +614,7 @@ async function vendExam(transaction, service, quantity, phone) {
  */
 async function vendDataPin(transaction, service, quantity, phone, businessName) {
     try {
-        console.log(`Attempting to vend Data Pin for ${phone} using ${service.provider}`);
+        console.log(`Attempting to vend Data Pin using ${service.provider} (phone redacted)`);
 
         let apiProvider = null;
         if (service.apiProviderId) {

@@ -1,12 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
 const { encrypt, decrypt } = require('../utils/encryption');
 const monnifyService = require('../services/monnify.service');
 const paymentpointService = require('../services/paymentpoint.service');
-
-const prisma = new PrismaClient();
 
 /**
  * @route   POST /api/kyc/verify-nin
@@ -31,10 +29,10 @@ router.post('/verify-nin', authenticateUser, async (req, res) => {
 
         // TODO: Call NIN verification API (Flutterwave, Youverify, Dojah, etc.)
         // For now, we'll simulate verification
-        const ninVerified = true; // Replace with actual API call
+        const ninVerified = false; // Replace with actual API call
 
         if (!ninVerified) {
-            return res.status(400).json({ error: 'NIN verification failed' });
+            return res.status(503).json({ error: 'NIN verification service is currently unavailable. Please contact support.' });
         }
 
         // Encrypt NIN before storing
@@ -86,10 +84,10 @@ router.post('/verify-bvn', authenticateUser, async (req, res) => {
         }
 
         // TODO: Call BVN verification API
-        const bvnVerified = true; // Replace with actual API call
+        const bvnVerified = false; // Replace with actual API call
 
         if (!bvnVerified) {
-            return res.status(400).json({ error: 'BVN verification failed' });
+            return res.status(503).json({ error: 'BVN verification service is currently unavailable. Please contact support.' });
         }
 
         // Encrypt BVN before storing

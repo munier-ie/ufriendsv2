@@ -3,10 +3,12 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { z } = require('zod');
 const { sendWelcomeEmail, sendLoginAlert } = require('../services/email.service');
 const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
+const authenticateUser = require('../middleware/auth');
 
 // Validation Schemas
 const registerSchema = z.object({
@@ -115,7 +117,7 @@ router.post('/register', async (req, res) => {
                         accountReference: `PP_${user.phone}_${user.id}`
                     }
                 });
-                console.log(`Auto-generated PaymentPoint virtual account for ${user.email}`);
+                console.log(`Auto-generated PaymentPoint virtual account for user ID ${user.id}`);
             }
         }).catch(err => {
             console.error(`Failed to auto-generate PaymentPoint virtual account for ${user.email}:`, err.message);
@@ -149,7 +151,8 @@ router.post('/login', async (req, res) => {
 
         // Email Verification Check (First Login)
         if (user.emailVerified === false) {
-            const otpCode = Math.floor(100000 + Math.random() * 900000);
+            // [SEC-HIGH-04] Use cryptographically secure OTP generator
+            const otpCode = crypto.randomInt(100000, 999999);
             const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
             await prisma.user.update({
                 where: { id: user.id },
@@ -188,7 +191,8 @@ router.post('/login', async (req, res) => {
         // 2FA Check
         if (user.twoFaEnabled) {
             if (user.twoFaMethod === 'email') {
-                const otpCode = Math.floor(100000 + Math.random() * 900000);
+                // [SEC-HIGH-04] Use cryptographically secure OTP generator
+                const otpCode = crypto.randomInt(100000, 999999);
                 const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
                 await prisma.user.update({
                     where: { id: user.id },
@@ -224,7 +228,7 @@ router.post('/login', async (req, res) => {
             });
         }
 
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
         // Single Device Login Logic
         // Invalidate all previous sessions
@@ -262,7 +266,7 @@ router.post('/login', async (req, res) => {
                                 accountReference: `PP_${user.phone}_${user.id}`
                             }
                         });
-                        console.log(`Auto-generated virtual account on login for ${user.email}`);
+                        console.log(`Auto-generated virtual account on login for user ID ${user.id}`);
                     }
                 }
             }).catch(err => {
@@ -282,7 +286,7 @@ router.post('/login', async (req, res) => {
  * Factor out the shared logic.
  */
 async function completeLoginProcess(user, req, res) {
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'secret', { expiresIn: '1d' });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     // Single Device Login Logic / Invalidate all previous sessions
     await prisma.userLogin.deleteMany({
@@ -354,7 +358,8 @@ router.post('/verify-email', async (req, res) => {
         // If they have 2FA enabled, they still need to do 2FA immediately after fixing email verification
         if (updatedUser.twoFaEnabled) {
             if (updatedUser.twoFaMethod === 'email') {
-                const otpCode = Math.floor(100000 + Math.random() * 900000);
+                // [SEC-HIGH-04] Use cryptographically secure OTP generator
+                const otpCode = crypto.randomInt(100000, 999999);
                 const expiry = new Date(Date.now() + 10 * 60 * 1000);
                 await prisma.user.update({
                     where: { id: user.id },
@@ -439,17 +444,11 @@ router.post('/verify-2fa', async (req, res) => {
     }
 });
 
-// Get Profile
-router.get('/profile', async (req, res) => {
+// Get Profile — uses middleware for consistent blocked-account checks
+router.get('/profile', authenticateUser, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: req.user.id },
             select: {
                 id: true,
                 firstName: true,
@@ -506,15 +505,9 @@ router.get('/profile', async (req, res) => {
     }
 });
 
-// Update Password
-router.put('/update-password', async (req, res) => {
+// Update Password — uses middleware for consistent blocked-account checks
+router.put('/update-password', authenticateUser, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const { oldPassword, newPassword } = req.body;
 
         if (!oldPassword || !newPassword) {
@@ -526,7 +519,7 @@ router.put('/update-password', async (req, res) => {
         }
 
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId }
+            where: { id: req.user.id }
         });
 
         if (!user) {
@@ -540,7 +533,7 @@ router.put('/update-password', async (req, res) => {
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         await prisma.user.update({
-            where: { id: decoded.userId },
+            where: { id: req.user.id },
             data: { password: hashedPassword }
         });
 
@@ -551,19 +544,13 @@ router.put('/update-password', async (req, res) => {
     }
 });
 
-// Toggle PIN
-router.post('/pin/toggle', async (req, res) => {
+// Toggle PIN — uses middleware for consistent blocked-account checks
+router.post('/pin/toggle', authenticateUser, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const { action, pin, confirmPin, currentPin } = req.body;
 
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId }
+            where: { id: req.user.id }
         });
 
         if (!user) {
@@ -585,7 +572,7 @@ router.post('/pin/toggle', async (req, res) => {
 
             const hashedPin = await bcrypt.hash(pin, 10);
             await prisma.user.update({
-                where: { id: decoded.userId },
+                where: { id: req.user.id },
                 data: {
                     transactionPin: hashedPin,
                     pinEnabled: true
@@ -608,7 +595,7 @@ router.post('/pin/toggle', async (req, res) => {
             }
 
             await prisma.user.update({
-                where: { id: decoded.userId },
+                where: { id: req.user.id },
                 data: { pinEnabled: false }
             });
 
@@ -622,17 +609,11 @@ router.post('/pin/toggle', async (req, res) => {
     }
 });
 
-// Get PIN Status
-router.get('/pin/status', async (req, res) => {
+// Get PIN Status — uses middleware for consistent blocked-account checks  
+router.get('/pin/status', authenticateUser, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'Unauthorized' });
-        }
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId },
+            where: { id: req.user.id },
             select: { pinEnabled: true }
         });
 
@@ -749,16 +730,11 @@ router.post('/reset-password', async (req, res) => {
 });
 
 // Generate / Regenerate API Key
-router.post('/generate-api-key', async (req, res) => {
+router.post('/generate-api-key', authenticateUser, async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) return res.status(401).json({ error: 'Unauthorized' });
-
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
         // Re-check user to ensure they are a vendor (type === 3)
         const user = await prisma.user.findUnique({
-            where: { id: decoded.userId }
+            where: { id: req.user.id }
         });
 
         if (!user || user.type !== 3) {
