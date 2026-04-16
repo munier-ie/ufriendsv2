@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint, Shield, Star } from 'lucide-react';

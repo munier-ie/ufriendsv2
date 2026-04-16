@@ -1,3 +1,4 @@
+import React from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Zap, Clock, Headphones } from 'lucide-react';
 import { useLandingContent } from '../../contexts/LandingContentContext';
