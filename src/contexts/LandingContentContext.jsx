@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 import { loadLandingContent, saveLandingContent } from '../lib/landingContent';
 
 const LandingContentContext = createContext(null);
