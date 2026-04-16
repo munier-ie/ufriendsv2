@@ -39,7 +39,17 @@ const path = require('path');
 
 const app = express();
 
-app.use(helmet());
+// Configure helmet to allow PDFs to render inside iframes
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+            "object-src": ["'self'", "data:"],
+            "frame-ancestors": ["'self'", "https://www.ufriends.com.ng", "https://ufriends.com.ng", "http://localhost:5173", "http://localhost:3000"]
+        }
+    },
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
 // [SEC-HIGH-02] Strict CORS — only allow configured frontend origins (www + non-www)
 const buildAllowedOrigins = () => {
