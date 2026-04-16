@@ -257,6 +257,53 @@ async function send2FaOtpEmail(user, otpCode, isLoginPage = true) {
     return sendEmail(user.email, subject, html);
 }
 
+/**
+ * Send System Update & Apology Email
+ */
+async function sendSystemUpdateEmail(user) {
+    const subject = 'Important Account Update & Apology from Ufriends';
+    const firstName = user && user.firstName ? user.firstName : 'Valued User';
+    
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 30px;">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: #004687;">Important Update from Ufriends</h2>
+            </div>
+            
+            <p>Dear <strong>${firstName}</strong>,</p>
+            
+            <p>We want to sincerely apologize for the recent inconveniences and service downtimes you may have experienced. Our team has been working continuously to upgrade our infrastructure and ensure a much smoother and more reliable experience for you.</p>
+            
+            <h3 style="color: #1e90ff;">Exciting New Upgrades</h3>
+            <p>We are thrilled to let you know that our system wide upgrade is complete! We've improved our platform performance, enhanced security, and added robust new features so everything is now running smoothly.</p>
+            
+            <div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 25px 0; border-radius: 0 4px 4px 0;">
+                <h3 style="color: #856404; margin-top: 0;">⚠️ Important Login Change</h3>
+                <p style="margin-bottom: 0;">As part of our security and system optimizations, we have updated our login process. <strong>Moving forward, you must log in using your registered Phone Number and Password</strong> instead of your email address. Your password remains exactly the same.</p>
+            </div>
+            
+            <div style="background-color: #f8fbff; border: 2px dashed #1e90ff; padding: 15px; margin: 20px 0; text-align: center; border-radius: 8px;">
+                <p style="margin: 0; font-size: 16px;"><strong>New Login Method:</strong></p>
+                <p style="margin: 10px 0 0 0; color: #555;">Use your <strong style="color: #1e90ff;">Registered Phone Number</strong> and your existing Password to access your account.</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                    Log In To Your Account
+                </a>
+            </div>
+            
+            <p>Thank you for your continued patience, understanding, and trust in Ufriends. If you experience any issues accessing your account, please reach out to our support team.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p><strong>The Ufriends Team</strong></p>
+        </div>
+    `;
+    
+    const emailTo = user && user.email ? user.email : user;
+    return sendEmail(emailTo, subject, html);
+}
+
 module.exports = {
     sendEmail,
     sendEmailStrict,
@@ -265,6 +312,7 @@ module.exports = {
     sendTransactionReceipt,
     sendAdminAlert,
     sendAdminServiceRequestNotification,
-    send2FaOtpEmail
+    send2FaOtpEmail,
+    sendSystemUpdateEmail
 };
 

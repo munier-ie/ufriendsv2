@@ -139,40 +139,68 @@ router.post('/monnify', async (req, res) => {
  */
 router.post('/paymentpoint', async (req, res) => {
     try {
-        const signature = req.headers['paymentpoint-signature'] || req.headers['x-paymentpoint-signature'];
+        const signature = req.headers['x-paymentpoint-signature'] || 
+                          req.headers['paymentpoint-signature'] || 
+                          req.headers['x-signature'] || 
+                          req.headers['signature'];
         
         // Parse payload correctly protecting against express.raw buffers
         const rawBody = req.body;
         const payloadStr = Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : JSON.stringify(rawBody);
 
+        // Log incoming webhook to console for tracking since we don't have AuditLog yet
+        console.log(`[PaymentPoint Webhook Debug] Received payload: ${payloadStr.length > 500 ? payloadStr.slice(0, 500) + '...' : payloadStr}`);
+
         // Verify webhook signature with raw string
         const isValid = await paymentpointService.verifyWebhookSignature(signature, payloadStr);
         if (!isValid) {
-            console.error('Invalid PaymentPoint webhook signature');
+            console.error('[Webhook Debug] Invalid PaymentPoint webhook signature');
             return res.status(401).json({ error: 'Invalid signature' });
         }
 
         const payloadObj = JSON.parse(payloadStr);
-        const { event, data } = payloadObj;
+        const event = (payloadObj.event || payloadObj.status || '').toUpperCase();
+        const data = payloadObj.data || payloadObj;
 
         // Process successful payment
-        if (event === 'charge.success' || event === 'payment.successful') {
-            const {
-                reference,
-                amount,
-                paidAt,
-                customerEmail
-            } = data;
+        const isSuccess = ['CHARGE.SUCCESS', 'PAYMENT.SUCCESSFUL', 'SUCCESS', 'COMPLETED', 'TRUE'].includes(event);
 
-            // Find user by email
-            const user = await prisma.user.findUnique({
-                where: { email: customerEmail }
+        if (isSuccess) {
+            const reference = data.reference || payloadObj.reference;
+            const amount = data.amount || payloadObj.amount;
+            const paidAt = data.paidAt || payloadObj.paidAt;
+            const customerEmail = data.customerEmail || data.email || payloadObj.customerEmail;
+
+            // Robust account number extraction from old platform concept
+            const vaAccountNum = data?.accountNumber ||
+                data?.destinationAccountNumber ||
+                data?.beneficiaryAccountNumber ||
+                data?.bankAccount?.accountNumber ||
+                data?.receiver?.account_number ||
+                (Array.isArray(data?.bankAccounts) && data.bankAccounts.length > 0 ? data.bankAccounts[0]?.accountNumber : null) ||
+                payloadObj?.account_number;
+
+            console.log(`[Webhook Debug] Looking up User for ref=${reference} or accountNum=${vaAccountNum} or email=${customerEmail}`);
+
+            // Find user robustly using OR condition, preventing matching nulls
+            const user = await prisma.user.findFirst({
+                where: {
+                    OR: [
+                        { email: customerEmail || 'NEVER_MATCH' },
+                        { accountReference: reference || 'NEVER_MATCH' },
+                        { bankNo: String(vaAccountNum || 'NEVER_MATCH') }
+                    ]
+                }
             });
 
             if (!user) {
-                console.error('User not found for email:', customerEmail);
-                return res.status(404).json({ error: 'User not found' });
+                console.error(`[Webhook Debug] No user found for ref: ${reference}, email: ${customerEmail}, accountNum: ${vaAccountNum}`);
+                console.warn(`[Webhook Debug] Final Check: Body: ${payloadStr}`);
+                // Return 200 ok to stop retry loops
+                return res.status(200).json({ ok: true, message: 'Unmatched user processed silently' });
             }
+
+            console.log(`[Webhook Debug] Found user ${user.id} (${user.email}). Proceeding with credit.`);
 
             // Update user wallet with fee deduction
             // PaymentPoint Rule: 1.6% capped at N2000
@@ -186,8 +214,8 @@ router.post('/paymentpoint', async (req, res) => {
             const finalAmount = amountInNaira - serviceCharge;
 
             if (finalAmount <= 0) {
-                console.error(`PaymentPoint: Amount too small after fee deduction. Amount: ${amountInNaira}, Fee: ${serviceCharge}`);
-                return res.status(200).json({ message: 'Amount too small after fee' });
+                console.error(`[Webhook Debug] PaymentPoint: Amount too small after fee deduction. Amount: ${amountInNaira}, Fee: ${serviceCharge}`);
+                return res.status(200).json({ ok: true, message: 'Amount too small after fee' });
             }
 
             // Check idempotency and increment wallet atomically within transaction
@@ -213,7 +241,7 @@ router.post('/paymentpoint', async (req, res) => {
                         serviceName: 'PaymentPoint Virtual Account',
                         description: `Wallet Funding via PaymentPoint (Fee: ₦${serviceCharge.toFixed(2)})`,
                         status: 0,
-                        reference,
+                        reference: reference, // using reference from payload
                         oldBalance: user.wallet,
                         newBalance: updatedUser.wallet,
                         date: paidAt ? new Date(paidAt) : new Date()
@@ -224,12 +252,12 @@ router.post('/paymentpoint', async (req, res) => {
             });
 
             if (result.alreadyProcessed) {
-                console.log('Transaction already processed:', reference);
-                return res.status(200).json({ message: 'Transaction already processed' });
+                console.log('[Webhook Debug] Transaction already processed:', reference);
+                return res.status(200).json({ ok: true, message: 'Transaction already processed' });
             }
 
             const newBalance = result.updatedUser.wallet;
-            console.log(`PaymentPoint: Credited ₦${finalAmount} to user ${user.id}. Fee: ₦${serviceCharge}. New balance: ₦${newBalance}`);
+            console.log(`[Webhook Debug] PaymentPoint: Credited ₦${finalAmount} to user ${user.id}. Fee: ₦${serviceCharge}. New balance: ₦${newBalance}`);
 
             // Send email notification
             sendTransactionReceipt(user, {
@@ -237,19 +265,19 @@ router.post('/paymentpoint', async (req, res) => {
                 amount: finalAmount.toString(),
                 serviceName: 'Wallet Funding',
                 description: `Wallet Funding via PaymentPoint`,
-                reference: reference, // using reference from payload
+                reference: reference,
                 newBalance: newBalance.toString()
             }).catch(err => console.error('Email error:', err));
 
-            return res.status(200).json({ message: 'Webhook processed successfully' });
+            return res.status(200).json({ ok: true, message: 'Webhook processed successfully' });
         }
 
         // Acknowledge other event types
-        res.status(200).json({ message: 'Event acknowledged' });
+        res.status(200).json({ ok: true, message: 'Event acknowledged' });
     } catch (error) {
-        console.error('PaymentPoint webhook error:', error);
+        console.error('[Webhook Debug] PaymentPoint webhook error:', error);
         sendAdminAlert('PaymentPoint Webhook Failed', error.message).catch(e => console.error(e));
-        res.status(500).json({ error: 'Webhook processing failed' });
+        res.status(500).json({ error: 'Webhook processing failed', detail: String(error) });
     }
 });
 
