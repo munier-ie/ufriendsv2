@@ -40,18 +40,41 @@ const app = express();
 
 app.use(helmet());
 
-// [SEC-HIGH-02] Strict CORS — only allow the configured frontend origin
-const allowedOrigins = [
-    process.env.FRONTEND_URL,
-    'http://localhost:5173',
-    'http://localhost:3000'
-].filter(Boolean);
+// [SEC-HIGH-02] Strict CORS — only allow configured frontend origins (www + non-www)
+const buildAllowedOrigins = () => {
+    const origins = new Set([
+        'http://localhost:5173',
+        'http://localhost:3000',
+    ]);
+
+    // Automatically include both www and non-www for the configured FRONTEND_URL
+    const frontendUrl = process.env.FRONTEND_URL;
+    if (frontendUrl) {
+        origins.add(frontendUrl);
+        try {
+            const parsed = new URL(frontendUrl);
+            if (parsed.hostname.startsWith('www.')) {
+                // www → also allow bare domain
+                parsed.hostname = parsed.hostname.replace(/^www\./, '');
+                origins.add(parsed.origin);
+            } else {
+                // bare domain → also allow www
+                parsed.hostname = 'www.' + parsed.hostname;
+                origins.add(parsed.origin);
+            }
+        } catch { /* invalid URL — skip */ }
+    }
+
+    return origins;
+};
+
+const allowedOrigins = buildAllowedOrigins();
 
 app.use(cors({
     origin: (origin, callback) => {
         // Allow server-to-server or same-origin requests (no Origin header)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) return callback(null, true);
+        if (allowedOrigins.has(origin)) return callback(null, true);
         callback(new Error('CORS policy: origin not allowed'));
     },
     credentials: true,
