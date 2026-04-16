@@ -136,15 +136,15 @@ const maintenance = require('./middleware/maintenance');
 app.use(maintenance);
 
 // Serve uploaded CAC documents (Protected)
-app.use('/api/uploads/cac', protectedUploads, express.static(path.join(__dirname, 'uploads/cac')));
+app.use('/api/uploads/cac', protectedUploads, express.static(path.join(__dirname, '../uploads/cac')));
 // Serve manual service proof uploads (Protected)
-app.use('/api/uploads/manual-proof', protectedUploads, express.static(path.join(__dirname, 'uploads/manual-proof')));
+app.use('/api/uploads/manual-proof', protectedUploads, express.static(path.join(__dirname, '../uploads/manual-proof')));
 // Serve manual identification document uploads (Protected)
-app.use('/api/uploads/manual-ids', protectedUploads, express.static(path.join(__dirname, 'uploads/manual-ids')));
+app.use('/api/uploads/manual-ids', protectedUploads, express.static(path.join(__dirname, '../uploads/manual-ids')));
 // Serve academy content uploads (Protected)
-app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dirname, 'uploads/academy')));
+app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dirname, '../uploads/academy')));
 // Serve NIN/BVN slips (Protected)
-app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirname, 'uploads/slips')));
+app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirname, '../uploads/slips')));
 
 // [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
 // This correctly intercepts matching paths and either passes or rejects before the route handler fires
