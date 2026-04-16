@@ -324,7 +324,12 @@ export default function GovServices() {
     };
 
     const handleDownloadSlip = () => {
-        if (slipPreview?.pdfUrl) window.open(slipPreview.pdfUrl, '_blank');
+        if (slipPreview?.pdfUrl) {
+            const slipUrl = slipPreview.pdfUrl.includes('?') 
+                ? `${slipPreview.pdfUrl}&token=${localStorage.getItem('token')}`
+                : `${slipPreview.pdfUrl}?token=${localStorage.getItem('token')}`;
+            window.open(slipUrl, '_blank');
+        }
     };
 
     // --- Compute tabs ---
@@ -958,7 +963,9 @@ export default function GovServices() {
                         </div>
                         <div className="p-6">
                             <iframe
-                                src={slipPreview.pdfUrl}
+                                src={slipPreview.pdfUrl ? (slipPreview.pdfUrl.includes('?') 
+                                    ? `${slipPreview.pdfUrl}&token=${localStorage.getItem('token')}`
+                                    : `${slipPreview.pdfUrl}?token=${localStorage.getItem('token')}`) : ''}
                                 className="w-full h-[600px] border border-gray-200 rounded-lg"
                                 title={`${activeTab === 'nin' ? 'NIN' : 'BVN'} Slip Preview`}
                             />
