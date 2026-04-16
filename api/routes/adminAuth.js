@@ -17,21 +17,44 @@ const adminLoginSchema = z.object({
 // Health check — verifies this router is reachable (no DB, no auth)
 router.get('/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
+// DB connectivity test — isolates whether Prisma can query the adminUser table
+router.get('/dbtest', async (req, res) => {
+    const t0 = Date.now();
+    try {
+        const count = await prisma.adminUser.count();
+        res.json({ ok: true, adminUserCount: count, ms: Date.now() - t0 });
+    } catch (err) {
+        console.error('[dbtest] ✗ DB error:', err);
+        res.status(500).json({ ok: false, error: err.message, ms: Date.now() - t0 });
+    }
+});
+
 // Admin login (renamed to access to bypass WAF rules on /login and /signin paths)
 router.post('/access', async (req, res) => {
     const t0 = Date.now();
-    console.log('[admin-access] ▶ handler entered');
+    console.log('[admin-access] ▶ handler entered at', new Date().toISOString());
+
+    // Hard timeout — ensures we ALWAYS respond within 12 seconds
+    const timeout = setTimeout(() => {
+        if (!res.headersSent) {
+            console.error('[admin-access] ✗ HARD TIMEOUT after', Date.now() - t0, 'ms');
+            res.status(504).json({ success: false, error: 'Login timed out. Please try again.' });
+        }
+    }, 12000);
+
     try {
         const { username, password, pin } = adminLoginSchema.parse(req.body);
         console.log('[admin-access] ✓ zod parsed', Date.now() - t0, 'ms');
 
         // Find admin user
+        console.log('[admin-access] … querying DB for admin user');
         const admin = await prisma.adminUser.findUnique({
             where: { username }
         });
         console.log('[admin-access] ✓ db query', Date.now() - t0, 'ms, found:', !!admin);
 
         if (!admin) {
+            clearTimeout(timeout);
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials'
@@ -40,6 +63,7 @@ router.post('/access', async (req, res) => {
 
         // Check if account is blocked (status 0 = Blocked/Inactive, status 1 = Active)
         if (admin.status === 0) {
+            clearTimeout(timeout);
             return res.status(403).json({
                 success: false,
                 error: 'Account is blocked. Contact system administrator.'
@@ -47,9 +71,11 @@ router.post('/access', async (req, res) => {
         }
 
         // Verify password
+        console.log('[admin-access] … comparing bcrypt password');
         const validPassword = await bcrypt.compare(password, admin.password);
         console.log('[admin-access] ✓ bcrypt compared', Date.now() - t0, 'ms, valid:', validPassword);
         if (!validPassword) {
+            clearTimeout(timeout);
             return res.status(401).json({
                 success: false,
                 error: 'Invalid credentials'
@@ -58,6 +84,7 @@ router.post('/access', async (req, res) => {
 
         // Check if PIN is required
         if (admin.pinStatus === 1 && !pin) {
+            clearTimeout(timeout);
             return res.status(400).json({
                 success: false,
                 error: 'PIN required',
@@ -69,6 +96,7 @@ router.post('/access', async (req, res) => {
         if (admin.pinStatus === 1 && pin) {
             const validPin = await bcrypt.compare(pin, admin.pinToken);
             if (!validPin) {
+                clearTimeout(timeout);
                 return res.status(401).json({
                     success: false,
                     error: 'Invalid PIN'
@@ -96,6 +124,7 @@ router.post('/access', async (req, res) => {
                 }
             }
 
+            clearTimeout(timeout);
             return res.json({
                 success: true,
                 twoFaRequired: true,
@@ -114,6 +143,7 @@ router.post('/access', async (req, res) => {
         );
 
         console.log('[admin-access] ✓ JWT signed, responding', Date.now() - t0, 'ms');
+        clearTimeout(timeout);
         res.json({
             success: true,
             token,
@@ -121,6 +151,8 @@ router.post('/access', async (req, res) => {
         });
 
     } catch (error) {
+        clearTimeout(timeout);
+        if (res.headersSent) return; // timeout already sent a response
         if (error instanceof z.ZodError) {
             console.log('[admin-access] ✗ zod validation error', Date.now() - t0, 'ms');
             return res.status(400).json({ success: false, error: error.errors[0].message });
