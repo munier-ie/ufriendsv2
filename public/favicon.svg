@@ -1,17 +1,29 @@
 <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
-        <linearGradient id="blueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#1E90FF" />
-            <stop offset="100%" stopColor="#004687" />
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1E90FF" />
+            <stop offset="100%" stop-color="#004687" />
         </linearGradient>
-        <linearGradient id="cyanGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00FFFF" />
-            <stop offset="100%" stopColor="#1E90FF" />
+        <linearGradient id="uGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="100%" stop-color="#b3d9ff" />
+        </linearGradient>
+        <linearGradient id="fGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7DD3FC" />
+            <stop offset="100%" stop-color="#38BDF8" />
         </linearGradient>
     </defs>
+    <!-- Background circle with brand gradient -->
+    <circle cx="50" cy="50" r="50" fill="url(#bgGrad)" />
+    <!-- Subtle inner glow ring -->
+    <circle cx="50" cy="50" r="46" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" />
     <!-- "U" Shape -->
-    <path d="M25 20 V60 C25 75 35 85 50 85 C55 85 60 82 63 78 L63 55" stroke="url(#blueGradient)" stroke-width="12" stroke-linecap="round" />
-    <!-- "f" Shape -->
-    <path d="M65 85 V35 C65 25 70 20 80 20" stroke="url(#cyanGradient)" stroke-width="12" stroke-linecap="round" />
-    <path d="M60 45 H80" stroke="url(#cyanGradient)" stroke-width="10" stroke-linecap="round" />
+    <path d="M22 18 V56 C22 73 33 84 50 84 C57 84 63 81 67 76 L67 52"
+          stroke="url(#uGrad)" stroke-width="11" stroke-linecap="round" fill="none" />
+    <!-- "f" vertical stem -->
+    <path d="M67 84 V32 C67 22 73 16 83 16"
+          stroke="url(#fGrad)" stroke-width="11" stroke-linecap="round" fill="none" />
+    <!-- "f" crossbar -->
+    <path d="M61 46 H82"
+          stroke="url(#fGrad)" stroke-width="9" stroke-linecap="round" fill="none" />
 </svg>

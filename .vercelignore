@@ -14,6 +14,4 @@ uploads/
 # Ignore miscellaneous
 .env
 README.md
-postcss.config.js
-tailwind.config.js
-# Note: Do NOT ignore package.json or public/ or src/ or vite.config.mjs
+# Note: Do NOT ignore package.json, public/, src/, vite.config.mjs, postcss.config.js, or tailwind.config.js
