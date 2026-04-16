@@ -106,13 +106,40 @@ class PaymentPointService {
 
         const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
 
-        // Assuming HMAC-SHA256 (adjust based on actual PaymentPoint documentation)
-        const hash = crypto
-            .createHmac('sha256', creds.apiSecret)
+        // Debugging the secret being used
+        const secret = creds.apiSecret || process.env.PAYMENTPOINT_SECRET_KEY || process.env.PAYMENTPOINT_WEBHOOK_SECRET || '';
+        const maskedSecret = secret ? `${secret.substring(0, 4)}...${secret.substring(secret.length - 4)}` : 'MISSING_SECRET';
+        
+        console.log(`[Webhook Signature Debug] Secret being used: ${maskedSecret}`);
+        console.log(`[Webhook Signature Debug] Received Signature: ${signature}`);
+
+        if (!secret) {
+            console.error('[Webhook Signature Debug] No API secret found for signature verification');
+            return false;
+        }
+
+        // HMAC-SHA256
+        const hash256 = crypto
+            .createHmac('sha256', secret)
             .update(payloadStr)
             .digest('hex');
 
-        return hash === signature;
+        // HMAC-SHA512 (fallback just in case)
+        const hash512 = crypto
+            .createHmac('sha512', secret)
+            .update(payloadStr)
+            .digest('hex');
+
+        console.log(`[Webhook Signature Debug] Calculated SHA256: ${hash256}`);
+        console.log(`[Webhook Signature Debug] Calculated SHA512: ${hash512}`);
+
+        if (hash256 === signature || hash512 === signature) {
+            console.log('[Webhook Signature Debug] Signature Matched!');
+            return true;
+        }
+        
+        console.log('[Webhook Signature Debug] Signature Mismatch.');
+        return false;
     }
 
     /**
