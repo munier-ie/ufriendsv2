@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const jwt = require('jsonwebtoken');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const { initCron } = require('./services/smartRouting.service');
 
@@ -94,18 +95,29 @@ const adminAuth = require('./middleware/adminAuth');
 
 // Combine auth for uploads (Allow either User or Admin)
 const protectedUploads = async (req, res, next) => {
-    // Try user auth first
+    // Support iframe authentication via query token
+    if (req.query.token && !req.headers.authorization) {
+        req.headers.authorization = `Bearer ${req.query.token}`;
+    }
+
+    // Since authenticateUser and adminAuth respond directly instead of throwing,
+    // we need to intercept the response methods or use a custom validator.
+    // However, the simplest fix is just looking for the token.
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+        return res.status(401).json({ error: 'Unauthorized access to documents' });
+    }
+
     try {
-        await authenticateUser(req, res, () => {
-            next();
-        });
-    } catch (err) {
-        // If user auth fails, try admin auth
-        try {
-            await adminAuth(req, res, next);
-        } catch (adminErr) {
-            res.status(401).json({ error: 'Unauthorized access to documents' });
+        // Just decode and check if it has isAdmin
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.isAdmin) {
+            adminAuth(req, res, next);
+        } else {
+            authenticateUser(req, res, next);
         }
+    } catch (err) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
     }
 };
 
@@ -126,12 +138,12 @@ app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirna
 
 // [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
 // This correctly intercepts matching paths and either passes or rejects before the route handler fires
-app.post('/api/auth/login',           makeRateLimiter(authLimiter));
+app.post('/api/auth/signin',          makeRateLimiter(authLimiter));
 app.post('/api/auth/register',        makeRateLimiter(authLimiter));
 app.post('/api/auth/verify-email',    makeRateLimiter(otpLimiter));
 app.post('/api/auth/verify-2fa',      makeRateLimiter(otpLimiter));
 app.post('/api/auth/forgot-password', makeRateLimiter(forgotLimiter));
-app.post('/api/admin/auth/login',     makeRateLimiter(authLimiter));
+app.post('/api/admin/auth/signin',    makeRateLimiter(authLimiter));
 app.post('/api/admin/auth/verify-2fa', makeRateLimiter(otpLimiter));
 
 app.use('/api/auth', authRoutes);

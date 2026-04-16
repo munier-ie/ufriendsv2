@@ -34,7 +34,7 @@ export default function Login() {
         setError('');
 
         try {
-            const { data } = await axios.post('/api/auth/login', formData);
+            const { data } = await axios.post('/api/auth/signin', formData);
             
             if (data.emailVerificationRequired) {
                 setUserId(data.userId);
