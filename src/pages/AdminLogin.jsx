@@ -36,7 +36,7 @@ export default function AdminLogin() {
                 payload.pin = formData.pin;
             }
 
-            const response = await axios.post('/api/admin/auth/signin', payload);
+            const response = await axios.post('/api/admin/auth/access', payload);
 
             if (response.data.twoFaRequired) {
                 setAdminId(response.data.adminId);

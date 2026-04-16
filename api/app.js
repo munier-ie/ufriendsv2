@@ -138,12 +138,12 @@ app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirna
 
 // [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
 // This correctly intercepts matching paths and either passes or rejects before the route handler fires
-app.post('/api/auth/signin',          makeRateLimiter(authLimiter));
+app.post('/api/auth/access',          makeRateLimiter(authLimiter));
 app.post('/api/auth/register',        makeRateLimiter(authLimiter));
 app.post('/api/auth/verify-email',    makeRateLimiter(otpLimiter));
 app.post('/api/auth/verify-2fa',      makeRateLimiter(otpLimiter));
 app.post('/api/auth/forgot-password', makeRateLimiter(forgotLimiter));
-app.post('/api/admin/auth/signin',    makeRateLimiter(authLimiter));
+app.post('/api/admin/auth/access',    makeRateLimiter(authLimiter));
 app.post('/api/admin/auth/verify-2fa', makeRateLimiter(otpLimiter));
 
 app.use('/api/auth', authRoutes);

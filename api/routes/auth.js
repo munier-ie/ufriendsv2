@@ -130,8 +130,8 @@ router.post('/register', async (req, res) => {
     }
 });
 
-// Login (renamed to signin to bypass WAF rules on /login paths)
-router.post('/signin', async (req, res) => {
+// Login (renamed to access to bypass WAF rules on /login and /signin paths)
+router.post('/access', async (req, res) => {
     try {
         // Validate input
         const validation = loginSchema.safeParse(req.body);

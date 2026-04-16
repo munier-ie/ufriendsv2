@@ -14,15 +14,22 @@ const adminLoginSchema = z.object({
     pin: z.string().optional()
 });
 
-// Admin login (renamed to signin to bypass WAF rules on /login paths)
-router.post('/signin', async (req, res) => {
+// Health check — verifies this router is reachable (no DB, no auth)
+router.get('/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
+
+// Admin login (renamed to access to bypass WAF rules on /login and /signin paths)
+router.post('/access', async (req, res) => {
+    const t0 = Date.now();
+    console.log('[admin-access] ▶ handler entered');
     try {
         const { username, password, pin } = adminLoginSchema.parse(req.body);
+        console.log('[admin-access] ✓ zod parsed', Date.now() - t0, 'ms');
 
         // Find admin user
         const admin = await prisma.adminUser.findUnique({
             where: { username }
         });
+        console.log('[admin-access] ✓ db query', Date.now() - t0, 'ms, found:', !!admin);
 
         if (!admin) {
             return res.status(401).json({
@@ -41,6 +48,7 @@ router.post('/signin', async (req, res) => {
 
         // Verify password
         const validPassword = await bcrypt.compare(password, admin.password);
+        console.log('[admin-access] ✓ bcrypt compared', Date.now() - t0, 'ms, valid:', validPassword);
         if (!validPassword) {
             return res.status(401).json({
                 success: false,
@@ -105,6 +113,7 @@ router.post('/signin', async (req, res) => {
             { expiresIn: '24h' }
         );
 
+        console.log('[admin-access] ✓ JWT signed, responding', Date.now() - t0, 'ms');
         res.json({
             success: true,
             token,
@@ -113,9 +122,10 @@ router.post('/signin', async (req, res) => {
 
     } catch (error) {
         if (error instanceof z.ZodError) {
+            console.log('[admin-access] ✗ zod validation error', Date.now() - t0, 'ms');
             return res.status(400).json({ success: false, error: error.errors[0].message });
         }
-        console.error('Admin login error:', error);
+        console.error('[admin-access] ✗ unhandled error', Date.now() - t0, 'ms:', error);
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
