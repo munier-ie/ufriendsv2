@@ -16,5 +16,4 @@ uploads/
 README.md
 postcss.config.js
 tailwind.config.js
-vite.config.mjs
-# Note: Do NOT ignore package.json or public/ or src/
+# Note: Do NOT ignore package.json or public/ or src/ or vite.config.mjs
