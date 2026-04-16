@@ -216,6 +216,11 @@ app.get('/api', (req, res) => {
     res.json({ message: 'Ufriends 2.0 API is running' });
 });
 
+// Handle API 404s before they fall through to the React catch-all
+app.use('/api', (req, res) => {
+    res.status(404).json({ error: 'API Endpoint or File Not Found' });
+});
+
 // Serve static files from the Vite build directory
 app.use(express.static(path.join(__dirname, '../dist')));
 
