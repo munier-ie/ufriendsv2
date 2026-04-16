@@ -144,9 +144,8 @@ router.post('/paymentpoint', async (req, res) => {
                           req.headers['x-signature'] || 
                           req.headers['signature'];
         
-        // Parse payload correctly protecting against express.raw buffers
-        const rawBody = req.body;
-        const payloadStr = Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : JSON.stringify(rawBody);
+        // Parse payload correctly protecting against modified spacings (prefer req.rawBody)
+        const payloadStr = req.rawBody || (Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body));
 
         // Log incoming webhook to console for tracking since we don't have AuditLog yet
         console.log(`[PaymentPoint Webhook Debug] Received payload: ${payloadStr.length > 500 ? payloadStr.slice(0, 500) + '...' : payloadStr}`);
