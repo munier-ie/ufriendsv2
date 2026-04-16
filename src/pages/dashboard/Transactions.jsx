@@ -420,7 +420,7 @@ export default function Transactions() {
                                 )}
                                 {selectedTx.slipUrl && (
                                     <a
-                                        href={selectedTx.slipUrl}
+                                        href={selectedTx.slipUrl.includes('?') ? `${selectedTx.slipUrl}&token=${localStorage.getItem('token')}` : `${selectedTx.slipUrl}?token=${localStorage.getItem('token')}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="flex-1"
