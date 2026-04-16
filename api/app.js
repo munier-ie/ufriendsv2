@@ -121,6 +121,8 @@ app.use('/api/uploads/manual-proof', protectedUploads, express.static(path.join(
 app.use('/api/uploads/manual-ids', protectedUploads, express.static(path.join(__dirname, 'uploads/manual-ids')));
 // Serve academy content uploads (Protected)
 app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dirname, 'uploads/academy')));
+// Serve NIN/BVN slips (Protected)
+app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirname, 'uploads/slips')));
 
 // [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
 // This correctly intercepts matching paths and either passes or rejects before the route handler fires

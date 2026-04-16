@@ -526,8 +526,8 @@ async function generateBvnPdf(reportData) {
     // Save PDF to file
     await fs.writeFile(pdfPath, pdfBuffer);
 
-    // Return relative URL
-    const pdfUrl = `/uploads/slips/bvn/${pdfFilename}`;
+    // Return prefixed URL so Vercel proxies it to the backend server
+    const pdfUrl = `/api/uploads/slips/bvn/${pdfFilename}`;
 
     // Update report with PDF URL
     await prisma.bvnReport.update({

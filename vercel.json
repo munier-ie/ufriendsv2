@@ -5,6 +5,10 @@
             "destination": "https://api.ufriends.com.ng/api/$1"
         },
         {
+            "source": "/uploads/(.*)",
+            "destination": "https://api.ufriends.com.ng/api/uploads/$1"
+        },
+        {
             "source": "/(.*)",
             "destination": "/index.html"
         }
