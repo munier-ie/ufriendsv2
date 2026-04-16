@@ -82,7 +82,9 @@ router.post('/login', async (req, res) => {
                 // Use a mock or real email sending
                 const adminEmail = admin.username.includes('@') ? admin.username : process.env.ADMIN_EMAIL;
                 if (adminEmail) {
-                    await send2FaOtpEmail({ firstName: admin.name, email: adminEmail }, otpCode, true);
+                    send2FaOtpEmail({ firstName: admin.name, email: adminEmail }, otpCode, true).catch(err => {
+                        console.error('Failed to send Admin 2FA Email (SMTP possibly blocked):', err.message);
+                    });
                 }
             }
 

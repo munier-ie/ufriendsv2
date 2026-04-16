@@ -976,8 +976,8 @@ async function generateNinPdf(reportData, slipType) {
     // Save PDF to file
     await fs.writeFile(pdfPath, pdfBuffer);
 
-    // Return relative URL
-    const pdfUrl = `/uploads/slips/nin/${slipType}/${pdfFilename}`;
+    // Prefix with /api so Vercel proxies it to the backend server
+    const pdfUrl = `/api/uploads/slips/nin/${slipType}/${pdfFilename}`;
 
     // Update report with PDF URL
     await prisma.ninReport.update({
