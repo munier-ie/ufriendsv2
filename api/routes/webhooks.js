@@ -158,11 +158,11 @@ router.post('/paymentpoint', async (req, res) => {
         }
 
         const payloadObj = JSON.parse(payloadStr);
-        const event = (payloadObj.event || payloadObj.status || '').toUpperCase();
+        const event = (payloadObj.event || payloadObj.status || payloadObj.notification_status || payloadObj.transaction_status || '').toUpperCase();
         const data = payloadObj.data || payloadObj;
 
         // Process successful payment
-        const isSuccess = ['CHARGE.SUCCESS', 'PAYMENT.SUCCESSFUL', 'SUCCESS', 'COMPLETED', 'TRUE'].includes(event);
+        const isSuccess = ['CHARGE.SUCCESS', 'PAYMENT_SUCCESSFUL', 'PAYMENT.SUCCESSFUL', 'SUCCESS', 'COMPLETED', 'TRUE'].includes(event);
 
         if (isSuccess) {
             const reference = data.reference || payloadObj.reference || payloadObj.transaction_id || payloadObj.transactionReference;
