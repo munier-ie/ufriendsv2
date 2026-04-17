@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Plus from 'lucide-react/dist/esm/icons/plus';
 import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
@@ -37,7 +38,7 @@ export default function SoftwareOptionManagement() {
             setWhatsappNumber(whatsappRes.data.phoneNumber);
         } catch (error) {
             console.error('Error fetching data:', error);
-            alert('Failed to load settings');
+            toast.error('Failed to load settings')
         } finally {
             setLoading(false);
         }
@@ -55,9 +56,9 @@ export default function SoftwareOptionManagement() {
             });
             setOptions([...options, res.data]);
             setNewOption({ ...newOption, name: '' });
-            alert('Option added successfully');
+            toast.success('Option added successfully')
         } catch (error) {
-            alert('Failed to add option');
+            toast.error('Failed to add option')
         } finally {
             setSaving(false);
         }
@@ -72,9 +73,9 @@ export default function SoftwareOptionManagement() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setOptions(options.filter(opt => opt.id !== id));
-            alert('Option deleted');
+            toast.success('Option deleted')
         } catch (error) {
-            alert('Failed to delete option');
+            toast.error('Failed to delete option')
         }
     };
 
@@ -85,9 +86,9 @@ export default function SoftwareOptionManagement() {
             await axios.put('/api/admin/software/whatsapp', { phoneNumber: whatsappNumber }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('WhatsApp number updated');
+            toast.success('WhatsApp number updated')
         } catch (error) {
-            alert('Failed to update WhatsApp number');
+            toast.error('Failed to update WhatsApp number')
         } finally {
             setSaving(false);
         }

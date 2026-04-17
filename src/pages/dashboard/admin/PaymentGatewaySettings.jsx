@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
@@ -63,7 +64,7 @@ export default function PaymentGatewaySettings() {
             });
             // Show success logic here
         } catch (error) {
-            alert('Failed to save gateway settings');
+            toast.error('Failed to save gateway settings')
         } finally {
             setSaving(null);
         }

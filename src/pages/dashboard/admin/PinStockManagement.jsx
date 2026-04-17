@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { Upload, Plus, Trash2, Loader2, CheckCircle, Tag, Search, CreditCard, Wifi } from 'lucide-react';
 
@@ -37,7 +38,7 @@ export default function PinStockManagement() {
     const handleFileUpload = async (e) => {
         e.preventDefault();
         if (!file) {
-            alert('Please select a CSV file first');
+            toast.error('Please select a CSV file first')
             return;
         }
 
@@ -57,12 +58,12 @@ export default function PinStockManagement() {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            alert(`${activeTab.toUpperCase()} PINs uploaded successfully`);
+            toast.success(`${activeTab.toUpperCase()} PINs uploaded successfully`)
             setFile(null);
             document.getElementById('file-upload').value = ''; // Reset input
             fetchStock();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to upload PINs');
+            toast.error(error.response?.data?.error || 'Failed to upload PINs')
         } finally {
             setUploading(false);
         }

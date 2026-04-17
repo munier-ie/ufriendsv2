@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Plus from 'lucide-react/dist/esm/icons/plus';
@@ -59,7 +60,7 @@ export default function ElectricityDashboard() {
             });
             setProviders(providers.filter(p => p.id !== id));
         } catch (error) {
-            alert('Failed to delete provider');
+            toast.error('Failed to delete provider')
         }
     };
 
@@ -77,19 +78,19 @@ export default function ElectricityDashboard() {
                 await axios.put(`/api/admin/electricity/${editingProvider.id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Provider updated successfully');
+                toast.success('Provider updated successfully')
             } else {
                 await axios.post('/api/admin/electricity', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Provider created successfully');
+                toast.success('Provider created successfully')
             }
             setModalOpen(false);
             setEditingProvider(null);
             fetchProviders();
             setFormData({ provider: '', charge: '', active: true });
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to save provider');
+            toast.error(error.response?.data?.error || 'Failed to save provider')
         } finally {
             setSubmitting(false);
         }

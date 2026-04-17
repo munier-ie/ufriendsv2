@@ -327,8 +327,8 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                     }}
                 />
 
-                {/* Topbar — z-30 keeps it above page content when scrolling, below mobile sidebar overlay */}
-                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 sticky top-0 z-30 flex items-center justify-between shadow-sm">
+                {/* Topbar — z-20 keeps it above page content when scrolling, but below modal overlays (z-50) */}
+                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 sticky top-0 z-20 flex items-center justify-between shadow-sm">
                     <div className="flex items-center space-x-3">
                         <button
                             onClick={() => setIsMobileMenuOpen(true)}

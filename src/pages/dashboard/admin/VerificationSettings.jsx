@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
@@ -51,12 +52,12 @@ export default function VerificationSettings() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            alert('Settings saved successfully!');
+            toast.success('Settings saved successfully!')
             // Refresh settings to get updated data
             await fetchSettings();
         } catch (error) {
             console.error('Save error:', error.response?.data || error);
-            alert(error.response?.data?.error || 'Failed to save settings');
+            toast.error(error.response?.data?.error || 'Failed to save settings')
         } finally {
             setSaving(false);
         }

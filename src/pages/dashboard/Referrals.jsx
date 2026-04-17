@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { toast } from 'sonner';
 import Users from 'lucide-react/dist/esm/icons/users';
 import Wallet from 'lucide-react/dist/esm/icons/wallet';
 import Copy from 'lucide-react/dist/esm/icons/copy';
 import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import CheckCheck from 'lucide-react/dist/esm/icons/check-check';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
 import Button from '../../components/ui/Button';
 
 export default function Referrals() {
@@ -15,8 +17,8 @@ export default function Referrals() {
     const [loading, setLoading] = useState(true);
     const [withdrawAmount, setWithdrawAmount] = useState('');
     const [withdrawLoading, setWithdrawLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
     const [copied, setCopied] = useState(false);
+    const [tcOpen, setTcOpen] = useState(false);
 
     useEffect(() => {
         fetchStats();
@@ -79,7 +81,6 @@ export default function Referrals() {
 
     const handleWithdraw = async (e) => {
         e.preventDefault();
-        setMessage({ type: '', text: '' });
         setWithdrawLoading(true);
 
         try {
@@ -89,12 +90,11 @@ export default function Referrals() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setMessage({ type: 'success', text: res.data.message });
+            toast.success(res.data.message || 'Commission withdrawn to wallet!');
             setWithdrawAmount('');
-            fetchStats(); // Refresh balance
-            // Optionally refresh user context if available globally
+            fetchStats();
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Withdrawal failed' });
+            toast.error(error.response?.data?.error || 'Withdrawal failed');
         } finally {
             setWithdrawLoading(false);
         }
@@ -164,21 +164,6 @@ export default function Referrals() {
                 {/* Withdraw Section */}
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Withdraw Commission</h3>
-
-                    <AnimatePresence>
-                        {message.text && (
-                            <motion.div
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: 'auto' }}
-                                exit={{ opacity: 0, height: 0 }}
-                                className={`mb-4 p-3 rounded-xl text-sm flex items-center gap-2 ${message.type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'
-                                    }`}
-                            >
-                                <AlertCircle size={16} />
-                                {message.text}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
 
                     <form onSubmit={handleWithdraw} className="space-y-4">
                         <div>
@@ -251,6 +236,69 @@ export default function Referrals() {
                         </div>
                     )}
                 </div>
+            </div>
+
+            {/* Terms & Conditions */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <button
+                    onClick={() => setTcOpen(!tcOpen)}
+                    className="w-full p-6 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
+                    <div className="flex items-center gap-3">
+                        <FileText className="w-5 h-5 text-primary" />
+                        <span className="text-lg font-bold text-gray-900">Referral Terms &amp; Conditions</span>
+                    </div>
+                    <motion.div animate={{ rotate: tcOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                        <ChevronDown className="w-5 h-5 text-gray-400" />
+                    </motion.div>
+                </button>
+                <AnimatePresence>
+                    {tcOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.3 }}
+                            className="overflow-hidden"
+                        >
+                            <div className="px-6 pb-6 border-t border-gray-100 space-y-4 text-sm text-gray-600">
+                                <div className="pt-4 space-y-3">
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</span>
+                                        <p><strong className="text-gray-800">Eligibility:</strong> The referral program is open to all registered and verified Ufriends users. You must maintain an active account to earn and withdraw commissions.</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</span>
+                                        <p><strong className="text-gray-800">How It Works:</strong> Share your unique referral link. When someone registers using your link and completes a qualifying transaction, you earn a commission based on the transaction type.</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</span>
+                                        <p><strong className="text-gray-800">Minimum Withdrawal:</strong> The minimum commission withdrawal amount is <strong>₦100</strong>. Commissions below this threshold will remain in your referral wallet until the minimum is reached.</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">4</span>
+                                        <p><strong className="text-gray-800">Payout:</strong> Commissions are credited to your referral wallet instantly after a qualifying transaction by your referred user. You can withdraw accumulated commissions to your main wallet at any time.</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">5</span>
+                                        <p><strong className="text-gray-800">Self-Referral Prohibition:</strong> Creating multiple accounts to refer yourself, or using your own referral link in any way, is strictly prohibited and will result in account suspension and commission forfeiture.</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">6</span>
+                                        <p><strong className="text-gray-800">Fraud Prevention:</strong> Ufriends reserves the right to investigate and cancel referral commissions suspected of being obtained through fraudulent, misleading, or abusive means.</p>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">7</span>
+                                        <p><strong className="text-gray-800">Program Changes:</strong> Ufriends reserves the right to modify, suspend, or terminate the referral program at any time. Commission rates may be updated with reasonable notice to active users.</p>
+                                    </div>
+                                    <div className="mt-4 p-3 bg-blue-50 rounded-xl text-blue-700 text-xs">
+                                        By participating in the referral program, you agree to these terms. For any disputes, please contact support.
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

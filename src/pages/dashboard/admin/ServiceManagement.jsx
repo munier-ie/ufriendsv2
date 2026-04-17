@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Edit3 from 'lucide-react/dist/esm/icons/edit-3';
@@ -55,7 +56,7 @@ export default function ServiceManagement() {
             setEditingService(null);
             fetchData();
         } catch (error) {
-            alert('Failed to update service');
+            toast.error('Failed to update service')
         } finally {
             setSubmitting(false);
         }
@@ -73,7 +74,7 @@ export default function ServiceManagement() {
             setNewService({ type: 'airtime', name: '', code: '', price: '', agentPrice: '', vendorPrice: '', apiPrice: '', referralCommission: '', apiProviderId: '', active: true });
             fetchData();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to create service');
+            toast.error(error.response?.data?.error || 'Failed to create service')
         } finally {
             setSubmitting(false);
         }

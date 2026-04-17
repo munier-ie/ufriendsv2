@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
@@ -178,7 +179,7 @@ export default function ManualServicesDashboard() {
             setProofUrl('');
             setProofFile(null);
         } catch (e) {
-            alert(e.response?.data?.error || 'Failed to process request');
+            toast.error(e.response?.data?.error || 'Failed to process request')
         } finally {
             setProcessingId(null);
         }
@@ -197,7 +198,7 @@ export default function ManualServicesDashboard() {
             setSettingsSaved(true);
             setTimeout(() => setSettingsSaved(false), 2500);
         } catch (e) {
-            alert(e.response?.data?.error || 'Failed to save settings');
+            toast.error(e.response?.data?.error || 'Failed to save settings')
         } finally {
             setSavingSettings(false);
         }

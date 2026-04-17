@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Plus from 'lucide-react/dist/esm/icons/plus';
@@ -75,7 +76,7 @@ export default function CableTvDashboard() {
             });
             setPlans(plans.filter(p => p.id !== id));
         } catch (error) {
-            alert('Failed to delete plan');
+            toast.error('Failed to delete plan')
         }
     };
 
@@ -97,12 +98,12 @@ export default function CableTvDashboard() {
                 await axios.put(`/api/admin/cable-plans/${editingPlan.id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Plan updated successfully');
+                toast.success('Plan updated successfully')
             } else {
                 await axios.post('/api/admin/cable-plans', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Plan created successfully');
+                toast.success('Plan created successfully')
             }
             setModalOpen(false);
             setEditingPlan(null);
@@ -113,7 +114,7 @@ export default function CableTvDashboard() {
                 apiProviderId: '', active: true
             });
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to save plan');
+            toast.error(error.response?.data?.error || 'Failed to save plan')
         } finally {
             setSubmitting(false);
         }

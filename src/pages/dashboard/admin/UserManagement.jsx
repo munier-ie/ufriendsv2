@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Search from 'lucide-react/dist/esm/icons/search';
@@ -91,7 +92,7 @@ export default function UserManagement() {
             setEditForm(res.data.user); // Init edit form
         } catch (error) {
             console.error('Failed to fetch user detail', error);
-            alert('Failed to load user details');
+            toast.error('Failed to load user details')
             setSelectedUser(null);
         } finally {
             setDetailLoading(false);
@@ -113,12 +114,12 @@ export default function UserManagement() {
             await axios.post(`/api/admin/users/${selectedUser.id}/fund`, { amount: fundingAmount }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Wallet funded successfully');
+            toast.success('Wallet funded successfully')
             setFundingAmount('');
             fetchUserDetail(selectedUser.id); // Refresh
             fetchUsers(); // Refresh list list wallet balance
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to fund wallet');
+            toast.error(error.response?.data?.error || 'Failed to fund wallet')
         } finally {
             setSubmitting(false);
         }
@@ -137,13 +138,13 @@ export default function UserManagement() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Wallet debited successfully');
+            toast.success('Wallet debited successfully')
             setDebitAmount('');
             setDebitDescription('');
             fetchUserDetail(selectedUser.id);
             fetchUsers();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to debit wallet');
+            toast.error(error.response?.data?.error || 'Failed to debit wallet')
         } finally {
             setSubmitting(false);
         }
@@ -157,12 +158,12 @@ export default function UserManagement() {
             await axios.post('/api/admin/users', addForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('User created successfully');
+            toast.success('User created successfully')
             setIsAddModalOpen(false);
             setAddForm({ firstName: '', lastName: '', email: '', phone: '', password: '', state: '', type: 1 });
             fetchUsers();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to create user');
+            toast.error(error.response?.data?.error || 'Failed to create user')
         } finally {
             setSubmitting(false);
         }
@@ -175,11 +176,11 @@ export default function UserManagement() {
             await axios.put(`/api/admin/users/${selectedUser.id}`, editForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Profile updated successfully');
+            toast.success('Profile updated successfully')
             fetchUserDetail(selectedUser.id);
             fetchUsers();
         } catch (error) {
-            alert('Failed to update profile');
+            toast.error('Failed to update profile')
         } finally {
             setSubmitting(false);
         }
@@ -195,7 +196,7 @@ export default function UserManagement() {
             fetchUserDetail(selectedUser.id);
             fetchUsers();
         } catch (error) {
-            alert('Failed to update status');
+            toast.error('Failed to update status')
         }
     };
 

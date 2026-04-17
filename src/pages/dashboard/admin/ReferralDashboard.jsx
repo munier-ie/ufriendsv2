@@ -115,6 +115,7 @@ export default function ReferralDashboard() {
                             <thead className="bg-gray-50 text-gray-600">
                                 <tr>
                                     <th className="px-6 py-3">User</th>
+                                    <th className="px-6 py-3">Contact</th>
                                     <th className="px-6 py-3">Code</th>
                                     <th className="px-6 py-3 text-center">Ref Count</th>
                                     <th className="px-6 py-3 text-right">Wallet Bal</th>
@@ -123,7 +124,13 @@ export default function ReferralDashboard() {
                             <tbody className="divide-y divide-gray-100">
                                 {referrers.map(user => (
                                     <tr key={user.id} className="hover:bg-gray-50">
-                                        <td className="px-6 py-4 font-medium">{user.username}</td>
+                                        <td className="px-6 py-4">
+                                            <p className="font-semibold text-gray-900">{user.name}</p>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <p className="text-sm text-gray-700">{user.email}</p>
+                                            <p className="text-xs text-gray-400">{user.phone}</p>
+                                        </td>
                                         <td className="px-6 py-4 font-mono text-gray-500">{user.referralCode}</td>
                                         <td className="px-6 py-4 text-center">
                                             <span className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full text-xs font-bold">

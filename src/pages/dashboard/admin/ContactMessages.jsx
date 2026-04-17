@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Mail from 'lucide-react/dist/esm/icons/mail';
@@ -55,13 +56,13 @@ export default function ContactMessages() {
             await axios.put(`/api/admin/contact/${selectedMsg.id}/reply`, { reply: replyText }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Reply sent successfully');
+            toast.success('Reply sent successfully')
             setReplyText('');
             setSelectedMsg(null);
             fetchMessages();
             fetchStats();
         } catch (error) {
-            alert('Failed to send reply');
+            toast.error('Failed to send reply')
         } finally {
             setSending(false);
         }
@@ -79,7 +80,7 @@ export default function ContactMessages() {
             if (selectedMsg?.id === id) setSelectedMsg(null);
             fetchStats();
         } catch (error) {
-            alert('Failed to delete message');
+            toast.error('Failed to delete message')
         }
     };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Plus from 'lucide-react/dist/esm/icons/plus';
@@ -75,7 +76,7 @@ export default function SmilePlanDashboard() {
             });
             setPlans(plans.filter(p => p.id !== id));
         } catch (error) {
-            alert('Failed to delete plan');
+            toast.error('Failed to delete plan')
         }
     };
 
@@ -87,7 +88,7 @@ export default function SmilePlanDashboard() {
             });
             setPlans(plans.map(p => p.id === id ? { ...p, active: !currentStatus } : p));
         } catch (error) {
-            alert('Failed to update status');
+            toast.error('Failed to update status')
         }
     };
 
@@ -109,12 +110,12 @@ export default function SmilePlanDashboard() {
                 await axios.put(`/api/admin/smile-plans/${editingPlan.id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Plan updated successfully');
+                toast.success('Plan updated successfully')
             } else {
                 await axios.post('/api/admin/smile-plans', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Plan created successfully');
+                toast.success('Plan created successfully')
             }
             setModalOpen(false);
             setEditingPlan(null);
@@ -136,7 +137,7 @@ export default function SmilePlanDashboard() {
 
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.error || 'Failed to save plan');
+            toast.error(error.response?.data?.error || 'Failed to save plan')
         } finally {
             setSubmitting(false);
         }

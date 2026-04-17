@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
@@ -43,9 +44,9 @@ export default function BulkSmsDashboard() {
         try {
             const token = localStorage.getItem('adminToken');
             await axios.put('/api/admin/sms/config', config, { headers: { Authorization: `Bearer ${token}` } });
-            alert('Settings updated successfully');
+            toast.success('Settings updated successfully')
         } catch (error) {
-            alert('Failed to update settings');
+            toast.error('Failed to update settings')
         } finally {
             setSubmitting(false);
         }

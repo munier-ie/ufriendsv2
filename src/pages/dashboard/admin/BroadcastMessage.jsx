@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Send from 'lucide-react/dist/esm/icons/send';
@@ -17,7 +18,7 @@ export default function BroadcastMessage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formData.title || !formData.message) return alert('Please fill in all fields');
+        if (!formData.title || !formData.message) return toast.error('Please fill in all fields')
 
         if (!confirm('Are you sure you want to send this broadcast? It will create notifications for all selected users.')) return;
 
@@ -27,11 +28,11 @@ export default function BroadcastMessage() {
             const res = await axios.post('/api/admin/broadcast', formData, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert(res.data.message);
+            toast.error(res.data.message)
             setFormData({ title: '', message: '', userType: '', sendEmail: false });
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.error || 'Failed to send broadcast');
+            toast.error(error.response?.data?.error || 'Failed to send broadcast')
         } finally {
             setSending(false);
         }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
@@ -360,7 +361,7 @@ export default function ManualServices() {
             });
             update('idFileUrl', res.data.filePath);
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to upload document');
+            toast.error(error.response?.data?.error || 'Failed to upload document')
         } finally {
             setUploading(false);
         }

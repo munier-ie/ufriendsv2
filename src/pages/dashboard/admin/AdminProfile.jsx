@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Shield from 'lucide-react/dist/esm/icons/shield';
@@ -58,7 +59,7 @@ export default function AdminProfile() {
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            return alert('New passwords do not match');
+            return toast.error('New passwords do not match')
         }
         setSubmitting(true);
         try {
@@ -67,10 +68,10 @@ export default function AdminProfile() {
                 currentPassword: passwordForm.currentPassword,
                 newPassword: passwordForm.newPassword
             }, { headers: { Authorization: `Bearer ${token}` } });
-            alert('Password updated successfully');
+            toast.success('Password updated successfully')
             setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to update password');
+            toast.error(error.response?.data?.error || 'Failed to update password')
         } finally {
             setSubmitting(false);
         }
@@ -79,7 +80,7 @@ export default function AdminProfile() {
     const handlePinUpdate = async (e) => {
         e.preventDefault();
         if (pinForm.pin !== pinForm.confirmPin) {
-            return alert('PINs do not match');
+            return toast.error('PINs do not match')
         }
         setSubmitting(true);
         try {
@@ -88,10 +89,10 @@ export default function AdminProfile() {
                 pin: pinForm.pin,
                 enable: pinForm.enable
             }, { headers: { Authorization: `Bearer ${token}` } });
-            alert('PIN setting updated successfully');
+            toast.success('PIN setting updated successfully')
             fetchProfile(); // refresh status
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to update PIN');
+            toast.error(error.response?.data?.error || 'Failed to update PIN')
         } finally {
             setSubmitting(false);
         }
@@ -116,7 +117,7 @@ export default function AdminProfile() {
                 setTwoFaMethod('email');
             }
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to initialize 2FA setup');
+            toast.error(error.response?.data?.error || 'Failed to initialize 2FA setup')
         }
     };
 
@@ -130,12 +131,12 @@ export default function AdminProfile() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('2FA enabled successfully!');
+            toast.success('2FA enabled successfully!')
             fetchProfile();
             setTwoFaStep('initial');
             setTwoFaCode('');
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to verify and enable 2FA');
+            toast.error(error.response?.data?.error || 'Failed to verify and enable 2FA')
         }
     };
 
@@ -146,11 +147,11 @@ export default function AdminProfile() {
             await axios.post('/api/admin/auth/disable-2fa', { code: disableTwoFaCode }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('2FA disabled successfully');
+            toast.success('2FA disabled successfully')
             fetchProfile();
             setDisableTwoFaCode('');
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to disable 2FA');
+            toast.error(error.response?.data?.error || 'Failed to disable 2FA')
         }
     };
 

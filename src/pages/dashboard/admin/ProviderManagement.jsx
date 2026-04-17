@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Plus from 'lucide-react/dist/esm/icons/plus';
@@ -54,7 +55,7 @@ export default function ProviderManagement() {
             setEditingProvider(null);
             fetchProviders();
         } catch (error) {
-            alert('Operation failed');
+            toast.error('Operation failed')
         } finally {
             setSubmitting(false);
         }

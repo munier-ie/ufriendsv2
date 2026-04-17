@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
@@ -92,9 +93,9 @@ export default function CacDashboard() {
             setRegistrations(prev => prev.filter(r => r.id !== id));
             setSelectedReg(null);
             setAdminNotes('');
-            alert(`Registration ${action.toLowerCase()}d successfully`);
+            toast.success(`Registration ${action.toLowerCase()}d successfully`)
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to process request');
+            toast.error(error.response?.data?.error || 'Failed to process request')
         } finally {
             setProcessingId(null);
         }
@@ -107,9 +108,9 @@ export default function CacDashboard() {
             await axios.put('/api/admin/cac/settings', settings, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Settings updated successfully');
+            toast.success('Settings updated successfully')
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to update settings');
+            toast.error(error.response?.data?.error || 'Failed to update settings')
         } finally {
             setProcessingId(null);
         }
