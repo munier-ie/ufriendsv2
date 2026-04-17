@@ -11,7 +11,7 @@ router.get('/balance', authenticateUser, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where: { id: req.user.id },
-            select: { wallet: true, refWallet: true, bankName: true, bankNo: true, firstName: true, lastName: true }
+            select: { wallet: true, refWallet: true, bankName: true, bankNo: true, firstName: true, lastName: true, virtualAccountName: true }
         });
 
         res.json({
@@ -20,7 +20,7 @@ router.get('/balance', authenticateUser, async (req, res) => {
             total: user.wallet + user.refWallet,
             bankName: user.bankName,
             bankNo: user.bankNo,
-            accountName: `${user.firstName} ${user.lastName}`.toUpperCase()
+            accountName: user.virtualAccountName || `${user.firstName} ${user.lastName}`.toUpperCase()
         });
     } catch (error) {
         console.error(error);
