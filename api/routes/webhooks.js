@@ -165,10 +165,11 @@ router.post('/paymentpoint', async (req, res) => {
         const isSuccess = ['CHARGE.SUCCESS', 'PAYMENT.SUCCESSFUL', 'SUCCESS', 'COMPLETED', 'TRUE'].includes(event);
 
         if (isSuccess) {
-            const reference = data.reference || payloadObj.reference;
-            const amount = data.amount || payloadObj.amount;
-            const paidAt = data.paidAt || payloadObj.paidAt;
-            const customerEmail = data.customerEmail || data.email || payloadObj.customerEmail;
+            const reference = data.reference || payloadObj.reference || payloadObj.transaction_id || payloadObj.transactionReference;
+            // PaymentPoint payload uses `amount_paid`
+            const amount = data.amount_paid || payloadObj.amount_paid || data.amount || payloadObj.amount;
+            const paidAt = data.paidAt || payloadObj.paidAt || payloadObj.created_at;
+            const customerEmail = data.customerEmail || data.email || payloadObj.customer?.email || payloadObj.customerEmail;
 
             // Robust account number extraction from old platform concept
             const vaAccountNum = data?.accountNumber ||
