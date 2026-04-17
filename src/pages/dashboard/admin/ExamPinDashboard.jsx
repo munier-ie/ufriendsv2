@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Plus from 'lucide-react/dist/esm/icons/plus';
@@ -73,7 +74,7 @@ export default function ExamPinDashboard() {
             });
             setPins(pins.filter(p => p.id !== id));
         } catch (error) {
-            alert('Failed to delete configuration');
+            toast.error('Failed to delete configuration')
         }
     };
 
@@ -97,12 +98,12 @@ export default function ExamPinDashboard() {
                 await axios.put(`/api/admin/exam-pins/${editingPin.id}`, payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Configuration updated successfully');
+                toast.success('Configuration updated successfully')
             } else {
                 await axios.post('/api/admin/exam-pins', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                alert('Configuration added successfully');
+                toast.success('Configuration added successfully')
             }
             setModalOpen(false);
             setEditingPin(null);
@@ -123,7 +124,7 @@ export default function ExamPinDashboard() {
 
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.error || 'Failed to save configuration');
+            toast.error(error.response?.data?.error || 'Failed to save configuration')
         } finally {
             setSubmitting(false);
         }

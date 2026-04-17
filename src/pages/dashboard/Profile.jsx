@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
+import { toast } from 'sonner';
 import User from 'lucide-react/dist/esm/icons/user';
 import Mail from 'lucide-react/dist/esm/icons/mail';
 import Phone from 'lucide-react/dist/esm/icons/phone';
@@ -23,6 +24,7 @@ import Eye from 'lucide-react/dist/esm/icons/eye';
 import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 import Check from 'lucide-react/dist/esm/icons/check';
 import X from 'lucide-react/dist/esm/icons/x';
+import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -47,6 +49,15 @@ export default function Profile() {
         confirmPin: '',
         currentPin: ''
     });
+
+    // Change PIN form state (when PIN is already enabled)
+    const [changePinMode, setChangePinMode] = useState(false);
+    const [changePinForm, setChangePinForm] = useState({
+        currentPin: '',
+        newPin: '',
+        confirmPin: ''
+    });
+    const [changePinLoading, setChangePinLoading] = useState(false);
 
     // 2FA state
     const [twoFaStep, setTwoFaStep] = useState('initial'); // 'initial', 'choose', 'setup_totp', 'setup_email'
@@ -87,7 +98,7 @@ export default function Profile() {
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            alert('Passwords do not match');
+            toast.error('Passwords do not match');
             return;
         }
         try {
@@ -95,11 +106,33 @@ export default function Profile() {
             await axios.put('/api/auth/update-password', passwordForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Password updated successfully');
+            toast.success('Password updated successfully!');
             setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
             setOpenSection(null);
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to update password');
+            toast.error(error.response?.data?.message || 'Failed to update password');
+        }
+    };
+
+    const handleChangePinSubmit = async (e) => {
+        e.preventDefault();
+        if (changePinForm.newPin !== changePinForm.confirmPin) {
+            toast.error('New PINs do not match');
+            return;
+        }
+        setChangePinLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('/api/auth/pin/reset', changePinForm, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success('Transaction PIN changed successfully!');
+            setChangePinForm({ currentPin: '', newPin: '', confirmPin: '' });
+            setChangePinMode(false);
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to change PIN');
+        } finally {
+            setChangePinLoading(false);
         }
     };
 
@@ -112,11 +145,11 @@ export default function Profile() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert(`PIN ${action}d successfully`);
+            toast.success(`PIN ${action}d successfully!`);
             fetchProfileData();
             setPinForm({ pin: '', confirmPin: '', currentPin: '' });
         } catch (error) {
-            alert(error.response?.data?.message || `Failed to ${action} PIN`);
+            toast.error(error.response?.data?.message || `Failed to ${action} PIN`);
         }
     };
 
@@ -139,7 +172,7 @@ export default function Profile() {
                 setTwoFaMethod('email');
             }
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to initialize 2FA setup');
+            toast.error(error.response?.data?.error || 'Failed to initialize 2FA setup');
         }
     };
 
@@ -153,30 +186,28 @@ export default function Profile() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('2FA enabled successfully!');
+            toast.success('2FA enabled successfully!');
             fetchProfileData();
             setTwoFaStep('initial');
             setTwoFaCode('');
             toggleSection(null);
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to verify and enable 2FA');
+            toast.error(error.response?.data?.error || 'Failed to verify and enable 2FA');
         }
     };
 
     const handleTwoFaDisable = async () => {
-        if (!window.confirm('Are you certain you want to disable Two-Factor Authentication? This will make your account less secure.')) return;
         try {
             const token = localStorage.getItem('token');
-            // We can just verify and disable, or trust the token. In our logic, disable is POST /api/twofa/disable
-            const response = await axios.post('/api/twofa/disable', { code: disableTwoFaCode }, {
+            await axios.post('/api/twofa/disable', { code: disableTwoFaCode }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('2FA disabled successfully');
+            toast.success('2FA disabled successfully');
             fetchProfileData();
             setDisableTwoFaCode('');
             toggleSection(null);
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to disable 2FA');
+            toast.error(error.response?.data?.error || 'Failed to disable 2FA');
         }
     };
 
@@ -191,10 +222,10 @@ export default function Profile() {
             const response = await axios.post('/api/auth/generate-api-key', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('API Key Generated Successfully!');
+            toast.success('API Key generated successfully!');
             setProfileData(prev => ({ ...prev, apiKey: response.data.apiKey }));
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to generate API Key');
+            toast.error(error.response?.data?.error || 'Failed to generate API Key');
         }
     };
 
@@ -400,28 +431,105 @@ export default function Profile() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                                    <p className="text-sm text-yellow-800">
-                                        ⚠️ Disabling PIN will remove transaction security. Only disable if your device is secure.
-                                    </p>
+                                {/* Toggle between Disable and Change PIN */}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setChangePinMode(false)}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                                            !changePinMode ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        Disable PIN
+                                    </button>
+                                    <button
+                                        onClick={() => setChangePinMode(true)}
+                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
+                                            changePinMode ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        }`}
+                                    >
+                                        <RefreshCw size={14} className="inline mr-1" />
+                                        Change PIN
+                                    </button>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Enter Current PIN</label>
-                                    <input
-                                        type="password"
-                                        maxLength={4}
-                                        value={pinForm.currentPin}
-                                        onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value })}
-                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="****"
-                                    />
-                                </div>
-                                <button
-                                    onClick={() => handlePinToggle('disable')}
-                                    className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
-                                >
-                                    Disable PIN
-                                </button>
+
+                                {!changePinMode ? (
+                                    <div className="space-y-4">
+                                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                                            <p className="text-sm text-yellow-800">
+                                                ⚠️ Disabling PIN will remove transaction security. Only disable if your device is secure.
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Enter Current PIN to Disable</label>
+                                            <input
+                                                type="password"
+                                                maxLength={4}
+                                                value={pinForm.currentPin}
+                                                onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="****"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={() => handlePinToggle('disable')}
+                                            className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                                        >
+                                            Disable PIN
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <form onSubmit={handleChangePinSubmit} className="space-y-4">
+                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                            <p className="text-sm text-blue-800">
+                                                <Shield className="w-4 h-4 inline mr-1" />
+                                                Enter your current PIN then set a new one.
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Current PIN</label>
+                                            <input
+                                                type="password"
+                                                maxLength={4}
+                                                value={changePinForm.currentPin}
+                                                onChange={(e) => setChangePinForm({ ...changePinForm, currentPin: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="****"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">New PIN</label>
+                                            <input
+                                                type="password"
+                                                maxLength={4}
+                                                value={changePinForm.newPin}
+                                                onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="****"
+                                                required
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New PIN</label>
+                                            <input
+                                                type="password"
+                                                maxLength={4}
+                                                value={changePinForm.confirmPin}
+                                                onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value })}
+                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                placeholder="****"
+                                                required
+                                            />
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={changePinLoading}
+                                            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                        >
+                                            {changePinLoading ? 'Changing...' : 'Change PIN'}
+                                        </button>
+                                    </form>
+                                )}
                             </div>
                         )}
                     </div>

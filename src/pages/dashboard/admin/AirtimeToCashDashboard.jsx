@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
@@ -74,9 +75,9 @@ export default function AirtimeToCashDashboard() {
             } else {
                 fetchRequests();
             }
-            alert(`Request ${status === 1 ? 'approved' : 'rejected'} successfully`);
+            toast.success(`Request ${status === 1 ? 'approved' : 'rejected'} successfully`)
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to process request');
+            toast.error(error.response?.data?.error || 'Failed to process request')
         } finally {
             setProcessingId(null);
         }
@@ -89,9 +90,9 @@ export default function AirtimeToCashDashboard() {
             await axios.put('/api/admin/airtime-cash/rates', { rates, receivingNumber }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Settings saved successfully');
+            toast.success('Settings saved successfully')
         } catch (error) {
-            alert('Failed to save settings');
+            toast.error('Failed to save settings')
         } finally {
             setProcessingId(null);
         }

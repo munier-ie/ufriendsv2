@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Copy, CheckCircle, AlertCircle } from 'lucide-react';
@@ -58,7 +59,7 @@ export default function Pins() {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        alert('PIN copied to clipboard!');
+        toast.success('PIN copied to clipboard!')
     };
 
     return (

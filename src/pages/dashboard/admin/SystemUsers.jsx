@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
@@ -57,17 +58,17 @@ export default function SystemUsers() {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUsers(users.map(u => u.id === editingUser.id ? res.data.user : u));
-                alert('User updated successfully');
+                toast.success('User updated successfully')
             } else {
                 const res = await axios.post('/api/admin/system-users', payload, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setUsers([res.data.user, ...users]);
-                alert('User created successfully');
+                toast.success('User created successfully')
             }
             closeModal();
         } catch (error) {
-            alert(error.response?.data?.error || 'Operation failed');
+            toast.error(error.response?.data?.error || 'Operation failed')
         } finally {
             setSubmitting(false);
         }
@@ -84,7 +85,7 @@ export default function SystemUsers() {
 
             setUsers(users.filter(u => u.id !== id));
         } catch (error) {
-            alert('Failed to delete user');
+            toast.error('Failed to delete user')
         }
     };
 
@@ -97,7 +98,7 @@ export default function SystemUsers() {
 
             setUsers(users.map(u => u.id === user.id ? { ...u, status: res.data.status } : u));
         } catch (error) {
-            alert('Failed to toggle status');
+            toast.error('Failed to toggle status')
         }
     };
 

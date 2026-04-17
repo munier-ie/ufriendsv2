@@ -27,6 +27,8 @@ router.get('/', adminAuth, async (req, res) => {
                 id: true,
                 firstName: true,
                 lastName: true,
+                email: true,
+                phone: true,
                 referralCode: true,
                 refWallet: true,
                 createdAt: true,
@@ -50,6 +52,8 @@ router.get('/', adminAuth, async (req, res) => {
             referrers: users.map(u => ({
                 id: u.id,
                 name: `${u.firstName} ${u.lastName}`,
+                email: u.email,
+                phone: u.phone,
                 referralCode: u.referralCode,
                 balance: u.refWallet,
                 joinedAt: u.createdAt,

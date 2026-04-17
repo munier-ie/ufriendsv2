@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import {
     Users, Search, Loader2, RefreshCw, Key, Lock, Trash2,
@@ -52,11 +53,11 @@ export default function AdvancedUserManagement() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            alert(res.data.message);
+            toast.error(res.data.message)
             setShowTypeModal(false);
             fetchUsers();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to change user type');
+            toast.error(error.response?.data?.error || 'Failed to change user type')
         } finally {
             setActionLoading(false);
         }
@@ -78,7 +79,7 @@ export default function AdvancedUserManagement() {
             setSelectedUser(user);
             setShowApiKeyModal(true);
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to reset API key');
+            toast.error(error.response?.data?.error || 'Failed to reset API key')
         } finally {
             setActionLoading(false);
         }
@@ -96,11 +97,11 @@ export default function AdvancedUserManagement() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            alert(res.data.message);
+            toast.error(res.data.message)
             setShowPasswordModal(false);
             setNewPassword('');
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to reset password');
+            toast.error(error.response?.data?.error || 'Failed to reset password')
         } finally {
             setActionLoading(false);
         }
@@ -117,10 +118,10 @@ export default function AdvancedUserManagement() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            alert(res.data.message);
+            toast.error(res.data.message)
             fetchUsers();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to delete user');
+            toast.error(error.response?.data?.error || 'Failed to delete user')
         } finally {
             setActionLoading(false);
         }
@@ -138,7 +139,7 @@ export default function AdvancedUserManagement() {
             setTransactions(res.data.transactions || []);
             setShowTransactionsModal(true);
         } catch (error) {
-            alert('Failed to load transactions');
+            toast.error('Failed to load transactions')
         } finally {
             setActionLoading(false);
         }
@@ -156,7 +157,7 @@ export default function AdvancedUserManagement() {
             setActions(res.data.actions || []);
             setShowActionsModal(true);
         } catch (error) {
-            alert('Failed to load action history');
+            toast.error('Failed to load action history')
         } finally {
             setActionLoading(false);
         }
@@ -392,7 +393,7 @@ export default function AdvancedUserManagement() {
                                 {apiKeyResult}
                             </div>
                             <button
-                                onClick={() => { navigator.clipboard.writeText(apiKeyResult); alert('Copied!'); }}
+                                onClick={() => { navigator.clipboard.writeText(apiKeyResult); toast.success('Copied!') }}
                                 className="w-full bg-green-600 text-white py-3 rounded-xl hover:bg-green-700 transition-colors mb-2"
                             >
                                 📋 Copy to Clipboard

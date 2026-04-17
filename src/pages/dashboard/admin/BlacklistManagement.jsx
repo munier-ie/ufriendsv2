@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
@@ -47,9 +48,9 @@ export default function BlacklistManagement() {
             setBlacklist([res.data.entry, ...blacklist]);
             setIsAddModalOpen(false);
             setFormData({ phone: '', reason: '' });
-            alert('Number blacklisted successfully');
+            toast.success('Number blacklisted successfully')
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to blacklist number');
+            toast.error(error.response?.data?.error || 'Failed to blacklist number')
         } finally {
             setSubmitting(false);
         }
@@ -66,7 +67,7 @@ export default function BlacklistManagement() {
 
             setBlacklist(blacklist.filter(item => item.id !== id));
         } catch (error) {
-            alert('Failed to remove from blacklist');
+            toast.error('Failed to remove from blacklist')
         }
     };
 

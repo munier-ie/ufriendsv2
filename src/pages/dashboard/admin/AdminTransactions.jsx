@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Search from 'lucide-react/dist/esm/icons/search';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
@@ -61,11 +62,11 @@ export default function AdminTransactions() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Transaction updated successfully');
+            toast.success('Transaction updated successfully')
             setSelectedTx(null);
             fetchTransactions();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to update transaction');
+            toast.error(error.response?.data?.error || 'Failed to update transaction')
         } finally {
             setActionLoading(false);
         }
@@ -80,11 +81,11 @@ export default function AdminTransactions() {
             await axios.post(`/api/admin/transactions/${selectedTx.id}/retry`, {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Transaction queued for retry');
+            toast.error('Transaction queued for retry')
             setSelectedTx(null);
             fetchTransactions();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to retry transaction');
+            toast.error(error.response?.data?.error || 'Failed to retry transaction')
         } finally {
             setActionLoading(false);
         }

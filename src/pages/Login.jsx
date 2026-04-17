@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,7 +6,7 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import AuthLayout from '../components/layout/AuthLayout';
 import Logo from '../components/ui/Logo';
-import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, ArrowLeft, Clock } from 'lucide-react';
 
 export default function Login() {
     const [step, setStep] = useState('login'); // 'login' | 'email-verify' | '2fa-verify'
@@ -21,15 +21,41 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
+    const [lockoutSeconds, setLockoutSeconds] = useState(0);
+    const lockoutTimerRef = useRef(null);
     const navigate = useNavigate();
+
+    // Countdown timer for lockout
+    useEffect(() => {
+        if (lockoutSeconds > 0) {
+            lockoutTimerRef.current = setInterval(() => {
+                setLockoutSeconds(prev => {
+                    if (prev <= 1) {
+                        clearInterval(lockoutTimerRef.current);
+                        setError('');
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        }
+        return () => clearInterval(lockoutTimerRef.current);
+    }, [lockoutSeconds]);
+
+    const formatLockout = (secs) => {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return m > 0 ? `${m}:${String(s).padStart(2, '0')}` : `${s}s`;
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        setError('');
+        if (lockoutSeconds === 0) setError('');
     };
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
+        if (lockoutSeconds > 0) return;
         setLoading(true);
         setError('');
 
@@ -51,7 +77,13 @@ export default function Login() {
                 navigate('/dashboard');
             }
         } catch (err) {
-            setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
+            const retryAfter = err.response?.data?.retryAfter;
+            const msg = err.response?.data?.error || 'Login failed. Please check your credentials.';
+            setError(msg);
+            if (retryAfter && retryAfter > 0) {
+                clearInterval(lockoutTimerRef.current);
+                setLockoutSeconds(retryAfter);
+            }
         } finally {
             setLoading(false);
         }
@@ -115,9 +147,19 @@ export default function Login() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: 'auto' }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="bg-red-50 text-red-600 p-3 rounded-xl text-sm mb-6 border border-red-100 flex items-center justify-center font-medium"
+                            className={`p-3 rounded-xl text-sm mb-6 border flex items-center justify-center gap-2 font-medium ${
+                                lockoutSeconds > 0
+                                    ? 'bg-orange-50 text-orange-700 border-orange-200'
+                                    : 'bg-red-50 text-red-600 border-red-100'
+                            }`}
                         >
-                            {error}
+                            {lockoutSeconds > 0 && <Clock size={16} className="shrink-0" />}
+                            <span>{error}</span>
+                            {lockoutSeconds > 0 && (
+                                <span className="ml-auto font-mono bg-orange-100 text-orange-800 px-2 py-0.5 rounded-md text-xs font-bold">
+                                    {formatLockout(lockoutSeconds)}
+                                </span>
+                            )}
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -167,10 +209,11 @@ export default function Login() {
 
                         <Button
                             type="submit"
-                            className="w-full py-3 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/25 transition-all duration-300 transform hover:-translate-y-0.5"
+                            className="w-full py-3 text-lg font-semibold rounded-xl bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/25 transition-all duration-300 transform hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
                             loading={loading}
+                            disabled={loading || lockoutSeconds > 0}
                         >
-                            Sign In
+                            {lockoutSeconds > 0 ? `Locked — ${formatLockout(lockoutSeconds)}` : 'Sign In'}
                         </Button>
 
                         <p className="mt-8 text-center text-sm text-gray-600">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Signal from 'lucide-react/dist/esm/icons/signal';
@@ -46,7 +47,7 @@ export default function NetworkSettings() {
             console.error('Failed to update network', error);
             // Revert on error
             fetchNetworks();
-            alert('Failed to update setting');
+            toast.error('Failed to update setting')
         } finally {
             setUpdating(null);
         }

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Network, ServerIcon, Save, Activity, Plus, Trash2, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
@@ -58,9 +59,9 @@ export default function ProviderSwitch() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             await fetchBotStats();
-            alert('✅ Bot schedule updated successfully!');
+            toast.success('✅ Bot schedule updated successfully!')
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to update schedule');
+            toast.error(error.response?.data?.error || 'Failed to update schedule')
         } finally {
             setSavingSchedule(false);
         }
@@ -74,12 +75,12 @@ export default function ProviderSwitch() {
             const res = await axios.post('/api/admin/bot/sync', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert(res.data.message);
+            toast.error(res.data.message)
             fetchBotStats();
             fetchData();
         } catch (error) {
             console.error('Bot sync failed', error);
-            alert('Failed to trigger bot sync');
+            toast.error('Failed to trigger bot sync')
         } finally {
             setSyncing(false);
         }
@@ -107,7 +108,7 @@ export default function ProviderSwitch() {
 
         } catch (error) {
             console.error('Failed to fetch provider status/routing', error);
-            alert('Failed to load active providers');
+            toast.error('Failed to load active providers')
         } finally {
             setLoading(false);
         }
@@ -126,11 +127,11 @@ export default function ProviderSwitch() {
             await axios.put('/api/admin/provider-status', { serviceType, apiProviderId }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert(`${serviceType.toUpperCase()} global provider updated successfully!`);
+            toast.success(`${serviceType.toUpperCase()} global provider updated successfully!`)
             fetchData();
         } catch (error) {
             console.error('Update failed', error);
-            alert(error.response?.data?.error || 'Failed to update active provider');
+            toast.error(error.response?.data?.error || 'Failed to update active provider')
         } finally {
             setSaving(false);
         }
@@ -144,7 +145,7 @@ export default function ProviderSwitch() {
     // --- Advanced Routing Logic ---
     const handleAddRule = async (e) => {
         e.preventDefault();
-        if (!newRule.apiProviderId) return alert('Please select a provider');
+        if (!newRule.apiProviderId) return toast.error('Please select a provider')
 
         try {
             setSaving(true);
@@ -152,11 +153,11 @@ export default function ProviderSwitch() {
             await axios.post('/api/admin/routing', newRule, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Routing rule saved successfully!');
+            toast.success('Routing rule saved successfully!')
             fetchData();
         } catch (error) {
             console.error('Save rule failed', error);
-            alert(error.response?.data?.error || 'Failed to save routing rule');
+            toast.error(error.response?.data?.error || 'Failed to save routing rule')
         } finally {
             setSaving(false);
         }
@@ -170,11 +171,11 @@ export default function ProviderSwitch() {
             await axios.delete(`/api/admin/routing/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Routing rule deleted.');
+            toast.success('Routing rule deleted.')
             fetchData();
         } catch (error) {
             console.error('Delete rule failed', error);
-            alert('Failed to delete routing rule');
+            toast.error('Failed to delete routing rule')
         } finally {
             setSaving(false);
         }

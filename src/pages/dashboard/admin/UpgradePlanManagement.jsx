@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Save from 'lucide-react/dist/esm/icons/save';
@@ -70,10 +71,10 @@ export default function UpgradePlanManagement() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert(`${plan.name} updated successfully!`);
+            toast.success(`${plan.name} updated successfully!`)
         } catch (error) {
             console.error('Save error:', error);
-            alert(error.response?.data?.error || 'Failed to update plan');
+            toast.error(error.response?.data?.error || 'Failed to update plan')
         } finally {
             setSaving(null);
         }

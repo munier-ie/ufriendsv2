@@ -9,6 +9,29 @@ const { sendWelcomeEmail, sendLoginAlert } = require('../services/email.service'
 const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
 const authenticateUser = require('../middleware/auth');
+const loginRateLimit = require('../middleware/loginRateLimit');
+
+// Per-phone OTP email rate limit (3 emails per phone per 10 minutes)
+const otpEmailAttempts = new Map(); // phone -> { count, resetAt }
+const OTP_EMAIL_MAX = 3;
+const OTP_EMAIL_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+function checkOtpEmailLimit(phone) {
+    const now = Date.now();
+    const record = otpEmailAttempts.get(phone) || { count: 0, resetAt: now + OTP_EMAIL_WINDOW_MS };
+    if (now > record.resetAt) {
+        // Window expired, reset
+        otpEmailAttempts.set(phone, { count: 1, resetAt: now + OTP_EMAIL_WINDOW_MS });
+        return { allowed: true };
+    }
+    if (record.count >= OTP_EMAIL_MAX) {
+        const waitSeconds = Math.ceil((record.resetAt - now) / 1000);
+        return { allowed: false, waitSeconds };
+    }
+    record.count++;
+    otpEmailAttempts.set(phone, record);
+    return { allowed: true };
+}
 
 // Validation Schemas
 const registerSchema = z.object({
@@ -131,7 +154,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login (renamed to access to bypass WAF rules on /login and /signin paths)
-router.post('/access', async (req, res) => {
+router.post('/access', loginRateLimit, async (req, res) => {
     try {
         // Validate input
         const validation = loginSchema.safeParse(req.body);
@@ -143,14 +166,36 @@ router.post('/access', async (req, res) => {
 
         // Find user
         const user = await prisma.user.findUnique({ where: { phone } });
-        if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+        if (!user) {
+            if (req._recordLoginFailure) req._recordLoginFailure();
+            return res.status(400).json({ error: 'Invalid credentials' });
+        }
 
         // Strict Bcrypt check only
         const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(400).json({ error: 'Invalid credentials' });
+        if (!valid) {
+            const result = req._recordLoginFailure ? req._recordLoginFailure() : { count: 0, waitSeconds: 0 };
+            let errorMsg = 'Invalid credentials';
+            if (result.waitSeconds > 0) {
+                const mins = Math.floor(result.waitSeconds / 60);
+                const secs = result.waitSeconds % 60;
+                const timeStr = mins > 0 ? `${mins}m ${secs > 0 ? secs + 's' : ''}`.trim() : `${secs}s`;
+                errorMsg = `Invalid credentials. Too many failed attempts — try again in ${timeStr}.`;
+            }
+            return res.status(400).json({ error: errorMsg, retryAfter: result.waitSeconds || 0 });
+        }
 
         // Email Verification Check (First Login)
         if (user.emailVerified === false) {
+            // Per-phone OTP rate limiting
+            const otpLimit = checkOtpEmailLimit(phone);
+            if (!otpLimit.allowed) {
+                return res.status(429).json({
+                    error: `Too many OTP requests. Please wait ${Math.ceil(otpLimit.waitSeconds / 60)} minute(s) before requesting another.`,
+                    retryAfter: otpLimit.waitSeconds
+                });
+            }
+
             // [SEC-HIGH-04] Use cryptographically secure OTP generator
             const otpCode = crypto.randomInt(100000, 999999);
             const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
@@ -227,6 +272,9 @@ router.post('/access', async (req, res) => {
                 message: 'Two-factor authentication required.'
             });
         }
+
+        // Clear login rate limit on successful authentication
+        loginRateLimit.onSuccess(phone);
 
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
@@ -603,6 +651,46 @@ router.post('/pin/toggle', authenticateUser, async (req, res) => {
         } else {
             res.status(400).json({ error: 'Invalid action' });
         }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Change/Reset PIN while it's already enabled
+router.post('/pin/reset', authenticateUser, async (req, res) => {
+    try {
+        const { currentPin, newPin, confirmPin } = req.body;
+
+        if (!currentPin || !newPin || !confirmPin) {
+            return res.status(400).json({ error: 'Current PIN, new PIN, and confirmation are required' });
+        }
+
+        if (newPin !== confirmPin) {
+            return res.status(400).json({ error: 'New PINs do not match' });
+        }
+
+        if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+            return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (!user || !user.transactionPin) {
+            return res.status(400).json({ error: 'No active PIN found' });
+        }
+
+        const validPin = await bcrypt.compare(currentPin, user.transactionPin);
+        if (!validPin) {
+            return res.status(400).json({ error: 'Incorrect current PIN' });
+        }
+
+        const hashedPin = await bcrypt.hash(newPin, 10);
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { transactionPin: hashedPin }
+        });
+
+        res.json({ message: 'Transaction PIN changed successfully' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal server error' });

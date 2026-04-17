@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext } from 'react-router-dom';
 import Landmark from 'lucide-react/dist/esm/icons/landmark';
@@ -61,7 +62,7 @@ export default function BankingFinance() {
             const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
         } catch (error) {
-            alert('Error generating request URL: ' + error.message);
+            toast.error('Error generating request URL: ' + error.message)
         }
     };
 
@@ -70,7 +71,7 @@ export default function BankingFinance() {
             if (e) e.preventDefault();
             
             if (!loanAmount || !loanDuration || !moniepointAccount) {
-                alert('Please fill out all loan details before proceeding.');
+                toast.error('Please fill out all loan details before proceeding.')
                 return;
             }
 
@@ -89,7 +90,7 @@ export default function BankingFinance() {
             const url = `https://wa.me/${whatsapp}?text=${encodeURIComponent(message)}`;
             window.open(url, '_blank');
         } catch (error) {
-            alert('Error generating request URL: ' + error.message);
+            toast.error('Error generating request URL: ' + error.message)
         }
     };
 

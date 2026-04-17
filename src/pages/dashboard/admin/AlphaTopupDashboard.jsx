@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
@@ -69,9 +70,9 @@ export default function AlphaTopupDashboard() {
             } else {
                 fetchOrders();
             }
-            alert(`Order ${status === 1 ? 'approved' : 'rejected'} successfully`);
+            toast.success(`Order ${status === 1 ? 'approved' : 'rejected'} successfully`)
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to process order');
+            toast.error(error.response?.data?.error || 'Failed to process order')
         } finally {
             setProcessingId(null);
         }
@@ -84,9 +85,9 @@ export default function AlphaTopupDashboard() {
             await axios.put('/api/admin/alpha-topup/rates', rates, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Rates updated successfully');
+            toast.success('Rates updated successfully')
         } catch (error) {
-            alert('Failed to update rates');
+            toast.error('Failed to update rates')
         } finally {
             setProcessingId(null);
         }

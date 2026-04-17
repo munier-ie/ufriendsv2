@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { Plus, Edit2, Trash2, Loader2, CheckCircle, XCircle, Activity } from 'lucide-react';
 
@@ -60,21 +61,21 @@ export default function DataPlanManagement() {
                     formData,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                alert('Data plan updated successfully');
+                toast.success('Data plan updated successfully')
             } else {
                 await axios.post(
                     '/api/admin/services/data-plans',
                     formData,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                alert('Data plan created successfully');
+                toast.success('Data plan created successfully')
             }
 
             setShowModal(false);
             resetForm();
             fetchPlans();
         } catch (error) {
-            alert(error.response?.data?.error || 'Failed to save data plan');
+            toast.error(error.response?.data?.error || 'Failed to save data plan')
         } finally {
             setLoading(false);
         }
@@ -88,10 +89,10 @@ export default function DataPlanManagement() {
             await axios.delete(`/api/admin/services/data-plans/${plan.id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            alert('Data plan deleted successfully');
+            toast.success('Data plan deleted successfully')
             fetchPlans();
         } catch (error) {
-            alert('Failed to delete data plan');
+            toast.error('Failed to delete data plan')
         }
     };
 
@@ -188,7 +189,7 @@ export default function DataPlanManagement() {
                         // Toggle a special review mode or just filter for inactive bot-discovered plans
                         // For simplicity, we'll just filter our current plans array
                         const pendingCount = plans.filter(p => !p.active && p.apiProviderId).length;
-                        if (pendingCount === 0) return alert('No pending discoveries to review.');
+                        if (pendingCount === 0) return toast.error('No pending discoveries to review.')
 
                         setPlans(plans.filter(p => !p.active && p.apiProviderId));
                     }}
