@@ -141,9 +141,14 @@ router.get('/stats', adminAuth, async (req, res) => {
 // GET /api/admin/users
 router.get('/users', adminAuth, async (req, res) => {
     try {
-        const { limit = 50, offset = 0, search } = req.query;
+        const { limit = 50, offset = 0, search, type } = req.query;
         const takeLimit = Math.min(parseInt(limit) || 50, 100);
+        const skip = parseInt(offset) || 0;
         const where = {};
+
+        if (type) {
+            where.type = parseInt(type);
+        }
 
         if (search) {
             where.OR = [
@@ -169,7 +174,7 @@ router.get('/users', adminAuth, async (req, res) => {
                     createdAt: true
                 },
                 take: takeLimit,
-                skip: parseInt(offset) || 0,
+                skip,
                 orderBy: { createdAt: 'desc' }
             }),
             prisma.user.count({ where })
