@@ -55,7 +55,7 @@ router.post('/create-paymentpoint', authenticateUser, async (req, res) => {
                 account: {
                     bankName: 'Palmpay',
                     accountNumber: accountDetails.bankAccounts?.[0]?.accountNumber,
-                    accountName: `${user.firstName} ${user.lastName}`.toUpperCase(),
+                    accountName: `UFRIENDSIT-${user.firstName}`.toUpperCase(),
                     provider: 'PaymentPoint'
                 }
             });
@@ -97,7 +97,9 @@ router.get('/my-accounts', authenticateUser, async (req, res) => {
                 provider: user.bankName?.includes('PaymentPoint') ? 'PaymentPoint' : 'Monnify',
                 bankName: user.bankName,
                 accountNumber: user.bankNo,
-                accountName: `${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
+                accountName: user.bankName?.includes('PaymentPoint') 
+                    ? `UFRIENDSIT-${req.user.firstName}`.toUpperCase() 
+                    : `UFRIENDSIT-${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
                 isPrimary: true
             });
         }
@@ -109,7 +111,7 @@ router.get('/my-accounts', authenticateUser, async (req, res) => {
                     provider: 'Monnify',
                     bankName: 'Monie Point MFB',
                     accountNumber: user.rolexBank,
-                    accountName: `${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
+                    accountName: `UFRIENDSIT-${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
                     isPrimary: false
                 });
             }
@@ -118,7 +120,7 @@ router.get('/my-accounts', authenticateUser, async (req, res) => {
                     provider: 'Monnify',
                     bankName: 'Sterling Bank',
                     accountNumber: user.sterlingBank,
-                    accountName: `${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
+                    accountName: `UFRIENDSIT-${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
                     isPrimary: false
                 });
             }
@@ -127,7 +129,7 @@ router.get('/my-accounts', authenticateUser, async (req, res) => {
                     provider: 'Monnify',
                     bankName: 'Fidelity Bank',
                     accountNumber: user.fidelityBank,
-                    accountName: `${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
+                    accountName: `UFRIENDSIT-${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
                     isPrimary: false
                 });
             }
@@ -136,7 +138,7 @@ router.get('/my-accounts', authenticateUser, async (req, res) => {
                     provider: 'Monnify',
                     bankName: 'GTBank',
                     accountNumber: user.gtBank,
-                    accountName: `${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
+                    accountName: `UFRIENDSIT-${req.user.firstName} ${req.user.lastName}`.toUpperCase(),
                     isPrimary: false
                 });
             }
