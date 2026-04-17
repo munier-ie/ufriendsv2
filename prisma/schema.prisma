@@ -40,6 +40,7 @@ model User {
   fidelityBank         String?
   gtBank               String?
   accountReference     String?
+  virtualAccountName   String?
   palmpayAccount       String?
   psb9Account          String?
   banklyAccount        String?
