@@ -19,6 +19,11 @@ export default function UserManagement() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [typeFilter, setTypeFilter] = useState(''); // Filter by type: '', '1', '2', '3'
+    const [page, setPage] = useState(1);
+    const [totalUsers, setTotalUsers] = useState(0);
+    const limit = 20;
+
     const [selectedUser, setSelectedUser] = useState(null); // For detail view
     const [userDetail, setUserDetail] = useState(null); // Full detail from API
     const [detailLoading, setDetailLoading] = useState(false);
@@ -39,21 +44,35 @@ export default function UserManagement() {
     // Edit Profile State
     const [editForm, setEditForm] = useState({});
 
+    // Debounce search and reset page on filter change
     useEffect(() => {
         const timeout = setTimeout(() => {
-            fetchUsers();
+            if (page !== 1) {
+                setPage(1); // Reset page to 1
+            } else {
+                fetchUsers(1); 
+            }
         }, 500);
         return () => clearTimeout(timeout);
-    }, [search]);
+    }, [search, typeFilter]);
 
-    const fetchUsers = async () => {
+    useEffect(() => {
+        fetchUsers(page);
+    }, [page]);
+
+    const fetchUsers = async (pageNum = page) => {
         setLoading(true);
         try {
             const token = localStorage.getItem('adminToken');
-            const res = await axios.get(`/api/admin/users?search=${search}`, {
+            const offset = (pageNum - 1) * limit;
+            let url = `/api/admin/users?search=${search}&limit=${limit}&offset=${offset}`;
+            if (typeFilter) url += `&type=${typeFilter}`;
+
+            const res = await axios.get(url, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setUsers(res.data.users);
+            setTotalUsers(res.data.total);
         } catch (error) {
             console.error('Failed to fetch users', error);
         } finally {
@@ -182,22 +201,34 @@ export default function UserManagement() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
                     <Button onClick={() => setIsAddModalOpen(true)} icon={Plus}>
                         Add User
                     </Button>
                 </div>
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-10 pr-4 py-2 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 w-full md:w-64"
-                    />
+                <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+                    <select
+                        value={typeFilter}
+                        onChange={(e) => setTypeFilter(e.target.value)}
+                        className="px-4 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white w-full sm:w-auto"
+                    >
+                        <option value="">All Users</option>
+                        <option value="1">Subscribers</option>
+                        <option value="2">Agents</option>
+                        <option value="3">Vendors</option>
+                    </select>
+                    <div className="relative w-full sm:w-auto flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Search users..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            className="pl-10 pr-4 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-primary/20 w-full sm:w-64"
+                        />
+                    </div>
                 </div>
             </div>
 
@@ -269,6 +300,34 @@ export default function UserManagement() {
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+                
+                {/* Pagination Controls */}
+                {!loading && totalUsers > 0 && (
+                    <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-sm text-gray-500">
+                            Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, totalUsers)} of {totalUsers} users
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                disabled={page === 1}
+                                className="px-3 py-1 text-sm border border-gray-200 rounded disabled:opacity-50 hover:bg-gray-50 font-medium text-gray-700 transition"
+                            >
+                                Previous
+                            </button>
+                            <span className="text-sm font-medium px-3 py-1 bg-primary/10 text-primary rounded border border-primary/20">
+                                {page}
+                            </span>
+                            <button
+                                onClick={() => setPage(p => p + 1)}
+                                disabled={page * limit >= totalUsers}
+                                className="px-3 py-1 text-sm border border-gray-200 rounded disabled:opacity-50 hover:bg-gray-50 font-medium text-gray-700 transition"
+                            >
+                                Next
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>
