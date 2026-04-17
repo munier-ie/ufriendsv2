@@ -202,10 +202,10 @@ router.post('/paymentpoint', async (req, res) => {
             console.log(`[Webhook Debug] Found user ${user.id} (${user.email}). Proceeding with credit.`);
 
             // Update user wallet with fee deduction
-            // PaymentPoint Rule: 1.6% capped at N2000
+            // PaymentPoint Rule: 0.5% capped at N100
             const amountInNaira = parseFloat(amount);
-            const feePercentage = parseFloat(process.env.PAYMENTPOINT_FEE_PERCENTAGE || 1.6) / 100;
-            const feeCap = parseFloat(process.env.PAYMENTPOINT_FEE_CAP || 2000);
+            const feePercentage = parseFloat(process.env.PAYMENTPOINT_FEE_PERCENTAGE || 0.5) / 100;
+            const feeCap = parseFloat(process.env.PAYMENTPOINT_FEE_CAP || 100);
 
             let serviceCharge = amountInNaira * feePercentage;
             if (serviceCharge > feeCap) serviceCharge = feeCap;
