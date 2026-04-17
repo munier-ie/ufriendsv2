@@ -210,6 +210,7 @@ async function createVirtualAccounts(userId) {
                             updateData.bankName = acc.bankName;
                             updateData.bankNo = acc.accountNumber;
                         }
+                        updateData.virtualAccountName = acc.accountName;
                     }
 
                     // Store secondary accounts
