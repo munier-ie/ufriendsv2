@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
@@ -10,11 +11,9 @@ import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
 export default function Support() {
-    const [messages, setMessages] = useState([]);
-    const [loading, setLoading] = useState(true);
+        const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sending, setSending] = useState(false);
-    const [alertMsg, setAlertMsg] = useState({ type: '', text: '' });
     
     // Form state
     const [subject, setSubject] = useState('');
@@ -58,11 +57,9 @@ export default function Support() {
             setIsModalOpen(false);
             setSubject('');
             setMessageContent('');
-            setAlertMsg({ type: 'success', text: 'Your message has been sent to our support team.' });
-            setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
+            toast.success('Your message has been sent to our support team.');
         } catch (error) {
-            setAlertMsg({ type: 'error', text: error.response?.data?.error || 'Failed to send message' });
-            setTimeout(() => setAlertMsg({ type: '', text: '' }), 5000);
+            toast.error(error.response?.data?.error || 'Failed to send message');
         } finally {
             setSending(false);
         }
@@ -83,19 +80,7 @@ export default function Support() {
                 </Button>
             </div>
 
-            <AnimatePresence>
-                {alertMsg.text && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className={`p-4 rounded-xl flex items-center justify-between border ${alertMsg.type === 'success' ? 'bg-green-50 text-green-700 border-green-100' : 'bg-red-50 text-red-700 border-red-100'}`}
-                    >
-                        <span className="font-medium">{alertMsg.text}</span>
-                        <button onClick={() => setAlertMsg({ type: '', text: '' })} className="ml-4 opacity-50 hover:opacity-100 text-xl font-bold">&times;</button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+
 
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 bg-gray-50">

@@ -273,8 +273,7 @@ export default function ManualServices() {
     const navigate = useNavigate();
     const [prices, setPrices] = useState({ bvnMod: 3000, ninMod: 3000 });
     const [ninAgreed, setNinAgreed] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [submitting, setSubmitting] = useState(false);
+        const [submitting, setSubmitting] = useState(false);
     const [showPinModal, setShowPinModal] = useState(false);
     const [pin, setPin] = useState('');
     const [history, setHistory] = useState([]);
@@ -305,8 +304,7 @@ export default function ManualServices() {
 
     useEffect(() => {
         setFormData({});
-        setMessage({ type: '', text: '' });
-    }, [activeSub]);
+        }, [activeSub]);
 
     const fetchSettings = async () => {
         try {
@@ -404,13 +402,13 @@ export default function ManualServices() {
         e.preventDefault();
 
         if (!termsAgreed) {
-            setMessage({ type: 'error', text: 'You must agree to the Terms of Service & Privacy Policy' });
+            toast.error('You must agree to the Terms of Service & Privacy Policy' );
             return;
         }
 
         // Extra validation for uploads
         if (activeSub === 'BVN_MODIFICATION' && formData.idType && formData.idType !== 'nin' && !formData.idFileUrl) {
-            setMessage({ type: 'error', text: 'Please upload the identification document' });
+            toast.error('Please upload the identification document' );
             return;
         }
 
@@ -420,11 +418,10 @@ export default function ManualServices() {
 
     const handleFinalSubmit = async () => {
         if (pin.length !== 4) {
-            setMessage({ type: 'error', text: 'Please enter a valid 4-digit PIN' });
+            toast.error('Please enter a valid 4-digit PIN' );
             return;
         }
         setSubmitting(true);
-        setMessage({ type: '', text: '' });
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post('/api/manual-services/submit', {
@@ -438,7 +435,7 @@ export default function ManualServices() {
                 ? `BVN retrieved: ${res.data.bvn}`
                 : res.data.message || 'Request submitted successfully.';
 
-            setMessage({ type: 'success', text: successMsg });
+            toast.success(successMsg );
             setShowPinModal(false);
             setFormData({});
             setPin('');
@@ -450,7 +447,7 @@ export default function ManualServices() {
                 toast.error('Incorrect PIN entered');
                 setShowPinModal(false);
             } else {
-                setMessage({ type: 'error', text: errMsg });
+                toast.error(errMsg );
                 setShowPinModal(false);
             }
         } finally {
@@ -462,8 +459,7 @@ export default function ManualServices() {
         setActiveGroup(g);
         setActiveSub(g === 'bvn' ? 'BVN_MODIFICATION' : 'NIN_MODIFICATION');
         setFormData({});
-        setMessage({ type: '', text: '' });
-    };
+        };
 
     // ─── Form panels ────────────────────────────────────────────────────────
 
@@ -720,24 +716,6 @@ export default function ManualServices() {
                     </button>
                 ))}
             </div>
-
-            {/* Status Message */}
-            <AnimatePresence>
-                {message.text && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className={`p-4 rounded-xl flex items-center gap-3 ${message.type === 'success'
-                            ? 'bg-green-50 text-green-700 border border-green-100'
-                            : 'bg-red-50 text-red-700 border border-red-100'
-                            }`}
-                    >
-                        {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                        <span className="font-medium">{message.text}</span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Form Card */}
             {!isActive() ? (

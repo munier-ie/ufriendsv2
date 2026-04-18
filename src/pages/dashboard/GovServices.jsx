@@ -86,8 +86,7 @@ export default function GovServices() {
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'nin');
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [bvnPricing, setBvnPricing] = useState(null);
+        const [bvnPricing, setBvnPricing] = useState(null);
     const [ninPricing, setNinPricing] = useState(null);
     const [cacPricing, setCacPricing] = useState(null);
     const [selectedSlipType, setSelectedSlipType] = useState('regular');
@@ -184,7 +183,6 @@ export default function GovServices() {
 
     const handleTabChange = (tabId) => {
         setActiveTab(tabId);
-        setMessage({ type: '', text: '' });
         setSlipPreview(null);
     };
 
@@ -198,32 +196,32 @@ export default function GovServices() {
         e.preventDefault();
 
         if (!termsAgreed) {
-            setMessage({ type: 'error', text: 'You must agree to the Terms of Service & Privacy Policy' });
+            toast.error('You must agree to the Terms of Service & Privacy Policy' );
             return;
         }
 
         if (activeTab === 'bvn' && formData.bvn.length !== 11) {
-            setMessage({ type: 'error', text: 'BVN must be exactly 11 digits' });
+            toast.error('BVN must be exactly 11 digits' );
             return;
         }
 
         // CAC-specific validation
         if (activeTab === 'cac') {
             if (!directorIdCard) {
-                setMessage({ type: 'error', text: 'Please upload Director ID card' });
+                toast.error('Please upload Director ID card' );
                 return;
             }
             if (!passportPhoto) {
-                setMessage({ type: 'error', text: 'Please upload Passport photograph' });
+                toast.error('Please upload Passport photograph' );
                 return;
             }
             if (directorIdCard.size > 5 * 1024 * 1024 || passportPhoto.size > 5 * 1024 * 1024) {
-                setMessage({ type: 'error', text: 'Files must be under 5MB each' });
+                toast.error('Files must be under 5MB each' );
                 return;
             }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formData.email)) {
-                setMessage({ type: 'error', text: 'Please enter a valid email address' });
+                toast.error('Please enter a valid email address' );
                 return;
             }
         }
@@ -234,12 +232,11 @@ export default function GovServices() {
 
     const handleFinalSubmit = async () => {
         if (formData.pin.length !== 4) {
-            setMessage({ type: 'error', text: 'Please enter a valid 4-digit PIN' });
+            toast.error('Please enter a valid 4-digit PIN' );
             return;
         }
 
         setSubmitting(true);
-        setMessage({ type: '', text: '' });
         setSlipPreview(null);
 
         try {
@@ -268,7 +265,7 @@ export default function GovServices() {
                     }
                 });
 
-                setMessage({ type: 'success', text: res.data.message });
+                toast.success(res.data.message );
                 setShowPinModal(false);
                 setFormData(INITIAL_FORM);
                 setDirectorIdCard(null);
@@ -303,12 +300,9 @@ export default function GovServices() {
 
                 if (res.data.success && res.data.report) {
                     setSlipPreview(res.data.report);
-                    setMessage({
-                        type: 'success',
-                        text: `${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`
-                    });
+                    toast.success(`${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`);
                 } else {
-                    setMessage({ type: 'success', text: res.data.message });
+                    toast.success(res.data.message );
                 }
 
                 setShowPinModal(false);
@@ -321,7 +315,7 @@ export default function GovServices() {
                 toast.error('Incorrect PIN entered');
                 setShowPinModal(false);
             } else {
-                setMessage({ type: 'error', text: errorMsg });
+                toast.error(errorMsg );
                 setShowPinModal(false);
             }
         } finally {
@@ -390,24 +384,6 @@ export default function GovServices() {
                     </button>
                 ))}
             </div>
-
-            {/* Status Message */}
-            <AnimatePresence>
-                {message.text ? (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className={`p-4 rounded-xl flex items-center space-x-3 ${message.type === 'success'
-                            ? 'bg-green-50 text-green-700 border border-green-100'
-                            : 'bg-red-50 text-red-700 border border-red-100'
-                            }`}
-                    >
-                        {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                        <span className="font-medium">{message.text}</span>
-                    </motion.div>
-                ) : null}
-            </AnimatePresence>
 
             {/* Slip Preview Card (NIN/BVN only) */}
             {slipPreview ? (

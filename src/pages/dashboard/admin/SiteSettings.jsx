@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import Save from 'lucide-react/dist/esm/icons/save';
@@ -10,8 +11,7 @@ export default function SiteSettings() {
     const [settings, setSettings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [message, setMessage] = useState('');
-
+    
     useEffect(() => {
         fetchSettings();
     }, []);
@@ -32,16 +32,14 @@ export default function SiteSettings() {
 
     const handleSave = async () => {
         setSaving(true);
-        setMessage('');
         try {
             const token = localStorage.getItem('adminToken');
             await axios.put('/api/admin/config/settings', settings, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            setMessage('Settings saved successfully!');
-            setTimeout(() => setMessage(''), 3000);
+            toast.success('Settings saved successfully!');
         } catch (error) {
-            setMessage('Failed to save settings');
+            toast.error('Failed to save settings');
         } finally {
             setSaving(false);
         }
@@ -75,11 +73,7 @@ export default function SiteSettings() {
                 <p className="text-gray-600 mt-2">Configure global platform settings and appearance</p>
             </div>
 
-            {message && (
-                <div className={`p-4 rounded-xl ${message.includes('success') ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-red-50 text-red-600 border border-red-200'}`}>
-                    {message}
-                </div>
-            )}
+
 
             {/* Settings Sections */}
             <div className="space-y-6">

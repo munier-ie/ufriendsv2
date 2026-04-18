@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Logo from '../components/ui/Logo';
@@ -7,39 +8,27 @@ export default function ForgotPassword() {
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState(null); // null | 'success' | 'error'
-    const [message, setMessage] = useState('');
-
+    const [status, setStatus] = useState(null); // null | 'success'
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setStatus(null);
-        setMessage('');
-
         try {
             const response = await axios.post('/api/auth/forgot-password', { email });
-            // Backend confirmed the email was actually sent (or user not found — generic)
             setStatus('success');
-            setMessage(response.data.message);
+            toast.success(response.data.message);
         } catch (err) {
             const errorCode = err.response?.data?.error;
             const serverMsg = err.response?.data?.message;
 
             if (errorCode === 'EMAIL_NOT_CONFIGURED') {
-                // SMTP not set up on the server
-                setStatus('error');
-                setMessage('Email service is currently unavailable. Please contact support or try again later.');
+                toast.error('Email service is currently unavailable. Please contact support or try again later.');
             } else if (errorCode === 'EMAIL_SEND_FAILED') {
-                // SMTP returned a delivery error
-                setStatus('error');
-                setMessage(serverMsg || 'We could not deliver the email. Please try again in a moment.');
+                toast.error(serverMsg || 'We could not deliver the email. Please try again in a moment.');
             } else if (err.response?.status === 400) {
-                setStatus('error');
-                setMessage(err.response?.data?.error || 'Invalid request. Please check your email and try again.');
+                toast.error(err.response?.data?.error || 'Invalid request. Please check your email and try again.');
             } else {
-                // Network error or unexpected server crash
-                setStatus('error');
-                setMessage('Something went wrong. Please check your internet connection and try again.');
+                toast.error('Something went wrong. Please check your internet connection and try again.');
             }
         } finally {
             setLoading(false);
@@ -116,7 +105,7 @@ export default function ForgotPassword() {
                                     </div>
                                     <div>
                                         <p className="font-semibold text-sm" style={{ color: '#004687' }}>Check your inbox!</p>
-                                        <p className="text-gray-600 text-sm mt-1">{message}</p>
+                                        <p className="text-gray-600 text-sm mt-1">If an account exists for {email}, a reset link has been sent.</p>
                                     </div>
                                 </div>
 
@@ -131,35 +120,14 @@ export default function ForgotPassword() {
                                 </div>
 
                                 <button
-                                    onClick={() => { setStatus(null); setEmail(''); setMessage(''); }}
+                                    onClick={() => { setStatus(null); setEmail(''); }}
                                     className="w-full py-3 rounded-xl text-sm font-semibold border-2 transition-all duration-200 hover:opacity-80"
                                     style={{ borderColor: '#004687', color: '#004687' }}
                                 >
                                     Try a different email
                                 </button>
                             </div>
-                        ) : status === 'error' ? (
-                            <div>
-                                <div className="rounded-2xl p-4 mb-5 flex items-start gap-3" style={{ background: '#FFF5F5', border: '1.5px solid #FCA5A5' }}>
-                                    <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <div>
-                                        <p className="font-semibold text-sm text-red-700">Failed to send email</p>
-                                        <p className="text-red-600 text-sm mt-1">{message}</p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => setStatus(null)}
-                                    className="w-full py-3.5 rounded-xl font-semibold text-white text-sm flex items-center justify-center gap-2 transition-opacity hover:opacity-90"
-                                    style={{ background: 'linear-gradient(135deg, #004687, #1E90FF)' }}
-                                >
-                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                    </svg>
-                                    Try Again
-                                </button>
-                            </div>
+
                         ) : (
                             <form onSubmit={handleSubmit} className="space-y-5">
                                 <div>

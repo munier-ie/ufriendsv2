@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ArrowRight, History, Wallet, AlertCircle } from 'lucide-react';
@@ -10,8 +11,7 @@ export default function AirtimeToCash() {
         phoneNumber: ''
     });
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [history, setHistory] = useState([]);
+        const [history, setHistory] = useState([]);
 
     useEffect(() => {
         fetchHistory();
@@ -36,8 +36,6 @@ export default function AirtimeToCash() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setMessage({ type: '', text: '' });
-
         try {
             const token = localStorage.getItem('token');
             await axios.post('http://localhost:3000/api/airtime-cash/request',
@@ -48,11 +46,11 @@ export default function AirtimeToCash() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setMessage({ type: 'success', text: 'Request submitted successfully! awaiting admin approval.' });
+            toast.success('Request submitted successfully! awaiting admin approval.' );
             setFormData({ network: '', amount: '', phoneNumber: '' });
             fetchHistory();
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Request failed' });
+            toast.error(error.response?.data?.error || 'Request failed' );
         } finally {
             setLoading(false);
         }

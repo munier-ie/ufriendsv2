@@ -9,8 +9,7 @@ import CheckCheck from 'lucide-react/dist/esm/icons/check-check';
 import Button from '../../../components/ui/Button';
 
 export default function ContactMessages() {
-    const [messages, setMessages] = useState([]);
-    const [stats, setStats] = useState({ total: 0, unread: 0, replied: 0 });
+        const [stats, setStats] = useState({ total: 0, unread: 0, replied: 0 });
     const [loading, setLoading] = useState(true);
     const [selectedMsg, setSelectedMsg] = useState(null);
     const [replyText, setReplyText] = useState('');

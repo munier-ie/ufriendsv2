@@ -48,8 +48,7 @@ export default function Services() {
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [verifying, setVerifying] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-    const [verifiedName, setVerifiedName] = useState(null);
+        const [verifiedName, setVerifiedName] = useState(null);
     const [showBeneficiaryModal, setShowBeneficiaryModal] = useState(false);
     const [showPinModal, setShowPinModal] = useState(false); // New State
 
@@ -151,8 +150,7 @@ export default function Services() {
             accessToken: ''
         });
         setVerifiedName(null);
-        setMessage({ type: '', text: '' });
-    };
+        };
 
     const handleVerify = async () => {
         const numberToVerify = activeTab === 'electricity' ? formData.meterNumber :
@@ -160,7 +158,7 @@ export default function Services() {
                 formData.recipient;
 
         if (!numberToVerify || numberToVerify.length < 5) {
-            setMessage({ type: 'error', text: 'Please enter a valid number' });
+            toast.error('Please enter a valid number' );
             return;
         }
 
@@ -170,13 +168,11 @@ export default function Services() {
         const providerForVerify = selectedService?.provider || formData.networkId?.toLowerCase();
 
         if (!providerForVerify) {
-            setMessage({ type: 'error', text: `Please select a ${activeTab === 'cable' ? 'Cable TV provider' : 'Disco/Provider'} first` });
+            toast.error(`Please select a ${activeTab === 'cable' ? 'Cable TV provider' : 'Disco/Provider'} first` );
             return;
         }
 
         setVerifying(true);
-        setMessage({ type: '', text: '' });
-
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post('/api/services/verify', {
@@ -193,13 +189,13 @@ export default function Services() {
                 if (res.data.accessToken) {
                     setFormData(prev => ({ ...prev, accessToken: res.data.accessToken }));
                 }
-                setMessage({ type: 'success', text: `Verified: ${res.data.customerName}` });
+                toast.success(`Verified: ${res.data.customerName}` );
             } else {
-                setMessage({ type: 'error', text: 'Verification failed' });
+                toast.error('Verification failed' );
                 setVerifiedName(null);
             }
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Verification failed' });
+            toast.error(error.response?.data?.error || 'Verification failed' );
             setVerifiedName(null);
         } finally {
             setVerifying(false);
@@ -210,7 +206,7 @@ export default function Services() {
         e.preventDefault();
 
         if ((activeTab === 'cable' || activeTab === 'electricity') && !verifiedName) {
-            setMessage({ type: 'error', text: 'Please verify the number first' });
+            toast.error('Please verify the number first' );
             return;
         }
 
@@ -221,13 +217,11 @@ export default function Services() {
 
     const handleFinalSubmit = async () => {
         if (formData.pin.length !== 4) {
-            setMessage({ type: 'error', text: 'Please enter a valid 4-digit PIN' });
+            toast.error('Please enter a valid 4-digit PIN' );
             return;
         }
 
         setSubmitting(true);
-        setMessage({ type: '', text: '' });
-
         try {
             const token = localStorage.getItem('token');
             const endpoint = (activeTab === 'data_pin' || activeTab === 'pins' || activeTab === 'exam') ? '/api/pins/purchase' : '/api/services/purchase';
@@ -250,7 +244,7 @@ export default function Services() {
             if (res.data.token) successMsg += `. TOKEN: ${res.data.token}`;
             if (res.data.pin) successMsg += `. PIN: ${res.data.pin}`;
 
-            setMessage({ type: 'success', text: successMsg });
+            toast.success(successMsg );
             setShowPinModal(false);
             resetForm();
         } catch (error) {
@@ -260,7 +254,7 @@ export default function Services() {
                 toast.error('Incorrect PIN entered');
                 setShowPinModal(false);
             } else {
-                setMessage({ type: 'error', text: errorMsg });
+                toast.error(errorMsg );
                 setShowPinModal(false);
             }
         } finally {
@@ -379,24 +373,6 @@ export default function Services() {
                     </button>
                 ))}
             </div>
-
-            {/* Status Message */}
-            <AnimatePresence>
-                {message.text && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className={`p-4 rounded-xl flex items-center space-x-3 ${message.type === 'success'
-                            ? 'bg-green-50 text-green-700 border border-green-100'
-                            : 'bg-red-50 text-red-700 border border-red-100'
-                            }`}
-                    >
-                        {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                        <span className="font-medium">{message.text}</span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Main Form Area */}
             <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100 relative overflow-hidden">
