@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import Wifi from 'lucide-react/dist/esm/icons/wifi';
@@ -17,8 +18,7 @@ export default function SmileData() {
         amount: ''
     });
     const [submitting, setSubmitting] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-
+    
     // Mock Plans - In real app, fetch from API
     const smilePlans = [
         { id: '1', name: '500MB SmileVoice', price: 500 },
@@ -34,8 +34,6 @@ export default function SmileData() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-        setMessage({ type: '', text: '' });
-
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post('/api/services/purchase', {
@@ -48,10 +46,10 @@ export default function SmileData() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            setMessage({ type: 'success', text: res.data.message });
+            toast.success(res.data.message );
             setFormData({ accountNumber: '', phoneNumber: '', planId: '', amount: '' });
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Transaction failed' });
+            toast.error(error.response?.data?.error || 'Transaction failed' );
         } finally {
             setSubmitting(false);
         }
@@ -69,23 +67,6 @@ export default function SmileData() {
                         <span className="font-bold text-pink-600 text-xl">smile</span>
                     </div>
                 </div>
-
-                <AnimatePresence>
-                    {message.text && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className={`mb-6 p-4 rounded-xl flex items-center space-x-3 ${message.type === 'success'
-                                ? 'bg-green-50 text-green-700 border border-green-100'
-                                : 'bg-red-50 text-red-700 border border-red-100'
-                                }`}
-                        >
-                            {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                            <span className="font-medium">{message.text}</span>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <Input

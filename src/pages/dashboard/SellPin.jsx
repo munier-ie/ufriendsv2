@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,8 +23,7 @@ export default function SellPin() {
     const [receivingNumber, setReceivingNumber] = useState('');
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-    const [message, setMessage] = useState({ type: '', text: '' });
-
+    
     useEffect(() => {
         fetchRates();
     }, []);
@@ -40,7 +40,7 @@ export default function SellPin() {
             }
         } catch (error) {
             console.error('Fetch rates error:', error);
-            setMessage({ type: 'error', text: 'Failed to load current rates' });
+            toast.error('Failed to load current rates' );
         } finally {
             setLoading(false);
         }
@@ -52,8 +52,6 @@ export default function SellPin() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSubmitting(true);
-        setMessage({ type: '', text: '' });
-
         try {
             const token = localStorage.getItem('token');
             const res = await axios.post('/api/airtime-cash/request', {
@@ -66,11 +64,11 @@ export default function SellPin() {
             });
 
             if (res.data.success) {
-                setMessage({ type: 'success', text: res.data.message });
+                toast.success(res.data.message );
                 setStep(3); // Success step
             }
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Request failed' });
+            toast.error(error.response?.data?.error || 'Request failed' );
         } finally {
             setSubmitting(false);
         }
@@ -246,8 +244,7 @@ export default function SellPin() {
                             onClick={() => {
                                 setStep(1);
                                 setFormData({ network: '', amount: '', userPhone: '', pin: '' });
-                                setMessage({ type: '', text: '' });
-                            }}
+                                }}
                             className="w-full py-3 rounded-xl"
                         >
                             Done
