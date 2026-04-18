@@ -258,14 +258,14 @@ export default function DashboardLayout() {
             {/* Mobile Sidebar Overlay — must sit above topbar (z-30) but managed with sidebar */}
             {isMobileMenuOpen && (
                 <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[55] md:hidden transition-opacity duration-300"
+                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden transition-opacity duration-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                 />
             )}
 
-            {/* Sidebar — z-[60] so it sits above the overlay on mobile and above topbar always */}
+            {/* Sidebar — z-40 so it sits above the overlay on mobile and above topbar always */}
             <aside
-                className={`fixed inset-y-0 left-0 z-[60] w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 md:z-auto ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 md:z-auto ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 <div className="p-6 flex items-center justify-between">
@@ -316,7 +316,7 @@ export default function DashboardLayout() {
             <main className="flex-1 overflow-auto relative">
                 {/* Background Pattern - Crosshatch Art */}
                 <div
-                    className="absolute inset-0 z-0 pointer-events-none"
+                    className="fixed inset-0 -z-10 pointer-events-none"
                     style={{
                         backgroundImage: `
 repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85, 99, 0.06) 2px, rgba(75, 85, 99, 0.06) 3px, transparent 3px, transparent 8px),
@@ -354,7 +354,7 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                         </Link>
                     </div>
                 </header>
-                <div className="p-3 sm:p-6 relative z-10 max-w-7xl mx-auto">
+                <div className="p-3 sm:p-6 max-w-7xl mx-auto">
                     <Outlet context={{ globalSettings }} />
                 </div>
                 
