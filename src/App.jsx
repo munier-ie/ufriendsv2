@@ -1,5 +1,33 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import axios from 'axios';
+
+// ─── Global Session Expiry Interceptor ───────────────────────────────────────
+// Catches any 401 Unauthorized response across the entire app.
+// Clears stored credentials and redirects to the appropriate login page.
+axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            const currentPath = window.location.pathname;
+            const isAdminRoute = currentPath.startsWith('/admin');
+
+            // Clear all stored session data
+            localStorage.removeItem('token');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('adminUser');
+
+            // Redirect to the correct login page (only if not already on a login page)
+            if (isAdminRoute && !currentPath.includes('/admin/login')) {
+                window.location.href = '/admin/login';
+            } else if (!isAdminRoute && !currentPath.includes('/login') && !currentPath.includes('/register') && !currentPath.includes('/forgot-password') && !currentPath.includes('/reset-password')) {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/Login';
 import Register from './pages/Register';
