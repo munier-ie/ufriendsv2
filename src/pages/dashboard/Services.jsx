@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -710,6 +711,7 @@ export default function Services() {
                 </form>
 
                 {/* PIN Verification Modal */}
+                {createPortal(
                 <AnimatePresence>
                     {showPinModal && (
                         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -764,7 +766,9 @@ export default function Services() {
                             </motion.div>
                         </div>
                     )}
-                </AnimatePresence>
+                </AnimatePresence>,
+                document.body
+                )}
 
                 {/* Beneficiary Modal */}
                 <AnimatePresence>
