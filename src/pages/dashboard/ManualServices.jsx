@@ -944,9 +944,7 @@ export default function ManualServices() {
                                     className="text-2xl tracking-widest text-center font-bold"
                                     autoFocus
                                 />
-                                {message.type === 'error' && (
-                                    <p className="text-red-600 text-sm font-medium">{message.text}</p>
-                                )}
+
                                 <div className="flex gap-3 pt-1">
                                     <Button
                                         variant="outline"
