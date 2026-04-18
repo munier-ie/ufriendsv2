@@ -18,6 +18,7 @@ export default function Support() {
     // Form state
     const [subject, setSubject] = useState('');
     const [messageContent, setMessageContent] = useState('');
+    const [messages, setMessages] = useState([]);
 
     useEffect(() => {
         fetchMessages();
