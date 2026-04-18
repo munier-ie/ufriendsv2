@@ -445,8 +445,14 @@ export default function ManualServices() {
             fetchHistory();
         } catch (err) {
             const errMsg = err.response?.data?.error || 'Submission failed';
-            setMessage({ type: 'error', text: errMsg });
-            if (!errMsg.toLowerCase().includes('pin')) setShowPinModal(false);
+            
+            if (errMsg.toLowerCase().includes('pin')) {
+                toast.error('Incorrect PIN entered');
+                setShowPinModal(false);
+            } else {
+                setMessage({ type: 'error', text: errMsg });
+                setShowPinModal(false);
+            }
         } finally {
             setSubmitting(false);
         }

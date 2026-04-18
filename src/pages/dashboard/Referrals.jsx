@@ -18,6 +18,7 @@ export default function Referrals() {
     const [withdrawAmount, setWithdrawAmount] = useState('');
     const [withdrawLoading, setWithdrawLoading] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [codeCopied, setCodeCopied] = useState(false);
     const [tcOpen, setTcOpen] = useState(false);
 
     useEffect(() => {
@@ -41,7 +42,7 @@ export default function Referrals() {
     const handleCopy = () => {
         const code = stats?.referralCode;
         if (!code) {
-            setMessage({ type: 'error', text: 'Referral code not available yet' });
+            toast.error('Referral code not available yet');
             return;
         }
 
@@ -55,14 +56,36 @@ export default function Referrals() {
                 })
                 .catch(err => {
                     console.error('Clipboard error:', err);
-                    fallbackCopyTextToClipboard(link);
+                    fallbackCopyTextToClipboard(link, setCopied);
                 });
         } else {
-            fallbackCopyTextToClipboard(link);
+            fallbackCopyTextToClipboard(link, setCopied);
         }
     };
 
-    const fallbackCopyTextToClipboard = (text) => {
+    const handleCopyCode = () => {
+        const code = stats?.referralCode;
+        if (!code) {
+            toast.error('Referral code not available yet');
+            return;
+        }
+
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(code)
+                .then(() => {
+                    setCodeCopied(true);
+                    setTimeout(() => setCodeCopied(false), 2000);
+                })
+                .catch(err => {
+                    console.error('Clipboard error:', err);
+                    fallbackCopyTextToClipboard(code, setCodeCopied);
+                });
+        } else {
+            fallbackCopyTextToClipboard(code, setCodeCopied);
+        }
+    };
+
+    const fallbackCopyTextToClipboard = (text, setCopyState) => {
         const textArea = document.createElement("textarea");
         textArea.value = text;
         textArea.style.position = "fixed";
@@ -71,8 +94,8 @@ export default function Referrals() {
         textArea.select();
         try {
             document.execCommand('copy');
-            setCopied(true);
-            setTimeout(() => setCopied(false), 2000);
+            setCopyState(true);
+            setTimeout(() => setCopyState(false), 2000);
         } catch (err) {
             console.error('Fallback copy failed:', err);
         }
@@ -143,22 +166,39 @@ export default function Referrals() {
             {/* Referral Link & Withdraw */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Link Section */}
-                <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Your Referral Link</h3>
-                    <div className="flex items-center space-x-2">
-                        <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate font-mono">
-                            {`${window.location.origin}/register?referral=${stats?.referralCode}`}
+                <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col justify-center space-y-6">
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">Your Referral Link</h3>
+                        <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate font-mono">
+                                {`${window.location.origin}/register?referral=${stats?.referralCode}`}
+                            </div>
+                            <button
+                                onClick={handleCopy}
+                                className="bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-xl flex items-center transition-colors shrink-0"
+                            >
+                                {copied ? <CheckCheck size={20} /> : <Copy size={20} />}
+                            </button>
                         </div>
-                        <button
-                            onClick={handleCopy}
-                            className="bg-primary hover:bg-primary/90 text-white px-4 py-3 rounded-xl flex items-center transition-colors"
-                        >
-                            {copied ? <CheckCheck size={20} /> : <Copy size={20} />}
-                        </button>
                     </div>
-                    <p className="text-sm text-gray-500 mt-3">
-                        Share this link with your friends. When they register and upgrade or make purchases, you earn a commission!
-                    </p>
+                    
+                    <div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-4">Your Referral Code</h3>
+                        <div className="flex items-center space-x-2">
+                            <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-600 truncate font-mono font-bold tracking-widest uppercase">
+                                {stats?.referralCode}
+                            </div>
+                            <button
+                                onClick={handleCopyCode}
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-xl flex items-center transition-colors shrink-0"
+                            >
+                                {codeCopied ? <CheckCheck size={20} /> : <Copy size={20} />}
+                            </button>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-3">
+                            Share this link or code with your friends. When they register and upgrade or make purchases, you earn a commission!
+                        </p>
+                    </div>
                 </div>
 
                 {/* Withdraw Section */}

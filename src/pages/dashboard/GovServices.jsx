@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { toast } from 'sonner';
 import Landmark from 'lucide-react/dist/esm/icons/landmark';
 import FileText from 'lucide-react/dist/esm/icons/file-text';
 import Briefcase from 'lucide-react/dist/esm/icons/briefcase';
@@ -314,8 +315,13 @@ export default function GovServices() {
                 setFormData(INITIAL_FORM);
             }
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Request failed' });
-            if (!error.response?.data?.error?.toLowerCase().includes('pin')) {
+            const errorMsg = error.response?.data?.error || 'Request failed';
+            
+            if (errorMsg.toLowerCase().includes('pin')) {
+                toast.error('Incorrect PIN entered');
+                setShowPinModal(false);
+            } else {
+                setMessage({ type: 'error', text: errorMsg });
                 setShowPinModal(false);
             }
         } finally {
