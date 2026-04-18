@@ -312,23 +312,24 @@ export default function DashboardLayout() {
                 </div>
             </aside>
 
-            {/* Main Content */}
-            <main className="flex-1 overflow-auto relative">
+            {/* Main Wrapper */}
+            <div className="flex-1 flex flex-col min-w-0 relative">
                 {/* Background Pattern - Crosshatch Art */}
                 <div
-                    className="fixed inset-0 -z-10 pointer-events-none"
+                    className="absolute inset-0 pointer-events-none"
                     style={{
+                        zIndex: -1,
                         backgroundImage: `
-repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85, 99, 0.06) 2px, rgba(75, 85, 99, 0.06) 3px, transparent 3px, transparent 8px),
-    repeating - linear - gradient(67.5deg, transparent, transparent 2px, rgba(107, 114, 128, 0.05) 2px, rgba(107, 114, 128, 0.05) 3px, transparent 3px, transparent 8px),
-    repeating - linear - gradient(112.5deg, transparent, transparent 2px, rgba(55, 65, 81, 0.04) 2px, rgba(55, 65, 81, 0.04) 3px, transparent 3px, transparent 8px),
-    repeating - linear - gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 55, 0.03) 2px, rgba(31, 41, 55, 0.03) 3px, transparent 3px, transparent 8px)
-        `,
+repeating-linear-gradient(22.5deg, transparent, transparent 2px, rgba(75, 85, 99, 0.06) 2px, rgba(75, 85, 99, 0.06) 3px, transparent 3px, transparent 8px),
+repeating-linear-gradient(67.5deg, transparent, transparent 2px, rgba(107, 114, 128, 0.05) 2px, rgba(107, 114, 128, 0.05) 3px, transparent 3px, transparent 8px),
+repeating-linear-gradient(112.5deg, transparent, transparent 2px, rgba(55, 65, 81, 0.04) 2px, rgba(55, 65, 81, 0.04) 3px, transparent 3px, transparent 8px),
+repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 55, 0.03) 2px, rgba(31, 41, 55, 0.03) 3px, transparent 3px, transparent 8px)
+`
                     }}
                 />
 
-                {/* Topbar — z-20 keeps it above page content when scrolling, but below modal overlays (z-50) */}
-                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 sticky top-0 z-20 flex items-center justify-between shadow-sm">
+                {/* Topbar — now separated from scrolling content */}
+                <header className="bg-white/80 backdrop-blur-xl border-b border-white/20 p-4 z-10 sticky top-0 flex items-center justify-between shadow-sm shrink-0">
                     <div className="flex items-center space-x-3">
                         <button
                             onClick={() => setIsMobileMenuOpen(true)}
@@ -354,6 +355,10 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                         </Link>
                     </div>
                 </header>
+
+                {/* Main Scrolling Content */}
+                <main id="main-content" className="flex-1 overflow-auto">
+
                 <div className="p-3 sm:p-6 max-w-7xl mx-auto">
                     <Outlet context={{ globalSettings }} />
                 </div>
@@ -383,7 +388,8 @@ repeating - linear - gradient(22.5deg, transparent, transparent 2px, rgba(75, 85
                         </span>
                     </motion.div>
                 )}
-            </main>
+                </main>
+            </div>
         </div>
     );
 }

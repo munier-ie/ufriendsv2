@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -334,40 +335,41 @@ export default function UserManagement() {
             </div>
 
             {/* User Detail Modal */}
-            <AnimatePresence>
-                {selectedUser && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
-                        >
-                            <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-                                <h2 className="text-xl font-bold">User Details</h2>
-                                <button onClick={() => setSelectedUser(null)} className="p-1 hover:bg-gray-100 rounded-full">
-                                    <X size={20} />
-                                </button>
-                            </div>
+            {createPortal(
+                <AnimatePresence>
+                    {selectedUser && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="bg-white rounded-2xl shadow-xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col"
+                            >
+                                <div className="p-4 border-b border-gray-100 flex justify-between items-center">
+                                    <h2 className="text-xl font-bold">User Details</h2>
+                                    <button onClick={() => setSelectedUser(null)} className="p-1 hover:bg-gray-100 rounded-full">
+                                        <X size={20} />
+                                    </button>
+                                </div>
 
-                            {detailLoading || !userDetail ? (
-                                <div className="flex-1 flex justify-center items-center p-12"><Loader2 className="animate-spin" /></div>
-                            ) : (
-                                <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
-                                    {/* Sidebar Tabs */}
-                                    <div className="w-full md:w-64 bg-gray-50 p-4 border-r border-gray-100">
-                                        <div className="text-center mb-6">
-                                            <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center text-3xl font-bold text-primary mb-2">
-                                                {userDetail.firstName?.[0]}
+                                {detailLoading || !userDetail ? (
+                                    <div className="flex-1 flex justify-center items-center p-12"><Loader2 className="animate-spin" /></div>
+                                ) : (
+                                    <div className="flex-1 overflow-y-auto flex flex-col md:flex-row">
+                                        {/* Sidebar Tabs */}
+                                        <div className="w-full md:w-64 bg-gray-50 p-4 border-r border-gray-100">
+                                            <div className="text-center mb-6">
+                                                <div className="w-20 h-20 mx-auto bg-primary/10 rounded-full flex items-center justify-center text-3xl font-bold text-primary mb-2">
+                                                    {userDetail.firstName?.[0]}
+                                                </div>
+                                                <h3 className="font-bold text-gray-900">{userDetail.firstName} {userDetail.lastName}</h3>
+                                                <p className="text-sm text-gray-500">{userDetail.email}</p>
                                             </div>
-                                            <h3 className="font-bold text-gray-900">{userDetail.firstName} {userDetail.lastName}</h3>
-                                            <p className="text-sm text-gray-500">{userDetail.email}</p>
-                                        </div>
-                                        <nav className="space-y-1">
-                                            {[
-                                                { id: 'profile', label: 'Profile', icon: User },
-                                                { id: 'wallet', label: 'Wallet & Funding', icon: Wallet },
-                                                { id: 'kyc', label: 'KYC & Verification', icon: FileText },
+                                            <nav className="space-y-1">
+                                                {[
+                                                    { id: 'profile', label: 'Profile', icon: User },
+                                                    { id: 'wallet', label: 'Wallet & Funding', icon: Wallet },
+                                                    { id: 'kyc', label: 'KYC & Verification', icon: FileText },
                                                 { id: 'transactions', label: 'Recent Activity', icon: History },
                                             ].map(item => (
                                                 <button
@@ -611,6 +613,9 @@ export default function UserManagement() {
                         </form>
                     </div>
                 </div>
+            )}
+            </AnimatePresence>,
+            document.body
             )}
         </div>
     );
