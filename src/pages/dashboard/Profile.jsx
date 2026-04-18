@@ -50,10 +50,11 @@ export default function Profile() {
         currentPin: ''
     });
 
-    // Change PIN form state (when PIN is already enabled)
+    // Reset PIN form state (when PIN is already enabled)
     const [changePinMode, setChangePinMode] = useState(false);
+    const [resetPinStep, setResetPinStep] = useState('initial');
     const [changePinForm, setChangePinForm] = useState({
-        currentPin: '',
+        otp: '',
         newPin: '',
         confirmPin: ''
     });
@@ -114,7 +115,23 @@ export default function Profile() {
         }
     };
 
-    const handleChangePinSubmit = async (e) => {
+    const handleRequestPinReset = async () => {
+        setChangePinLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('/api/auth/pin/forgot', {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success('Reset OTP sent to your email!');
+            setResetPinStep('otp_sent');
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to request PIN reset');
+        } finally {
+            setChangePinLoading(false);
+        }
+    };
+
+    const handleResetPinSubmit = async (e) => {
         e.preventDefault();
         if (changePinForm.newPin !== changePinForm.confirmPin) {
             toast.error('New PINs do not match');
@@ -123,14 +140,15 @@ export default function Profile() {
         setChangePinLoading(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post('/api/auth/pin/reset', changePinForm, {
+            await axios.post('/api/auth/pin/reset-with-otp', changePinForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('Transaction PIN changed successfully!');
-            setChangePinForm({ currentPin: '', newPin: '', confirmPin: '' });
+            toast.success('Transaction PIN reset successfully!');
+            setChangePinForm({ otp: '', newPin: '', confirmPin: '' });
+            setResetPinStep('initial');
             setChangePinMode(false);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to change PIN');
+            toast.error(error.response?.data?.error || 'Failed to reset PIN');
         } finally {
             setChangePinLoading(false);
         }
@@ -431,10 +449,10 @@ export default function Profile() {
                             </div>
                         ) : (
                             <div className="space-y-4">
-                                {/* Toggle between Disable and Change PIN */}
+                                {/********** Toggle between Disable and Reset PIN **********/}
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => setChangePinMode(false)}
+                                        onClick={() => { setChangePinMode(false); setResetPinStep('initial'); }}
                                         className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
                                             !changePinMode ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                         }`}
@@ -448,7 +466,7 @@ export default function Profile() {
                                         }`}
                                     >
                                         <RefreshCw size={14} className="inline mr-1" />
-                                        Change PIN
+                                        Reset PIN
                                     </button>
                                 </div>
 
@@ -478,57 +496,84 @@ export default function Profile() {
                                         </button>
                                     </div>
                                 ) : (
-                                    <form onSubmit={handleChangePinSubmit} className="space-y-4">
-                                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                            <p className="text-sm text-blue-800">
-                                                <Shield className="w-4 h-4 inline mr-1" />
-                                                Enter your current PIN then set a new one.
-                                            </p>
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Current PIN</label>
-                                            <input
-                                                type="password"
-                                                maxLength={4}
-                                                value={changePinForm.currentPin}
-                                                onChange={(e) => setChangePinForm({ ...changePinForm, currentPin: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                placeholder="****"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">New PIN</label>
-                                            <input
-                                                type="password"
-                                                maxLength={4}
-                                                value={changePinForm.newPin}
-                                                onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                placeholder="****"
-                                                required
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New PIN</label>
-                                            <input
-                                                type="password"
-                                                maxLength={4}
-                                                value={changePinForm.confirmPin}
-                                                onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value })}
-                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                placeholder="****"
-                                                required
-                                            />
-                                        </div>
-                                        <button
-                                            type="submit"
-                                            disabled={changePinLoading}
-                                            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
-                                        >
-                                            {changePinLoading ? 'Changing...' : 'Change PIN'}
-                                        </button>
-                                    </form>
+                                    <div className="space-y-4">
+                                        {resetPinStep === 'initial' ? (
+                                            <div className="space-y-4">
+                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                                    <p className="text-sm text-blue-800">
+                                                        <Shield className="w-4 h-4 inline mr-1" />
+                                                        Click below to receive a PIN reset OTP sent to your email.
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={handleRequestPinReset}
+                                                    disabled={changePinLoading}
+                                                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                                >
+                                                    {changePinLoading ? 'Requesting...' : 'Request Reset OTP'}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <form onSubmit={handleResetPinSubmit} className="space-y-4">
+                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                                    <p className="text-sm text-blue-800">
+                                                        <Shield className="w-4 h-4 inline mr-1" />
+                                                        Enter the OTP sent to your email and your new PIN.
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email OTP</label>
+                                                    <input
+                                                        type="text"
+                                                        maxLength={6}
+                                                        value={changePinForm.otp}
+                                                        onChange={(e) => setChangePinForm({ ...changePinForm, otp: e.target.value.replace(/\D/g, '') })}
+                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent text-center tracking-[0.2em] font-bold"
+                                                        placeholder="000000"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">New PIN</label>
+                                                    <input
+                                                        type="password"
+                                                        maxLength={4}
+                                                        value={changePinForm.newPin}
+                                                        onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        placeholder="****"
+                                                        required
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New PIN</label>
+                                                    <input
+                                                        type="password"
+                                                        maxLength={4}
+                                                        value={changePinForm.confirmPin}
+                                                        onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value })}
+                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                        placeholder="****"
+                                                        required
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="submit"
+                                                    disabled={changePinLoading || changePinForm.otp.length !== 6 || changePinForm.newPin.length !== 4}
+                                                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
+                                                >
+                                                    {changePinLoading ? 'Resetting...' : 'Verify OTP & Reset PIN'}
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setResetPinStep('initial')}
+                                                    className="w-full text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm mt-2"
+                                                >
+                                                    Back
+                                                </button>
+                                            </form>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         )}

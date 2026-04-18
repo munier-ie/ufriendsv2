@@ -2,6 +2,7 @@ import React, { useState, useEffect, useTransition } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { toast } from 'sonner';
 import Phone from 'lucide-react/dist/esm/icons/phone';
 import Wifi from 'lucide-react/dist/esm/icons/wifi';
 import Tv from 'lucide-react/dist/esm/icons/tv';
@@ -253,11 +254,13 @@ export default function Services() {
             setShowPinModal(false);
             resetForm();
         } catch (error) {
-            setMessage({ type: 'error', text: error.response?.data?.error || 'Transaction failed' });
-            // Don't close modal on error so user can retry PIN if it was wrong PIN, 
-            // but if it's strictly transaction failure, maybe close?
-            // User requested: "Then ask for pin". If pin is wrong, we stay.
-            if (!error.response?.data?.error?.toLowerCase().includes('pin')) {
+            const errorMsg = error.response?.data?.error || 'Transaction failed';
+            
+            if (errorMsg.toLowerCase().includes('pin')) {
+                toast.error('Incorrect PIN entered');
+                setShowPinModal(false);
+            } else {
+                setMessage({ type: 'error', text: errorMsg });
                 setShowPinModal(false);
             }
         } finally {

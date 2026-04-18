@@ -698,6 +698,95 @@ router.post('/pin/reset', authenticateUser, async (req, res) => {
 });
 
 // Get PIN Status — uses middleware for consistent blocked-account checks  
+router.post('/pin/forgot', authenticateUser, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        // Generate OTP
+        const otpCode = crypto.randomInt(100000, 999999);
+        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+        });
+
+        const nodemailer = require('nodemailer');
+        try {
+            const transporter = nodemailer.createTransport({
+                host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                port: process.env.SMTP_PORT || 587,
+                secure: process.env.SMTP_PORT === '465',
+                auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
+            });
+            await transporter.sendMail({
+                from: process.env.EMAIL_FROM || process.env.SMTP_USER,
+                to: user.email,
+                subject: 'UFriends PIN Reset OTP',
+                html: `<p>Hello ${user.firstName},</p>
+                       <p>You requested to reset your transaction PIN.</p>
+                       <p>Your OTP is: <strong style="font-size:24px;">${otpCode}</strong></p>
+                       <p>This code expires in 10 minutes. If you did not request this, please secure your account.</p>`
+            });
+        } catch (err) {
+            console.error("Failed to send PIN reset email", err);
+            return res.status(500).json({ error: 'Failed to send OTP email' });
+        }
+
+        res.json({ message: 'OTP sent to your email successfully.' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+router.post('/pin/reset-with-otp', authenticateUser, async (req, res) => {
+    try {
+        const { otp, newPin, confirmPin } = req.body;
+        
+        if (!otp || !newPin || !confirmPin) {
+            return res.status(400).json({ error: 'OTP, new PIN, and confirmation are required' });
+        }
+
+        if (newPin !== confirmPin) {
+            return res.status(400).json({ error: 'New PINs do not match' });
+        }
+
+        if (newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+            return res.status(400).json({ error: 'PIN must be exactly 4 digits' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        if (!user.emailVerifyCode || !user.emailVerifyExpiry || user.emailVerifyExpiry < new Date()) {
+            return res.status(400).json({ error: 'OTP expired or invalid. Please request a new one.' });
+        }
+
+        if (user.emailVerifyCode.toString() !== otp.toString()) {
+            return res.status(400).json({ error: 'Incorrect OTP.' });
+        }
+
+        const hashedPin = await bcrypt.hash(newPin, 10);
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { 
+                transactionPin: hashedPin,
+                pinEnabled: true,
+                emailVerifyCode: null,
+                emailVerifyExpiry: null
+            }
+        });
+
+        res.json({ message: 'Transaction PIN reset successfully' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// Get PIN Status — uses middleware for consistent blocked-account checks  
 router.get('/pin/status', authenticateUser, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
