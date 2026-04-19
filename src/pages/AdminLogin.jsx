@@ -172,9 +172,11 @@ export default function AdminLogin() {
                             <Input
                                 label="Transaction PIN"
                                 type="password"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 maxLength="4"
                                 value={formData.pin}
-                                onChange={(e) => setFormData({ ...formData, pin: e.target.value })}
+                                onChange={(e) => setFormData({ ...formData, pin: e.target.value.replace(/\D/g, '') })}
                                 required
                                 placeholder="Enter 4-digit PIN"
                                 icon={
@@ -200,6 +202,8 @@ export default function AdminLogin() {
                             <Input
                                 label="2FA Code"
                                 type="text"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 maxLength="6"
                                 value={verificationCode}
                                 onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}

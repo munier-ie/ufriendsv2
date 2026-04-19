@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { z } = require('zod');
-const { sendWelcomeEmail, sendLoginAlert } = require('../services/email.service');
+const { sendWelcomeEmail, sendLoginAlert, sendVerificationOtpEmail, send2FaOtpEmail } = require('../services/email.service');
 const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
 const authenticateUser = require('../middleware/auth');
@@ -204,26 +204,9 @@ router.post('/access', loginRateLimit, async (req, res) => {
                 data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
             });
             
-            const nodemailer = require('nodemailer');
-            try {
-                const transporter = nodemailer.createTransport({
-                    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                    port: process.env.SMTP_PORT || 587,
-                    secure: process.env.SMTP_PORT === '465',
-                    auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-                });
-                await transporter.sendMail({
-                    from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-                    to: user.email,
-                    subject: 'UFriends Email Verification',
-                    html: `<p>Hello ${user.firstName},</p>
-                           <p>Welcome to Ufriends! Please verify your email.</p>
-                           <p>Your verification code is: <strong style="font-size:24px;">${otpCode}</strong></p>
-                           <p>This code expires in 15 minutes.</p>`
-                });
-            } catch (err) {
+            sendVerificationOtpEmail(user, otpCode).catch(err => {
                 console.error("Failed to send OTP email", err);
-            }
+            });
 
             return res.json({ 
                 success: true, 
@@ -243,25 +226,9 @@ router.post('/access', loginRateLimit, async (req, res) => {
                     where: { id: user.id },
                     data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry } // reuse columns for 2fa
                 });
-                const nodemailer = require('nodemailer');
-                try {
-                    const transporter = nodemailer.createTransport({
-                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                        port: process.env.SMTP_PORT || 587,
-                        secure: process.env.SMTP_PORT === '465',
-                        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-                    });
-                    await transporter.sendMail({
-                        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-                        to: user.email,
-                        subject: 'UFriends 2FA Login',
-                        html: `<p>Hello ${user.firstName},</p>
-                               <p>Your 2FA login code is: <strong style="font-size:24px;">${otpCode}</strong></p>
-                               <p>This code expires in 10 minutes.</p>`
-                    });
-                } catch (err) {
+                send2FaOtpEmail(user, otpCode).catch(err => {
                     console.error("Failed to send 2FA email", err);
-                }
+                });
             }
 
             return res.json({ 
@@ -413,21 +380,9 @@ router.post('/verify-email', async (req, res) => {
                     where: { id: user.id },
                     data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
                 });
-                const nodemailer = require('nodemailer');
-                try {
-                    const transporter = nodemailer.createTransport({
-                        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                        port: process.env.SMTP_PORT || 587,
-                        secure: process.env.SMTP_PORT === '465',
-                        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-                    });
-                    await transporter.sendMail({
-                        from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-                        to: user.email,
-                        subject: 'UFriends 2FA Login',
-                        html: `<p>Your 2FA login code is: <strong>${otpCode}</strong></p>`
-                    });
-                } catch (err) {}
+                send2FaOtpEmail(updatedUser, otpCode).catch(err => {
+                    console.error("Failed to send 2FA email during verify email flow", err);
+                });
             }
 
             return res.json({ 
@@ -712,27 +667,10 @@ router.post('/pin/forgot', authenticateUser, async (req, res) => {
             data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
         });
 
-        const nodemailer = require('nodemailer');
-        try {
-            const transporter = nodemailer.createTransport({
-                host: process.env.SMTP_HOST || 'smtp.gmail.com',
-                port: process.env.SMTP_PORT || 587,
-                secure: process.env.SMTP_PORT === '465',
-                auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
-            });
-            await transporter.sendMail({
-                from: process.env.EMAIL_FROM || process.env.SMTP_USER,
-                to: user.email,
-                subject: 'UFriends PIN Reset OTP',
-                html: `<p>Hello ${user.firstName},</p>
-                       <p>You requested to reset your transaction PIN.</p>
-                       <p>Your OTP is: <strong style="font-size:24px;">${otpCode}</strong></p>
-                       <p>This code expires in 10 minutes. If you did not request this, please secure your account.</p>`
-            });
-        } catch (err) {
+        sendVerificationOtpEmail({ firstName: user.firstName, email: user.email }, otpCode).catch(err => {
             console.error("Failed to send PIN reset email", err);
             return res.status(500).json({ error: 'Failed to send OTP email' });
-        }
+        });
 
         res.json({ message: 'OTP sent to your email successfully.' });
     } catch (error) {

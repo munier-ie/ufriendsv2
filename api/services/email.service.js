@@ -70,8 +70,12 @@ async function sendEmailStrict(to, subject, html) {
 async function sendWelcomeEmail(user) {
     const subject = 'Welcome to Ufriends!';
     const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #007bff;">Welcome to Ufriends, ${user.firstName}!</h2>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background-color: #004687; padding: 30px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Welcome to Ufriends!</h1>
+            </div>
+            <div style="padding: 30px;">
+                <h2 style="color: #004687; margin-top: 0;">Hello ${user.firstName},</h2>
             <p>We are excited to have you on board. Your account has been successfully created.</p>
             <p>You can now log in and start enjoying our services:</p>
             <ul>
@@ -90,8 +94,11 @@ async function sendWelcomeEmail(user) {
                 </a>
             </div>
             <br>
-            <p>Best regards,</p>
-            <p>The Ufriends Team</p>
+                <p>Best regards,<br>The Ufriends Team</p>
+            </div>
+            <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #64748b;">
+                &copy; ${new Date().getFullYear()} Ufriends. All rights reserved.
+            </div>
         </div>
     `;
     return sendEmail(user.email, subject, html);
@@ -112,8 +119,7 @@ async function sendLoginAlert(user, deviceInfo) {
             <br>
             <p>If this was you, you can ignore this email. If you did not authorize this login, please contact support immediately and change your password.</p>
             <br>
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
                     Log In to Secure Account
                 </a>
             </div>
@@ -224,7 +230,7 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
 
             <br>
             <div style="text-align: center; margin-top: 20px;">
-                <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/admin/dashboard" style="background-color: #17a2b8; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Review in Dashboard</a>
+                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard" style="background-color: #004687; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Review in Dashboard</a>
             </div>
         </div>
     `;
@@ -237,20 +243,49 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
 async function send2FaOtpEmail(user, otpCode, isLoginPage = true) {
     const subject = isLoginPage ? 'Ufriends 2FA Login Code' : 'Ufriends 2FA Setup Code';
     const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #1e90ff; border-radius: 12px; padding: 30px; background-color: #ffffff;">
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #004687; border-radius: 12px; padding: 30px; background-color: #ffffff;">
             <div style="text-align: center; margin-bottom: 30px;">
-                <h2 style="color: #1e90ff; margin: 0; font-size: 24px;">Security Verification</h2>
+                <h2 style="color: #004687; margin: 0; font-size: 24px;">Security Verification</h2>
             </div>
             <p style="color: #333333; font-size: 16px; margin-bottom: 20px;">Hello <strong>${user.firstName}</strong>,</p>
             <p style="color: #555555; font-size: 15px; line-height: 1.5; margin-bottom: 25px;">
                 ${isLoginPage ? 'Someone is trying to log into your Ufriends account.' : 'You are setting up two-factor authentication on your account.'} 
                 Use the verification code below to complete the process.
             </p>
-            <div style="background-color: #f8fbff; border: 2px dashed #1e90ff; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 30px;">
-                <span style="font-family: monospace; font-size: 42px; font-weight: bold; letter-spacing: 8px; color: #1e90ff;">${otpCode}</span>
+            <div style="background-color: #f0f7ff; border: 2px dashed #004687; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 30px;">
+                <span style="font-family: monospace; font-size: 42px; font-weight: bold; letter-spacing: 8px; color: #004687;">${otpCode}</span>
             </div>
             <p style="color: #999999; font-size: 12px; text-align: center; margin-bottom: 0;">
                 This code expires in 10 minutes. If you did not request this, please change your password immediately.
+            </p>
+        </div>
+    `;
+    return sendEmail(user.email, subject, html);
+}
+
+/**
+ * Send Email Verification OTP
+ */
+async function sendVerificationOtpEmail(user, otpCode) {
+    const subject = 'Verify your Ufriends account';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #004687; border-radius: 12px; padding: 30px; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #004687; margin: 0; font-size: 24px;">Welcome to Ufriends!</h2>
+            </div>
+            <p style="color: #333333; font-size: 16px; margin-bottom: 20px;">Hello <strong>${user.firstName}</strong>,</p>
+            <p style="color: #555555; font-size: 15px; line-height: 1.5; margin-bottom: 25px;">
+                Thank you for joining Ufriends. To complete your registration and start enjoying our services, please verify your email address using the code below:
+            </p>
+            <div style="background-color: #f0f7ff; border: 2px dashed #004687; border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 30px;">
+                <span style="font-family: monospace; font-size: 42px; font-weight: bold; letter-spacing: 8px; color: #004687;">${otpCode}</span>
+            </div>
+            <p style="color: #666666; font-size: 14px; text-align: center; margin-bottom: 25px;">
+                This code will expire in 15 minutes.
+            </p>
+            <hr style="border: 0; border-top: 1px solid #eeeeee; margin: 30px 0;">
+            <p style="color: #999999; font-size: 12px; text-align: center; margin-bottom: 0; line-height: 1.4;">
+                If you did not create an account on Ufriends, please ignore this email.
             </p>
         </div>
     `;
@@ -313,6 +348,7 @@ module.exports = {
     sendAdminAlert,
     sendAdminServiceRequestNotification,
     send2FaOtpEmail,
+    sendVerificationOtpEmail,
     sendSystemUpdateEmail
 };
 
