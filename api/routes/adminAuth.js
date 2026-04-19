@@ -152,10 +152,11 @@ router.post('/access', async (req, res) => {
 
     } catch (error) {
         clearTimeout(timeout);
-        if (res.headersSent) return; // timeout already sent a response
+        if (res.headersSent) return; // timeout already sent response
         if (error instanceof z.ZodError) {
             console.log('[admin-access] ✗ zod validation error', Date.now() - t0, 'ms');
-            return res.status(400).json({ success: false, error: error.errors[0].message });
+            const msg = error.errors?.[0]?.message ?? 'Invalid request data';
+            return res.status(400).json({ success: false, error: msg });
         }
         console.error('[admin-access] ✗ unhandled error', Date.now() - t0, 'ms:', error);
         res.status(500).json({ success: false, error: 'Internal server error' });

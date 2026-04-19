@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import PageMeta from '../seo/PageMeta';
 import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
 import User from 'lucide-react/dist/esm/icons/user';
 import Wallet from 'lucide-react/dist/esm/icons/wallet';
@@ -94,8 +95,7 @@ export default function DashboardLayout() {
                     const favicon = document.querySelector('link[rel="icon"]');
                     if (favicon) favicon.href = settings.faviconUrl;
                 }
-                // Dynamic page title per route could be done here too
-                document.title = settings.siteName || 'Ufriends 2.0';
+                // Note: page title is now managed by react-helmet-async (PageMeta with noIndex)
             }
         } catch (error) {
             console.error('Failed to fetch site settings', error);
@@ -255,6 +255,8 @@ export default function DashboardLayout() {
 
     return (
         <div className="flex h-[100dvh] bg-tertiary overflow-hidden">
+            {/* noindex: all dashboard/admin pages should not be indexed by search engines */}
+            <PageMeta noIndex={true} />
             {/* Mobile Sidebar Overlay — must sit above topbar (z-30) but managed with sidebar */}
             {isMobileMenuOpen && (
                 <div

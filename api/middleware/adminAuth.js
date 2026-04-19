@@ -3,7 +3,9 @@ const prisma = require('../../prisma/client'); // [SEC] Use shared singleton —
 
 async function adminAuth(req, res, next) {
     try {
-        const token = req.headers.authorization?.replace('Bearer ', '');
+        const authHeader = req.headers.authorization ?? '';
+        // Strip "Bearer " prefix regardless of casing, then trim whitespace
+        const token = authHeader.replace(/^bearer\s+/i, '').trim();
 
         if (!token) {
             return res.status(401).json({ success: false, error: 'No token provided' });
