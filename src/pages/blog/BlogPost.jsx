@@ -110,13 +110,13 @@ export default function BlogPost() {
                 schema={articleSchema}
             />
 
-            <div className="min-h-screen bg-[#f3fcfd] overflow-x-hidden">
+            <div className="min-h-screen bg-[#f3fcfd]">
                 <LandingNavbar />
 
                 {/* Article header */}
                 <header className="bg-white border-b border-gray-100">
                     <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary" aria-hidden="true" />
-                    <div className="max-w-3xl mx-auto px-4 sm:px-6 pt-16 pb-12 md:pt-20 md:pb-16">
+                    <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-16 pb-12 md:pt-20 md:pb-16">
                         {/* Breadcrumb */}
                         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
                             <Link to="/" className="hover:text-primary transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Home</Link>
@@ -159,7 +159,7 @@ export default function BlogPost() {
 
                 {/* Article body */}
                 <main id="main-content" className="py-12 md:py-16 px-4">
-                    <div className="max-w-3xl mx-auto">
+                    <div className="max-w-[1200px] mx-auto">
                         {/* Back link */}
                         <Link
                             to="/blog"
@@ -177,11 +177,9 @@ export default function BlogPost() {
                                 ))}
                             </div>
                         }>
-                            <Prose>
-                                {ArticleContent ? <ArticleContent /> : (
-                                    <p>Article content is being prepared. Check back soon.</p>
-                                )}
-                            </Prose>
+                            {ArticleContent ? <ArticleContent /> : (
+                                <p>Article content is being prepared. Check back soon.</p>
+                            )}
                         </React.Suspense>
 
                         {/* In-line CTA */}

@@ -48,8 +48,8 @@ export const DEFAULT_LANDING_CONTENT = {
     heading: "What Our Customers Say",
     subheading: "Don't just take our word for it. Here's what real customers say about their experience.",
     items: [
-      { name: "Adebayo Johnson", role: "Small Business Owner", initials: "AJ", content: "UFriends IT has transformed how I manage my business finances. The bill payment feature saves me hours every month. Highly recommended!" },
-      { name: "Fatima Abdullahi", role: "Freelance Designer", initials: "FA", content: "As a freelancer, I need reliable financial services. UFriends IT delivers every time. Their customer support is outstanding." },
+      { name: "Adebayo Johnson", role: "Agent & POS Operator, Lagos", initials: "AJ", content: "I printed my NIN slip and paid my DSTV subscription in less than 3 minutes. I used to travel to a cybercafe for this. Now I do everything from my phone on Ufriends IT. I even became an agent and I earn commission every day." },
+      { name: "Fatima Abdullahi", role: "Student, Abuja", initials: "FA", content: "I was confused about how to buy cheap data for my studies. A friend told me about Ufriends IT and I got the cheapest MTN SME data instantly. No bank charges, no stress. I have not bought data anywhere else since then." },
       { name: "Chinedu Okafor", role: "Tech Entrepreneur", initials: "CO", content: "The BVN and NIN services made setting up my startup so much easier. UFriends IT's platform is intuitive, secure, and efficient." },
     ],
     stats: [

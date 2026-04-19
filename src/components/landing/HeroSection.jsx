@@ -38,13 +38,13 @@ export default function HeroSection() {
               <span>{hero.badge}</span>
             </div>
             <div className="space-y-4">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
                 {hero.title}{' '}
                 <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                   {hero.titleHighlight}
                 </span>{' '}
                 {hero.titleEnd}
-              </h1>
+              </h2>
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">{hero.subtitle}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
