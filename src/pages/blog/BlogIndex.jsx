@@ -10,7 +10,7 @@ import LandingFooter from '../../components/landing/LandingFooter';
 export const BLOG_POSTS = [
     {
         slug: 'how-to-print-nin-slip-online-nigeria',
-        title: 'How to Print Your NIN Slip Online in Nigeria (2025 Guide)',
+        title: 'How to Print Your NIN Slip Online in Nigeria (2026 Guide)',
         excerpt: 'Step-by-step guide to printing your NIN slip online in Nigeria using Ufriends IT — Regular, Standard, Premium and VNIN formats explained.',
         category: 'Government Services',
         readMin: 4,
@@ -19,7 +19,7 @@ export const BLOG_POSTS = [
     },
     {
         slug: 'how-to-modify-bvn-nigeria',
-        title: 'How to Modify Your BVN in Nigeria — Complete 2025 Guide',
+        title: 'How to Modify Your BVN in Nigeria — Complete 2026 Guide',
         excerpt: 'Need to correct your BVN name, date of birth, or phone number? This guide covers every method available in Nigeria, including the fastest online option.',
         category: 'Banking Identity',
         readMin: 5,
@@ -27,13 +27,13 @@ export const BLOG_POSTS = [
         keywords: ['BVN modification Nigeria', 'change BVN phone number', 'BVN correction'],
     },
     {
-        slug: 'cheapest-data-plans-nigeria-2025',
-        title: 'Cheapest Data Plans in Nigeria 2025 — MTN, Airtel, Glo & 9mobile Compared',
-        excerpt: 'A comprehensive breakdown of the cheapest data plans available across all four Nigerian networks in 2025, including SME data, Corporate Gifting, and more.',
+        slug: 'cheapest-data-plans-nigeria-2026',
+        title: 'Cheapest Data Plans in Nigeria 2026 — MTN, Airtel, Glo & 9mobile Compared',
+        excerpt: 'A comprehensive breakdown of the cheapest data plans available across all four Nigerian networks in 2026, including SME data, Corporate Gifting, and more.',
         category: 'Data & Airtime',
         readMin: 6,
         publishedAt: '2026-04-19',
-        keywords: ['cheapest data Nigeria 2025', 'MTN SME data', 'cheap data plans Nigeria'],
+        keywords: ['cheapest data Nigeria 2026', 'MTN SME data', 'cheap data plans Nigeria'],
     },
     {
         slug: 'how-to-retrieve-bvn-with-phone-number-nigeria',
@@ -46,7 +46,7 @@ export const BLOG_POSTS = [
     },
     {
         slug: 'how-to-pay-dstv-subscription-online-nigeria',
-        title: 'How to Pay Your DStv Subscription Online in Nigeria in 2025',
+        title: 'How to Pay Your DStv Subscription Online in Nigeria in 2026',
         excerpt: 'The easiest ways to subscribe or renew your DStv package online in Nigeria — including how to change your plan and avoid common payment errors.',
         category: 'Cable TV',
         readMin: 3,
@@ -64,21 +64,21 @@ export const BLOG_POSTS = [
     },
     {
         slug: 'how-to-buy-waec-pin-online-nigeria',
-        title: 'How to Buy WAEC Result Checker PIN Online in Nigeria 2025',
+        title: 'How to Buy WAEC Result Checker PIN Online in Nigeria 2026',
         excerpt: 'Get your WAEC result checker PIN delivered instantly online. This guide covers the fastest and safest methods to buy WAEC pins without visiting a bank.',
         category: 'Education',
         readMin: 3,
         publishedAt: '2026-04-19',
-        keywords: ['buy WAEC pin online Nigeria', 'WAEC result checker PIN', 'WAEC pin 2025'],
+        keywords: ['buy WAEC pin online Nigeria', 'WAEC result checker PIN', 'WAEC pin 2026'],
     },
     {
         slug: 'how-to-register-business-cac-online-nigeria',
-        title: 'How to Register a Business with CAC Online in Nigeria 2025',
-        excerpt: 'Complete step-by-step guide to registering a Business Name, LTD, or NGO with the Corporate Affairs Commission (CAC) online in Nigeria in 2025.',
+        title: 'How to Register a Business with CAC Online in Nigeria 2026',
+        excerpt: 'Complete step-by-step guide to registering a Business Name, LTD, or NGO with the Corporate Affairs Commission (CAC) online in Nigeria in 2026.',
         category: 'Business Registration',
         readMin: 7,
         publishedAt: '2026-04-19',
-        keywords: ['CAC registration online Nigeria', 'register business name Nigeria', 'CAC 2025'],
+        keywords: ['CAC registration online Nigeria', 'register business name Nigeria', 'CAC 2026'],
     },
     {
         slug: 'nin-vs-bvn-difference-nigeria',
@@ -90,13 +90,13 @@ export const BLOG_POSTS = [
         keywords: ['NIN vs BVN Nigeria', 'difference between NIN and BVN', 'NIN BVN Nigeria'],
     },
     {
-        slug: 'best-vtu-website-nigeria-2025',
-        title: 'Best VTU Websites in Nigeria 2025 — Honest Comparison',
+        slug: 'best-vtu-website-nigeria-2026',
+        title: 'Best VTU Websites in Nigeria 2026 — Honest Comparison',
         excerpt: "Looking for the best VTU platform in Nigeria? We compare the top 5 VTU websites on price, speed, services, reliability, and government service features — including ones others don't offer.",
         category: 'VTU Guides',
         readMin: 8,
         publishedAt: '2026-04-19',
-        keywords: ['best VTU website Nigeria 2025', 'cheapest VTU platform Nigeria', 'VTU comparison Nigeria'],
+        keywords: ['best VTU website Nigeria 2026', 'cheapest VTU platform Nigeria', 'VTU comparison Nigeria'],
     },
     {
         slug: 'how-to-get-pos-terminal-nigeria',
@@ -119,7 +119,7 @@ export const BLOG_POSTS = [
     {
         slug: 'how-to-start-vtu-business-nigeria',
         title: 'How to Start a VTU Business in Nigeria (Beginner\'s Guide)',
-        excerpt: 'A comprehensive step-by-step guide on how to start a profitable VTU business in Nigeria in 2025 without a large capital. Earn daily with data and airtime sales.',
+        excerpt: 'A comprehensive step-by-step guide on how to start a profitable VTU business in Nigeria in 2026 without a large capital. Earn daily with data and airtime sales.',
         category: 'VTU Guides',
         readMin: 8,
         publishedAt: '2026-04-19',
@@ -180,13 +180,13 @@ export const BLOG_POSTS = [
         keywords: ['virtual account Nigeria', 'e-wallet vs virtual account', 'Monnify virtual account'],
     },
     {
-        slug: 'buy-cheap-glo-data-plans-nigeria-2025',
-        title: 'How to Buy Cheap Glo Data Plans in Nigeria 2025',
-        excerpt: 'Glo is the Grandmasters of Data. Learn about their cheapest monthly, weekly, and mega data plans in 2025 and how to buy them online with discounts.',
+        slug: 'buy-cheap-glo-data-plans-nigeria-2026',
+        title: 'How to Buy Cheap Glo Data Plans in Nigeria 2026',
+        excerpt: 'Glo is the Grandmasters of Data. Learn about their cheapest monthly, weekly, and mega data plans in 2026 and how to buy them online with discounts.',
         category: 'Data & Airtime',
         readMin: 4,
         publishedAt: '2026-04-19',
-        keywords: ['buy Glo data Nigeria', 'Glo cheap plans', 'Glo internet 2025'],
+        keywords: ['buy Glo data Nigeria', 'Glo cheap plans', 'Glo internet 2026'],
     }
 ];
 

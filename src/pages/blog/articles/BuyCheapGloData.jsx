@@ -7,7 +7,7 @@ export default function BuyCheapGloData() {
     const schema = isHowTo ? {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
-        'name': "How to Buy Cheap Glo Data Plans in Nigeria 2025",
+        'name': "How to Buy Cheap Glo Data Plans in Nigeria 2026",
         'description': 'Comprehensive 2500+ word guide on buy Glo data Nigeria in Nigeria using Ufriends IT.',
         'step': [
             { '@type': 'HowToStep', 'text': 'Create a free account or log in to your Ufriends IT dashboard.' },

@@ -14,6 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@prerenderer/prerenderer": "^1.2.5",
     "@prisma/client": "^5.7.0",
     "antigravity-seo-kit": "^1.0.3",
     "axios": "^1.13.5",
@@ -44,6 +45,7 @@
     "sonner": "^2.0.7",
     "speakeasy": "^2.0.0",
     "tailwind-merge": "^2.1.0",
+    "vite-plugin-prerender": "^1.0.8",
     "zod": "^4.3.6"
   },
   "devDependencies": {
