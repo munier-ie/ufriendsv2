@@ -64,6 +64,22 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import HomepageEditor from './pages/dashboard/admin/HomepageEditor';
 
+// ─── SEO Service Landing Pages — code-split per page via React.lazy ──────────
+// Each page gets its own JS chunk at build time (Vite splits on dynamic import).
+// React.Suspense at route level shows nothing while chunk loads (near-instant for SSR/prerender).
+const PrintNinSlipPage   = React.lazy(() => import('./pages/seo/PrintNinSlipPage'));
+const PrintBvnSlipPage   = React.lazy(() => import('./pages/seo/PrintBvnSlipPage'));
+const NinModificationPage = React.lazy(() => import('./pages/seo/NinModificationPage'));
+const BvnModificationPage = React.lazy(() => import('./pages/seo/BvnModificationPage'));
+const BuyDataPage        = React.lazy(() => import('./pages/seo/BuyDataPage'));
+const BuyAirtimePage     = React.lazy(() => import('./pages/seo/BuyAirtimePage'));
+const PayElectricityPage = React.lazy(() => import('./pages/seo/PayElectricityPage'));
+const CableTvPage        = React.lazy(() => import('./pages/seo/CableTvPage'));
+const ExamPinsPage       = React.lazy(() => import('./pages/seo/ExamPinsPage'));
+const CacRegistrationPage = React.lazy(() => import('./pages/seo/CacRegistrationPage'));
+const BlogIndex          = React.lazy(() => import('./pages/blog/BlogIndex'));
+const BlogPost           = React.lazy(() => import('./pages/blog/BlogPost'));
+
 import AdminDashboard from './pages/dashboard/admin/AdminDashboard';
 import UserManagement from './pages/dashboard/admin/UserManagement';
 import AdminTransactions from './pages/dashboard/admin/AdminTransactions';
@@ -186,12 +202,29 @@ export default function App() {
                     <Route path="homepage" element={<HomepageEditor />} />
                 </Route>
 
-                {/* Landing Page & Fallback */}
-                <Route path="/" element={<LandingPage />} />
+                {/* ─── SEO Service Pages — each is its own lazy-loaded chunk ─── */}
+                <Route path="/print-nin-slip-nigeria"    element={<React.Suspense fallback={null}><PrintNinSlipPage /></React.Suspense>} />
+                <Route path="/print-bvn-slip-nigeria"    element={<React.Suspense fallback={null}><PrintBvnSlipPage /></React.Suspense>} />
+                <Route path="/nin-modification-nigeria"  element={<React.Suspense fallback={null}><NinModificationPage /></React.Suspense>} />
+                <Route path="/bvn-modification-nigeria"  element={<React.Suspense fallback={null}><BvnModificationPage /></React.Suspense>} />
+                <Route path="/cac-registration-nigeria"  element={<React.Suspense fallback={null}><CacRegistrationPage /></React.Suspense>} />
+                <Route path="/buy-data-nigeria"          element={<React.Suspense fallback={null}><BuyDataPage /></React.Suspense>} />
+                <Route path="/buy-airtime-nigeria"       element={<React.Suspense fallback={null}><BuyAirtimePage /></React.Suspense>} />
+                <Route path="/pay-electricity-bill-nigeria" element={<React.Suspense fallback={null}><PayElectricityPage /></React.Suspense>} />
+                <Route path="/subscribe-cable-tv-nigeria"   element={<React.Suspense fallback={null}><CableTvPage /></React.Suspense>} />
+                <Route path="/buy-exam-pins-nigeria"        element={<React.Suspense fallback={null}><ExamPinsPage /></React.Suspense>} />
+
+                {/* ─── Blog — lazy-loaded ─── */}
+                <Route path="/blog"       element={<React.Suspense fallback={null}><BlogIndex /></React.Suspense>} />
+                <Route path="/blog/:slug" element={<React.Suspense fallback={null}><BlogPost /></React.Suspense>} />
+
+                {/* ─── Static public pages ─── */}
+                <Route path="/"        element={<LandingPage />} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
-                <Route path="/terms" element={<TermsOfService />} />
-                <Route path="*" element={<NotFound />} />
+                <Route path="/terms"   element={<TermsOfService />} />
+                <Route path="*"        element={<NotFound />} />
             </Routes>
+
         </Router>
     );
 }

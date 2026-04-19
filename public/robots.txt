@@ -1,0 +1,29 @@
+User-agent: *
+Allow: /
+Allow: /buy-data-nigeria
+Allow: /buy-airtime-nigeria
+Allow: /print-nin-slip-nigeria
+Allow: /print-bvn-slip-nigeria
+Allow: /nin-modification-nigeria
+Allow: /bvn-modification-nigeria
+Allow: /pay-electricity-bill-nigeria
+Allow: /subscribe-cable-tv-nigeria
+Allow: /buy-exam-pins-nigeria
+Allow: /cac-registration-nigeria
+Allow: /convert-airtime-to-cash-nigeria
+Allow: /privacy
+Allow: /terms
+Allow: /blog
+Allow: /blog/
+
+# Block auth-gated pages from indexing
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /admin
+Disallow: /admin/
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+
+Sitemap: https://ufriends.com.ng/sitemap.xml

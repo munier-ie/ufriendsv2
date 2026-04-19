@@ -8,10 +8,62 @@ import TestimonialsSection from '../components/landing/TestimonialsSection';
 import FaqSection from '../components/landing/FaqSection';
 import CtaSection from '../components/landing/CtaSection';
 import LandingFooter from '../components/landing/LandingFooter';
+import PageMeta from '../components/seo/PageMeta';
+
+// ─── Homepage JSON-LD Schema ──────────────────────────────────────────────────
+const homepageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+        {
+            '@type': 'Organization',
+            '@id': 'https://ufriends.com.ng/#organization',
+            name: 'Ufriends IT',
+            url: 'https://ufriends.com.ng',
+            logo: {
+                '@type': 'ImageObject',
+                url: 'https://ufriends.com.ng/favicon.svg',
+                width: 512,
+                height: 512,
+            },
+            description:
+                "Nigeria's all-in-one VTU and government services platform for buying cheap data, airtime, printing NIN/BVN slips, NIN/BVN modification, cable TV subscription, electricity bill payment, exam pins, and CAC business registration.",
+            address: {
+                '@type': 'PostalAddress',
+                addressCountry: 'NG',
+            },
+            contactPoint: {
+                '@type': 'ContactPoint',
+                contactType: 'customer support',
+                availableLanguage: 'English',
+            },
+            sameAs: [
+                'https://www.facebook.com/ufriends_it',
+                'https://twitter.com/ufriends_it',
+                'https://www.instagram.com/ufriends_it',
+            ],
+        },
+        {
+            '@type': 'WebSite',
+            '@id': 'https://ufriends.com.ng/#website',
+            url: 'https://ufriends.com.ng',
+            name: 'Ufriends IT',
+            publisher: { '@id': 'https://ufriends.com.ng/#organization' },
+            inLanguage: 'en-NG',
+        },
+    ],
+};
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-white overflow-x-hidden relative">
+      {/* ─── SEO Meta Tags + JSON-LD Schema ─── */}
+      <PageMeta
+        title="Buy Data, Airtime, Print NIN & BVN Slip Online Nigeria"
+        description="Ufriends IT is Nigeria's all-in-one VTU platform. Buy cheap data, airtime, print NIN slip, BVN slip, NIN/BVN modification, cable TV, electricity bills, exam pins and CAC registration. Start for free today."
+        canonical="https://ufriends.com.ng/"
+        schema={homepageSchema}
+      />
+
       {/* Dashed Bottom Fade Grid */}
       <div
         className="fixed inset-0 z-0 pointer-events-none"

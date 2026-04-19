@@ -570,52 +570,54 @@ export default function UserManagement() {
                         </motion.div>
                     </div>
                 )}
-            </AnimatePresence>
-
-            {/* Add User Modal */}
-            {isAddModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-bold">Add New User</h2>
-                            <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
-                                <X size={20} />
-                            </button>
-                        </div>
-
-                        <form onSubmit={handleAddUser} className="space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
-                                <Input label="First Name" value={addForm.firstName} onChange={(e) => setAddForm({ ...addForm, firstName: e.target.value })} required />
-                                <Input label="Last Name" value={addForm.lastName} onChange={(e) => setAddForm({ ...addForm, lastName: e.target.value })} required />
-                            </div>
-                            <Input label="Email" type="email" value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} required />
-                            <Input label="Phone" type="tel" value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} required />
-                            <Input label="Password" type="text" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} required />
-                            <Input label="State" value={addForm.state} onChange={(e) => setAddForm({ ...addForm, state: e.target.value })} placeholder="e.g. Lagos" />
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">User Type</label>
-                                <select
-                                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
-                                    value={addForm.type}
-                                    onChange={(e) => setAddForm({ ...addForm, type: parseInt(e.target.value) })}
-                                >
-                                    <option value={1}>Subscriber</option>
-                                    <option value={2}>Agent</option>
-                                    <option value={3}>Vendor</option>
-                                </select>
-                            </div>
-
-                            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100">
-                                <Button variant="outline" onClick={() => setIsAddModalOpen(false)} type="button">Cancel</Button>
-                                <Button type="submit" loading={submitting}>Create User</Button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
             </AnimatePresence>,
             document.body
+            )}
+
+            {/* Add User Modal — separate portal */}
+            {createPortal(
+                isAddModalOpen && (
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                        <div className="bg-white rounded-xl shadow-lg w-full max-w-md p-6 max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-center mb-6">
+                                <h2 className="text-xl font-bold">Add New User</h2>
+                                <button onClick={() => setIsAddModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                    <X size={20} />
+                                </button>
+                            </div>
+
+                            <form onSubmit={handleAddUser} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input label="First Name" value={addForm.firstName} onChange={(e) => setAddForm({ ...addForm, firstName: e.target.value })} required />
+                                    <Input label="Last Name" value={addForm.lastName} onChange={(e) => setAddForm({ ...addForm, lastName: e.target.value })} required />
+                                </div>
+                                <Input label="Email" type="email" value={addForm.email} onChange={(e) => setAddForm({ ...addForm, email: e.target.value })} required />
+                                <Input label="Phone" type="tel" value={addForm.phone} onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })} required />
+                                <Input label="Password" type="text" value={addForm.password} onChange={(e) => setAddForm({ ...addForm, password: e.target.value })} required />
+                                <Input label="State" value={addForm.state} onChange={(e) => setAddForm({ ...addForm, state: e.target.value })} placeholder="e.g. Lagos" />
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">User Type</label>
+                                    <select
+                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary"
+                                        value={addForm.type}
+                                        onChange={(e) => setAddForm({ ...addForm, type: parseInt(e.target.value) })}
+                                    >
+                                        <option value={1}>Subscriber</option>
+                                        <option value={2}>Agent</option>
+                                        <option value={3}>Vendor</option>
+                                    </select>
+                                </div>
+
+                                <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100">
+                                    <Button variant="outline" onClick={() => setIsAddModalOpen(false)} type="button">Cancel</Button>
+                                    <Button type="submit" loading={submitting}>Create User</Button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                ),
+                document.body
             )}
         </div>
     );
