@@ -422,9 +422,11 @@ export default function Profile() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Create 4-Digit PIN</label>
                                     <input
                                         type="password"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         maxLength={4}
                                         value={pinForm.pin}
-                                        onChange={(e) => setPinForm({ ...pinForm, pin: e.target.value })}
+                                        onChange={(e) => setPinForm({ ...pinForm, pin: e.target.value.replace(/\D/g, '') })}
                                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="****"
                                     />
@@ -433,9 +435,11 @@ export default function Profile() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Confirm PIN</label>
                                     <input
                                         type="password"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         maxLength={4}
                                         value={pinForm.confirmPin}
-                                        onChange={(e) => setPinForm({ ...pinForm, confirmPin: e.target.value })}
+                                        onChange={(e) => setPinForm({ ...pinForm, confirmPin: e.target.value.replace(/\D/g, '') })}
                                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                         placeholder="****"
                                     />
@@ -481,9 +485,11 @@ export default function Profile() {
                                             <label className="block text-sm font-medium text-gray-700 mb-2">Enter Current PIN to Disable</label>
                                             <input
                                                 type="password"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
                                                 maxLength={4}
                                                 value={pinForm.currentPin}
-                                                onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value })}
+                                                onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value.replace(/\D/g, '') })}
                                                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                                 placeholder="****"
                                             />
@@ -525,6 +531,8 @@ export default function Profile() {
                                                     <label className="block text-sm font-medium text-gray-700 mb-2">Email OTP</label>
                                                     <input
                                                         type="text"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
                                                         maxLength={6}
                                                         value={changePinForm.otp}
                                                         onChange={(e) => setChangePinForm({ ...changePinForm, otp: e.target.value.replace(/\D/g, '') })}
@@ -537,9 +545,11 @@ export default function Profile() {
                                                     <label className="block text-sm font-medium text-gray-700 mb-2">New PIN</label>
                                                     <input
                                                         type="password"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
                                                         maxLength={4}
                                                         value={changePinForm.newPin}
-                                                        onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value })}
+                                                        onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value.replace(/\D/g, '') })}
                                                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                                         placeholder="****"
                                                         required
@@ -549,9 +559,11 @@ export default function Profile() {
                                                     <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New PIN</label>
                                                     <input
                                                         type="password"
+                                                        inputMode="numeric"
+                                                        pattern="[0-9]*"
                                                         maxLength={4}
                                                         value={changePinForm.confirmPin}
-                                                        onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value })}
+                                                        onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value.replace(/\D/g, '') })}
                                                         className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
                                                         placeholder="****"
                                                         required
@@ -647,6 +659,8 @@ export default function Profile() {
                                         <p className="text-sm text-gray-600 font-medium">2. Enter the 6-digit code to verify</p>
                                         <input
                                             type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             maxLength={6}
                                             value={twoFaCode}
                                             onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
@@ -673,6 +687,8 @@ export default function Profile() {
                                         <p className="text-sm text-gray-600 font-medium text-center">We've sent a 6-digit code to {profileData?.email}</p>
                                         <input
                                             type="text"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             maxLength={6}
                                             value={twoFaCode}
                                             onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
@@ -706,6 +722,8 @@ export default function Profile() {
                                     <label className="block text-sm font-medium text-gray-700 mb-2">Enter 6-digit Authenticator Code to Disable</label>
                                     <input
                                         type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         maxLength={6}
                                         value={disableTwoFaCode}
                                         onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}

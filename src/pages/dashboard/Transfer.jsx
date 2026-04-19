@@ -180,6 +180,7 @@ export default function Transfer() {
                                 <Input
                                     label="Amount (₦)"
                                     type="number"
+                                    inputMode="numeric"
                                     placeholder="0.00"
                                     value={formData.amount}
                                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
@@ -189,6 +190,8 @@ export default function Transfer() {
                                 <Input
                                     label="Transaction PIN"
                                     type="password"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     maxLength={4}
                                     placeholder="****"
                                     value={formData.pin}

@@ -501,6 +501,9 @@ export default function ManualServices() {
                     <div className="space-y-4">
                         <Input
                             label="Phone Number"
+                            type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             placeholder="Enter registered phone number (e.g. 08012345678)"
                             value={formData.phoneNumber || ''}
                             onChange={e => update('phoneNumber', e.target.value.replace(/[^0-9+]/g, ''))}
@@ -518,8 +521,8 @@ export default function ManualServices() {
                 return (
                     <div className="space-y-4">
                         <Input label="Ticket ID" placeholder="Enter ticket ID" value={formData.ticketId || ''} onChange={e => update('ticketId', e.target.value)} required />
-                        <Input label="NIN" placeholder="Enter 11-digit NIN" value={formData.nin || ''} onChange={e => update('nin', e.target.value.replace(/\D/g, ''))} maxLength={11} required />
-                        <Input label="BVN" placeholder="Enter 11-digit BVN" value={formData.bvn || ''} onChange={e => update('bvn', e.target.value.replace(/\D/g, ''))} maxLength={11} required />
+                        <Input label="NIN" inputMode="numeric" pattern="[0-9]*" placeholder="Enter 11-digit NIN" value={formData.nin || ''} onChange={e => update('nin', e.target.value.replace(/\D/g, ''))} maxLength={11} required />
+                        <Input label="BVN" inputMode="numeric" pattern="[0-9]*" placeholder="Enter 11-digit BVN" value={formData.bvn || ''} onChange={e => update('bvn', e.target.value.replace(/\D/g, ''))} maxLength={11} required />
                         <Input label="Full Name" placeholder="Enter full name" value={formData.fullName || ''} onChange={e => update('fullName', e.target.value)} required />
                     </div>
                 );
@@ -546,7 +549,7 @@ export default function ManualServices() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Input label="BVN" placeholder="11-digit BVN" value={formData.bvn || ''} onChange={e => update('bvn', e.target.value.replace(/\D/g, ''))} maxLength={11} required />
+                            <Input label="BVN" inputMode="numeric" pattern="[0-9]*" placeholder="11-digit BVN" value={formData.bvn || ''} onChange={e => update('bvn', e.target.value.replace(/\D/g, ''))} maxLength={11} required />
                             <Input label="First Name" placeholder="First name" value={formData.firstname || ''} onChange={e => update('firstname', e.target.value)} required />
                             <Input label="Last Name" placeholder="Last name" value={formData.lastname || ''} onChange={e => update('lastname', e.target.value)} required />
                             <Input label="Kegow Account Number" placeholder="Kegow account no." value={formData.kegowAccount || ''} onChange={e => update('kegowAccount', e.target.value)} required />
@@ -593,6 +596,8 @@ export default function ManualServices() {
                         {formData.subType && (
                             <Input
                                 label="NIN"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
                                 placeholder="Enter 11-digit NIN"
                                 value={formData.nin || ''}
                                 onChange={e => update('nin', e.target.value.replace(/\D/g, ''))}
@@ -937,6 +942,8 @@ export default function ManualServices() {
                                 </div>
                                 <Input
                                     type="password"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     maxLength={4}
                                     placeholder="••••"
                                     value={pin}

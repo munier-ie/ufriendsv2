@@ -49,7 +49,11 @@ export default function Login() {
     };
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        let { name, value } = e.target;
+        if (name === 'phone') {
+            value = value.replace(/\s+/g, '');
+        }
+        setFormData({ ...formData, [name]: value });
         if (lockoutSeconds === 0) setError('');
     };
 
@@ -170,6 +174,8 @@ export default function Login() {
                             label="Phone Number"
                             name="phone"
                             type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={formData.phone}
                             onChange={handleChange}
                             placeholder="Enter your phone number"
@@ -231,8 +237,10 @@ export default function Login() {
                             label="Verification Code (OTP)"
                             name="code"
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={verificationCode}
-                            onChange={(e) => { setVerificationCode(e.target.value); setError(''); }}
+                            onChange={(e) => { setVerificationCode(e.target.value.replace(/\D/g, '')); setError(''); }}
                             placeholder="Enter 6-digit code"
                             required
                             maxLength={6}
@@ -263,8 +271,10 @@ export default function Login() {
                             label="Two-Factor Authentication Code"
                             name="code"
                             type="text"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={verificationCode}
-                            onChange={(e) => { setVerificationCode(e.target.value); setError(''); }}
+                            onChange={(e) => { setVerificationCode(e.target.value.replace(/\D/g, '')); setError(''); }}
                             placeholder="Enter 6-digit code"
                             required
                             maxLength={6}

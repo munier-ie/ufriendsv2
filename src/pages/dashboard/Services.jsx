@@ -311,6 +311,10 @@ export default function Services() {
 
     // Filter plans based on provider and type specific criteria
     const filteredPlans = services.filter(s => {
+        // [MOD] Stop listing all plans before provider is chosen for certain tabs
+        const providerTabs = ['airtime', 'data', 'cable', 'electricity'];
+        if (providerTabs.includes(activeTab) && !formData.networkId) return false;
+
         // For data/airtime, filter by network name embedded in plan name (e.g. 'MTN 1.0GB (SME)')
         if (formData.networkId && (activeTab === 'data' || activeTab === 'airtime')) {
             if (!s.name.toUpperCase().startsWith(formData.networkId.toUpperCase())) return false;
@@ -472,7 +476,12 @@ export default function Services() {
                                 }}
                                 required
                             >
-                                <option value="">Select a plan</option>
+                                <option value="">
+                                    {['airtime', 'data', 'cable', 'electricity'].includes(activeTab) && !formData.networkId 
+                                        ? '← Please select a provider above first' 
+                                        : 'Select a plan'
+                                    }
+                                </option>
                                 {sortedPlans.map((s) => {
                                     let label;
                                     if (activeTab === 'exam') {
@@ -541,9 +550,12 @@ export default function Services() {
                                     )}
                                 </label>
                                 <Input
+                                    type="tel"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     placeholder="e.g. 08012345678"
                                     value={formData.recipient}
-                                    onChange={(e) => setFormData({ ...formData, recipient: e.target.value })}
+                                    onChange={(e) => setFormData({ ...formData, recipient: e.target.value.replace(/[^0-9]/g, '') })}
                                     required
                                     className="text-lg tracking-wide"
                                 />
@@ -572,11 +584,13 @@ export default function Services() {
                                 </label>
                                 <div className="flex space-x-2">
                                     <Input
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
                                         placeholder={activeTab === 'electricity' ? 'Meter Number' : 'IUC Number'}
                                         value={activeTab === 'electricity' ? formData.meterNumber : formData.iucNumber}
                                         onChange={(e) => activeTab === 'electricity'
-                                            ? setFormData({ ...formData, meterNumber: e.target.value })
-                                            : setFormData({ ...formData, iucNumber: e.target.value })
+                                            ? setFormData({ ...formData, meterNumber: e.target.value.replace(/\D/g, '') })
+                                            : setFormData({ ...formData, iucNumber: e.target.value.replace(/\D/g, '') })
                                         }
                                         required
                                         className="flex-1"
@@ -633,6 +647,7 @@ export default function Services() {
                                 <Input
                                     label="Amount"
                                     type="number"
+                                    inputMode="numeric"
                                     placeholder="Min ₦50"
                                     value={formData.amount}
                                     onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
@@ -733,6 +748,8 @@ export default function Services() {
                                     <div className="py-2">
                                         <Input
                                             type="password"
+                                            inputMode="numeric"
+                                            pattern="[0-9]*"
                                             maxLength={4}
                                             placeholder="••••"
                                             className="text-center text-2xl tracking-[0.5em] font-bold h-14"

@@ -45,7 +45,11 @@ export default function Register() {
     }, [location.search]);
 
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        let { name, value } = e.target;
+        if (name === 'phone') {
+            value = value.replace(/\s+/g, '');
+        }
+        setFormData({ ...formData, [name]: value });
         setError('');
     };
 
@@ -53,6 +57,9 @@ export default function Register() {
         e.preventDefault();
 
         // Local Validation
+        if (formData.phone.length !== 11) {
+            return setError('Phone number must be exactly 11 digits');
+        }
         if (formData.password !== formData.confirmPassword) {
             return setError('Passwords do not match');
         }
@@ -147,6 +154,8 @@ export default function Register() {
                             label="Phone Number"
                             name="phone"
                             type="tel"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             value={formData.phone}
                             onChange={handleChange}
                             placeholder="08012345678"
@@ -201,6 +210,8 @@ export default function Register() {
                             label="Transaction PIN (4 Digits)"
                             name="pin"
                             type={showPin ? "text" : "password"}
+                            inputMode="numeric"
+                            pattern="[0-9]*"
                             maxLength={4}
                             value={formData.pin}
                             onChange={handleChange}
