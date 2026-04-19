@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const geminiService = require('../services/gemini.service');
+const aiService = require('../services/ai.service');
 const authenticateUser = require('../middleware/auth');
 
 /**
@@ -16,7 +16,7 @@ router.post('/consult', authenticateUser, async (req, res) => {
         }
 
         const safeHistory = (history || []).slice(-20);
-        const reply = await geminiService.chat(safeHistory, message);
+        const reply = await aiService.chat(safeHistory, message);
         res.json({ reply });
     } catch (error) {
         console.error('AI Chat Error:', error);

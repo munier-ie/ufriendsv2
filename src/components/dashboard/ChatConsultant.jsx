@@ -12,7 +12,7 @@ export default function ChatConsultant({ isOpen, onClose, whatsappNumber }) {
     const [messages, setMessages] = useState([
         {
             role: 'model',
-            parts: [{ text: "Hello! I'm your Ufriends Software Consultant. Tell me about the project you have in mind. Are you looking to build a Mobile App, a Fintech platform, or something else?" }]
+            parts: [{ text: "Hello! I'm your Ufriends Assistant. How can I help you today? Whether you need to fund your wallet, buy data, convert airtime to cash, or check your BVN/NIN, I'm here to guide you." }]
         }
     ]);
     const [input, setInput] = useState('');
@@ -57,11 +57,9 @@ export default function ChatConsultant({ isOpen, onClose, whatsappNumber }) {
     };
 
     const handleWhatsAppRedirect = () => {
-        // Find the last model message which should contain the summary
-        const lastBrief = messages.filter(m => m.role === 'model').reverse()[0]?.parts[0].text;
         const text = encodeURIComponent(
-            `*Project Brief from Ufriends AI Consultant*\n\n` +
-            `${lastBrief || 'I am interested in custom software development.'}`
+            `*Support Request via Ufriends Assistant*\n\n` +
+            `Hello Ufriends Support, I need some assistance.`
         );
         window.open(`https://wa.me/${whatsappNumber}?text=${text}`, '_blank');
     };
@@ -78,7 +76,7 @@ export default function ChatConsultant({ isOpen, onClose, whatsappNumber }) {
                             <Bot size={24} />
                         </div>
                         <div>
-                            <h3 className="font-bold">Software Consultant</h3>
+                            <h3 className="font-bold">Ufriends Assistant</h3>
                             <p className="text-xs text-white/70">Powered by Ufriends AI</p>
                         </div>
                     </div>
@@ -143,7 +141,7 @@ export default function ChatConsultant({ isOpen, onClose, whatsappNumber }) {
 
                     <div className="flex items-center justify-between gap-4">
                         <p className="text-[10px] text-gray-400 max-w-[200px]">
-                            Once you're happy with the brief, click send to WhatsApp to talk to an admin.
+                            If the AI cannot resolve your issue, you can chat with human support.
                         </p>
                         <Button
                             variant="outline"
@@ -151,7 +149,7 @@ export default function ChatConsultant({ isOpen, onClose, whatsappNumber }) {
                             className="text-xs font-bold border-green-500 text-green-600 hover:bg-green-50"
                             onClick={handleWhatsAppRedirect}
                         >
-                            Send Brief to WhatsApp
+                            Chat with Support
                         </Button>
                     </div>
                 </div>

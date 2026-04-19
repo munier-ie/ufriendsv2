@@ -43,6 +43,7 @@ import Bot from 'lucide-react/dist/esm/icons/bot';
 import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
 import Logo from '../ui/Logo';
 import { motion } from 'framer-motion';
+import ChatConsultant from '../dashboard/ChatConsultant';
 
 export default function DashboardLayout() {
     const location = useLocation();
@@ -53,6 +54,7 @@ export default function DashboardLayout() {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [siteName, setSiteName] = useState('Ufriends');
     const [globalSettings, setGlobalSettings] = useState(null);
+    const [isChatOpen, setIsChatOpen] = useState(false);
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -347,6 +349,14 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                     </div>
 
                     <div className="flex items-center space-x-4">
+                        <button 
+                            onClick={() => setIsChatOpen(true)} 
+                            className="relative p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
+                            title="Chat with Ufriends Assistant"
+                        >
+                            <Bot size={24} />
+                            <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full pointer-events-none animate-pulse"></span>
+                        </button>
                         <Link to="/dashboard/notifications" className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
                             <Bell size={24} />
                             {unreadNotifications > 0 && (
@@ -362,7 +372,7 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                 <main id="main-content" className="flex-1 overflow-auto">
 
                 <div className="p-3 sm:p-6 max-w-7xl mx-auto">
-                    <Outlet context={{ globalSettings }} />
+                    <Outlet context={{ globalSettings, isChatOpen, setIsChatOpen }} />
                 </div>
                 
                 {/* Floating WhatsApp Group Icon */}
@@ -392,6 +402,13 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                 )}
                 </main>
             </div>
+
+            {/* Global AI Consultant Modal */}
+            <ChatConsultant
+                isOpen={isChatOpen}
+                onClose={() => setIsChatOpen(false)}
+                whatsappNumber={globalSettings?.contactPhone || '2347026417709'}
+            />
         </div>
     );
 }
