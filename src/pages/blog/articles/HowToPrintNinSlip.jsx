@@ -7,7 +7,7 @@ export default function HowToPrintNinSlip() {
     const schema = isHowTo ? {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
-        'name': "How to Print Your NIN Slip Online in Nigeria (2025 Guide)",
+        'name': "How to Print Your NIN Slip Online in Nigeria (2026 Guide)",
         'description': 'Comprehensive 2500+ word guide on how to print NIN slip Nigeria in Nigeria using Ufriends IT.',
         'step': [
             { '@type': 'HowToStep', 'text': 'Create a free account or log in to your Ufriends IT dashboard.' },

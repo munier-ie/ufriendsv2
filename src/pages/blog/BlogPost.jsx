@@ -11,14 +11,14 @@ import { BLOG_POSTS } from './BlogIndex';
 const ARTICLE_MODULES = {
     'how-to-print-nin-slip-online-nigeria':      React.lazy(() => import('./articles/HowToPrintNinSlip')),
     'how-to-modify-bvn-nigeria':                 React.lazy(() => import('./articles/HowToModifyBvn')),
-    'cheapest-data-plans-nigeria-2025':          React.lazy(() => import('./articles/CheapestDataPlans')),
+    'cheapest-data-plans-nigeria-2026':          React.lazy(() => import('./articles/CheapestDataPlans')),
     'how-to-retrieve-bvn-with-phone-number-nigeria': React.lazy(() => import('./articles/HowToRetrieveBvn')),
     'how-to-pay-dstv-subscription-online-nigeria':   React.lazy(() => import('./articles/HowToPayDstv')),
     'how-to-pay-electricity-bill-online-nigeria':    React.lazy(() => import('./articles/HowToPayElectricity')),
     'how-to-buy-waec-pin-online-nigeria':            React.lazy(() => import('./articles/HowToBuyWaecPin')),
     'how-to-register-business-cac-online-nigeria':   React.lazy(() => import('./articles/HowToRegisterCAC')),
     'nin-vs-bvn-difference-nigeria':                 React.lazy(() => import('./articles/NinVsBvn')),
-    'best-vtu-website-nigeria-2025':                 React.lazy(() => import('./articles/BestVtuWebsite')),
+    'best-vtu-website-nigeria-2026':                 React.lazy(() => import('./articles/BestVtuWebsite')),
     'how-to-get-pos-terminal-nigeria':               React.lazy(() => import('./articles/HowToGetPosTerminal')),
     'how-to-convert-airtime-to-cash-nigeria':        React.lazy(() => import('./articles/HowToConvertAirtimeToCash')),
     'how-to-start-vtu-business-nigeria':             React.lazy(() => import('./articles/HowToStartVtuBusiness')),
@@ -28,7 +28,7 @@ const ARTICLE_MODULES = {
     'buy-cheap-airtel-data-online-nigeria':          React.lazy(() => import('./articles/BuyCheapAirtelData')),
     'nin-modification-portal-nigeria':               React.lazy(() => import('./articles/NinModificationPortal')),
     'e-wallet-vs-virtual-account-nigeria':           React.lazy(() => import('./articles/EWalletVsVirtualAccount')),
-    'buy-cheap-glo-data-plans-nigeria-2025':         React.lazy(() => import('./articles/BuyCheapGloData')),
+    'buy-cheap-glo-data-plans-nigeria-2026':         React.lazy(() => import('./articles/BuyCheapGloData')),
 };
 
 // ─── Article prose wrapper ────────────────────────────────────────────────────

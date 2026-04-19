@@ -20,14 +20,14 @@ const PUBLIC_ROUTES = [
     '/blog',
     '/blog/how-to-print-nin-slip-online-nigeria',
     '/blog/how-to-modify-bvn-nigeria',
-    '/blog/cheapest-data-plans-nigeria-2025',
+    '/blog/cheapest-data-plans-nigeria-2026',
     '/blog/how-to-retrieve-bvn-with-phone-number-nigeria',
     '/blog/how-to-pay-dstv-subscription-online-nigeria',
     '/blog/how-to-pay-electricity-bill-online-nigeria',
     '/blog/how-to-buy-waec-pin-online-nigeria',
     '/blog/how-to-register-business-cac-online-nigeria',
     '/blog/nin-vs-bvn-difference-nigeria',
-    '/blog/best-vtu-website-nigeria-2025',
+    '/blog/best-vtu-website-nigeria-2026',
     '/blog/how-to-get-pos-terminal-nigeria',
     '/blog/how-to-convert-airtime-to-cash-nigeria',
     '/blog/how-to-start-vtu-business-nigeria',
@@ -37,7 +37,7 @@ const PUBLIC_ROUTES = [
     '/blog/buy-cheap-airtel-data-online-nigeria',
     '/blog/nin-modification-portal-nigeria',
     '/blog/e-wallet-vs-virtual-account-nigeria',
-    '/blog/buy-cheap-glo-data-plans-nigeria-2025'
+    '/blog/buy-cheap-glo-data-plans-nigeria-2026'
 ];
 
 async function prerender() {

@@ -7,7 +7,7 @@ export default function HowToRegisterCAC() {
     const schema = isHowTo ? {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
-        'name': "How to Register a Business with CAC Online in Nigeria 2025",
+        'name': "How to Register a Business with CAC Online in Nigeria 2026",
         'description': 'Comprehensive 2500+ word guide on CAC registration online Nigeria in Nigeria using Ufriends IT.',
         'step': [
             { '@type': 'HowToStep', 'text': 'Create a free account or log in to your Ufriends IT dashboard.' },

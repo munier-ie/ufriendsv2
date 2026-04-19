@@ -22,7 +22,7 @@ export default function PrivacyPolicy() {
 
           <div className="space-y-6 text-gray-700 text-sm leading-relaxed">
             <div className="bg-blue-50 rounded-xl p-4 text-sm text-gray-600">
-              <strong>Effective Date:</strong> September 4, 2025<br />
+              <strong>Effective Date:</strong> September 4, 2026<br />
               <strong>Company:</strong> UFriends Information Technology<br />
               <strong>Website:</strong> https://ufriends.com.ng
             </div>

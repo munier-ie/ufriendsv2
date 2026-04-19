@@ -7,7 +7,7 @@ export default function HowToModifyBvn() {
     const schema = isHowTo ? {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
-        'name': "How to Modify Your BVN in Nigeria — Complete 2025 Guide",
+        'name': "How to Modify Your BVN in Nigeria — Complete 2026 Guide",
         'description': 'Comprehensive 2500+ word guide on BVN modification Nigeria in Nigeria using Ufriends IT.',
         'step': [
             { '@type': 'HowToStep', 'text': 'Create a free account or log in to your Ufriends IT dashboard.' },

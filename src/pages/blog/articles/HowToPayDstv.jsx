@@ -7,7 +7,7 @@ export default function HowToPayDstv() {
     const schema = isHowTo ? {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
-        'name': "How to Pay Your DStv Subscription Online in Nigeria in 2025",
+        'name': "How to Pay Your DStv Subscription Online in Nigeria in 2026",
         'description': 'Comprehensive 2500+ word guide on pay DStv online Nigeria in Nigeria using Ufriends IT.',
         'step': [
             { '@type': 'HowToStep', 'text': 'Create a free account or log in to your Ufriends IT dashboard.' },

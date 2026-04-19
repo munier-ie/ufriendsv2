@@ -7,7 +7,7 @@ export default function HowToBuyWaecPin() {
     const schema = isHowTo ? {
         '@context': 'https://schema.org',
         '@type': 'HowTo',
-        'name': "How to Buy WAEC Result Checker PIN Online in Nigeria 2025",
+        'name': "How to Buy WAEC Result Checker PIN Online in Nigeria 2026",
         'description': 'Comprehensive 2500+ word guide on buy WAEC pin online Nigeria in Nigeria using Ufriends IT.',
         'step': [
             { '@type': 'HowToStep', 'text': 'Create a free account or log in to your Ufriends IT dashboard.' },
