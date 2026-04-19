@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import Globe from 'lucide-react/dist/esm/icons/globe';
 import Check from 'lucide-react/dist/esm/icons/check';
@@ -7,13 +8,12 @@ import Terminal from 'lucide-react/dist/esm/icons/terminal';
 import Bot from 'lucide-react/dist/esm/icons/bot';
 import Sparkles from 'lucide-react/dist/esm/icons/sparkles';
 import Button from '../../components/ui/Button';
-import ChatConsultant from '../../components/dashboard/ChatConsultant';
 
 export default function Reseller() {
     const [options, setOptions] = useState([]);
     const [whatsappNumber, setWhatsappNumber] = useState('2347026417709');
     const [loading, setLoading] = useState(true);
-    const [isChatOpen, setIsChatOpen] = useState(false);
+    const { setIsChatOpen } = useOutletContext();
 
     const [selection, setSelection] = useState({
         softwareType: '',
@@ -142,14 +142,14 @@ export default function Reseller() {
                     </div>
                     <Button
                         onClick={() => setIsChatOpen(true)}
-                        className="bg-primary hover:bg-primary/90 text-white flex items-center gap-2 py-6 px-8 shadow-xl shadow-primary/20 scale-105 animate-pulse"
+                        className="bg-primary hover:bg-primary/90 text-white flex items-center justify-center gap-2 py-3 px-5 shadow-xl shadow-primary/20 rounded-xl w-full md:w-auto shrink-0 transition-transform active:scale-95"
                     >
-                        <Bot size={24} />
+                        <Bot size={20} />
                         <div className="text-left">
                             <div className="text-[10px] uppercase font-bold opacity-80 leading-none">Try AI</div>
-                            <div className="text-lg font-bold leading-none">Consult AI Expert</div>
+                            <div className="text-sm font-bold leading-none mt-0.5">Consult AI Expert</div>
                         </div>
-                        <Sparkles size={18} className="text-yellow-300" />
+                        <Sparkles size={16} className="text-yellow-300 ml-1" />
                     </Button>
                 </div>
 
@@ -208,12 +208,7 @@ export default function Reseller() {
                 </div>
             </div>
 
-            {/* AI Consultant Modal */}
-            <ChatConsultant
-                isOpen={isChatOpen}
-                onClose={() => setIsChatOpen(false)}
-                whatsappNumber={whatsappNumber}
-            />
+
         </div>
     );
 }
