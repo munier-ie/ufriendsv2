@@ -40,6 +40,7 @@ const homepageSchema = {
                 'https://www.facebook.com/ufriends_it',
                 'https://twitter.com/ufriends_it',
                 'https://www.instagram.com/ufriends_it',
+                'https://www.tiktok.com/@ufriends_it'
             ],
         },
         {
