@@ -1,16 +1,6 @@
-/**
- * Progressive Login Rate Limiter
- * Tracks failed login attempts per phone number and enforces escalating lockouts:
- *  - 1st fail: no lockout
- *  - 2nd fail: 1 minute
- *  - 3rd fail: 5 minutes
- *  - 4th+ fail: 15 minutes
- * Lockout resets on successful login (called via loginRateLimit.onSuccess).
- */
-
 const loginAttempts = new Map(); // phone -> { count, lockedUntil }
 
-const LOCKOUT_STEPS = [0, 0, 1 * 60, 5 * 60, 15 * 60]; // seconds, indexed by attempt count
+const LOCKOUT_STEPS = [0, 0, 0, 1 * 60, 5 * 60, 15 * 60]; // seconds, indexed by attempt count
 
 function getWaitSeconds(count) {
     if (count < LOCKOUT_STEPS.length) return LOCKOUT_STEPS[count];

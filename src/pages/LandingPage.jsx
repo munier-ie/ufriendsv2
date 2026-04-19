@@ -114,6 +114,13 @@ export default function LandingPage() {
         }}
       />
       <LandingNavbar />
+
+      {/* Static H1 for SEO crawlers (Bing, Google) that don't run JavaScript.
+          Visually hidden but fully accessible and indexable. */}
+      <h1 className="sr-only">
+        Buy Cheap Data, Airtime, Print NIN &amp; BVN Slip Online in Nigeria — Ufriends IT
+      </h1>
+
       <main className="relative z-10">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
           <HeroSection />

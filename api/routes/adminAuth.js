@@ -6,6 +6,31 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { z } = require('zod');
 const adminAuthMiddleware = require('../middleware/adminAuth');
+const { RateLimiterMemory } = require('rate-limiter-flexible');
+
+// ─── Rate Limiters ─────────────────────────────────────────────────────────────
+// Per-IP: max 10 attempts per 15 minutes
+const adminLoginLimiterByIp = new RateLimiterMemory({
+    points: 10,
+    duration: 15 * 60,    // 15 minutes
+    blockDuration: 15 * 60,
+});
+// Per-username: max 5 attempts per 15 minutes (extra tight on the credential itself)
+const adminLoginLimiterByUser = new RateLimiterMemory({
+    points: 5,
+    duration: 15 * 60,
+    blockDuration: 30 * 60, // 30-min lockout per username after 5 failures
+});
+// 2FA verify: max 5 attempts per 10 minutes
+const twoFaLimiter = new RateLimiterMemory({
+    points: 5,
+    duration: 10 * 60,
+    blockDuration: 15 * 60,
+});
+
+function getIp(req) {
+    return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+}
 
 // Admin login schema
 const adminLoginSchema = z.object({
@@ -32,7 +57,24 @@ router.get('/dbtest', async (req, res) => {
 // Admin login (renamed to access to bypass WAF rules on /login and /signin paths)
 router.post('/access', async (req, res) => {
     const t0 = Date.now();
+    const ip = getIp(req);
     console.log('[admin-access] ▶ handler entered at', new Date().toISOString());
+
+    // ── Rate limit check ──────────────────────────────────────────────────────
+    try {
+        await adminLoginLimiterByIp.consume(ip);
+        if (req.body?.username) {
+            await adminLoginLimiterByUser.consume(req.body.username.toLowerCase());
+        }
+    } catch (rlErr) {
+        const retrySecs = Math.ceil((rlErr.msBeforeNext ?? 60000) / 1000);
+        console.warn(`[admin-access] ✗ Rate limited — IP: ${ip}, retry in ${retrySecs}s`);
+        return res.status(429).json({
+            success: false,
+            error: `Too many login attempts. Please wait ${retrySecs} seconds before trying again.`,
+            retryAfter: retrySecs
+        });
+    }
 
     // Hard timeout — ensures we ALWAYS respond within 12 seconds
     const timeout = setTimeout(() => {
@@ -135,6 +177,10 @@ router.post('/access', async (req, res) => {
         }
 
 
+        // Successful login — reset rate limit counters for this IP and username
+        await adminLoginLimiterByIp.delete(ip).catch(() => {});
+        await adminLoginLimiterByUser.delete(username.toLowerCase()).catch(() => {});
+
         // Generate JWT token for normal login
         const token = jwt.sign(
             { id: admin.id, username: admin.username, role: admin.role, isAdmin: true },
@@ -165,6 +211,14 @@ router.post('/access', async (req, res) => {
 
 // POST /verify-2fa
 router.post('/verify-2fa', async (req, res) => {
+    const ip = getIp(req);
+    try {
+        await twoFaLimiter.consume(ip);
+    } catch (rlErr) {
+        const retrySecs = Math.ceil((rlErr.msBeforeNext ?? 60000) / 1000);
+        return res.status(429).json({ error: `Too many 2FA attempts. Please wait ${retrySecs} seconds.`, retryAfter: retrySecs });
+    }
+
     try {
         const { adminId, code } = req.body;
         if (!adminId || !code) return res.status(400).json({ error: 'Missing adminId or code' });
