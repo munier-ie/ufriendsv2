@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint, Shield, Star } from 'lucide-react';
+import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint, Shield, Star, Smartphone, Apple } from 'lucide-react';
 import Logo from '../ui/Logo';
 import { useLandingContent } from '../../contexts/LandingContentContext';
+import DownloadModal from '../ui/DownloadModal';
 
 const phoneIcons = [
   { icon: Zap, label: 'Airtime' },
@@ -17,6 +18,7 @@ const phoneIcons = [
 export default function HeroSection() {
   const { content } = useLandingContent();
   const hero = content.hero;
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const scrollToServices = () => {
     const el = document.getElementById('services');
@@ -55,6 +57,40 @@ export default function HeroSection() {
                 <Play className="mr-2 h-5 w-5" />{hero.secondaryBtn}
               </button>
             </div>
+
+            {/* Download App Section */}
+            <div className="pt-4 space-y-4">
+              <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Download our Mobile App</p>
+              <div className="flex flex-wrap gap-3">
+                <a 
+                  href="/ufriends-v1.apk" 
+                  download 
+                  className="flex items-center gap-3 px-5 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all hover:-translate-y-1 group"
+                >
+                  <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Smartphone className="w-5 h-5" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] leading-none text-gray-400 uppercase">Available for</p>
+                    <p className="text-sm font-bold">Android (APK)</p>
+                  </div>
+                </a>
+
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="flex items-center gap-3 px-5 py-3 bg-white border-2 border-gray-100 text-gray-900 rounded-xl hover:border-primary/30 transition-all hover:-translate-y-1 group shadow-sm"
+                >
+                  <div className="w-8 h-8 bg-primary/5 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Apple className="w-5 h-5 text-primary" />
+                  </div>
+                  <div className="text-left">
+                    <p className="text-[10px] leading-none text-gray-500 uppercase">Coming soon to</p>
+                    <p className="text-sm font-bold">iOS Store</p>
+                  </div>
+                </button>
+              </div>
+            </div>
+
             <div className="flex items-center gap-8 pt-2">
               {hero.stats.map((stat) => (
                 <div key={stat.label} className="text-center">
@@ -113,6 +149,10 @@ export default function HeroSection() {
           </motion.div>
         </div>
       </div>
+      <DownloadModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </section>
   );
 }

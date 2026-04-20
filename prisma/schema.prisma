@@ -935,3 +935,12 @@ model ProviderRouting {
   @@unique([serviceType, network, networkType])
   @@map("provider_routings")
 }
+
+model Waitlist {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  platform  String   // e.g., "ios"
+  createdAt DateTime @default(now())
+
+  @@map("waitlist")
+}
