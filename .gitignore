@@ -1,6 +1,8 @@
 node_modules
 private_seeds/
 .env
+api/uploads/apks/
+
 
 
 ## development folders
@@ -23,3 +25,4 @@ sync_v2.txt
 dist/
 blog/
 mobile/
+api/apk/download/

@@ -10,7 +10,8 @@ const waitlistSchema = z.object({
 
 const TEMP_MAIL_DOMAINS = [
     'mailinator.com', 'guerrillamail.com', 'tempmail.com', '10minutemail.com', 
-    'throwawaymail.com', 'yopmail.com', 'dispostable.com'
+    'throwawaymail.com', 'yopmail.com', 'dispostable.com', 'spotshops.com',
+    'mohmal.com', 'is-not-a.net', 'temp-mail.org', 'internal.ml'
 ];
 
 // Add to waitlist
