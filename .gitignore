@@ -1,11 +1,7 @@
 node_modules
 private_seeds/
 .env
-api/uploads/apks/
 
-
-
-## development folders
 ## development folders
 scripts/*
 scripts/tests/
@@ -22,7 +18,17 @@ test/
 sample/ufriends
 sync_log.txt
 sync_v2.txt
+
+## Build artifacts
 dist/
 blog/
-mobile/
+
+## Mobile
+mobile/*
+mobile/node_modules/
+mobile/android/
+mobile/ios/
+mobile/.expo/
+
+## APK Storage
 api/apk/download/
