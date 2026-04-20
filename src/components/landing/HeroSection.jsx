@@ -63,7 +63,7 @@ export default function HeroSection() {
               <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Download our Mobile App</p>
               <div className="flex flex-wrap gap-3">
                 <a 
-                  href="/ufriends-v1.apk" 
+                  href="https://api.ufriends.com.ng/api/apk/download/ufriends-v1.apk" 
                   download 
                   className="flex items-center gap-3 px-5 py-3 bg-gray-900 text-white rounded-xl hover:bg-gray-800 transition-all hover:-translate-y-1 group"
                 >
