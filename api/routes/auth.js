@@ -10,6 +10,7 @@ const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
 const authenticateUser = require('../middleware/auth');
 const loginRateLimit = require('../middleware/loginRateLimit');
+const pinRateLimit = require('../middleware/pinRateLimit');
 
 // Per-phone OTP email rate limit (3 emails per phone per 10 minutes)
 const otpEmailAttempts = new Map(); // phone -> { count, resetAt }
@@ -548,7 +549,7 @@ router.put('/update-password', authenticateUser, async (req, res) => {
 });
 
 // Toggle PIN — uses middleware for consistent blocked-account checks
-router.post('/pin/toggle', authenticateUser, async (req, res) => {
+router.post('/pin/toggle', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const { action, pin, confirmPin, currentPin } = req.body;
 
@@ -582,6 +583,7 @@ router.post('/pin/toggle', authenticateUser, async (req, res) => {
                 }
             });
 
+            pinRateLimit.onSuccess(req.user.id);
             res.json({ message: 'PIN enabled successfully' });
         } else if (action === 'disable') {
             if (!currentPin) {
@@ -594,9 +596,11 @@ router.post('/pin/toggle', authenticateUser, async (req, res) => {
 
             const validPin = await bcrypt.compare(currentPin, user.transactionPin);
             if (!validPin) {
+                if (req._recordPinFailure) req._recordPinFailure();
                 return res.status(400).json({ error: 'Incorrect PIN' });
             }
 
+            pinRateLimit.onSuccess(req.user.id);
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: { pinEnabled: false }
@@ -613,7 +617,7 @@ router.post('/pin/toggle', authenticateUser, async (req, res) => {
 });
 
 // Change/Reset PIN while it's already enabled
-router.post('/pin/reset', authenticateUser, async (req, res) => {
+router.post('/pin/reset', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const { currentPin, newPin, confirmPin } = req.body;
 
@@ -636,9 +640,11 @@ router.post('/pin/reset', authenticateUser, async (req, res) => {
 
         const validPin = await bcrypt.compare(currentPin, user.transactionPin);
         if (!validPin) {
+            if (req._recordPinFailure) req._recordPinFailure();
             return res.status(400).json({ error: 'Incorrect current PIN' });
         }
 
+        pinRateLimit.onSuccess(req.user.id);
         const hashedPin = await bcrypt.hash(newPin, 10);
         await prisma.user.update({
             where: { id: req.user.id },

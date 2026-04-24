@@ -516,6 +516,10 @@ model ManualServiceRequest {
   proofUrl    String?
   adminId     Int?
   transRef    String    @unique
+  // Extra fields for BVN_ANDROID and other services
+  phone       String?
+  email       String?
+  dateOfBirth String?
   createdAt   DateTime  @default(now())
   processedAt DateTime?
   user        User      @relation("manualRequests", fields: [userId], references: [id])

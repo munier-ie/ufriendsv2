@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
 const crypto = require('crypto');
 const axios = require('axios');
 const multer = require('multer');
@@ -160,7 +161,7 @@ router.get('/pricing', authenticateUser, async (req, res) => {
 // ============================================================
 // POST /api/manual-services/submit
 // ============================================================
-router.post('/submit', authenticateUser, async (req, res) => {
+router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const { serviceType, subType, details, pin } = req.body;
 
@@ -180,7 +181,11 @@ router.post('/submit', authenticateUser, async (req, res) => {
         // 4. Verify PIN
         const pinOk = await verifyTransactionPin(req.user, pin);
         if (pinOk === null) return res.status(400).json({ error: 'No transaction PIN set.' });
-        if (!pinOk) return res.status(400).json({ error: 'Invalid transaction PIN' });
+        if (!pinOk) {
+            if (req._recordPinFailure) req._recordPinFailure();
+            return res.status(400).json({ error: 'Invalid transaction PIN' });
+        }
+        pinRateLimit.onSuccess(req.user.id);
 
         // 5. Resolve price
         const { sellingPrice: amount, costPrice } = await resolvePrice(req.user, serviceType, subType);
@@ -194,6 +199,11 @@ router.post('/submit', authenticateUser, async (req, res) => {
         const transRef = `MS-${crypto.randomBytes(5).toString('hex').toUpperCase()}`;
         const safeDetails = JSON.stringify(details || {});
         const label = SERVICE_LABELS[serviceType];
+
+        // Extract top-level fields for queryable columns
+        const phone = details?.phoneNumber || null;
+        const email = details?.email || null;
+        const dateOfBirth = details?.dateOfBirth || null;
 
         // 7. Atomic DB transaction
         const result = await prisma.$transaction(async (tx) => {
@@ -210,7 +220,10 @@ router.post('/submit', authenticateUser, async (req, res) => {
                     details: safeDetails,
                     amount,
                     status: 0,
-                    transRef
+                    transRef,
+                    phone,
+                    email,
+                    dateOfBirth
                 }
             });
 
