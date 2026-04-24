@@ -574,6 +574,38 @@ export default function ManualServices() {
                             <Input label="Address" placeholder="Street address" value={formData.address || ''} onChange={e => update('address', e.target.value)} required />
                             <Input label="House Number" placeholder="House number" value={formData.houseNumber || ''} onChange={e => update('houseNumber', e.target.value)} required />
                         </div>
+
+                        {/* Additional fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                label="Phone Number"
+                                type="tel"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="e.g. 08012345678"
+                                value={formData.phoneNumber || ''}
+                                onChange={e => update('phoneNumber', e.target.value.replace(/[^0-9+]/g, ''))}
+                                maxLength={15}
+                                required
+                            />
+                            <Input
+                                label="Email Address"
+                                type="email"
+                                placeholder="e.g. name@example.com"
+                                value={formData.email || ''}
+                                onChange={e => update('email', e.target.value.toLowerCase())}
+                                required
+                            />
+                        </div>
+                        <Input
+                            label="Date of Birth (DD-MM-YYYY)"
+                            type="text"
+                            placeholder="e.g. 15-04-1990"
+                            value={formData.dateOfBirth || ''}
+                            onChange={e => update('dateOfBirth', e.target.value)}
+                            maxLength={10}
+                            required
+                        />
                     </div>
                 );
 

@@ -151,16 +151,6 @@ app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dir
 // Serve NIN/BVN slips (Protected)
 app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirname, '../uploads/slips')));
 
-// APK Download Route (Public)
-app.get('/api/apk/download/:filename', (req, res) => {
-    const filename = req.params.filename;
-    const filePath = path.join(__dirname, 'apk/download', filename);
-    res.download(filePath, (err) => {
-        if (err) {
-            res.status(404).json({ error: 'APK file not found' });
-        }
-    });
-});
 
 // [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
 // This correctly intercepts matching paths and either passes or rejects before the route handler fires
