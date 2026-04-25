@@ -25,6 +25,13 @@ export default function Login() {
     const lockoutTimerRef = useRef(null);
     const navigate = useNavigate();
 
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
+
     // Countdown timer for lockout
     useEffect(() => {
         if (lockoutSeconds > 0) {

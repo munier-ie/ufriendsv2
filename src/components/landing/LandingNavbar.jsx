@@ -26,6 +26,7 @@ const services = [
 export default function LandingNavbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [servicesOpen, setServicesOpen] = useState(false);
+  const isLoggedIn = !!localStorage.getItem('token');
   const [scrolled, setScrolled] = useState(false);
   const servicesRef = useRef(null);
 
@@ -116,18 +117,29 @@ export default function LandingNavbar() {
 
           {/* Auth Buttons */}
           <div className="hidden md:flex items-center space-x-3">
-            <Link
-              to="/login"
-              className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors rounded-lg hover:bg-gray-50"
-            >
-              Login
-            </Link>
-            <Link
-              to="/register"
-              className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-all shadow-sm hover:shadow-md"
-            >
-              Sign Up
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                to="/dashboard"
+                className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-all shadow-sm hover:shadow-md"
+              >
+                Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors rounded-lg hover:bg-gray-50"
+                >
+                  Login
+                </Link>
+                <Link
+                  to="/register"
+                  className="px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-all shadow-sm hover:shadow-md"
+                >
+                  Sign Up
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile hamburger */}
@@ -163,8 +175,14 @@ export default function LandingNavbar() {
                 );
               })}
               <div className="pt-3 border-t border-gray-100 flex flex-col space-y-2">
-                <Link to="/login" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">Login</Link>
-                <Link to="/register" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-colors">Sign Up Free</Link>
+                {isLoggedIn ? (
+                  <Link to="/dashboard" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-colors">Dashboard</Link>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-medium text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">Login</Link>
+                    <Link to="/register" onClick={() => setMobileOpen(false)} className="px-4 py-2.5 text-center text-sm font-semibold text-white bg-gradient-to-r from-[#1e90ff] to-[#004687] hover:from-[#1e90ff]/90 hover:to-[#004687]/90 rounded-xl transition-colors">Sign Up Free</Link>
+                  </>
+                )}
               </div>
             </div>
           </motion.div>
