@@ -17,7 +17,7 @@ import Hash from 'lucide-react/dist/esm/icons/hash';
 import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -266,8 +266,12 @@ function ModificationForm({ subType, data, onChange, activeSub, uploading, onUpl
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ManualServices() {
-    const [activeGroup, setActiveGroup] = useState('bvn');     // 'bvn' | 'nin'
-    const [activeSub, setActiveSub] = useState('BVN_MODIFICATION');
+    const [searchParams] = useSearchParams();
+    const initialTab = searchParams.get('tab') || 'BVN_MODIFICATION';
+    const initialGroup = ['NIN_MODIFICATION', 'NIN_VALIDATION'].includes(initialTab) ? 'nin' : 'bvn';
+
+    const [activeGroup, setActiveGroup] = useState(initialGroup);     // 'bvn' | 'nin'
+    const [activeSub, setActiveSub] = useState(initialTab);
     const [settings, setSettings] = useState(null);
     const [formData, setFormData] = useState({});
     const navigate = useNavigate();

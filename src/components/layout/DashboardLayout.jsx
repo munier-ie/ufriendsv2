@@ -158,6 +158,19 @@ export default function DashboardLayout() {
         setIsMobileMenuOpen(false);
     }, [location.pathname]);
 
+    // Auto-scroll main content area to top on route change
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            const mainContent = document.getElementById('main-content');
+            if (mainContent) {
+                // Use 'auto' (instant) instead of 'smooth' to prevent jank on page load
+                // and timeout to ensure the new page's DOM has fully painted.
+                mainContent.scrollTo({ top: 0, behavior: 'auto' });
+            }
+        }, 100);
+        return () => clearTimeout(timer);
+    }, [location.pathname, location.search]);
+
     const isActive = (path) => location.pathname === path;
 
     const userSidebarItems = [

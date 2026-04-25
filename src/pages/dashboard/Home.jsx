@@ -410,6 +410,13 @@ export default function DashboardHome() {
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">NIN Slip</span>
                     </Link>
 
+                    <Link to="/dashboard/manual-services?tab=BVN_ANDROID" className="flex flex-col items-center group">
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
+                            <img src="/assets/1777058348703(1).png" alt="BVN Android Licence" className="w-full h-full object-cover" />
+                        </div>
+                        <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">BVN Android Licence</span>
+                    </Link>
+
                     <Link to="/dashboard/manual-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
                             <img src="/assets/nin/bvn-services.jpg" alt="BVN Services" className="w-full h-full object-cover" />
