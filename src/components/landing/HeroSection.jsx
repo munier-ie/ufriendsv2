@@ -19,6 +19,7 @@ export default function HeroSection() {
   const { content } = useLandingContent();
   const hero = content.hero;
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const isLoggedIn = !!localStorage.getItem('token');
 
   const scrollToServices = () => {
     const el = document.getElementById('services');
@@ -50,9 +51,15 @@ export default function HeroSection() {
               <p className="text-lg sm:text-xl text-gray-600 leading-relaxed max-w-xl">{hero.subtitle}</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/register" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white font-semibold text-lg rounded-xl hover:from-[#1e90ff]/90 hover:to-[#004687]/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
-                {hero.primaryBtn}<ArrowRight className="ml-2 h-5 w-5" />
-              </Link>
+              {isLoggedIn ? (
+                <Link to="/dashboard" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white font-semibold text-lg rounded-xl hover:from-[#1e90ff]/90 hover:to-[#004687]/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                  Proceed to Dashboard<ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              ) : (
+                <Link to="/register" className="inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white font-semibold text-lg rounded-xl hover:from-[#1e90ff]/90 hover:to-[#004687]/90 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                  {hero.primaryBtn}<ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              )}
               <button onClick={scrollToServices} className="inline-flex items-center justify-center px-8 py-4 border-2 border-primary text-primary font-semibold text-lg rounded-xl hover:bg-primary hover:text-white transition-all">
                 <Play className="mr-2 h-5 w-5" />{hero.secondaryBtn}
               </button>
@@ -122,7 +129,11 @@ export default function HeroSection() {
                       <p className="text-xs text-gray-500">Trusted by 50,000+ users</p>
                     </div>
                     <div className="mb-5">
-                      <Link to="/register" className="block w-full text-center bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white rounded-xl py-2.5 text-sm font-semibold">{hero.primaryBtn}</Link>
+                      {isLoggedIn ? (
+                        <Link to="/dashboard" className="block w-full text-center bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white rounded-xl py-2.5 text-sm font-semibold">Proceed to Dashboard</Link>
+                      ) : (
+                        <Link to="/register" className="block w-full text-center bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white rounded-xl py-2.5 text-sm font-semibold">{hero.primaryBtn}</Link>
+                      )}
                     </div>
                     <div className="grid grid-cols-3 gap-2 mb-4">
                       {phoneIcons.map(({ icon: Icon, label }) => (

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Input from '../components/ui/Input';
@@ -7,6 +7,13 @@ import Logo from '../components/ui/Logo';
 
 export default function AdminLogin() {
     const navigate = useNavigate();
+
+    // Auto-redirect if already logged in as admin
+    useEffect(() => {
+        if (localStorage.getItem('adminToken')) {
+            navigate('/admin/dashboard');
+        }
+    }, [navigate]);
     const [formData, setFormData] = useState({
         username: '',
         password: '',

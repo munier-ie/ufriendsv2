@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { motion } from 'framer-motion';
@@ -35,6 +35,13 @@ export default function Register() {
     const [showPin, setShowPin] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
+
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        if (localStorage.getItem('token')) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
 
     useState(() => {
         const params = new URLSearchParams(location.search);
