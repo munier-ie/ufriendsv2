@@ -1,4 +1,34 @@
 {
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "redirects": [
+        {
+            "source": "/(.*)",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "www.ufriends.com.ng"
+                }
+            ],
+            "destination": "https://ufriends.com.ng/$1",
+            "permanent": true
+        },
+        {
+            "source": "/blog/best-vtu-website-nigeria-2025",
+            "destination": "/blog/best-vtu-website-nigeria-2026",
+            "permanent": true
+        },
+        {
+            "source": "/blog/cheapest-data-plans-nigeria-2025",
+            "destination": "/blog/cheapest-data-plans-nigeria-2026",
+            "permanent": true
+        },
+        {
+            "source": "/blog/buy-cheap-glo-data-plans-nigeria-2025",
+            "destination": "/blog/buy-cheap-glo-data-plans-nigeria-2026",
+            "permanent": true
+        }
+    ],
     "rewrites": [
         {
             "source": "/api/(.*)",
