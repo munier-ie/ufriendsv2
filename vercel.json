@@ -3,17 +3,6 @@
     "trailingSlash": false,
     "redirects": [
         {
-            "source": "/(.*)",
-            "has": [
-                {
-                    "type": "host",
-                    "value": "www.ufriends.com.ng"
-                }
-            ],
-            "destination": "https://ufriends.com.ng/$1",
-            "permanent": true
-        },
-        {
             "source": "/blog/best-vtu-website-nigeria-2025",
             "destination": "/blog/best-vtu-website-nigeria-2026",
             "permanent": true
