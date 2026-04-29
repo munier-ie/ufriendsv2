@@ -6,6 +6,7 @@ const { z } = require('zod');
 const crypto = require('crypto');
 const { creditReferralBonus } = require('../services/referral.service');
 const { sendTransactionReceipt } = require('../services/email.service');
+const { cache } = require('../middleware/cacheMiddleware');
 
 // Validation schemas
 const purchaseSchema = z.object({
@@ -52,7 +53,7 @@ router.post('/verify', authenticateUser, async (req, res) => {
 });
 
 // Get all services with pricing for all tiers
-router.get('/all', authenticateUser, async (req, res) => {
+router.get('/all', authenticateUser, cache(300), async (req, res) => {
     try {
         const [
             services,
@@ -166,7 +167,7 @@ router.get('/all', authenticateUser, async (req, res) => {
 });
 
 // Get services by type
-router.get('/:type', authenticateUser, async (req, res) => {
+router.get('/:type', authenticateUser, cache(300), async (req, res) => {
     try {
         const { type } = req.params;
         const userType = req.user.type; // 1=Regular, 2=Agent, 3=Vendor

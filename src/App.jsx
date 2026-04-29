@@ -1,10 +1,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
+import { isCacheable, getCache, setCache } from './lib/apiCache';
 
-// ─── Global Session Expiry Interceptor ───────────────────────────────────────
-// Catches any 401 Unauthorized response across the entire app.
-// Clears stored credentials and redirects to the appropriate login page.
+// ─── Session Expiry: 401 Interceptor ─────────────────────────────────────────
 axios.interceptors.response.use(
     (response) => response,
     (error) => {
@@ -27,6 +26,50 @@ axios.interceptors.response.use(
         }
         return Promise.reject(error);
     }
+);
+
+// ─── Frontend GET Cache Interceptors ─────────────────────────────────────────
+// REQUEST: If the URL is whitelisted and we have a fresh cached entry,
+//          swap the adapter so Axios returns the cached data immediately
+//          (zero network round-trip, zero latency).
+axios.interceptors.request.use((config) => {
+    if (config.method === 'get') {
+        const url = config.url || '';
+        if (isCacheable(url)) {
+            const cached = getCache(url);
+            if (cached !== null) {
+                // Override the adapter: return cached data without hitting the network
+                config.adapter = () =>
+                    Promise.resolve({
+                        data: cached,
+                        status: 200,
+                        statusText: 'OK (cached)',
+                        headers: { 'x-cache': 'HIT' },
+                        config,
+                        request: {},
+                    });
+            }
+        }
+    }
+    return config;
+});
+
+// RESPONSE: Store successful whitelisted GET responses in the cache.
+axios.interceptors.response.use(
+    (response) => {
+        if (
+            response.config.method === 'get' &&
+            response.status === 200 &&
+            response.headers?.['x-cache'] !== 'HIT' // don't re-store already-cached responses
+        ) {
+            const url = response.config.url || '';
+            if (isCacheable(url)) {
+                setCache(url, response.data);
+            }
+        }
+        return response;
+    },
+    (error) => Promise.reject(error)
 );
 import DashboardLayout from './components/layout/DashboardLayout';
 import Login from './pages/Login';

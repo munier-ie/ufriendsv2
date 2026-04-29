@@ -4,6 +4,7 @@ const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const { initCron } = require('./services/smartRouting.service');
+const { flushAll, flushByPrefix, getStats } = require('./middleware/cacheMiddleware');
 
 // Start smart routing bot cron jobs
 initCron();
@@ -221,6 +222,21 @@ app.use('/api/waitlist', require('./routes/waitlist')); // App waitlist
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Ufriends 2.0 API is running' });
+});
+
+// ─── Cache Management Endpoints (Admin only) ─────────────────────────────────
+app.get('/api/admin/cache/stats', adminAuth, (req, res) => {
+    res.json({ success: true, cache: getStats() });
+});
+
+app.post('/api/admin/cache/flush', adminAuth, (req, res) => {
+    const { prefix } = req.body;
+    if (prefix) {
+        const count = flushByPrefix(prefix);
+        return res.json({ success: true, message: `Flushed ${count} entries with prefix: ${prefix}` });
+    }
+    const count = flushAll();
+    res.json({ success: true, message: `Flushed all ${count} cache entries` });
 });
 
 // Handle API 404s before they fall through to the React catch-all

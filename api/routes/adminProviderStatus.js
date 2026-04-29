@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
+const { flushByPrefix } = require('../middleware/cacheMiddleware');
 
 /**
  * @route GET /api/admin/provider-status
@@ -64,6 +65,9 @@ router.put('/', adminAuth, async (req, res) => {
                 }
             }
         });
+
+        // Bust the services cache so users immediately see the new provider's plans
+        flushByPrefix('/api/services');
 
         res.json({ message: 'Active provider updated successfully', activeProvider });
     } catch (error) {

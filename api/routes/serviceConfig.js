@@ -6,6 +6,7 @@ const multer = require('multer');
 const csvParser = require('csv-parser');
 const fs = require('fs');
 const path = require('path');
+const { flushByPrefix } = require('../middleware/cacheMiddleware');
 
 // Configure multer for file uploads
 const upload = multer({ dest: 'uploads/' });
@@ -56,6 +57,7 @@ router.post('/data-plans', adminAuth, async (req, res) => {
             }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Data plan created successfully', plan });
     } catch (error) {
         console.error('Create data plan error:', error);
@@ -87,6 +89,7 @@ router.put('/data-plans/:id', adminAuth, async (req, res) => {
             }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Data plan updated successfully', plan });
     } catch (error) {
         console.error('Update data plan error:', error);
@@ -103,6 +106,7 @@ router.delete('/data-plans/:id', adminAuth, async (req, res) => {
             where: { id: parseInt(id) }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Data plan deleted successfully' });
     } catch (error) {
         console.error('Delete data plan error:', error);
@@ -170,6 +174,7 @@ router.post('/cable-plans', adminAuth, async (req, res) => {
             }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Cable plan created successfully', plan });
     } catch (error) {
         console.error('Create cable plan error:', error);
@@ -200,6 +205,7 @@ router.put('/cable-plans/:id', adminAuth, async (req, res) => {
             }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Cable plan updated successfully', plan });
     } catch (error) {
         console.error('Update cable plan error:', error);
@@ -216,6 +222,7 @@ router.delete('/cable-plans/:id', adminAuth, async (req, res) => {
             where: { id: parseInt(id) }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Cable plan deleted successfully' });
     } catch (error) {
         console.error('Delete cable plan error:', error);
@@ -266,6 +273,7 @@ router.put('/electricity/:id', adminAuth, async (req, res) => {
             }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Electricity provider updated successfully', provider });
     } catch (error) {
         console.error('Update electricity provider error:', error);
@@ -304,6 +312,7 @@ router.post('/electricity', adminAuth, async (req, res) => {
             }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Electricity provider created successfully', provider: newProvider });
     } catch (error) {
         console.error('Create electricity provider error:', error);
@@ -316,6 +325,7 @@ router.delete('/electricity/:id', adminAuth, async (req, res) => {
     try {
         const { id } = req.params;
         await prisma.service.delete({ where: { id: parseInt(id) } });
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Electricity provider deleted successfully' });
     } catch (error) {
         console.error('Delete electricity provider error:', error);

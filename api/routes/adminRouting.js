@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
+const { flushByPrefix } = require('../middleware/cacheMiddleware');
 
 // ====== Custom Provider Routing ======
 
@@ -73,6 +74,9 @@ router.post('/', adminAuth, async (req, res) => {
             include: { apiProvider: { select: { name: true } } }
         });
 
+        // Bust the services cache — routing changes affect which provider serves which plan
+        flushByPrefix('/api/services');
+
         res.json({ success: true, message: 'Routing rule saved successfully', routing: updatedRule });
     } catch (error) {
         console.error('Save provider routing error:', error);
@@ -89,6 +93,7 @@ router.delete('/:id', adminAuth, async (req, res) => {
             where: { id: parseInt(id) }
         });
 
+        flushByPrefix('/api/services');
         res.json({ success: true, message: 'Routing rule deleted successfully' });
     } catch (error) {
         console.error('Delete provider routing error:', error);
