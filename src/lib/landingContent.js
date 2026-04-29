@@ -90,9 +90,10 @@ export const DEFAULT_LANDING_CONTENT = {
     copyright: "UFriends IT. All rights reserved.",
     tagline: "Built with ❤️ for Nigerians",
     social: {
-      facebook: "https://facebook.com",
-      twitter: "https://twitter.com",
-      instagram: "https://instagram.com",
+      facebook: "https://facebook.com/ufriendsIT",
+      twitter: "https://twitter.com/ufriends_it",
+      tiktok: "https://tiktok.com/@ufriends_it",
+      youtube: "https://youtube.com/@UfriendsIT",
     },
   },
   navbar: {
@@ -100,7 +101,7 @@ export const DEFAULT_LANDING_CONTENT = {
   },
 };
 
-const STORAGE_KEY = 'uf_landing_content';
+const STORAGE_KEY = 'uf_landing_content_v2';
 
 export function loadLandingContent() {
   try {
