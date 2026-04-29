@@ -107,9 +107,9 @@ export default function LandingNavbar() {
               </AnimatePresence>
             </div>
 
-            <a href="#benefits" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
+            <Link to="/about" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
               About
-            </a>
+            </Link>
             <a href="#faq" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
               FAQ
             </a>
@@ -164,6 +164,7 @@ export default function LandingNavbar() {
           >
             <div className="px-4 py-4 space-y-2">
               <Link to="/" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">Home</Link>
+              <Link to="/about" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">About Us</Link>
               <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Services</div>
               {services.map((s) => {
                 const Icon = s.icon;

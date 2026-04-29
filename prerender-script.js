@@ -5,6 +5,7 @@ const path = require('path');
 
 const PUBLIC_ROUTES = [
     '/',
+    '/about',
     '/privacy',
     '/terms',
     '/print-nin-slip-nigeria',
