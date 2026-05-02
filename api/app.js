@@ -219,6 +219,7 @@ app.use('/api/beneficiary', require('./routes/beneficiary')); // Beneficiary man
 app.use('/api/sms', require('./routes/sms')); // Bulk SMS
 app.use('/api/ai-chat', require('./routes/aiChat')); // AI Consultant Chat
 app.use('/api/waitlist', require('./routes/waitlist')); // App waitlist
+app.use('/api/contact', require('./routes/contact')); // Public contact form
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Ufriends 2.0 API is running' });

@@ -103,7 +103,8 @@ import Support from './pages/dashboard/Support';
 import BankingFinance from './pages/dashboard/BankingFinance';
 import NotFound from './pages/NotFound';
 import LandingPage from './pages/LandingPage';
-const AboutPage = React.lazy(() => import('./pages/AboutPage'));
+const AboutPage   = React.lazy(() => import('./pages/AboutPage'));
+const ContactPage = React.lazy(() => import('./pages/ContactPage'));
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import HomepageEditor from './pages/dashboard/admin/HomepageEditor';
@@ -265,6 +266,7 @@ export default function App() {
                 {/* ─── Static public pages ─── */}
                 <Route path="/"        element={<LandingPage />} />
                 <Route path="/about"   element={<React.Suspense fallback={null}><AboutPage /></React.Suspense>} />
+                <Route path="/contact" element={<React.Suspense fallback={null}><ContactPage /></React.Suspense>} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />
                 <Route path="/terms"   element={<TermsOfService />} />
                 <Route path="*"        element={<NotFound />} />

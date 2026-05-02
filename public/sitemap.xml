@@ -20,6 +20,14 @@
     <priority>0.8</priority>
   </url>
 
+  <!-- Contact Page -->
+  <url>
+    <loc>https://ufriends.com.ng/contact</loc>
+    <lastmod>2026-05-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
   <!-- Government & Identity Service Pages (Blue-Ocean) -->
   <url>
     <loc>https://ufriends.com.ng/print-nin-slip-nigeria</loc>

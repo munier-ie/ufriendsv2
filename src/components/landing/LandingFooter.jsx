@@ -73,7 +73,7 @@ export default function LandingFooter() {
           <div>
             <h3 className="font-semibold text-white mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              {[{ l: 'Services', h: '/#services' }, { l: 'About Us', h: '/about' }, { l: 'FAQ', h: '/#faq' }].map(({ l, h }) => (
+              {[{ l: 'Services', h: '/#services' }, { l: 'About Us', h: '/about' }, { l: 'Contact Us', h: '/contact' }, { l: 'FAQ', h: '/#faq' }].map(({ l, h }) => (
                 <li key={l}><a href={h} className="text-sm text-gray-400 hover:text-primary transition-colors">{l}</a></li>
               ))}
               <li><Link to="/register" className="text-sm text-gray-400 hover:text-primary transition-colors">Sign Up</Link></li>
