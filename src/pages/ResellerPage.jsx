@@ -154,9 +154,18 @@ export default function ResellerPage() {
     };
 
     const handleSubmit = async () => {
+        // Input validation
         if (!contact.email || !contact.phone) {
-            return toast.error('Please provide contact details');
-        if (contact.phone.length !== 11) return toast.error("Please provide a valid 11-digit Nigerian phone number");
+            return toast.error('Please provide your email and phone number');
+        }
+        if (contact.phone.length !== 11) {
+            return toast.error('Please provide a valid 11-digit Nigerian phone number');
+        }
+
+        // SECURITY: Block submission entirely if Paystack is not loaded/configured.
+        // No request should be allowed without a successful payment.
+        if (!paystackKey || !window.PaystackPop) {
+            return toast.error('Payment system is not available. Please refresh the page or contact support.');
         }
 
         setSubmitting(true);
@@ -172,29 +181,24 @@ export default function ResellerPage() {
 
             const { paymentRef, totalAmount, metadata } = res.data;
 
-            if (paystackKey && window.PaystackPop) {
-                const handler = window.PaystackPop.setup({
-                    key: paystackKey,
-                    email: contact.email,
-                    amount: Math.round(totalAmount * 100),
-                    ref: paymentRef,
-                    metadata: metadata,
-                    callback: (response) => {
-                        // 1. Store in localStorage immediately (Mitigation)
-                        localStorage.setItem('pending_reseller_verification', response.reference);
-                        // 2. Start verification
-                        verifyPayment(response.reference);
-                    },
-                    onClose: () => {
-                        toast.info('Payment window closed');
-                    }
-                });
-                handler.openIframe();
-            } else {
-                // Fallback to status page if paystack is not available
-                toast.success('Request submitted! Please proceed with payment.');
-                navigate(`/reseller/status/${paymentRef}`);
-            }
+            // Open Paystack inline payment — verification only happens inside the callback
+            const handler = window.PaystackPop.setup({
+                key: paystackKey,
+                email: contact.email,
+                amount: Math.round(totalAmount * 100),
+                ref: paymentRef,
+                metadata: metadata,
+                callback: (response) => {
+                    // Store reference immediately for recovery (e.g. if user closes browser)
+                    localStorage.setItem('pending_reseller_verification', response.reference);
+                    // Verify on the backend — only on confirmed Paystack success callback
+                    verifyPayment(response.reference);
+                },
+                onClose: () => {
+                    toast.info('Payment window closed. Your request has not been submitted.');
+                }
+            });
+            handler.openIframe();
         } catch (err) {
             toast.error(err.response?.data?.error || 'Failed to submit request');
         } finally {

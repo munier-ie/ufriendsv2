@@ -81,25 +81,35 @@ router.get(['/prices', '/options'], async (req, res) => {
     }
 });
 
-// GET /api/reseller/paystack-config - Get public key for inline payment
 router.get('/paystack-config', async (req, res) => {
     try {
         const paystack = await prisma.paymentGateway.findFirst({
             where: { provider: 'PAYSTACK', active: true }
         });
-        if (!paystack) return res.status(404).json({ error: 'Paystack not configured' });
-        
-        // Note: apiKey is stored as the secret key in some parts of the app, 
-        // but we need the public key for the frontend.
-        // We'll return secretKey column if it exists and starts with pk_
-        const publicKey = paystack.secretKey?.startsWith('pk_') ? paystack.secretKey : null;
-        
+
+        if (!paystack) {
+            console.error('[PaystackConfig] No active PAYSTACK gateway found in DB');
+            return res.status(404).json({ error: 'Paystack not configured' });
+        }
+
+        // Resolve the public key: check secretKey first (preferred), then apiKey
+        // A Paystack public key always starts with 'pk_'
+        let publicKey = null;
+        if (paystack.secretKey?.startsWith('pk_')) {
+            publicKey = paystack.secretKey;
+        } else if (paystack.apiKey?.startsWith('pk_')) {
+            // Fallback: some setups store the public key in apiKey
+            publicKey = paystack.apiKey;
+        }
+
         if (!publicKey) {
-            return res.status(400).json({ error: 'Paystack Public Key not found in settings' });
+            console.error('[PaystackConfig] No pk_ key found. apiKey starts with:', paystack.apiKey?.substring(0, 10), '| secretKey starts with:', paystack.secretKey?.substring(0, 10));
+            return res.status(400).json({ error: 'Paystack Public Key not configured. Please set a pk_ key in payment gateway settings.' });
         }
 
         res.json({ publicKey });
     } catch (error) {
+        console.error('[PaystackConfig] Error:', error.message);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
