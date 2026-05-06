@@ -2,14 +2,10 @@ node_modules
 private_seeds/
 .env
 
-## development folders
-scripts/*
-scripts/tests/
-scripts/*.sql
-scripts/*.db
-scripts/*.log
+scripts/
 test/
 *.log
+scratch/
 
 ## editor dirs
 .vscode
