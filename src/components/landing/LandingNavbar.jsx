@@ -113,6 +113,9 @@ export default function LandingNavbar() {
             <Link to="/contact" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
               Contact
             </Link>
+            <Link to="/reseller" className="text-primary font-bold text-sm bg-primary/10 px-3 py-1 rounded-lg">
+              Reseller
+            </Link>
             <a href="#faq" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
               FAQ
             </a>
@@ -169,6 +172,7 @@ export default function LandingNavbar() {
               <Link to="/" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">Home</Link>
               <Link to="/about" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">About Us</Link>
               <Link to="/contact" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">Contact Us</Link>
+              <Link to="/reseller" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-primary font-bold hover:bg-primary/5 rounded-xl transition-colors">Become a Reseller</Link>
               <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Services</div>
               {services.map((s) => {
                 const Icon = s.icon;

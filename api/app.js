@@ -210,6 +210,7 @@ app.use('/api/admin/academy', require('./routes/adminAcademy')); // Academy – 
 app.use('/api/admin/bot', require('./routes/adminBot')); // Smart Routing Bot Management
 app.use('/api/admin/upgrade', require('./routes/adminUpgrade')); // Account Upgrade admin management
 app.use('/api/admin/software', require('./routes/adminSoftware')); // Software Development admin management
+app.use('/api/admin/reseller', require('./routes/adminReseller')); // Reseller setup admin management
 
 // Phase 6: Vendor & Developer Tools
 app.use('/api/webhook-vendor', require('./routes/webhookVendor')); // Webhook configuration for vendors
@@ -220,6 +221,7 @@ app.use('/api/sms', require('./routes/sms')); // Bulk SMS
 app.use('/api/ai-chat', require('./routes/aiChat')); // AI Consultant Chat
 app.use('/api/waitlist', require('./routes/waitlist')); // App waitlist
 app.use('/api/contact', require('./routes/contact')); // Public contact form
+app.use('/api/reseller', require('./routes/reseller')); // Reseller & Software Dev
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Ufriends 2.0 API is running' });

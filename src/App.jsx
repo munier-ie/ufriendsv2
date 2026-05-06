@@ -98,7 +98,7 @@ import Calculator from './pages/dashboard/Calculator';
 import SmileData from './pages/dashboard/SmileData';
 import BulkSMS from './pages/dashboard/BulkSMS';
 import SellPin from './pages/dashboard/SellPin';
-import Reseller from './pages/dashboard/Reseller';
+import ResellerPage from './pages/ResellerPage';
 import Support from './pages/dashboard/Support';
 import BankingFinance from './pages/dashboard/BankingFinance';
 import NotFound from './pages/NotFound';
@@ -158,9 +158,13 @@ import UpgradePlanManagement from './pages/dashboard/admin/UpgradePlanManagement
 import ManualServices from './pages/dashboard/ManualServices';
 import Academy from './pages/dashboard/Academy';
 import AcademyDashboard from './pages/dashboard/admin/AcademyDashboard';
+import AdminResellerRequests from './pages/dashboard/admin/AdminResellerRequests';
+import ResellerPricingManagement from './pages/dashboard/admin/ResellerPricingManagement';
 import SoftwareOptionManagement from './pages/dashboard/admin/SoftwareOptionManagement';
 import ProviderSwitch from './pages/dashboard/admin/ProviderSwitch';
 import BotDiscoveredPlans from './pages/dashboard/admin/BotDiscoveredPlans';
+import ResellerStatusPage from './pages/ResellerStatusPage';
+import ResellerCallback from './pages/ResellerCallback';
 
 export default function App() {
     return (
@@ -200,7 +204,7 @@ export default function App() {
                     <Route path="smile-data" element={<SmileData />} />
                     <Route path="bulk-sms" element={<BulkSMS />} />
                     <Route path="sell-pin" element={<SellPin />} />
-                    <Route path="reseller" element={<Reseller />} />
+
                     <Route path="manual-services" element={<ManualServices />} />
                     <Route path="academy" element={<Academy />} />
                     <Route path="support" element={<Support />} />
@@ -241,9 +245,11 @@ export default function App() {
                     <Route path="manual-services/pricing" element={<ManualPricingSettings />} />
                     <Route path="settings/upgrades" element={<UpgradePlanManagement />} />
                     <Route path="settings/software" element={<SoftwareOptionManagement />} />
+                    <Route path="settings/reseller-pricing" element={<ResellerPricingManagement />} />
                     <Route path="settings/routing" element={<ProviderSwitch />} />
                     <Route path="bot-plans" element={<BotDiscoveredPlans />} />
                     <Route path="academy" element={<AcademyDashboard />} />
+                    <Route path="reseller-requests" element={<AdminResellerRequests />} />
                     <Route path="homepage" element={<HomepageEditor />} />
                 </Route>
 
@@ -265,6 +271,9 @@ export default function App() {
 
                 {/* ─── Static public pages ─── */}
                 <Route path="/"        element={<LandingPage />} />
+                <Route path="/reseller" element={<ResellerPage />} />
+                <Route path="/reseller/callback" element={<ResellerCallback />} />
+                <Route path="/reseller/status/:reference" element={<ResellerStatusPage />} />
                 <Route path="/about"   element={<React.Suspense fallback={null}><AboutPage /></React.Suspense>} />
                 <Route path="/contact" element={<React.Suspense fallback={null}><ContactPage /></React.Suspense>} />
                 <Route path="/privacy" element={<PrivacyPolicy />} />

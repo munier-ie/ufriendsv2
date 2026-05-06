@@ -40,7 +40,6 @@ model User {
   fidelityBank         String?
   gtBank               String?
   accountReference     String?
-  virtualAccountName   String?
   palmpayAccount       String?
   psb9Account          String?
   banklyAccount        String?
@@ -56,6 +55,7 @@ model User {
   twoFaEnabled         Boolean                @default(false)
   twoFaMethod          String?
   twoFaSecret          String?
+  virtualAccountName   String?
   airtimeToCash        AirtimeToCash[]
   apiLogs              ApiLog[]
   beneficiaries        Beneficiary[]
@@ -80,6 +80,7 @@ model User {
   dataPins             DataPinStock[]         @relation("dataPins")
   manualRequests       ManualServiceRequest[] @relation("manualRequests")
   ninReports           NinReport[]            @relation("ninReports")
+  resellerRequests     ResellerRequest[]
   userActions          UserAction[]           @relation("userActions")
 }
 
@@ -516,12 +517,11 @@ model ManualServiceRequest {
   proofUrl    String?
   adminId     Int?
   transRef    String    @unique
-  // Extra fields for BVN_ANDROID and other services
-  phone       String?
-  email       String?
-  dateOfBirth String?
   createdAt   DateTime  @default(now())
   processedAt DateTime?
+  dateOfBirth String?
+  email       String?
+  phone       String?
   user        User      @relation("manualRequests", fields: [userId], references: [id])
 
   @@map("manual_service_requests")
@@ -901,8 +901,37 @@ model SoftwareOption {
   active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  price     Float    @default(0)
 
+  @@unique([category, name])
   @@map("software_options")
+}
+
+model ResellerRequest {
+  id            Int      @id @default(autoincrement())
+  userId        Int?
+  contactEmail  String
+  contactPhone  String
+  platforms     String[]
+  hostingType   String
+  extras        String[]
+  publishing    Json?
+  totalAmount   Float
+  status        String   @default("pending")
+  paymentRef    String?  @unique
+  paymentStatus String?  @default("unpaid")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  adminNote     String?
+  apkUrl        String?
+  webUrl        String?
+  appStoreUrl   String?
+  playStoreUrl  String?
+  onboardingCompleted Boolean  @default(false)
+  onboardingData      Json?
+  user          User?    @relation(fields: [userId], references: [id])
+
+  @@map("reseller_requests")
 }
 
 model AppSetting {
@@ -943,7 +972,7 @@ model ProviderRouting {
 model Waitlist {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  platform  String   // e.g., "ios"
+  platform  String
   createdAt DateTime @default(now())
 
   @@map("waitlist")

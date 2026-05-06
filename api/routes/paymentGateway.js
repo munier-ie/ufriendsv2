@@ -9,11 +9,11 @@ const { z } = require('zod');
 
 const gatewaySchema = z.object({
     provider: z.enum(['PAYMENTPOINT', 'MONNIFY', 'PAYSTACK', 'PAYVESSEL']),
-    apiKey: z.string().min(1),
-    secretKey: z.string().optional(),
-    businessId: z.string().optional(),
-    contractCode: z.string().optional(),
-    apiSecret: z.string().optional(),
+    apiKey: z.string().min(1, 'API Key is required'),
+    secretKey: z.string().nullable().optional().or(z.literal('')),
+    businessId: z.string().nullable().optional().or(z.literal('')),
+    contractCode: z.string().nullable().optional().or(z.literal('')),
+    apiSecret: z.string().nullable().optional().or(z.literal('')),
     active: z.boolean().default(true)
 });
 

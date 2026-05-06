@@ -85,6 +85,7 @@ export default function LandingFooter() {
             <ul className="space-y-2">
               <li><Link to="/privacy" className="text-sm text-gray-400 hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="text-sm text-gray-400 hover:text-primary transition-colors">Terms of Service</Link></li>
+              <li><Link to="/reseller" className="text-sm text-gray-400 hover:text-primary transition-colors">Become a Reseller</Link></li>
               <li><a href="/#faq" className="text-sm text-gray-400 hover:text-primary transition-colors">Contact Us</a></li>
               <li><a href="/#faq" className="text-sm text-gray-400 hover:text-primary transition-colors">Support</a></li>
             </ul>

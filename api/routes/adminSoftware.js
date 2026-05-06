@@ -6,8 +6,9 @@ const authenticateAdmin = require('../middleware/adminAuth');
 
 // Validation schema for software options
 const softwareOptionSchema = z.object({
-    category: z.enum(['Software Type', 'Programming Language']),
+    category: z.enum(['Software Type', 'Programming Language', 'Platform', 'Store', 'Addon']),
     name: z.string().trim().min(1),
+    price: z.number().nonnegative().default(0),
     active: z.boolean().optional()
 });
 

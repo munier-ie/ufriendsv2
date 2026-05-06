@@ -84,14 +84,15 @@ function NameBlock({ prefix, label, data, onChange }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {['Firstname', 'Middlename', 'Lastname'].map(f => {
                     const key = `${prefix}_${f.toLowerCase()}`;
+                    const isMiddlename = f === 'Middlename';
                     return (
                         <Input
                             key={key}
-                            label={f}
+                            label={isMiddlename ? `${f} (Optional)` : f}
                             placeholder={`Enter ${f.toLowerCase()}`}
                             value={data[key] || ''}
                             onChange={e => onChange(key, e.target.value)}
-                            required
+                            required={!isMiddlename}
                         />
                     );
                 })}

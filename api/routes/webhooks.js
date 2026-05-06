@@ -281,4 +281,52 @@ router.post('/paymentpoint', async (req, res) => {
     }
 });
 
+/**
+ * @route   POST /api/webhooks/paystack
+ * @desc    Handle Paystack payment notifications
+ */
+router.post('/paystack', async (req, res) => {
+    try {
+        const secret = process.env.PAYSTACK_SECRET_KEY;
+        const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+        
+        if (hash !== req.headers['x-paystack-signature']) {
+            return res.status(401).send('Invalid signature');
+        }
+
+        const event = req.body;
+        if (event.event === 'charge.success') {
+            const { reference, metadata } = event.data;
+
+            if (metadata?.type === 'reseller_setup') {
+                const request = await prisma.resellerRequest.update({
+                    where: { paymentRef: reference },
+                    data: {
+                        status: 'processing',
+                        paymentStatus: 'paid'
+                    }
+                });
+                
+                console.log(`Reseller request ${reference} marked as processing.`);
+
+                // ─── Automated Notifications ─────────────────────────────────
+                const { sendResellerConfirmation, sendResellerAdminAlert } = require('../services/email.service');
+                
+                // 1. Notify User with Tracking ID
+                sendResellerConfirmation(request.contactEmail, request.paymentRef)
+                    .catch(e => console.error('Reseller confirmation email failed:', e));
+
+                // 2. Alert Admin
+                sendResellerAdminAlert(request)
+                    .catch(e => console.error('Reseller admin alert failed:', e));
+            }
+        }
+
+        res.status(200).send('OK');
+    } catch (error) {
+        console.error('Paystack webhook error:', error);
+        res.status(500).send('Webhook failed');
+    }
+});
+
 module.exports = router;

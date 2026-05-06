@@ -28,6 +28,14 @@
     <priority>0.8</priority>
   </url>
 
+ 
+  <!-- Reseller & Agency Platform -->
+  <url>
+    <loc>https://ufriends.com.ng/reseller</loc>
+    <lastmod>2026-05-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
   <!-- Government & Identity Service Pages (Blue-Ocean) -->
   <url>
     <loc>https://ufriends.com.ng/print-nin-slip-nigeria</loc>

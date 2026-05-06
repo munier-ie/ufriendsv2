@@ -4,7 +4,7 @@
   "description": "",
   "main": "api/index.js",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build && node prerender-script.js",
     "build:backend": "npx prisma generate",
     "preview": "vite preview",

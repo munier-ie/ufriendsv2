@@ -1,13 +1,14 @@
 const nodemailer = require('nodemailer');
 
+
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
     port: parseInt(process.env.SMTP_PORT || '465'),
-    secure: process.env.SMTP_SECURE === 'true', // true for 465, false for other ports
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
-    },
+    }
 });
 
 /**
@@ -339,6 +340,150 @@ async function sendSystemUpdateEmail(user) {
     return sendEmail(emailTo, subject, html);
 }
 
+/**
+ * Send Reseller Setup Confirmation to User
+ */
+async function sendResellerConfirmation(request) {
+    console.log(`[EmailService] Preparing reseller confirmation for: ${request.contactEmail}`);
+    const subject = 'Payment Received - Reseller Portal Setup Started';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background: linear-gradient(135deg, #0f172a, #1e293b); padding: 40px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">Setup Started!</h1>
+            </div>
+            <div style="padding: 40px;">
+                <h2 style="color: #0f172a; margin-top: 0;">Payment Successful</h2>
+                <p>We have successfully received your payment for the Ufriends Reseller Portal setup. Our team has been notified and the deployment process has been initiated.</p>
+                
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin: 30px 0; text-align: center;">
+                    <p style="margin: 0; color: #64748b; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Your Tracking ID</p>
+                    <h2 style="margin: 10px 0; color: #0f172a; font-family: monospace; font-size: 28px;">${request.paymentRef}</h2>
+                </div>
+
+                <div style="margin: 30px 0;">
+                    <h3 style="font-size: 14px; color: #0f172a; border-b: 1px solid #eee; pb-10">Configuration Summary:</h3>
+                    <ul style="list-style: none; padding: 0; font-size: 13px; color: #475569;">
+                        <li><strong>Platforms:</strong> ${request.platforms.join(', ').toUpperCase()}</li>
+                        <li><strong>Hosting Model:</strong> ${request.hostingType.toUpperCase()}</li>
+                        <li><strong>Extras:</strong> ${request.extras.length > 0 ? request.extras.join(', ').toUpperCase() : 'None'}</li>
+                    </ul>
+                </div>
+
+                <p>You can track the progress of your setup (Web, Android, iOS) and provide your branding details in real-time using our tracking portal.</p>
+                
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/reseller/status/${request.paymentRef}" style="display: inline-block; padding: 16px 32px; background-color: #004687; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                        Track My Setup & Submit Branding
+                    </a>
+                </div>
+
+                <p style="color: #64748b; font-size: 14px; border-top: 1px solid #f1f5f9; padding-top: 20px; margin-top: 20px">Note: Setup typically takes 2-5 business days depending on the complexity and platform publishing requirements.</p>
+            </div>
+        </div>
+    `;
+    console.log(`[EmailService] Sending reseller confirmation email...`);
+    return sendEmail(request.contactEmail, subject, html);
+}
+
+/**
+ * Send Reseller Admin Notification
+ */
+async function sendResellerAdminAlert(request) {
+    if (!process.env.ADMIN_EMAIL) {
+        console.warn('[EmailService] ADMIN_EMAIL not set, skipping reseller admin alert');
+        return;
+    }
+    console.log(`[EmailService] Preparing reseller admin alert for ref: ${request.paymentRef}`);
+    const subject = 'New PAID Reseller Setup Request';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #0f172a; border-radius: 12px; padding: 30px;">
+            <h2 style="color: #004687;">Action Required: New Reseller Setup</h2>
+            <p>A new reseller setup request has been PAID and is ready for processing.</p>
+            
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Customer Email</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${request.contactEmail}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Phone</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${request.contactPhone}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Platforms</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${request.platforms.join(', ').toUpperCase()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Hosting</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${request.hostingType.toUpperCase()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Extras</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${request.extras.length > 0 ? request.extras.join(', ').toUpperCase() : 'None'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Amount</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; color: #28a745;">₦${request.totalAmount.toLocaleString()}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Tracking ID</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold;">${request.paymentRef}</td>
+                </tr>
+            </table>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/reseller-requests" style="background-color: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Manage in Dashboard</a>
+            </div>
+        </div>
+    `;
+    return sendEmail(process.env.ADMIN_EMAIL, `[URGENT] ${subject}`, html);
+}
+
+/**
+ * Send Reseller Deployment Ready Notification
+ */
+async function sendResellerDeploymentReady(request) {
+    const subject = 'Your Reseller Portal is Live!';
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background: linear-gradient(135deg, #22c55e, #16a34a); padding: 40px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 24px; letter-spacing: 1px;">Deployment Complete!</h1>
+            </div>
+            <div style="padding: 40px;">
+                <h2 style="color: #0f172a; margin-top: 0;">Congratulations!</h2>
+                <p>We are excited to inform you that your Ufriends Reseller Portal setup is now complete. All your assets are ready for use.</p>
+                
+                <div style="background-color: #f0fdf4; border: 1px solid #dcfce7; border-radius: 12px; padding: 25px; margin: 30px 0;">
+                    <h3 style="margin: 0 0 15px 0; color: #166534; font-size: 14px; text-transform: uppercase;">Your Assets:</h3>
+                    <ul style="margin: 0; padding: 0; list-style: none; space-y: 10px;">
+                        ${request.webUrl ? `<li style="margin-bottom: 10px;">🌐 <strong>Web Portal:</strong> <a href="${request.webUrl}" style="color: #16a34a;">${request.webUrl}</a></li>` : ''}
+                        ${request.apkUrl ? `<li style="margin-bottom: 10px;">📱 <strong>Android APK:</strong> <a href="${request.apkUrl}" style="color: #16a34a;">Download App</a></li>` : ''}
+                        ${request.playStoreUrl ? `<li style="margin-bottom: 10px;">▶️ <strong>Play Store:</strong> <a href="${request.playStoreUrl}" style="color: #16a34a;">View on Play Store</a></li>` : ''}
+                        ${request.appStoreUrl ? `<li style="margin-bottom: 10px;">🍎 <strong>App Store:</strong> <a href="${request.appStoreUrl}" style="color: #16a34a;">View on App Store</a></li>` : ''}
+                    </ul>
+                </div>
+
+                ${request.adminNote ? `
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px; margin-bottom: 30px;">
+                    <p style="margin: 0; font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Admin Message:</p>
+                    <p style="margin: 10px 0 0 0; color: #0f172a;">${request.adminNote}</p>
+                </div>
+                ` : ''}
+
+                <div style="text-align: center; margin: 40px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/reseller/status/${request.paymentRef}" style="display: inline-block; padding: 16px 32px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px;">
+                        View Setup Summary
+                    </a>
+                </div>
+
+                <p>If you have any questions or need further customization, please contact your account manager.</p>
+                <p>Best regards,<br>The Ufriends Enterprise Team</p>
+            </div>
+        </div>
+    `;
+    return sendEmail(request.contactEmail, subject, html);
+}
+
 module.exports = {
     sendEmail,
     sendEmailStrict,
@@ -349,6 +494,9 @@ module.exports = {
     sendAdminServiceRequestNotification,
     send2FaOtpEmail,
     sendVerificationOtpEmail,
-    sendSystemUpdateEmail
+    sendSystemUpdateEmail,
+    sendResellerConfirmation,
+    sendResellerAdminAlert,
+    sendResellerDeploymentReady
 };
 

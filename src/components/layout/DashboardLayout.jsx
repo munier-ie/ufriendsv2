@@ -6,11 +6,13 @@ import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
 import User from 'lucide-react/dist/esm/icons/user';
 import Wallet from 'lucide-react/dist/esm/icons/wallet';
 import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
+import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
 import Grid3X3 from 'lucide-react/dist/esm/icons/grid-3x3';
 import LogOut from 'lucide-react/dist/esm/icons/log-out';
 import Bank from 'lucide-react/dist/esm/icons/landmark'; // Alias for Bank usages
 import Landmark from 'lucide-react/dist/esm/icons/landmark'; // For Landmark usages
 import Signal from 'lucide-react/dist/esm/icons/signal';
+import Smartphone from "lucide-react/dist/esm/icons/smartphone";
 import Ban from 'lucide-react/dist/esm/icons/ban';
 import PhoneCall from 'lucide-react/dist/esm/icons/phone-call';
 import FileText from 'lucide-react/dist/esm/icons/file-text';
@@ -192,9 +194,9 @@ export default function DashboardLayout() {
         { icon: MessageSquare, label: 'Bulk SMS', path: '/dashboard/bulk-sms' },
         { icon: ArrowRightLeft, label: 'Sell Airtime', path: '/dashboard/sell-pin' },
         { icon: CalculatorIcon, label: 'Calculator', path: '/dashboard/calculator' },
-        { icon: Globe, label: 'Reseller Website', path: '/dashboard/reseller' },
         { icon: Users, label: 'Referrals', path: '/dashboard/referrals' },
         { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },
+        { icon: Globe, label: 'Become a Reseller', path: '/reseller' },
         { icon: HelpCircle, label: 'Support Center', path: '/dashboard/support' },
         { icon: User, label: 'Profile', path: '/dashboard/profile' },
     ];
@@ -210,6 +212,7 @@ export default function DashboardLayout() {
         { icon: LayoutDashboard, label: 'Admin Home', path: '/admin/dashboard' },
         { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
         { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services', moduleId: 'services' },
+        { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
         { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers', moduleId: 'providers' },
         { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans', moduleId: 'services' },
         { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
@@ -231,6 +234,7 @@ export default function DashboardLayout() {
         { icon: Users, label: 'Referrals', path: '/admin/dashboard/referrals', moduleId: 'users' },
         { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades', moduleId: 'settings' },
         { icon: Code, label: 'Software Options', path: '/admin/dashboard/settings/software', moduleId: 'settings' },
+        { icon: DollarSign, label: 'Reseller Pricing', path: '/admin/dashboard/settings/reseller-pricing', moduleId: 'settings' },
         { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing', moduleId: 'settings' },
         { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast', moduleId: 'contact' },
         { icon: BarChart, label: 'Analytics', path: '/admin/dashboard/reports', moduleId: 'reports' },

@@ -7,6 +7,7 @@ import BenefitsSection from '../components/landing/BenefitsSection';
 import TestimonialsSection from '../components/landing/TestimonialsSection';
 import FaqSection from '../components/landing/FaqSection';
 import CtaSection from '../components/landing/CtaSection';
+import ResellerSection from '../components/landing/ResellerSection';
 import LandingFooter from '../components/landing/LandingFooter';
 import PageMeta from '../components/seo/PageMeta';
 
@@ -129,6 +130,8 @@ export default function LandingPage() {
         >
           <ServicesSection />
         </motion.div>
+
+        <ResellerSection />
 
         <motion.div
           initial={{ opacity: 0, y: 50 }}

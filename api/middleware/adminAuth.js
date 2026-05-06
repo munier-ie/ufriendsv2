@@ -55,7 +55,7 @@ async function adminAuth(req, res, next) {
             if (moduleName && !OPEN_MODULES.has(moduleName)) {
                 const permissions = admin.permissions;
                 // Allow-list: permissions must be a non-empty object and have this module explicitly set to true
-                if (!permissions || typeof permissions !== 'object' || permissions[moduleName] !== true) {
+                let permissionKey = moduleName; if (['software', 'reseller', 'config'].includes(moduleName)) permissionKey = 'settings'; if (!permissions || typeof permissions !== 'object' || permissions[permissionKey] !== true) {
                     return res.status(403).json({ success: false, error: 'Access denied to this module' });
                 }
             }
