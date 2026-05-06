@@ -408,9 +408,9 @@ export default function ResellerPage() {
                                                     </div>
                                                     <div className="flex gap-2">
                                                         {[
-                                                            { id: 'none', label: platform === 'android' ? 'Self (APK)' : 'Self (IPA)' },
-                                                            { id: 'shared', label: 'Shared' },
-                                                            { id: 'personal', label: 'Personal' }
+                                                            { id: 'none', label: platform === 'android' ? 'Self (APK)' : 'Self (IPA)', sub: platform === 'android' ? 'One-time' : 'Yearly' },
+                                                            { id: 'shared', label: 'Shared', sub: platform === 'android' ? 'One-time' : 'Yearly' },
+                                                            { id: 'personal', label: 'Personal', sub: platform === 'android' ? 'One-time' : 'Yearly' }
                                                         ].map(opt => {
                                                             const isActive = publishing[platform] === opt.id;
                                                             return (
@@ -419,14 +419,19 @@ export default function ResellerPage() {
                                                                     type="button"
                                                                     disabled={!isSelected}
                                                                     onClick={() => setPublishing(prev => ({ ...prev, [platform]: opt.id }))}
-                                                                    className={`flex-1 py-3 px-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all flex items-center justify-center gap-1.5 ${
+                                                                    className={`flex-1 py-3 px-1 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all flex flex-col items-center justify-center gap-0.5 ${
                                                                         isActive
                                                                             ? 'bg-primary text-white border-primary shadow-md shadow-primary/20' 
                                                                             : 'bg-white border-slate-100 text-slate-500 hover:border-slate-200'
                                                                     }`}
                                                                 >
-                                                                    {isActive && <Check size={10} strokeWidth={4} />}
-                                                                    {opt.label}
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        {isActive && <Check size={10} strokeWidth={4} />}
+                                                                        {opt.label}
+                                                                    </div>
+                                                                    <span className={`text-[8px] lowercase font-medium opacity-60 ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                                                                        ({opt.sub})
+                                                                    </span>
                                                                 </button>
                                                             );
                                                         })}

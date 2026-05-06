@@ -1,18 +1,19 @@
 const cron = require('node-cron');
 const prisma = require('../../prisma/client');
-const nodemailer = require('nodemailer');
+const emailService = require('./email.service');
 const axios = require('axios');
 
-// Configure email transporter
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: process.env.SMTP_PORT || 587,
-    secure: process.env.SMTP_PORT === '465',
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
+/**
+ * Send alert email to admin
+ */
+async function sendAdminAlert(subject, message) {
+    console.log(`[SmartRoutingBot] ALERT: ${subject} - ${message}`);
+    try {
+        await emailService.sendAdminAlert(subject, message);
+    } catch (error) {
+        console.error('[SmartRoutingBot] Email Alert failed:', error.message);
     }
-});
+}
 
 const providerHandlers = {
     'alrahuz': require('../utils/providers/alrahuz'),
