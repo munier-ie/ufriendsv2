@@ -1,0 +1,29 @@
+<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#1E90FF" />
+            <stop offset="100%" stop-color="#004687" />
+        </linearGradient>
+        <linearGradient id="uGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" />
+            <stop offset="100%" stop-color="#b3d9ff" />
+        </linearGradient>
+        <linearGradient id="fGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#7DD3FC" />
+            <stop offset="100%" stop-color="#38BDF8" />
+        </linearGradient>
+    </defs>
+    <!-- Background circle with brand gradient -->
+    <circle cx="50" cy="50" r="50" fill="url(#bgGrad)" />
+    <!-- Subtle inner glow ring -->
+    <circle cx="50" cy="50" r="46" stroke="rgba(255,255,255,0.15)" stroke-width="1.5" fill="none" />
+    <!-- "U" Shape -->
+    <path d="M22 18 V56 C22 73 33 84 50 84 C57 84 63 81 67 76 L67 52"
+          stroke="url(#uGrad)" stroke-width="11" stroke-linecap="round" fill="none" />
+    <!-- "f" vertical stem -->
+    <path d="M67 84 V32 C67 22 73 16 83 16"
+          stroke="url(#fGrad)" stroke-width="11" stroke-linecap="round" fill="none" />
+    <!-- "f" crossbar -->
+    <path d="M61 46 H82"
+          stroke="url(#fGrad)" stroke-width="9" stroke-linecap="round" fill="none" />
+</svg>
