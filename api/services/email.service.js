@@ -3,7 +3,7 @@ const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '465'),
+    port: parseInt(process.env.SMTP_PORT || '587'),
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
         user: process.env.SMTP_USER,
@@ -29,7 +29,7 @@ async function sendEmail(to, subject, html) {
         const siteEmail = await settingsService.getSetting('siteEmail', 'support@ufriends.com');
 
         const info = await transporter.sendMail({
-            from: process.env.EMAIL_FROM || `"${siteName} Support" <${siteEmail}>`,
+            from: process.env.EMAIL_FROM || '"Ufriends Support" <noreply@ufriends.com.ng>',
             to,
             subject,
             html,
@@ -55,7 +55,7 @@ async function sendEmailStrict(to, subject, html) {
     const siteEmail = await settingsService.getSetting('siteEmail', 'support@ufriends.com');
 
     const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || `"${siteName} Support" <${siteEmail}>`,
+        from: process.env.EMAIL_FROM || '"Ufriends Support" <noreply@ufriends.com.ng>',
         to,
         subject,
         html,

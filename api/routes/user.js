@@ -41,6 +41,7 @@ router.get('/me', authenticateUser, async (req, res) => {
                 type: true,
                 wallet: true,
                 refWallet: true,
+                referralCode: true,
                 apiKey: true,
                 createdAt: true
             }

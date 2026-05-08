@@ -748,67 +748,95 @@ router.get('/pin/status', authenticateUser, async (req, res) => {
     }
 });
 
-// Forgot Password
-router.post('/forgot-password', async (req, res) => {
+// Forgot Password (OTP-based for Mobile)
+router.post('/forgot-password-otp', async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) return res.status(400).json({ error: 'Email is required' });
 
         const user = await prisma.user.findUnique({ where: { email } });
 
-        // Security: always return the same generic message when user is not found
-        // to prevent email enumeration attacks.
+        // Security: always return same message
         if (!user) {
-            return res.json({ message: 'Password reset link has been sent to your email if you have an account.' });
+            return res.json({ message: 'If an account exists, an OTP has been sent to your email.' });
         }
 
-        // Build a one-time token — signing it with the user's current password hash
-        // means the token auto-invalidates the moment the password is successfully changed.
-        const secret = process.env.JWT_SECRET + user.password;
-        const token = jwt.sign({ userId: user.id, email: user.email }, secret, { expiresIn: '5m' });
+        const otpCode = crypto.randomInt(100000, 999999);
+        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-        const resetLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password?token=${token}&id=${user.id}`;
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+        });
 
         const { sendEmailStrict } = require('../services/email.service');
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px;">
                 <div style="text-align: center; margin-bottom: 24px;">
-                    <h2 style="color: #004687; margin: 0;">Password Reset Request</h2>
+                    <h2 style="color: #004687; margin: 0;">Password Reset OTP</h2>
                 </div>
                 <p style="color: #374151;">Hello <strong>${user.firstName}</strong>,</p>
-                <p style="color: #374151;">You requested to reset your Ufriends account password. Click the button below to choose a new password.</p>
-                <p style="color: #6b7280; font-size: 13px;">This link expires in <strong>5 minutes</strong> and can only be used once.</p>
+                <p style="color: #374151;">You requested to reset your Ufriends account password. Use the OTP below to verify your request.</p>
                 <div style="text-align: center; margin: 28px 0;">
-                    <a href="${resetLink}" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
-                        Reset My Password
-                    </a>
+                    <span style="display: inline-block; padding: 12px 28px; background: #f3f4f6; color: #004687; border-radius: 8px; font-weight: bold; font-size: 32px; letter-spacing: 4px;">
+                        ${otpCode}
+                    </span>
                 </div>
-                <p style="color: #9ca3af; font-size: 12px; text-align: center;">If you didn't request this, you can safely ignore this email. Your password will not change.</p>
+                <p style="color: #6b7280; font-size: 13px;">This code expires in <strong>10 minutes</strong>.</p>
+                <p style="color: #9ca3af; font-size: 12px; text-align: center;">If you didn't request this, you can safely ignore this email.</p>
             </div>
         `;
 
-        // Use strict send — awaits actual SMTP delivery and throws on failure
-        await sendEmailStrict(user.email, 'Password Reset Request – Ufriends', html);
+        await sendEmailStrict(user.email, 'Password Reset OTP – Ufriends', html);
 
-        res.json({ message: 'Password reset link has been sent to your email if you have an account.' });
+        res.json({ message: 'OTP sent to your email successfully.' });
     } catch (error) {
-        console.error('Forgot password error:', error);
-
-        // Distinguish SMTP/config errors from other server errors
-        if (error.message === 'EMAIL_NOT_CONFIGURED') {
-            return res.status(503).json({
-                error: 'EMAIL_UNAVAILABLE',
-                message: 'Our email service is currently unavailable. Please try again later or contact support.'
-            });
-        }
-
-        // SMTP delivery failure (wrong credentials, network issue, etc.)
-        return res.status(503).json({
-            error: 'EMAIL_SEND_FAILED',
-            message: 'We could not deliver the email at this time. Please try again in a moment.'
-        });
+        console.error('Forgot password OTP error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+// Reset Password (OTP-based for Mobile)
+router.post('/reset-password-otp', async (req, res) => {
+    try {
+        const { email, otp, newPassword } = req.body;
+
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ error: 'Email, OTP, and new password are required' });
+        }
+
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { email } });
+        if (!user) return res.status(400).json({ error: 'Invalid or expired OTP' });
+
+        if (!user.emailVerifyCode || !user.emailVerifyExpiry || user.emailVerifyExpiry < new Date()) {
+            return res.status(400).json({ error: 'OTP expired or invalid. Please request a new one.' });
+        }
+
+        if (user.emailVerifyCode.toString() !== otp.toString()) {
+            return res.status(400).json({ error: 'Incorrect OTP.' });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { 
+                password: hashedPassword,
+                emailVerifyCode: null,
+                emailVerifyExpiry: null
+            }
+        });
+
+        res.json({ message: 'Password has been reset successfully. You can now login.' });
+    } catch (error) {
+        console.error('Reset password OTP error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 
 // Reset Password
 router.post('/reset-password', async (req, res) => {

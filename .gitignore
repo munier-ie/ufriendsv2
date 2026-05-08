@@ -20,7 +20,6 @@ dist/
 blog/
 
 ## Mobile
-mobile/*
 mobile/node_modules/
 mobile/android/
 mobile/ios/
@@ -29,5 +28,5 @@ mobile/.expo/
 ## APK Storage
 api/apk/download/
 mobile.backup
-mobile
+# mobile
 api/uploads/apks
