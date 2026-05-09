@@ -18,7 +18,8 @@ router.get('/public-settings', async (req, res) => {
             'registrationEnabled', 'maintenanceMode',
             'whatsappGroupLink', 'contactWhatsapp',
             'posWhatsappNumber', 'posMessageTemplate',
-            'loanWhatsappNumber', 'loanMessageTemplate'
+            'loanWhatsappNumber', 'loanMessageTemplate',
+            'resellerFeatures'
         ];
         
         const settings = {};
@@ -84,7 +85,32 @@ router.get('/settings', adminAuth, async (req, res) => {
             posWhatsappNumber: '',
             posMessageTemplate: 'Hi Admin, I would like to request a POS terminal.\n\nProvider: {{provider}}\nType: {{type}}',
             loanWhatsappNumber: '',
-            loanMessageTemplate: 'Hi Admin, I want to request a loan.\n\nAmount: ₦{{amount}}\nDuration: {{duration}}\nMoniepoint Account: {{account}}'
+            loanMessageTemplate: 'Hi Admin, I want to request a loan.\n\nAmount: ₦{{amount}}\nDuration: {{duration}}\nMoniepoint Account: {{account}}',
+            resellerFeatures: {
+                vtu: [
+                    "Data Vending",
+                    "Airtime Top-up",
+                    "Electricity Bill Payment",
+                    "Airtime to Cash",
+                    "Exam PIN Vending",
+                    "Recharge Card Printing",
+                    "Data Card Vending"
+                ],
+                printing: [
+                    "Advanced NIN Slip Printing System",
+                    "Standard & Premium NIN Designs",
+                    "BVN Slip Generation Tool",
+                    "Secure PDF Export"
+                ],
+                manual: [
+                    "BVN Modification Service",
+                    "NIN Modification Service",
+                    "BVN Android License",
+                    "BVN Retrieval Service",
+                    "VNIN to NIBSS Validation",
+                    "NIN Validation Service"
+                ]
+            }
         };
 
         // Fetch all settings from AppSetting table

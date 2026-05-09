@@ -206,7 +206,7 @@ export default function ResellerPage() {
         }
     };
 
-    const FEATURES = {
+    const FEATURES = settings.resellerFeatures || {
         vtu: [
             "Data Vending",
             "Airtime Top-up",
