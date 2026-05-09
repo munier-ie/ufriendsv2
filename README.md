@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="./public/logo.svg" alt="Ufriends Logo" width="100" height="100" />
+</p>
+
 # 🌟 Ufriends 2.0
 
 Welcome to Ufriends 2.0! This project contains both the **Web Application** and the **Mobile Application**.
