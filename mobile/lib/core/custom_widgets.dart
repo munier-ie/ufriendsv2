@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'app_theme.dart';
 
 String formatCurrency(double amount) {
@@ -142,4 +143,66 @@ class AppLogo extends StatelessWidget {
       placeholderBuilder: (context) => Icon(Icons.people_alt, color: AppTheme.primaryColor, size: size),
     );
   }
+}
+
+Future<void> showPermissionDeniedDrawer(BuildContext context) async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (context) => Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[300],
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 24),
+          const Icon(Icons.notifications_off_rounded, size: 48, color: Color(0xFF1E90FF)),
+          const SizedBox(height: 16),
+          const Text(
+            'Permission Required',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'Notifications are required for updates. Please enable them in your app settings.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.black54, fontSize: 14),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () async {
+              await openAppSettings();
+              if (context.mounted) Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E90FF),
+              minimumSize: const Size(double.infinity, 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Open Settings', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Maybe Later', style: TextStyle(color: Colors.grey)),
+          ),
+          const SizedBox(height: 12),
+        ],
+      ),
+    ),
+  );
 }

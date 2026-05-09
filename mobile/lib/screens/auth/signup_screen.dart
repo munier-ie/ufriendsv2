@@ -164,7 +164,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         return ListTile(
                           title: Text(state),
                           trailing: _stateController.text == state 
-                              ? Icon(Icons.check_circle, color: AppTheme.primaryColor)
+                              ? const Icon(Icons.check_circle, color: Color(0xFF1E90FF))
                               : null,
                           onTap: () {
                             setState(() {
@@ -195,7 +195,7 @@ class _SignupScreenState extends State<SignupScreen> {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+                icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF)),
                 onPressed: () => Navigator.pop(context),
               )
             : null,

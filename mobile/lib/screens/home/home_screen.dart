@@ -50,37 +50,14 @@ class _HomeScreenState extends State<HomeScreen> {
     if (status.isDenied) {
       final result = await Permission.notification.request();
       if (result.isPermanentlyDenied) {
-        _showPermissionDialog();
+        if (mounted) showPermissionDeniedDrawer(context);
       }
     } else if (status.isPermanentlyDenied) {
-      _showPermissionDialog();
+      if (mounted) showPermissionDeniedDrawer(context);
     }
   }
 
-  void _showPermissionDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Notifications Required'),
-        content: const Text(
-          'Push notifications are required for transaction updates. Please enable them in app settings.'
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              openAppSettings();
-            },
-            child: const Text('Settings'),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Future<void> _fetchDashboardData() async {
     if (_userProfile == null) {

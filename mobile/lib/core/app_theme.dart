@@ -84,6 +84,8 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceColor,
+        prefixIconColor: secondaryColor,
+        suffixIconColor: secondaryColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(borderRadius / 2),
           borderSide: BorderSide(color: Colors.grey.shade200),

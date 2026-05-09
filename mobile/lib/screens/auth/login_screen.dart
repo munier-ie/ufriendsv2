@@ -61,7 +61,7 @@ class _LoginScreenState extends State<LoginScreen> {
         systemOverlayStyle: SystemUiOverlayStyle.dark,
         leading: Navigator.canPop(context) 
           ? IconButton(
-              icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87),
+              icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF)),
               onPressed: () => Navigator.pop(context),
             )
           : null,

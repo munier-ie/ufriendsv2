@@ -56,7 +56,7 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
         if (mounted) setState(() => _pushNotifications = true);
         if (mounted) AppToast.show(context, message: 'Notifications enabled', type: ToastType.success);
       } else if (status.isPermanentlyDenied) {
-        openAppSettings();
+        if (mounted) showPermissionDeniedDrawer(context);
       } else {
         if (mounted) setState(() => _pushNotifications = false);
       }

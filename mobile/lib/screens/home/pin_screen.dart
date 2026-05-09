@@ -80,7 +80,7 @@ class _PinScreenState extends State<PinScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                    icon: const Icon(Icons.arrow_back, color: Color(0xFF1E90FF)),
                     onPressed: () => Navigator.pop(context),
                   ),
                   const SizedBox(width: 8),
@@ -231,7 +231,7 @@ class _PinScreenState extends State<PinScreen> {
         ),
         alignment: Alignment.center,
         child: isBackspace
-            ? const Icon(Icons.backspace_rounded, color: Colors.black87, size: 24)
+            ? const Icon(Icons.backspace_rounded, color: Color(0xFF1E90FF), size: 24)
             : Text(
                 key,
                 style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),

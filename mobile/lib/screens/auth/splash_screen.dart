@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../core/app_theme.dart';
 import '../../core/auth_service.dart';
 import '../../core/custom_widgets.dart';
@@ -43,6 +44,16 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     bool firstLaunch = await AuthService.isFirstLaunch();
     bool loggedIn = await AuthService.isLoggedIn();
 
+    // Request notification permission for new users or users about to login
+    if (firstLaunch || !loggedIn) {
+      final status = await Permission.notification.status;
+      if (status.isDenied) {
+        await Permission.notification.request();
+      } else if (status.isPermanentlyDenied) {
+        if (mounted) await showPermissionDeniedDrawer(context);
+      }
+    }
+
     Widget nextScreen;
     if (firstLaunch) {
       await AuthService.setHasLaunched(); // Set to false for next time
@@ -65,6 +76,8 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       ),
     );
   }
+
+
 
   @override
   void dispose() {

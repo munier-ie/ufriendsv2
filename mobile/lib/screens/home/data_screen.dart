@@ -396,7 +396,7 @@ class _DataScreenState extends State<DataScreen> {
                           title: Text(plan['name'] ?? 'N/A'),
                           subtitle: Text('₦${formatCurrency((plan['price'] ?? 0).toDouble())}'),
                           trailing: _selectedDataPlan?['id'] == plan['id'] 
-                              ? Icon(Icons.check_circle, color: AppTheme.primaryColor)
+                              ? const Icon(Icons.check_circle, color: Color(0xFF1E90FF))
                               : null,
                           onTap: () {
                             setState(() {
@@ -447,7 +447,7 @@ class _DataScreenState extends State<DataScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 20),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),

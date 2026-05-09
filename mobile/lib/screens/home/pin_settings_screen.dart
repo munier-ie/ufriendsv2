@@ -189,7 +189,7 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                 child: Row(
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Colors.black87),
+                      icon: const Icon(Icons.arrow_back, color: Color(0xFF1E90FF)),
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 8),

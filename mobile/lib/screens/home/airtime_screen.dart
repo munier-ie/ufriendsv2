@@ -335,7 +335,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black87, size: 20),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
