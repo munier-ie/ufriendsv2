@@ -7,7 +7,7 @@ import {
     Globe, Smartphone, CheckCircle, ArrowRight, Shield, 
     Zap, Code, Layout, Server, Database, Smartphone as Phone,
     Apple, PlaySquare, Layers, HelpCircle, Mail, Phone as PhoneIcon,
-    Check, X, AlertCircle, Loader2, TrendingUp, MessageSquare
+    Check, X, AlertCircle, Loader2, TrendingUp, MessageCircle
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import axios from 'axios';
@@ -117,7 +117,7 @@ export default function ResellerPage() {
 
     const whatsappNumber = '2348169696095';
     const sitePhone = '+234 816 969 6095';
-    const whatsappGroupLink = settings.whatsappGroupLink || 'https://chat.whatsapp.com/G5v3m0f2p5o0p0p0p0p0p0';
+    const whatsappGroupLink = 'https://chat.whatsapp.com/CEfJtZRVQofFj8SQr8kHl2';
 
     useEffect(() => {
         if (dbPrices.length === 0) return;
@@ -208,30 +208,27 @@ export default function ResellerPage() {
 
     const FEATURES = {
         vtu: [
-            "White-label Web & Mobile Apps",
-            "Airtime & Data Vending System",
-            "Cable TV & Electricity Payments",
-            "Exam Pin & Result Checker",
-            "Automated Wallet & Fund Management",
-            "Developer API & Webhook Support",
-            "Real-time Transaction Receipts",
-            "Admin Control Dashboard"
+            "Data Vending",
+            "Airtime Top-up",
+            "Electricity Bill Payment",
+            "Airtime to Cash",
+            "Exam PIN Vending",
+            "Recharge Card Printing",
+            "Data Card Vending"
         ],
         printing: [
             "Advanced NIN Slip Printing System",
             "Standard & Premium NIN Designs",
             "BVN Slip Generation Tool",
-            "Custom Branded Slip Templates",
-            "Bulk Identification Processing",
-            "Secure PDF Export & Cloud Storage"
+            "Secure PDF Export"
         ],
         manual: [
-            "Human-Verified Request Workflow",
-            "Custom Document Upload System",
-            "Admin Proof of Payment Approval",
-            "Manual Identification Services",
-            "Custom Business Logic Integration",
-            "Priority Admin Support Channel"
+            "BVN Modification Service",
+            "NIN Modification Service",
+            "BVN Android License",
+            "BVN Retrieval Service",
+            "VNIN to NIBSS Validation",
+            "NIN Validation Service"
         ]
     };
 
@@ -697,7 +694,7 @@ export default function ResellerPage() {
                         </div>
                         <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center gap-4 transition-all hover:bg-slate-100">
                             <div className="w-12 h-12 bg-white text-emerald-600 rounded-xl flex items-center justify-center shrink-0 shadow-sm">
-                                <MessageSquare size={24} />
+                                <MessageCircle size={24} />
                             </div>
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Community Link</p>
