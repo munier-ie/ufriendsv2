@@ -111,19 +111,8 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import TermsOfService from './pages/TermsOfService';
 import HomepageEditor from './pages/dashboard/admin/HomepageEditor';
 
-// ─── SEO Service Landing Pages — code-split per page via React.lazy ──────────
-// Each page gets its own JS chunk at build time (Vite splits on dynamic import).
-// React.Suspense at route level shows nothing while chunk loads (near-instant for SSR/prerender).
-const PrintNinSlipPage   = React.lazy(() => import('./pages/seo/PrintNinSlipPage'));
-const PrintBvnSlipPage   = React.lazy(() => import('./pages/seo/PrintBvnSlipPage'));
-const NinModificationPage = React.lazy(() => import('./pages/seo/NinModificationPage'));
-const BvnModificationPage = React.lazy(() => import('./pages/seo/BvnModificationPage'));
-const BuyDataPage        = React.lazy(() => import('./pages/seo/BuyDataPage'));
-const BuyAirtimePage     = React.lazy(() => import('./pages/seo/BuyAirtimePage'));
-const PayElectricityPage = React.lazy(() => import('./pages/seo/PayElectricityPage'));
-const CableTvPage        = React.lazy(() => import('./pages/seo/CableTvPage'));
-const ExamPinsPage       = React.lazy(() => import('./pages/seo/ExamPinsPage'));
-const CacRegistrationPage = React.lazy(() => import('./pages/seo/CacRegistrationPage'));
+// ─── SEO Service Landing Pages — unified dynamic component ──────────
+const SeoPageDynamic = React.lazy(() => import('./pages/seo/SeoPageDynamic'));
 const BlogIndex          = React.lazy(() => import('./pages/blog/BlogIndex'));
 const BlogPost           = React.lazy(() => import('./pages/blog/BlogPost'));
 
@@ -257,17 +246,17 @@ export default function App() {
                     <Route path="homepage" element={<HomepageEditor />} />
                 </Route>
 
-                {/* ─── SEO Service Pages — each is its own lazy-loaded chunk ─── */}
-                <Route path="/print-nin-slip-nigeria"    element={<React.Suspense fallback={null}><PrintNinSlipPage /></React.Suspense>} />
-                <Route path="/print-bvn-slip-nigeria"    element={<React.Suspense fallback={null}><PrintBvnSlipPage /></React.Suspense>} />
-                <Route path="/nin-modification-nigeria"  element={<React.Suspense fallback={null}><NinModificationPage /></React.Suspense>} />
-                <Route path="/bvn-modification-nigeria"  element={<React.Suspense fallback={null}><BvnModificationPage /></React.Suspense>} />
-                <Route path="/cac-registration-nigeria"  element={<React.Suspense fallback={null}><CacRegistrationPage /></React.Suspense>} />
-                <Route path="/buy-data-nigeria"          element={<React.Suspense fallback={null}><BuyDataPage /></React.Suspense>} />
-                <Route path="/buy-airtime-nigeria"       element={<React.Suspense fallback={null}><BuyAirtimePage /></React.Suspense>} />
-                <Route path="/pay-electricity-bill-nigeria" element={<React.Suspense fallback={null}><PayElectricityPage /></React.Suspense>} />
-                <Route path="/subscribe-cable-tv-nigeria"   element={<React.Suspense fallback={null}><CableTvPage /></React.Suspense>} />
-                <Route path="/buy-exam-pins-nigeria"        element={<React.Suspense fallback={null}><ExamPinsPage /></React.Suspense>} />
+                {/* ─── SEO Service Pages — handled by dynamic component ─── */}
+                <Route path="/print-nin-slip-nigeria"    element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/print-bvn-slip-nigeria"    element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/nin-modification-nigeria"  element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/bvn-modification-nigeria"  element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/cac-registration-nigeria"  element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/buy-data-nigeria"          element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/buy-airtime-nigeria"       element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/pay-electricity-bill-nigeria" element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/subscribe-cable-tv-nigeria"   element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
+                <Route path="/buy-exam-pins-nigeria"        element={<React.Suspense fallback={null}><SeoPageDynamic /></React.Suspense>} />
 
                 {/* ─── Blog — lazy-loaded ─── */}
                 <Route path="/blog"       element={<React.Suspense fallback={null}><BlogIndex /></React.Suspense>} />

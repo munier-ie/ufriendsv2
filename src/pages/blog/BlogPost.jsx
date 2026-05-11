@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
 import { ArrowLeft, Clock, Calendar, Tag, ArrowRight, ChevronRight } from 'lucide-react';
 import PageMeta from '../../components/seo/PageMeta';
@@ -6,47 +6,193 @@ import LandingNavbar from '../../components/landing/LandingNavbar';
 import LandingFooter from '../../components/landing/LandingFooter';
 import { BLOG_POSTS } from './BlogIndex';
 
-// ─── Lazy-load each article's content ────────────────────────────────────────
-// Each article body is a separate chunk so the blog index stays tiny.
-const ARTICLE_MODULES = {
-    'how-to-print-nin-slip-online-nigeria':      React.lazy(() => import('./articles/HowToPrintNinSlip')),
-    'how-to-modify-bvn-nigeria':                 React.lazy(() => import('./articles/HowToModifyBvn')),
-    'cheapest-data-plans-nigeria-2026':          React.lazy(() => import('./articles/CheapestDataPlans')),
-    'how-to-retrieve-bvn-with-phone-number-nigeria': React.lazy(() => import('./articles/HowToRetrieveBvn')),
-    'how-to-pay-dstv-subscription-online-nigeria':   React.lazy(() => import('./articles/HowToPayDstv')),
-    'how-to-pay-electricity-bill-online-nigeria':    React.lazy(() => import('./articles/HowToPayElectricity')),
-    'how-to-buy-waec-pin-online-nigeria':            React.lazy(() => import('./articles/HowToBuyWaecPin')),
-    'how-to-register-business-cac-online-nigeria':   React.lazy(() => import('./articles/HowToRegisterCAC')),
-    'nin-vs-bvn-difference-nigeria':                 React.lazy(() => import('./articles/NinVsBvn')),
-    'best-vtu-website-nigeria-2026':                 React.lazy(() => import('./articles/BestVtuWebsite')),
-    'how-to-get-pos-terminal-nigeria':               React.lazy(() => import('./articles/HowToGetPosTerminal')),
-    'how-to-convert-airtime-to-cash-nigeria':        React.lazy(() => import('./articles/HowToConvertAirtimeToCash')),
-    'how-to-start-vtu-business-nigeria':             React.lazy(() => import('./articles/HowToStartVtuBusiness')),
-    'how-to-subscribe-gotv-online-nigeria':          React.lazy(() => import('./articles/HowToSubscribeGotv')),
-    'mtn-sme-data-nigeria':                          React.lazy(() => import('./articles/MtnSmeData')),
-    'how-to-link-nin-to-bank-account-nigeria':       React.lazy(() => import('./articles/HowToLinkNin')),
-    'buy-cheap-airtel-data-online-nigeria':          React.lazy(() => import('./articles/BuyCheapAirtelData')),
-    'nin-modification-portal-nigeria':               React.lazy(() => import('./articles/NinModificationPortal')),
-    'e-wallet-vs-virtual-account-nigeria':           React.lazy(() => import('./articles/EWalletVsVirtualAccount')),
-    'buy-cheap-glo-data-plans-nigeria-2026':         React.lazy(() => import('./articles/BuyCheapGloData')),
-};
+// ─── Dynamic Article Renderer ──────────────────────────────────────────────────
+function DynamicArticle({ slug }) {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
+    const contentRef = useRef(null);
+    const [tocStyle, setTocStyle] = useState({ position: 'absolute', top: 0 });
+    const [tocLeft, setTocLeft] = useState(0);
+    const [tocWidth, setTocWidth] = useState(288);
 
-// ─── Article prose wrapper ────────────────────────────────────────────────────
-function Prose({ children }) {
+    useEffect(() => {
+        setLoading(true);
+        // Vite dynamic import relative to this file
+        import(`./content/${slug}.json`)
+            .then((module) => {
+                setData(module.default || module);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("Failed to load article content:", err);
+                setError(true);
+                setLoading(false);
+            });
+    }, [slug]);
+
+    useEffect(() => {
+        if (!data) return;
+        const THRESHOLD_FROM_TOP = 150;
+        const tocOriginalEl = document.getElementById('toc-placeholder');
+
+        function updateTocLeft() {
+            if (tocOriginalEl) {
+                const rect = tocOriginalEl.getBoundingClientRect();
+                setTocLeft(rect.left);
+                setTocWidth(rect.width);
+            }
+        }
+
+        function handleScroll() {
+            if (!contentRef.current || !tocOriginalEl) return;
+            
+            const contentRect = contentRef.current.getBoundingClientRect();
+            const placeholderRect = tocOriginalEl.getBoundingClientRect();
+
+            updateTocLeft();
+
+            const startFollowing = placeholderRect.top <= THRESHOLD_FROM_TOP;
+            
+            // Use the absolute bottom of the content container to know when to stop tracking
+            const tocEl = document.getElementById('toc-panel');
+            const tocHeight = tocEl ? tocEl.offsetHeight : 500;
+            const stopFollowing = contentRect.bottom <= (THRESHOLD_FROM_TOP + tocHeight + 20);
+
+            if (stopFollowing) {
+                const contentHeight = contentRef.current.offsetHeight;
+                setTocStyle({ position: 'absolute', top: contentHeight - tocHeight });
+            } else if (startFollowing) {
+                setTocStyle({ position: 'fixed', top: THRESHOLD_FROM_TOP });
+            } else {
+                setTocStyle({ position: 'absolute', top: 0 });
+            }
+        }
+
+        // Delay initial calculation slightly to ensure content is fully rendered
+        setTimeout(() => {
+            updateTocLeft();
+            handleScroll();
+        }, 100);
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        window.addEventListener('resize', () => {
+            updateTocLeft();
+            handleScroll();
+        });
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', updateTocLeft);
+        };
+    }, [data]);
+
+    const scrollToSection = (e, id) => {
+        e.preventDefault();
+        const element = document.getElementById(id);
+        if (element) {
+            const offset = 110;
+            const top = element.getBoundingClientRect().top + window.pageYOffset - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
+    };
+
+    if (loading) return (
+        <div className="space-y-4" aria-busy="true" aria-label="Loading article…">
+            {[1,2,3,4,5].map((i) => (
+                <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${70 + (i % 3) * 10}%` }} />
+            ))}
+        </div>
+    );
+
+    if (error || !data) return <p>Article content could not be loaded.</p>;
+
+    const fixedStyles = tocStyle.position === 'fixed'
+        ? { position: 'fixed', top: tocStyle.top, left: tocLeft, width: tocWidth, zIndex: 40 }
+        : { position: 'absolute', top: tocStyle.top, right: 0, width: tocWidth, zIndex: 40 };
+
+    const tocSection = data.sections.find(s => s.type === 'toc');
+
     return (
-        <div className="
-            prose prose-gray max-w-none
-            prose-headings:font-bold prose-headings:text-gray-900 prose-headings:scroll-mt-24
-            prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-4
-            prose-h3:text-base prose-h3:mt-6 prose-h3:mb-3
-            prose-p:text-gray-600 prose-p:leading-relaxed prose-p:text-sm md:prose-p:text-base
-            prose-a:text-secondary prose-a:no-underline hover:prose-a:text-primary hover:prose-a:underline
-            prose-strong:text-gray-900
-            prose-ul:text-gray-600 prose-ul:text-sm prose-ol:text-gray-600 prose-ol:text-sm
-            prose-li:my-1.5
-            prose-blockquote:border-l-4 prose-blockquote:border-secondary prose-blockquote:bg-secondary/5 prose-blockquote:px-4 prose-blockquote:py-1 prose-blockquote:not-italic
-        ">
-            {children}
+        <div className="w-full pb-16 max-w-[1200px] mx-auto">
+            <div ref={contentRef} className="flex flex-col lg:flex-row gap-12 text-left items-start relative">
+                <div className="flex-1 w-full min-w-0 space-y-10">
+                    {data.sections.map((sec, i) => {
+                        if (sec.type === 'paragraph') {
+                            return <p key={i} className="text-lg text-gray-700 leading-relaxed mb-3" dangerouslySetInnerHTML={{__html: sec.content}} />;
+                        }
+                        if (sec.type === 'heading') {
+                            return (
+                                <section key={i} id={sec.id}>
+                                    <h2 className="scroll-mt-32 text-2xl md:text-3xl font-bold text-gray-800 mb-5 border-b pb-3 border-gray-200">{sec.content}</h2>
+                                </section>
+                            );
+                        }
+                        if (sec.type === 'list') {
+                            return (
+                                <ul key={i} className="space-y-3">
+                                    {sec.items.map((item, j) => (
+                                        <li key={j} className="flex items-start gap-3">
+                                            <span className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 mt-2"></span>
+                                            <span className="text-base text-gray-700" dangerouslySetInnerHTML={{__html: item}} />
+                                        </li>
+                                    ))}
+                                </ul>
+                            );
+                        }
+                        if (sec.type === 'stepper') {
+                            return (
+                                <div key={i} className="bg-white shadow-sm border border-gray-100 rounded-2xl p-7 md:p-9">
+                                    <ol className="space-y-8">
+                                        {sec.steps.map((step, j) => (
+                                            <li key={j} className="flex items-start gap-4 md:gap-6 relative">
+                                                {j < sec.steps.length - 1 && (
+                                                    <div className="absolute left-[1.15rem] top-12 bottom-[-2rem] w-px bg-gray-200" aria-hidden="true"></div>
+                                                )}
+                                                <span className="relative z-10 flex-shrink-0 w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg mt-0.5 shadow-md ring-4 ring-white">{j + 1}</span>
+                                                <div>
+                                                    <h3 className="text-lg font-bold text-gray-900 mb-2">{step.title}</h3>
+                                                    <p className="text-base text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{__html: step.content}} />
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ol>
+                                </div>
+                            );
+                        }
+                        return null;
+                    })}
+                </div>
+
+                {/* Sidebar TOC */}
+                {tocSection && (
+                    <>
+                        <aside id="toc-placeholder" className="hidden lg:block w-72 flex-shrink-0 self-start" style={{ minHeight: 1 }}></aside>
+                        <div id="toc-panel" className="hidden lg:block w-72" style={fixedStyles}>
+                            <div className="bg-[#fcfdfe] rounded-2xl shadow-md border border-gray-100 p-6 overflow-y-auto max-h-[calc(100vh-180px)]">
+                                <div className="flex items-center gap-2 mb-5">
+                                    <div className="w-1.5 h-5 bg-blue-600 rounded-full"></div>
+                                    <h4 className="text-xs font-bold text-gray-900 uppercase tracking-widest">On This Page</h4>
+                                </div>
+                                <nav className="flex flex-col space-y-3 relative before:absolute before:inset-y-0 before:left-1.5 before:w-px before:bg-gray-100 pl-4">
+                                    {tocSection.items.map((item, j) => (
+                                        <a key={j} href={`#${item.id}`} onClick={(e) => scrollToSection(e, item.id)} className="relative text-sm font-semibold text-gray-500 hover:text-blue-600 transition-colors py-0.5 pl-4 group">
+                                            <span className="absolute -left-1.5 top-1/2 -mt-1 h-2 w-2 rounded-full bg-white border border-gray-300 group-hover:border-blue-600 group-hover:bg-blue-600 transition-all duration-200"></span>
+                                            {item.title}
+                                        </a>
+                                    ))}
+                                </nav>
+                                <div className="mt-7 pt-5 border-t border-gray-100">
+                                    <p className="text-xs text-gray-500 mb-3 font-medium">Need help? Chat with us!</p>
+                                    <a href="https://chat.whatsapp.com/G4dSBWV7Pp5BLBoOtborg2?mode=gi_t" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 transition-colors text-center shadow-sm">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 mr-2"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.541 5.874L.057 23.514a.75.75 0 00.918.943l5.84-1.525A11.953 11.953 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22.5A10.46 10.46 0 016.56 21.02l-.41-.245-4.25 1.11 1.13-4.12-.268-.424A10.447 10.447 0 011.5 12C1.5 6.21 6.21 1.5 12 1.5S22.5 6.21 22.5 12 17.79 22.5 12 22.5z"/></svg>
+                                        Chat Support
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+            </div>
         </div>
     );
 }
@@ -56,13 +202,10 @@ export default function BlogPost() {
     const { slug } = useParams();
     const post = BLOG_POSTS.find((p) => p.slug === slug);
 
-    // 404 if post not in catalogue
     if (!post) return <Navigate to="/blog" replace />;
 
-    const ArticleContent = ARTICLE_MODULES[slug];
     const publishedDate = new Intl.DateTimeFormat('en-NG', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt));
 
-    // Structured data for the article
     const articleSchema = {
         '@context': 'https://schema.org',
         '@type': 'Article',
@@ -97,8 +240,6 @@ export default function BlogPost() {
     };
 
     const catStyle = CATEGORY_STYLES[post.category] || 'bg-gray-100 text-gray-600';
-
-    // Related posts — same category, excluding current
     const related = BLOG_POSTS.filter((p) => p.slug !== slug && p.category === post.category).slice(0, 2);
 
     return (
@@ -113,11 +254,9 @@ export default function BlogPost() {
             <div className="min-h-screen bg-[#f3fcfd]">
                 <LandingNavbar />
 
-                {/* Article header */}
                 <header className="bg-white border-b border-gray-100">
                     <div className="h-1 w-full bg-gradient-to-r from-primary via-secondary to-primary" aria-hidden="true" />
                     <div className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-16 pb-12 md:pt-20 md:pb-16">
-                        {/* Breadcrumb */}
                         <nav aria-label="Breadcrumb" className="flex items-center gap-1.5 text-xs text-gray-400 mb-6">
                             <Link to="/" className="hover:text-primary transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">Home</Link>
                             <ChevronRight size={12} aria-hidden="true" />
@@ -126,7 +265,6 @@ export default function BlogPost() {
                             <span className="text-gray-600 font-medium truncate max-w-[180px]">{post.category}</span>
                         </nav>
 
-                        {/* Category & meta */}
                         <div className="flex flex-wrap items-center gap-3 mb-5">
                             <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full ${catStyle}`}>
                                 <Tag size={10} aria-hidden="true" />
@@ -142,7 +280,6 @@ export default function BlogPost() {
                             </span>
                         </div>
 
-                        {/* Title */}
                         <h1
                             className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-5"
                             style={{ textWrap: 'balance' }}
@@ -150,17 +287,14 @@ export default function BlogPost() {
                             {post.title}
                         </h1>
 
-                        {/* Lead paragraph */}
                         <p className="text-base md:text-lg text-gray-500 leading-relaxed" style={{ textWrap: 'pretty' }}>
                             {post.excerpt}
                         </p>
                     </div>
                 </header>
 
-                {/* Article body */}
                 <main id="main-content" className="py-12 md:py-16 px-4">
                     <div className="max-w-[1200px] mx-auto">
-                        {/* Back link */}
                         <Link
                             to="/blog"
                             className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-primary transition-colors duration-150 mb-10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
@@ -169,20 +303,8 @@ export default function BlogPost() {
                             Back to Blog
                         </Link>
 
-                        {/* Article content */}
-                        <React.Suspense fallback={
-                            <div className="space-y-4" aria-busy="true" aria-label="Loading article…">
-                                {[1,2,3,4,5].map((i) => (
-                                    <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: `${70 + (i % 3) * 10}%` }} />
-                                ))}
-                            </div>
-                        }>
-                            {ArticleContent ? <ArticleContent /> : (
-                                <p>Article content is being prepared. Check back soon.</p>
-                            )}
-                        </React.Suspense>
+                        <DynamicArticle slug={slug} />
 
-                        {/* In-line CTA */}
                         <div className="mt-12 bg-gradient-to-br from-primary to-[#003570] rounded-2xl p-8 text-white text-center">
                             <h2 className="text-xl md:text-2xl font-bold mb-3" style={{ textWrap: 'balance' }}>
                                 Ready to Try It on Ufriends IT?
@@ -199,7 +321,6 @@ export default function BlogPost() {
                             </Link>
                         </div>
 
-                        {/* Related posts */}
                         {related.length > 0 && (
                             <section aria-labelledby="related-heading" className="mt-14">
                                 <h2 id="related-heading" className="text-lg font-bold text-gray-900 mb-5">Related Articles</h2>

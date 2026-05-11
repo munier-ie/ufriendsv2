@@ -1,0 +1,794 @@
+{
+    "buy-airtime-nigeria": {
+        "metaTitle": "Buy Airtime Online Nigeria — MTN, Airtel, Glo & 9Mobile | Ufriends IT",
+        "metaDescription": "Recharge airtime online for any MTN, Airtel, Glo or 9mobile number in Nigeria. Instant delivery, up to 3% discount on airtime. No bank charges. Ufriends IT — Nigeria's fastest VTU platform.",
+        "canonical": "https://ufriends.com.ng/buy-airtime-nigeria",
+        "h1": "Buy Airtime Online in Nigeria — All Networks, Instant Recharge",
+        "subtitle": "Recharge MTN, Airtel, Glo, and 9mobile airtime instantly at discounted rates. VTU, Share & Sell options available — Nigeria's most reliable airtime top-up platform.",
+        "badge": "Airtime VTU",
+        "ctaText": "Buy Airtime Now",
+        "benefits": [
+            {
+                "title": "Any Number, Any Network",
+                "body": "Recharge your own number or someone else\\"
+            },
+            {
+                "title": "Instant Recharge",
+                "body": "Airtime delivered to any Nigerian number within seconds of confirming your purchase."
+            },
+            {
+                "title": "Up to 3% Discount",
+                "body": "Enjoy automatic discounts on every airtime purchase — buy more, save more on every recharge."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I buy airtime online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To buy airtime online in Nigeria, create a free account on Ufriends IT, fund your wallet, go to Services, select Airtime, choose your network (MTN, Airtel, Glo or 9mobile), enter the phone number and amount, then confirm. Airtime is delivered instantly to the phone number."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is there a discount on airtime purchase on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Ufriends IT offers discounts on airtime purchases. VTU airtime and Share & Sell options are available at below-retail rates, so you save money on every recharge."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I buy airtime for another person's number?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. On Ufriends IT, you can recharge airtime for any MTN, Airtel, Glo, or 9mobile number in Nigeria, not just your own. Simply enter the recipient's phone number during the purchase."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Recharge MTN, Airtel, Glo, and 9mobile airtime instantly at discounted rates. VTU, Share & Sell options available — Nigeria's most reliable airtime top-up platform.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "buy-data-nigeria": {
+        "metaTitle": "Buy Cheap Data Online Nigeria — MTN, Airtel, Glo & 9Mobile",
+        "metaDescription": "Buy the cheapest data plans in Nigeria on Ufriends IT. MTN SME data, Airtel gifting data, Glo data bundles and 9mobile plans at the lowest prices. Instant delivery, no charges. Start for free.",
+        "canonical": "https://ufriends.com.ng/buy-data-nigeria",
+        "h1": "Buy Cheap Data Online in Nigeria — All Networks, Instant Delivery",
+        "subtitle": "Get the cheapest MTN, Airtel, Glo, and 9mobile data plans in Nigeria. SME data, Corporate Gifting, Data Awoof and more — automated delivery directly to your phone in seconds.",
+        "badge": "Data Top-Up",
+        "ctaText": "Buy Data Now",
+        "benefits": [
+            {
+                "title": "Lowest Prices",
+                "body": "Ufriends IT consistently offers the cheapest data rates in Nigeria across all networks, updated daily."
+            },
+            {
+                "title": "Instant Delivery",
+                "body": "Automated data delivery in seconds — no waiting, no manual processing, no delays on any network."
+            },
+            {
+                "title": "All 4 Networks",
+                "body": "MTN, Airtel, Glo, and 9mobile all supported. Multiple plan types for every need and budget."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I buy cheap data online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To buy cheap data online in Nigeria, create a free account on Ufriends IT at ufriends.com.ng, fund your wallet, then go to Services, select Data, choose your network (MTN, Airtel, Glo or 9mobile), select your preferred data plan, enter your phone number and complete the purchase. Data is delivered instantly."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Which networks does Ufriends IT support for data purchase?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT supports data purchase for all four major Nigerian networks: MTN, Airtel, Glo, and 9mobile. Multiple data plan types are available including SME data, Corporate Gifting, Data Awoof, and standard data bundles."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is Ufriends IT the cheapest data platform in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT offers some of the most competitive data prices in Nigeria, especially for MTN SME data and other discounted data types. Prices are updated regularly to ensure you always get the best value."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How quickly is data delivered on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Data delivery on Ufriends IT is instant and automated. Once your wallet is funded and your purchase is confirmed, data is sent to your phone number within seconds."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Get the cheapest MTN, Airtel, Glo, and 9mobile data plans in Nigeria. SME data, Corporate Gifting, Data Awoof and more — automated delivery directly to your phone in seconds.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "bvn-modification-nigeria": {
+        "metaTitle": "BVN Modification Nigeria — Update Your BVN Details Online",
+        "metaDescription": "Need to update your BVN name, date of birth, or phone number? Ufriends IT handles BVN modification in Nigeria online — fast, secure, and affordable. No bank visit needed. Start for free.",
+        "canonical": "https://ufriends.com.ng/bvn-modification-nigeria",
+        "h1": "BVN Modification in Nigeria — Update Your BVN Without Bank Queues",
+        "subtitle": "Incorrect name, wrong date of birth, or need to update the phone number on your Bank Verification Number? Ufriends IT processes BVN modifications quickly, securely, and online.",
+        "badge": "Banking Identity Services",
+        "ctaText": "Request BVN Modification",
+        "benefits": [
+            {
+                "title": "No Bank Visit Needed",
+                "body": "Submit your BVN modification request from anywhere — our team handles bank liaison on your behalf."
+            },
+            {
+                "title": "Secure & Confidential",
+                "body": "Your BVN and personal data are handled with the highest level of security and privacy protection."
+            },
+            {
+                "title": "All Modification Types",
+                "body": "Name, date of birth, and phone number corrections all supported with clear, transparent pricing."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I modify my BVN in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "You can request a BVN modification through Ufriends IT. Create a free account, navigate to Manual Services, select BVN Modification, provide the correction details and supporting documents, and submit. Ufriends IT processes your request through authorised banking channels."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What BVN details can be changed on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT supports BVN name correction, date of birth modification, and phone number linked to BVN updates. Each type of modification may require specific supporting documents."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How long does BVN modification take?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "BVN modification processing typically takes 3–7 business days depending on the bank and the type of correction. Ufriends IT will update you on your request status throughout the process."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I change my BVN phone number without going to the bank?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Through Ufriends IT, you can request a BVN phone number update without physically visiting your bank. Our service handles the submission and liaison with the appropriate banking authority on your behalf."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Incorrect name, wrong date of birth, or need to update the phone number on your Bank Verification Number? Ufriends IT processes BVN modifications quickly, securely, and online.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "subscribe-cable-tv-nigeria": {
+        "metaTitle": "DStv GOtv Startimes Online Subscription Nigeria | Ufriends IT",
+        "metaDescription": "Subscribe or renew DStv, GOtv or Startimes online in Nigeria at the cheapest price. Instant activation, package change supported. Ufriends IT — pay your cable TV in seconds. Start for free.",
+        "canonical": "https://ufriends.com.ng/subscribe-cable-tv-nigeria",
+        "h1": "Subscribe to DStv, GOtv & Startimes Online in Nigeria",
+        "subtitle": "Renew or change your DStv, GOtv, or Startimes cable TV subscription online at the cheapest rate. Instant activation, no queues, available 24 hours a day, 7 days a week.",
+        "badge": "Cable TV Subscription",
+        "ctaText": "Subscribe Now",
+        "benefits": [
+            {
+                "title": "All 3 Providers",
+                "body": "DStv, GOtv, and Startimes all supported — renew or change your package all in one place."
+            },
+            {
+                "title": "Instant Activation",
+                "body": "Your cable TV subscription is restored within seconds of payment confirmation. No waiting."
+            },
+            {
+                "title": "Change Your Package",
+                "body": "Want to upgrade or downgrade? Ufriends IT lets you switch DStv or GOtv packages with ease."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I subscribe to DStv online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To subscribe to DStv online in Nigeria, create a free account on Ufriends IT, fund your wallet, go to Services, select Cable TV, choose DStv, enter your IUC/smartcard number, select your preferred package (e.g. Compact, Premium, Access), and confirm. Activation is instant."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Which cable TV providers does Ufriends IT support?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT supports cable TV subscriptions for DStv, GOtv, and Startimes. You can renew existing subscriptions or change to a different package — all instantly activated."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I change my DStv package on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Ufriends IT allows you to both renew your current DStv package or change to a different package (upgrade or downgrade) during the subscription process."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How fast is cable TV subscription activation on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Cable TV subscriptions via Ufriends IT are activated instantly. Your DStv, GOtv or Startimes service is restored within seconds of a successful payment."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Renew or change your DStv, GOtv, or Startimes cable TV subscription online at the cheapest rate. Instant activation, no queues, available 24 hours a day, 7 days a week.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "cac-registration-nigeria": {
+        "metaTitle": "CAC Business Registration Online Nigeria — Business Name, LTD & NGO | Ufriends IT",
+        "metaDescription": "Register your business with CAC online in Nigeria. Ufriends IT handles Business Name, LTD, Enterprise and NGO registration. No CAC office visit needed. Fast, affordable, start for free.",
+        "canonical": "https://ufriends.com.ng/cac-registration-nigeria",
+        "h1": "CAC Business Registration Online in Nigeria — Business Name, LTD, NGO & More",
+        "subtitle": "Register your business with the Corporate Affairs Commission (CAC) through Ufriends IT. Business Name, Limited Company, Enterprise, and NGO registration — handled completely online.",
+        "badge": "CAC Business Registration",
+        "ctaText": "Register Your Business",
+        "benefits": [
+            {
+                "title": "All Business Types",
+                "body": "Business Name, LTD/GTE, Enterprise, and NGO/Incorporated Trustees all supported with guidance."
+            },
+            {
+                "title": "We Handle Everything",
+                "body": "Submit your details online — Ufriends IT manages the entire CAC filing process on your behalf."
+            },
+            {
+                "title": "Transparent Pricing",
+                "body": "Clear, affordable pricing for all CAC registration types with no hidden charges or surprises."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I register a business with CAC online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To register your business with CAC online in Nigeria through Ufriends IT, create a free account, go to Government Services, select CAC Registration, choose your business type (Business Name, LTD, Enterprise or NGO), fill in the required details, upload necessary documents, and submit your application. Ufriends IT handles the entire filing process with the Corporate Affairs Commission."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What types of business can I register on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT supports CAC registration for Business Name, Limited Liability Company (LTD/GTE), Enterprise, and NGO/Incorporated Trustees. Each type has different requirements and fees."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How long does CAC business registration take through Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "CAC registration processing typically takes 3–10 business days depending on the type of entity being registered and CAC verification timelines. Ufriends IT keeps you updated throughout the process."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Do I need to visit the CAC office myself?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "No. Ufriends IT handles the entire CAC registration process online on your behalf. You provide the required information and documents, and we handle the submission and follow-up with CAC."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Register your business with the Corporate Affairs Commission (CAC) through Ufriends IT. Business Name, Limited Company, Enterprise, and NGO registration — handled completely online.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "buy-exam-pins-nigeria": {
+        "metaTitle": "Buy WAEC Pin, NECO Scratch Card & Exam Pins Online Nigeria | Ufriends IT",
+        "metaDescription": "Buy WAEC result checker PIN and NECO scratch card online in Nigeria. Instant delivery to your email and dashboard. Ufriends IT — Nigeria's fastest exam pin vending platform. Start for free.",
+        "canonical": "https://ufriends.com.ng/buy-exam-pins-nigeria",
+        "h1": "Buy WAEC Pin & NECO Scratch Card Online in Nigeria — Instant Delivery",
+        "subtitle": "Purchase authentic WAEC result checker PINs and NECO scratch cards online in Nigeria. Instant delivery to your dashboard and email — no queues, no physical cards required.",
+        "badge": "Education Pins",
+        "ctaText": "Buy Exam Pins Now",
+        "benefits": [
+            {
+                "title": "WAEC & NECO",
+                "body": "Authentic WAEC result checker PINs and NECO scratch cards — delivered instantly after purchase."
+            },
+            {
+                "title": "Email Delivery",
+                "body": "Your PIN and serial number are sent to your email immediately so you can check results from any device."
+            },
+            {
+                "title": "Buy in Bulk",
+                "body": "Purchase multiple pins at once — perfect for schools, exam centres, and bulk resellers."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I buy a WAEC result checker PIN online?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To buy a WAEC result checker PIN online, create a free account on Ufriends IT, fund your wallet, go to Services, select Exam Pins, choose WAEC, specify the quantity and complete payment. Your WAEC PIN and serial number are delivered instantly to your dashboard and via email."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What exam pins can I buy on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT offers exam result checker PINs for WAEC (WASSCE/GCE), NECO, and other Nigerian examination bodies. All pins are authentic and delivered instantly after purchase."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How quickly are exam pins delivered on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Exam PINs are delivered instantly after payment. Your WAEC or NECO PIN and serial number are shown on-screen immediately and also sent to your registered email address."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I buy multiple exam pins at once?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. You can purchase multiple WAEC or NECO pins at once on Ufriends IT, which is especially useful for schools, teachers, and exam centres. Bulk pricing may be available."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Purchase authentic WAEC result checker PINs and NECO scratch cards online in Nigeria. Instant delivery to your dashboard and email — no queues, no physical cards required.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "nin-modification-nigeria": {
+        "metaTitle": "NIN Modification Online Nigeria — Correct Your NIN Details Fast",
+        "metaDescription": "Need to correct your NIN name, date of birth, or phone number? Ufriends IT handles NIN modification online in Nigeria — fast, authorised, and affordable. Start for free today.",
+        "canonical": "https://ufriends.com.ng/nin-modification-nigeria",
+        "h1": "NIN Modification Online in Nigeria — Correct Your NIN Details Today",
+        "subtitle": "Made an error on your National Identification Number? Ufriends IT handles NIN name correction, date of birth updates, and phone number modifications — all online, no NIMC office queues.",
+        "badge": "Government Identity Services",
+        "ctaText": "Request NIN Modification",
+        "benefits": [
+            {
+                "title": "Authorised Processing",
+                "body": "All NIN modifications are processed through official NIMC-authorised channels for guaranteed acceptance."
+            },
+            {
+                "title": "No Office Queues",
+                "body": "Submit your modification request online from anywhere in Nigeria — no physical NIMC office visit required."
+            },
+            {
+                "title": "All Correction Types",
+                "body": "Name, date of birth, and phone number corrections all supported with transparent, affordable pricing."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I modify my NIN in Nigeria online?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "You can modify your NIN (National Identification Number) online in Nigeria through Ufriends IT. Create a free account, go to Manual Services, select NIN Modification, fill in the correction details, upload any required documents, and submit your request. Our team processes modifications quickly."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What NIN details can be corrected or modified?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "On Ufriends IT, you can correct your NIN first name, last name, middle name, date of birth, and phone number linked to your NIN. All modifications are processed through authorised channels."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How long does NIN modification take on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "NIN modification processing time varies depending on the type of correction. Simple phone number updates are typically faster, while name and date of birth corrections may take 2–5 business days after document verification."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What documents are needed for NIN modification?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "The required documents depend on the type of modification. For name corrections, a valid ID showing the correct name is usually required. For date of birth corrections, a birth certificate or sworn affidavit may be needed."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Made an error on your National Identification Number? Ufriends IT handles NIN name correction, date of birth updates, and phone number modifications — all online, no NIMC office queues.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "pay-electricity-bill-nigeria": {
+        "metaTitle": "Pay Electricity Bill Online Nigeria — All DISCOs Supported | Ufriends IT",
+        "metaDescription": "Pay electricity bills online in Nigeria for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan and Kaduna DISCOs. Get prepaid token instantly. Ufriends IT — fast, secure electricity payments.",
+        "canonical": "https://ufriends.com.ng/pay-electricity-bill-nigeria",
+        "h1": "Pay Your Electricity Bill Online in Nigeria — All 8 DISCOs Supported",
+        "subtitle": "Pay electricity bills for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan and Kaduna electricity companies online. Get your prepaid token instantly — no meter visit, no stress.",
+        "badge": "Utility Bill Payment",
+        "ctaText": "Pay Electricity Bill",
+        "benefits": [
+            {
+                "title": "Instant Token Delivery",
+                "body": "Electricity token delivered via SMS and on-screen immediately after payment confirmation. Zero delays."
+            },
+            {
+                "title": "All 8 DISCOs Covered",
+                "body": "Ikeja, Eko, Abuja, Kano, PH, Jos, Ibadan and Kaduna — both prepaid and postpaid plans supported."
+            },
+            {
+                "title": "100% Secure",
+                "body": "All electricity payments are encrypted and processed through official DISCO payment gateways."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I pay my electricity bill online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To pay your electricity bill online in Nigeria, create a free account on Ufriends IT, fund your wallet, go to Services, select Electricity, choose your DISCO (e.g. Ikeja, Eko, Abuja), enter your meter number, select prepaid or postpaid, enter the amount, and confirm. Your token is delivered instantly via SMS and on-screen."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Which electricity companies (DISCOs) does Ufriends IT support?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT supports electricity bill payment for all major Nigerian DISCOs including Ikeja Electric (IKEDC), Eko Electric (EKEDC), Abuja Electric (AEPB), Kano Electric (KEDCO), Port Harcourt Electric (PHED), Jos Electric (JED), Ibadan Electric (IBEDC), and Kaduna Electric (KAEDCO)."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How quickly do I get my electricity token?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Your electricity token is delivered instantly via SMS and displayed on-screen immediately after payment confirmation. No delays, no manual processing."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I pay for both prepaid and postpaid electricity?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Ufriends IT supports both prepaid (token generation) and postpaid (bill payment) electricity for all supported DISCOs across Nigeria."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Pay electricity bills for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan and Kaduna electricity companies online. Get your prepaid token instantly — no meter visit, no stress.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "print-bvn-slip-nigeria": {
+        "metaTitle": "Print BVN Slip Online Nigeria — Regular & Premium Plastic | Ufriends IT",
+        "metaDescription": "Print your BVN slip online in Nigeria on Ufriends IT. Regular or Premium Plastic format, instant delivery, no bank visit required. Secure and affordable. Start for free today.",
+        "canonical": "https://ufriends.com.ng/print-bvn-slip-nigeria",
+        "h1": "Print Your BVN Slip Online in Nigeria — Regular & Premium Formats",
+        "subtitle": "Get your Bank Verification Number (BVN) slip printed online in Nigeria. Choose Regular or Premium Plastic format — delivered instantly. No bank visit, no stress.",
+        "badge": "BVN Services",
+        "ctaText": "Print BVN Slip Now",
+        "benefits": [
+            {
+                "title": "Instant Download",
+                "body": "Your BVN slip is ready for download and printing immediately after payment — zero waiting time."
+            },
+            {
+                "title": "Premium Plastic Option",
+                "body": "Choose the Premium Plastic card format for a durable, professional-quality BVN identification card."
+            },
+            {
+                "title": "Fully Secure",
+                "body": "Your BVN data is encrypted and protected throughout the entire slip generation process."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I print my BVN slip online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To print your BVN slip online in Nigeria, create a free account on Ufriends IT, fund your wallet, go to Government Services, select BVN Slip, enter your BVN number, choose your preferred format (Regular or Premium Plastic), and your BVN slip is generated instantly for download and printing."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What BVN slip formats are available on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT offers two BVN slip formats: Regular (standard printable document) and Premium Plastic (laminated card-style). Both formats display your full BVN details and are officially acceptable."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is it safe to print my BVN slip on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Ufriends IT uses bank-grade encryption to protect your BVN data. Your information is used solely to generate your BVN slip and is not stored or shared with third parties."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Get your Bank Verification Number (BVN) slip printed online in Nigeria. Choose Regular or Premium Plastic format — delivered instantly. No bank visit, no stress.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    },
+    "print-nin-slip-nigeria": {
+        "metaTitle": "Print NIN Slip Online Nigeria — All Formats, Instant Delivery",
+        "metaDescription": "Print your NIN slip online in Nigeria on Ufriends IT. All formats available: Regular, Standard, Premium and VNIN. Secure, fast and instant. No queues, no stress. Start for free.",
+        "canonical": "https://ufriends.com.ng/print-nin-slip-nigeria",
+        "h1": "Print Your NIN Slip Online in Nigeria",
+        "subtitle": "Get your National Identification Number (NIN) slip instantly — Regular, Standard, Premium, and VNIN formats. No NIMC office queues, no delays. Download and print in minutes.",
+        "badge": "Government Identity Services",
+        "ctaText": "Print NIN Slip Now",
+        "benefits": [
+            {
+                "title": "Instant Delivery",
+                "body": "Your NIN slip is generated and ready to download within seconds of payment confirmation — no waiting."
+            },
+            {
+                "title": "Secure & Safe",
+                "body": "Bank-grade encryption protects your NIN data throughout the entire transaction. We never store your personal data."
+            },
+            {
+                "title": "All 4 Formats",
+                "body": "Regular, Standard, Premium, or VNIN format — all officially acceptable across agencies and institutions."
+            }
+        ],
+        "schema": [
+            {
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                "mainEntity": [
+                    {
+                        "@type": "Question",
+                        "name": "How do I print my NIN slip online in Nigeria?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "To print your NIN slip online in Nigeria, create a free account on Ufriends IT at ufriends.com.ng, fund your wallet, then go to Government Services, select NIN Slip, enter your NIN number, choose your preferred format (Regular, Standard, Premium or VNIN), and download your printable slip instantly."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "What NIN slip formats are available on Ufriends IT?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Ufriends IT offers four NIN slip formats: Regular, Standard, Premium, and VNIN (Virtual NIN). Each format is officially acceptable and delivered instantly after payment."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Is it safe to print my NIN slip online?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Ufriends IT uses bank-grade encryption and secure NIMC-authorised data processing. Your NIN details are used only to generate your slip and are protected at all times."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "How long does it take to get my NIN slip?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "NIN slip delivery on Ufriends IT is instant. Once your payment is confirmed, your NIN slip is generated and available for download within seconds."
+                        }
+                    },
+                    {
+                        "@type": "Question",
+                        "name": "Can I print a NIN slip for someone else?",
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": "Yes. Café operators and agents can print NIN slips for multiple customers through Ufriends IT. Simply enter the customer's NIN number and select the required format."
+                        }
+                    }
+                ]
+            },
+            {
+                "@context": "https://schema.org",
+                "@type": "Service",
+                "serviceType": "Get your National Identification Number (NIN) slip instantly — Regular, Standard, Premium, and VNIN formats. No NIMC office queues, no delays. Download and print in minutes.",
+                "provider": {
+                    "@id": "https://ufriends.com.ng/#organization"
+                },
+                "areaServed": {
+                    "@type": "Country",
+                    "name": "Nigeria"
+                },
+                "offers": {
+                    "@type": "Offer",
+                    "priceCurrency": "NGN",
+                    "description": "Available instantly on the Ufriends IT platform with transparent pricing."
+                }
+            }
+        ]
+    }
+}
