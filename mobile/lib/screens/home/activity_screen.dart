@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
+import '../../core/skeleton_loader.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
 import 'package:share_plus/share_plus.dart';
@@ -20,6 +21,7 @@ class ActivityScreen extends StatefulWidget {
 class _ActivityScreenState extends State<ActivityScreen> {
   List<dynamic> _transactions = [];
   bool _isLoading = true;
+  String? _selectedType;
 
   @override
   void initState() {
@@ -28,8 +30,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   Future<void> _fetchTransactions() async {
+    setState(() => _isLoading = true);
     try {
-      final res = await ApiService.getTransactions(limit: 50);
+      final res = await ApiService.getTransactions(limit: 50, type: _selectedType);
       if (res['success']) {
         setState(() => _transactions = res['transactions'] ?? []);
       }
@@ -51,7 +54,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   void _showTransactionDetails(Map<String, dynamic> tx) {
-    final bool isDebit = (tx['amount'] ?? 0) > 0;
+    final bool isDebit = (tx['amount'] ?? 0) < 0;
     final String status = tx['status'] == 0 ? 'Success' : tx['status'] == 1 ? 'Failed' : 'Pending';
     final Color statusColor = tx['status'] == 0 ? Colors.green : tx['status'] == 1 ? Colors.red : Colors.orange;
     final bool isSlipTransaction = (tx['serviceName'] ?? '').toString().toLowerCase().contains('slip') ||
@@ -275,6 +278,43 @@ class _ActivityScreenState extends State<ActivityScreen> {
     );
   }
 
+  Widget _buildFilterChip(String label, String? type) {
+    final isSelected = _selectedType == type;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedType = type;
+        });
+        _fetchTransactions();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1E90FF) : Colors.grey[200],
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: isSelected ? [
+            BoxShadow(
+              color: const Color(0xFF1E90FF).withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+          ] : null,
+        ),
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? Colors.white : Colors.black87,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              fontSize: 14,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -287,17 +327,40 @@ class _ActivityScreenState extends State<ActivityScreen> {
         color: AppTheme.primaryColor,
         child: CustomScrollView(
           slivers: [
-            const SliverPadding(
-              padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
-              sliver: SliverToBoxAdapter(
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).size.height * 0.05 + 16, 16, 8),
+              sliver: const SliverToBoxAdapter(
                 child: Text(
                   'Transaction History',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
             ),
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    Expanded(child: _buildFilterChip('All', null)),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildFilterChip('Airtime', 'airtime')),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildFilterChip('Data', 'data')),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildFilterChip('Printing', 'professional')),
+                    const SizedBox(width: 4),
+                    Expanded(child: _buildFilterChip('Manual', 'pin')),
+                  ],
+                ),
+              ),
+            ),
             if (_isLoading)
-              const SliverFillRemaining(child: Center(child: CircularProgressIndicator()))
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => const SkeletonListTile(),
+                  childCount: 5,
+                ),
+              )
             else if (_transactions.isEmpty)
               SliverFillRemaining(
                 child: Column(
@@ -327,7 +390,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   }
 
   Widget _buildTransactionItem(Map<String, dynamic> tx) {
-    final bool isDebit = (tx['amount'] ?? 0) > 0;
+    final bool isDebit = (tx['amount'] ?? 0) < 0;
     final String status = tx['status'] == 0 ? 'Success' : tx['status'] == 1 ? 'Failed' : 'Pending';
     final Color statusColor = tx['status'] == 0 ? Colors.green : tx['status'] == 1 ? Colors.red : Colors.orange;
 

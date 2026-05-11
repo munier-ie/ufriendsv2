@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/app_theme.dart';
+import '../../core/skeleton_loader.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import '../../core/auth_service.dart';
@@ -11,9 +12,14 @@ import 'wallet_screen.dart';
 import 'services_screen.dart';
 import 'activity_screen.dart';
 import 'airtime_screen.dart';
+import 'airtime_to_cash_screen.dart';
+import 'recharge_cards_screen.dart';
+
 import 'data_screen.dart';
+
 import 'profile_screen.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../core/chart_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   final int initialIndex;
@@ -36,12 +42,16 @@ class _HomeScreenState extends State<HomeScreen> {
   String _selectedTimeframe = '7D';
   int? _showingTooltipSpot;
   int _currentPage = 0;
+  List<dynamic> _notifications = [];
+  bool _isLoadingNotifications = false;
+  List<dynamic> _chartData = [];
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.initialIndex;
     _fetchDashboardData();
+    _fetchChartData();
     _checkNotificationPermission();
   }
 
@@ -64,13 +74,36 @@ class _HomeScreenState extends State<HomeScreen> {
       setState(() => _isLoading = true);
     }
     final profileRes = await ApiService.getProfile();
-    final transRes = await ApiService.getTransactions(limit: 20);
+    final transRes = await ApiService.getTransactions(limit: 100);
 
     if (mounted) {
       setState(() {
         if (profileRes['success']) _userProfile = profileRes['user'];
         if (transRes['success']) _recentTransactions = transRes['transactions'];
         _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _fetchChartData() async {
+    final period = _selectedTimeframe.toLowerCase();
+    final res = await ApiService.getChartData(period);
+    if (mounted) {
+      setState(() {
+        if (res['success']) _chartData = res['chartData'] ?? [];
+      });
+    }
+  }
+
+  Future<void> _fetchNotifications() async {
+    setState(() => _isLoadingNotifications = true);
+    final res = await ApiService.getNotifications();
+    if (mounted) {
+      setState(() {
+        if (res['success']) {
+          _notifications = res['notifications'];
+        }
+        _isLoadingNotifications = false;
       });
     }
   }
@@ -143,9 +176,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                         const Spacer(),
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.secondaryColor),
+                        Builder(
+                          builder: (context) => IconButton(
+                            onPressed: () {
+                              _fetchNotifications();
+                              _showNotificationsBottomSheet(context);
+                            },
+                            icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.secondaryColor),
+                          ),
                         ),
                         const SizedBox(width: 8),
                       ],
@@ -155,7 +193,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Expanded(
                 child: _isLoading 
-                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
+                    ? ListView(
+                        padding: const EdgeInsets.all(16.0),
+                        children: [
+                          const Skeleton(height: 150),
+                          const SizedBox(height: 16),
+                          const Skeleton(height: 180),
+                          const SizedBox(height: 16),
+                          const Skeleton(height: 100),
+                          const SizedBox(height: 16),
+                          const SkeletonListTile(),
+                          const SkeletonListTile(),
+                        ],
+                      )
                     : _buildBody(),
               ),
             ],
@@ -242,45 +292,36 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildSpendingChart() {
-    // Generate data for selected timeframe
-    final now = DateTime.now();
-    final Map<int, double> daySpendings = {};
-    int daysCount = 7;
-    if (_selectedTimeframe == '1M') daysCount = 30;
-    if (_selectedTimeframe == '1Y') daysCount = 365;
+    // Use backend chart data fetched per-timeframe
+    final List<FlSpot> spots;
+    final int daysCount;
 
-    for (int i = 0; i < daysCount; i++) {
-      daySpendings[i] = 0.0;
+    if (_chartData.isNotEmpty) {
+      daysCount = _chartData.length;
+      spots = List.generate(_chartData.length, (i) {
+        final val = double.tryParse(_chartData[i]['spent'].toString()) ?? 0.0;
+        return FlSpot(i.toDouble(), val);
+      });
+    } else {
+      // Placeholder: all zeros while loading or no data
+      daysCount = _selectedTimeframe == '1M' ? 30 : _selectedTimeframe == '1Y' ? 365 : 7;
+      spots = List.generate(daysCount, (i) => FlSpot(i.toDouble(), 0));
     }
 
-    for (var tx in _recentTransactions) {
-      final dateStr = tx['date'];
-      if (dateStr != null) {
-        try {
-          final txDate = DateTime.parse(dateStr);
-          final difference = now.difference(txDate).inDays;
-          if (difference >= 0 && difference < daysCount) {
-            final amount = double.tryParse(tx['amount'].toString()) ?? 0.0;
-            if (amount < 0) {
-              daySpendings[daysCount - 1 - difference] = (daySpendings[daysCount - 1 - difference] ?? 0) + amount.abs();
-            }
-          }
-        } catch (_) {}
-      }
+    final spots2 = spots;
+
+    // Calculate Y-axis scale based on actual data
+    double maxSpending = 0;
+    if (spots2.isNotEmpty) {
+      maxSpending = spots2.map((e) => e.y).reduce((a, b) => a > b ? a : b);
     }
 
-    final spots = daySpendings.entries.map((e) {
-      return FlSpot(e.key.toDouble(), e.value);
-    }).toList();
-
-    double maxY = 1000;
-    if (spots.isNotEmpty) {
-      maxY = spots.map((e) => e.y).reduce((a, b) => a > b ? a : b);
-      if (maxY == 0) maxY = 1000;
-    }
+    final scale = ChartUtils.calculateNiceScale(maxSpending, 5);
+    final double maxY = scale['maxY']!;
+    final double interval = scale['interval']!;
 
     final barData = LineChartBarData(
-      spots: spots,
+      spots: spots2,
       isCurved: true,
       color: const Color(0xFF1E90FF),
       barWidth: 2,
@@ -321,10 +362,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: ['7D', '1M', '1Y'].map((tf) {
                   bool isSelected = _selectedTimeframe == tf;
                   return GestureDetector(
-                    onTap: () => setState(() {
-                      _selectedTimeframe = tf;
-                      _showingTooltipSpot = null; // Reset tooltip when timeframe changes
-                    }),
+                    onTap: () {
+                      setState(() {
+                        _selectedTimeframe = tf;
+                        _showingTooltipSpot = null;
+                      });
+                      _fetchChartData();
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       margin: const EdgeInsets.only(left: 4),
@@ -380,34 +424,27 @@ class _HomeScreenState extends State<HomeScreen> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 30,
-                      interval: daysCount == 7 ? 1 : (daysCount == 30 ? 15 : 180),
+                      // Show every label for 7D, every 5th for 1M, every 30th for 1Y
+                      interval: daysCount <= 7 ? 1 : (daysCount <= 30 ? 5 : 60),
                       getTitlesWidget: (value, meta) {
-                        if (daysCount == 7) {
-                          const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-                          if (value.toInt() >= 0 && value.toInt() < 7) {
-                            return Text(days[value.toInt()], style: const TextStyle(fontSize: 10, color: Colors.grey));
-                          }
-                        } else if (daysCount == 30) {
-                          if (value.toInt() == 15) {
-                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                            return Text(months[DateTime.now().month - 1], style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold));
-                          }
-                        } else if (daysCount == 365) {
-                          if (value.toInt() == 180) {
-                            return Text(DateTime.now().year.toString(), style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold));
-                          }
-                        }
-                        return const Text('');
+                        final idx = value.toInt();
+                        if (idx < 0 || idx >= _chartData.length) return const Text('');
+                        final label = _chartData[idx]['name']?.toString() ?? '';
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(label, style: const TextStyle(fontSize: 9, color: Colors.grey)),
+                        );
                       },
                     ),
                   ),
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 40,
+                      reservedSize: 44,
+                      interval: interval,
                       getTitlesWidget: (value, meta) {
                         if (value == 0) return const Text('');
-                        return Text('₦${formatCurrency(value)}', style: const TextStyle(fontSize: 9, color: Colors.grey));
+                        return Text('₦${ChartUtils.formatCompactValue(value)}', style: const TextStyle(fontSize: 9, color: Colors.grey));
                       },
                     ),
                   ),
@@ -418,9 +455,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 minX: 0,
                 maxX: (daysCount - 1).toDouble(),
                 minY: 0,
-                maxY: maxY * 1.2,
+                maxY: maxY,
                 lineBarsData: [barData],
-                showingTooltipIndicators: _showingTooltipSpot != null
+                showingTooltipIndicators: (_showingTooltipSpot != null && spots2.isNotEmpty && _showingTooltipSpot! < spots2.length)
                     ? [
                         ShowingTooltipIndicators([
                           LineBarSpot(barData, 0, barData.spots[_showingTooltipSpot!]),
@@ -635,15 +672,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   }),
                   _drawerItem(Icons.account_balance_rounded, 'Gov Services', false),
                   _drawerItem(Icons.shopping_bag_outlined, 'Exam PINs', false),
-                  _drawerItem(Icons.emoji_emotions_outlined, 'Smile Data', false),
+                  _drawerItem(Icons.swap_horizontal_circle_outlined, 'Airtime2cash', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
+                  }),
                   _drawerItem(Icons.edit_note_rounded, 'Manual Services', false),
+                  _drawerItem(Icons.print_rounded, 'Recharge Cards', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const RechargeCardsScreen()));
+                  }),
+                  _drawerItem(Icons.emoji_emotions_outlined, 'Smile Data', false),
+
                   _drawerItem(Icons.tag_rounded, 'Data PINs', false),
                   _drawerItem(Icons.history_rounded, 'Transactions', false),
                   _drawerItem(Icons.price_change_outlined, 'Pricing', false),
                   _drawerItem(Icons.message_outlined, 'Bulk SMS', false),
-                  _drawerItem(Icons.swap_horizontal_circle_outlined, 'Sell Airtime', false),
                   _drawerItem(Icons.people_outline, 'Referrals', false),
                   _drawerItem(Icons.school_outlined, 'Academy', false),
+
                   _drawerItem(Icons.business_center_outlined, 'Become a Reseller', false),
                   _drawerItem(Icons.help_outline_rounded, 'Support Center', false),
                   _drawerItem(Icons.person_outline_rounded, 'Profile', false, onTap: () {
@@ -712,6 +758,93 @@ class _HomeScreenState extends State<HomeScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onTap: onTap ?? () {},
       ),
+    );
+  }
+
+  void _showNotificationsBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              padding: const EdgeInsets.all(24),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Notifications',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height * 0.5,
+                    child: _isLoadingNotifications
+                        ? ListView.builder(
+                            itemCount: 5,
+                            itemBuilder: (context, index) => const SkeletonListTile(),
+                          )
+                        : _notifications.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No notifications yet',
+                                  style: TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: _notifications.length,
+                                itemBuilder: (context, index) {
+                                  final notification = _notifications[index];
+                                  return ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: Text(
+                                      notification['title'] ?? 'Notification',
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                                    ),
+                                    subtitle: Text(
+                                      notification['message'] ?? '',
+                                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                      onPressed: () async {
+                                        final res = await ApiService.deleteNotification(notification['id'].toString());
+                                        if (res['success']) {
+                                          setModalState(() {
+                                            _notifications.removeAt(index);
+                                          });
+                                          setState(() {});
+                                        }
+                                      },
+                                    ),
+                                  );
+                                },
+                              ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

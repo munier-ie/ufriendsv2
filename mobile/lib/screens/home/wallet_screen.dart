@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
+import '../../core/skeleton_loader.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
 
@@ -17,6 +18,7 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> {
   List<dynamic> _accounts = [];
   bool _isLoading = true;
+  bool _hideWallet = true;
 
   @override
   void initState() {
@@ -100,13 +102,32 @@ class _WalletScreenState extends State<WalletScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Wallet Balance',
-            style: TextStyle(color: Colors.white70, fontSize: 14),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Wallet Balance',
+                style: TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+              IconButton(
+                icon: Icon(
+                  _hideWallet ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  color: Colors.white70,
+                  size: 20,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _hideWallet = !_hideWallet;
+                  });
+                },
+                constraints: const BoxConstraints(),
+                padding: EdgeInsets.zero,
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
-            '₦${formatCurrency(balance.toDouble())}',
+            _hideWallet ? '₦***' : '₦${formatCurrency(balance.toDouble())}',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 32,
@@ -116,9 +137,9 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 20),
           Row(
             children: [
-              _actionButton(Icons.add_rounded, 'Fund Wallet'),
-              const SizedBox(width: 12),
-              _actionButton(Icons.send_rounded, 'Transfer'),
+              _actionButton(Icons.outbound_rounded, 'Withdraw', () {
+                AppToast.show(context, message: "Withdrawal's coming soon", type: ToastType.success);
+              }),
             ],
           ),
         ],
@@ -126,7 +147,7 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  Widget _actionButton(IconData icon, String label) {
+  Widget _actionButton(IconData icon, String label, VoidCallback onTap) {
     return Expanded(
       child: Container(
         height: 44,
@@ -135,7 +156,7 @@ class _WalletScreenState extends State<WalletScreen> {
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(
-          onTap: () {},
+          onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -155,7 +176,16 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Widget _buildVirtualAccountsSection() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Skeleton(width: 150, height: 24),
+          const SizedBox(height: 12),
+          const Skeleton(height: 100),
+          const SizedBox(height: 12),
+          const Skeleton(height: 100),
+        ],
+      );
     }
 
     return Column(

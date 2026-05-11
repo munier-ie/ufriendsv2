@@ -16,6 +16,7 @@ class GradientButton extends StatelessWidget {
   final VoidCallback onPressed;
   final double width;
   final IconData? icon;
+  final bool loading;
 
   const GradientButton({
     super.key,
@@ -23,14 +24,17 @@ class GradientButton extends StatelessWidget {
     required this.onPressed,
     this.width = double.infinity,
     this.icon,
+    this.loading = false,
   });
+
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
+        gradient: loading ? null : AppTheme.primaryGradient,
+        color: loading ? Colors.grey.shade400 : null,
         borderRadius: BorderRadius.circular(AppTheme.borderRadius),
         boxShadow: [
           BoxShadow(
@@ -46,16 +50,23 @@ class GradientButton extends StatelessWidget {
           shadowColor: Colors.transparent,
           padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        onPressed: onPressed,
+        onPressed: loading ? null : onPressed,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (icon != null) ...[
+            if (loading) ...[
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              ),
+              const SizedBox(width: 8),
+            ] else if (icon != null) ...[
               Icon(icon, color: Colors.white),
               const SizedBox(width: 8),
             ],
             Text(
-              text,
+              loading ? 'Processing...' : text,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -64,6 +75,7 @@ class GradientButton extends StatelessWidget {
             ),
           ],
         ),
+
       ),
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../core/skeleton_loader.dart';
 
 class PinScreen extends StatefulWidget {
   final String title;
@@ -101,9 +102,7 @@ class _PinScreenState extends State<PinScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(
-                        color: Color(0xFF1E90FF),
-                      ),
+                      Skeleton(width: 200, height: 120),
                       SizedBox(height: 24),
                       Text(
                         'Processing transaction...',

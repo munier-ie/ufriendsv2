@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../../core/app_theme.dart';
 import '../../core/auth_service.dart';
 import '../../core/custom_widgets.dart';
 import 'starting_screen.dart';
@@ -17,18 +16,13 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1500),
-    );
-    _animation = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeOutBack,
+      duration: const Duration(seconds: 3),
     );
     _controller.forward();
     _navigateToNext();
@@ -88,62 +82,44 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            gradient: AppTheme.primaryGradient,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ScaleTransition(
-                scale: _animation,
-                child: Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
+        backgroundColor: Colors.white,
+        body: Stack(
+          children: [
+            const Center(
+              child: AppLogo(size: 100),
+            ),
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.15,
+              left: 0,
+              right: 0,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  SizedBox(
+                    width: 200,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, child) {
+                        return LinearProgressIndicator(
+                          value: _controller.value,
+                          backgroundColor: Colors.grey.shade100,
+                          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF1E90FF)),
+                          borderRadius: BorderRadius.circular(4),
+                        );
+                      },
+                    ),
                   ),
-                  child: const AppLogo(size: 80),
-                ),
-              ),
-              const SizedBox(height: 24),
-              FadeTransition(
-                opacity: _animation,
-                child: const Text(
-                  'Ufriends',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
+                  const SizedBox(height: 16),
+                  Text(
+                    'Loading...',
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 8),
-              FadeTransition(
-                opacity: _animation,
-                child: Text(
-                  'Simplified Transactions',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 16,
-                    letterSpacing: 1.0,
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

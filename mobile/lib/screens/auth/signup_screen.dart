@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
+import '../../core/skeleton_loader.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'login_screen.dart';
@@ -351,7 +352,7 @@ class _SignupScreenState extends State<SignupScreen> {
               
               const SizedBox(height: 50),
               _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: AppTheme.primaryColor))
+                  ? const Skeleton(width: double.infinity, height: 50)
                   : GradientButton(
                       text: 'Sign Up',
                       onPressed: _handleSignup,

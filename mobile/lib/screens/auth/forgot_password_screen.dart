@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
+import '../../core/skeleton_loader.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 
@@ -196,7 +197,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 60),
         _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Skeleton(width: double.infinity, height: 50)
             : GradientButton(
                 text: 'Send Code',
                 onPressed: _handleEmailSubmit,
@@ -258,7 +259,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 60),
         _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Skeleton(width: double.infinity, height: 50)
             : GradientButton(
                 text: 'Verify OTP',
                 onPressed: _handleOtpSubmit,
@@ -324,7 +325,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         ),
         const SizedBox(height: 60),
         _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Skeleton(width: double.infinity, height: 50)
             : GradientButton(
                 text: 'Reset Password',
                 onPressed: _handlePasswordSubmit,

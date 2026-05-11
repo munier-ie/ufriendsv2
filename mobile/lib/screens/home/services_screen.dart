@@ -3,6 +3,12 @@ import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import 'airtime_screen.dart';
 import 'data_screen.dart';
+import 'pins_screen.dart';
+import 'airtime_to_cash_screen.dart';
+import 'recharge_cards_screen.dart';
+
+
+
 
 class ServicesScreen extends StatefulWidget {
   final Future<void> Function() onRefresh;
@@ -56,7 +62,23 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': const Color(0xFF004687),
       'desc': 'Get WAEC, NECO & JAMB result checker pins.'
     },
+    {
+      'id': 'airtime2cash',
+      'name': 'Airtime2cash',
+      'icon': Icons.swap_horizontal_circle_outlined,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'Convert your airtime to wallet balance.'
+    },
+    {
+      'id': 'recharge_cards',
+      'name': 'Recharge Cards',
+      'icon': Icons.print_rounded,
+      'color': const Color(0xFF004687),
+      'desc': 'Print recharge cards for various networks.'
+    },
   ];
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -168,9 +190,18 @@ class _ServicesScreenState extends State<ServicesScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeScreen()));
             } else if (cat['id'] == 'data') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const DataScreen()));
+            } else if (cat['id'] == 'data_pin' || cat['id'] == 'exam') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const PinsScreen()));
+            } else if (cat['id'] == 'airtime2cash') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
+            } else if (cat['id'] == 'recharge_cards') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const RechargeCardsScreen()));
             } else {
               AppToast.show(context, message: 'Coming soon: ${cat['name']}', type: ToastType.warning);
             }
+
+
+
           },
           borderRadius: BorderRadius.circular(32),
           child: Padding(

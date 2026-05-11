@@ -8,6 +8,7 @@ class AuthService {
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
+    await prefs.setInt('login_time', DateTime.now().millisecondsSinceEpoch);
   }
 
   static Future<String?> getToken() async {
@@ -21,8 +22,17 @@ class AuthService {
   }
 
   static Future<bool> isLoggedIn() async {
-    final token = await getToken();
-    return token != null && token.isNotEmpty;
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString(_tokenKey);
+    if (token == null || token.isEmpty) return false;
+    
+    final loginTime = prefs.getInt('login_time') ?? 0;
+    final expiryTime = DateTime.fromMillisecondsSinceEpoch(loginTime).add(const Duration(days: 3));
+    if (DateTime.now().isAfter(expiryTime)) {
+      await logout();
+      return false;
+    }
+    return true;
   }
 
   // First Launch Management

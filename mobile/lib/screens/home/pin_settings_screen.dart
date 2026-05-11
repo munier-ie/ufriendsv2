@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
+import '../../core/skeleton_loader.dart';
 
 class PinSettingsScreen extends StatefulWidget {
   const PinSettingsScreen({super.key});
@@ -204,7 +205,14 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
               
               Expanded(
                 child: _isLoading
-                    ? const Center(child: CircularProgressIndicator(color: Color(0xFF1E90FF)))
+                    ? ListView(
+                        padding: const EdgeInsets.all(24.0),
+                        children: [
+                          const Skeleton(height: 100),
+                          const SizedBox(height: 24),
+                          const Skeleton(height: 300),
+                        ],
+                      )
                     : SingleChildScrollView(
                         padding: const EdgeInsets.all(24.0),
                         child: Column(
@@ -326,7 +334,7 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                                     const SizedBox(height: 24),
                                     Center(
                                       child: _isSendingOtp
-                                          ? const CircularProgressIndicator(color: Color(0xFF1E90FF))
+                                          ? const Skeleton(width: 200, height: 50)
                                           : GradientButton(
                                               text: 'Send OTP to Email',
                                               onPressed: _sendOtp,

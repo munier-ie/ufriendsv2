@@ -2,8 +2,22 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'constants.dart';
 import 'auth_service.dart';
+import '../main.dart';
+import '../screens/auth/login_screen.dart';
+import 'package:flutter/material.dart';
 
 class ApiService {
+  static bool _handleAuthError(http.Response response) {
+    if (response.statusCode == 401) {
+      AuthService.logout();
+      navigatorKey.currentState?.pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+      return true;
+    }
+    return false;
+  }
   static Future<Map<String, dynamic>> login(String phone, String password) async {
     try {
       final response = await http.post(
@@ -116,6 +130,9 @@ class ApiService {
         },
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'user': data};
       }
@@ -125,21 +142,74 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getTransactions({int limit = 5}) async {
+  static Future<Map<String, dynamic>> getTransactions({int limit = 50, String? type}) async {
     try {
       final token = await AuthService.getToken();
+      String url = '${AppConstants.baseUrl}/wallet/transactions?limit=$limit';
+      if (type != null) {
+        url += '&type=$type';
+      }
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}/wallet/transactions?limit=$limit'),
+        Uri.parse(url),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'transactions': data['transactions']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch transactions'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getWalletStats() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/wallet/stats'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'stats': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch stats'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getChartData(String period) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/wallet/stats/chart?period=$period'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'chartData': data['chartData'], 'daysCount': data['daysCount']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch chart data'};
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
     }
@@ -165,6 +235,9 @@ class ApiService {
         },
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         _cache[cacheKey] = data['services'];
         _cacheTime[cacheKey] = DateTime.now();
@@ -187,6 +260,9 @@ class ApiService {
         },
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {
           'success': true, 
@@ -211,6 +287,9 @@ class ApiService {
         },
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200 && data['success'] == true) {
         return {'success': true, 'account': data['account']};
       }
@@ -244,6 +323,9 @@ class ApiService {
         }),
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'data': data};
       }
@@ -263,6 +345,9 @@ class ApiService {
         },
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       }
@@ -292,6 +377,9 @@ class ApiService {
         }),
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       }
@@ -319,6 +407,9 @@ class ApiService {
         }..removeWhere((key, value) => value == null)),
       );
       final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       }
@@ -327,4 +418,257 @@ class ApiService {
       return {'success': false, 'error': 'Network error occurred'};
     }
   }
+
+  static Future<Map<String, dynamic>> getNotifications() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/notifications'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'notifications': data['notifications']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch notifications'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> markNotificationsRead() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/notifications/mark-read'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to mark notifications as read'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> deleteNotification(String id) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.delete(
+        Uri.parse('${AppConstants.baseUrl}/notifications/$id'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to delete notification'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+  static Future<Map<String, dynamic>> generateAirtimeToCashOTP(String network, String phoneNumber) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/airtime-cash/generate-otp'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'network': network,
+          'phoneNumber': phoneNumber,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to generate OTP'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyAirtimeToCashOTP(String network, String phoneNumber, String otp) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/airtime-cash/verify-otp'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'network': network,
+          'phoneNumber': phoneNumber,
+          'otp': otp,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to verify OTP'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> requestAirtimeToCash({
+    required String network,
+    required double amount,
+    required String phoneNumber,
+    required String pin,
+    required String transferPin,
+    required String sessionId,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/airtime-cash/request'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'network': network,
+          'amount': amount,
+          'phoneNumber': phoneNumber,
+          'pin': pin,
+          'transferPin': transferPin,
+          'sessionId': sessionId,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Request failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+  static Future<Map<String, dynamic>> getPinsServices() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/pins/services'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'services': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch pins services'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> purchasePins({
+    required String serviceId,
+    required int quantity,
+    String? businessName,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/pins/purchase'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'serviceId': int.tryParse(serviceId) ?? 0,
+          'quantity': quantity,
+          'businessName': businessName,
+        }..removeWhere((key, value) => value == null)),
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> purchaseRechargeCards({
+    required String network,
+    required int denomination,
+    required int quantity,
+    required String name,
+    required String pin,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/recharge-cards/purchase'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'network': network,
+          'denomination': denomination,
+          'quantity': quantity,
+          'name': name,
+          'pin': pin,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'success': true, 'pins': data['pins']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
 }
+
+
