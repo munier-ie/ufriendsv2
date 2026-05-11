@@ -82,7 +82,7 @@ router.get('/stats', authenticateUser, async (req, res) => {
                 status: 0,
                 date: { gte: last7DaysStart }
             },
-            select: { amount: true, date: true }
+            select: { amount: true, date: true, type: true }
         });
 
         const last7Days = [...Array(7)].map((_, i) => {
@@ -100,7 +100,8 @@ router.get('/stats', authenticateUser, async (req, res) => {
                 const txDateStr = new Date(tx.date).toISOString().split('T')[0];
                 return txDateStr === dateStr;
             });
-            const spent = dayTxs.filter(tx => tx.amount < 0).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+            const serviceTypes = ['airtime', 'data', 'cable', 'electricity', 'exam', 'data_pin', 'nin_slip', 'bvn_slip', 'professional', 'pin', 'utility'];
+            const spent = dayTxs.filter(tx => tx.amount < 0 && (tx.type === null || tx.type === undefined || serviceTypes.includes(tx.type))).reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
             const funded = dayTxs.filter(tx => tx.amount > 0).reduce((sum, tx) => sum + tx.amount, 0);
 
             return {
@@ -121,6 +122,71 @@ router.get('/stats', authenticateUser, async (req, res) => {
         });
     } catch (error) {
         console.error('Stats error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// GET /wallet/stats/chart?period=7d|1m|1y
+// Returns per-day spending data for the requested period.
+// "Spending" = successful debit transactions that are NOT funding/deposit/withdrawal/referral/transfer.
+router.get('/stats/chart', authenticateUser, async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const period = (req.query.period || '7d').toLowerCase();
+
+        const now = new Date();
+        let daysCount;
+        if (period === '1m') daysCount = 30;
+        else if (period === '1y') daysCount = 365;
+        else daysCount = 7;
+
+        // Start of the window (midnight, local ISO-safe)
+        const windowStart = new Date(now);
+        windowStart.setHours(0, 0, 0, 0);
+        windowStart.setDate(windowStart.getDate() - (daysCount - 1));
+
+        // Excluded transaction types (non-service debits)
+        const excludedTypes = ['funding', 'withdrawal', 'deposit', 'referral', 'transfer', 'bonus', 'cashback', 'debit'];
+
+        const transactions = await prisma.transaction.findMany({
+            where: {
+                userId,
+                status: 0,
+                amount: { lt: 0 },
+                date: { gte: windowStart },
+                NOT: { type: { in: excludedTypes } }
+            },
+            select: { amount: true, date: true }
+        });
+
+        // Build one bucket per day, ordered oldest → newest
+        const days = [];
+        for (let i = daysCount - 1; i >= 0; i--) {
+            const d = new Date(now);
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() - i);
+            days.push({
+                dateStr: d.toISOString().split('T')[0],
+                name: daysCount === 7
+                    ? d.toLocaleDateString('en-US', { weekday: 'short' })
+                    : daysCount === 30
+                        ? `${d.getDate()}`
+                        : d.toLocaleDateString('en-US', { month: 'short' })
+            });
+        }
+
+        const chartData = days.map(({ dateStr, name }) => {
+            const dayTxs = transactions.filter(tx => {
+                const txDateStr = new Date(tx.date).toISOString().split('T')[0];
+                return txDateStr === dateStr;
+            });
+            const spent = dayTxs.reduce((sum, tx) => sum + Math.abs(tx.amount), 0);
+            return { name, spent };
+        });
+
+        res.json({ chartData, period, daysCount });
+    } catch (error) {
+        console.error('Chart stats error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

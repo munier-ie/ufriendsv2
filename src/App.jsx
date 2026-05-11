@@ -96,10 +96,12 @@ import VendorAnalytics from './pages/dashboard/VendorAnalytics';
 import BulkTransactions from './pages/dashboard/BulkTransactions';
 import Calculator from './pages/dashboard/Calculator';
 import SmileData from './pages/dashboard/SmileData';
+import RechargeCards from './pages/dashboard/RechargeCards';
 import BulkSMS from './pages/dashboard/BulkSMS';
-import SellPin from './pages/dashboard/SellPin';
+
 import ResellerPage from './pages/ResellerPage';
 import Support from './pages/dashboard/Support';
+
 import BankingFinance from './pages/dashboard/BankingFinance';
 import NotFound from './pages/NotFound';
 import LandingPage from './pages/LandingPage';
@@ -185,7 +187,7 @@ export default function App() {
                     <Route path="verify" element={<Verify />} />
                     <Route path="upgrade" element={<Upgrade />} />
                     <Route path="referrals" element={<Referrals />} />
-                    <Route path="airtime-cash" element={<SellPin />} />
+                    <Route path="airtime2cash" element={<AirtimeToCash />} />
                     <Route path="pins" element={<Pins />} />
                     <Route path="virtual-accounts" element={<VirtualAccounts />} />
                     <Route path="transactions" element={<Transactions />} />
@@ -203,11 +205,13 @@ export default function App() {
                     <Route path="calculator" element={<Calculator />} />
                     <Route path="smile-data" element={<SmileData />} />
                     <Route path="bulk-sms" element={<BulkSMS />} />
-                    <Route path="sell-pin" element={<SellPin />} />
 
                     <Route path="manual-services" element={<ManualServices />} />
+                    <Route path="recharge-cards" element={<RechargeCards />} />
+
                     <Route path="academy" element={<Academy />} />
                     <Route path="support" element={<Support />} />
+
                     <Route path="banking-finance" element={<BankingFinance />} />
                 </Route>
 

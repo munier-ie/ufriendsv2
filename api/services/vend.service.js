@@ -693,4 +693,87 @@ async function vendDataPin(transaction, service, quantity, phone, businessName) 
     }
 }
 
-module.exports = { vendAirtime, vendData, vendCable, vendElectricity, vendExam, vendDataPin };
+/**
+ * Vend Recharge Card Pins (E-Pin)
+ */
+async function vendEPin(transaction, service, quantity, phone, businessName) {
+    try {
+        console.log(`Attempting to vend E-Pin using ${service.provider}`);
+
+        let apiProvider = null;
+        if (service.apiProviderId) {
+            apiProvider = await prisma.apiProvider.findUnique({ where: { id: service.apiProviderId } });
+        }
+
+        if (!apiProvider || !apiProvider.name) {
+            return { status: 'failed', message: 'No API Provider configured for this E-Pin service' };
+        }
+
+        const providerKey = apiProvider.name.toLowerCase().replace(/\s+/g, '');
+        const handler = findProviderHandler(providerKey);
+
+        if (!handler || !handler.purchaseEPin) {
+            return { status: 'failed', message: `EPin handler not found for ${apiProvider.name}` };
+        }
+
+        const config = {
+            baseUrl: apiProvider.baseUrl,
+            apiKey: apiProvider.apiKey,
+            secretKey: apiProvider.apiToken,
+            username: apiProvider.username || '',
+            userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
+        };
+
+        const details = {
+            network: service.provider.toLowerCase(),
+            denomination: service.price,
+            name: businessName || 'VTU App',
+            quantity: quantity
+        };
+
+        const result = await handler.purchaseEPin(details, config);
+
+        if (result.status === 'success') {
+            const pinContent = result.pins.map(p => `${p.token} (${p.serial})`).join(', ');
+
+            await prisma.transaction.update({
+                where: { id: transaction.id },
+                data: {
+                    status: 0, // 0 = Success
+                    pinContent: pinContent,
+                    description: `${transaction.description} [SUCCESS] Pins: ${pinContent}`
+                }
+            });
+        } else if (result.status === 'failed') {
+            await prisma.$transaction([
+                prisma.transaction.update({
+                    where: { id: transaction.id },
+                    data: { status: 1, description: `${transaction.description} [FAILED: ${result.message}]` } // 1 = Failed
+                }),
+                prisma.user.update({
+                    where: { id: transaction.userId },
+                    data: { wallet: { increment: Math.abs(transaction.amount) } }
+                })
+            ]);
+        }
+
+        return sanitizeVendResult(result);
+
+    } catch (error) {
+        console.error('EPin Vending Error:', error);
+        await prisma.$transaction([
+            prisma.transaction.update({
+                where: { id: transaction.id },
+                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
+            }),
+            prisma.user.update({
+                where: { id: transaction.userId },
+                data: { wallet: { increment: Math.abs(transaction.amount) } }
+            })
+        ]);
+        return { status: 'failed', message: 'System Error during EPin vending' };
+    }
+}
+
+module.exports = { vendAirtime, vendData, vendCable, vendElectricity, vendExam, vendDataPin, vendEPin };
+

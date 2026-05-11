@@ -233,8 +233,8 @@ export default function Transactions() {
                                         <p className="text-xs text-gray-400 mt-0.5">{new Date(tx.date).toLocaleDateString()}</p>
                                     </div>
                                     <div className="text-right shrink-0">
-                                        <p className={`text-sm font-bold ${tx.amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                            {tx.amount > 0 ? '-' : '+'}₦{Math.abs(tx.amount).toLocaleString()}
+                                        <p className={`text-sm font-bold ${tx.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                            {tx.amount < 0 ? '-' : '+'}₦{Math.abs(tx.amount).toLocaleString()}
                                         </p>
                                         {getStatusBadge(tx.status)}
                                     </div>
@@ -271,8 +271,8 @@ export default function Transactions() {
                                                 {tx.reference.substring(0, 12)}...
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`text-sm font-bold ${tx.amount > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                                    {tx.amount > 0 ? '-' : '+'}₦{Math.abs(tx.amount).toLocaleString()}
+                                                <span className={`text-sm font-bold ${tx.amount < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                                    {tx.amount < 0 ? '-' : '+'}₦{Math.abs(tx.amount).toLocaleString()}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-sm text-gray-500">

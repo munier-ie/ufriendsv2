@@ -59,10 +59,12 @@ export default function Login() {
         let { name, value } = e.target;
         if (name === 'phone') {
             value = value.replace(/\s+/g, '');
+            if (value.length > 11) return;
         }
         setFormData({ ...formData, [name]: value });
         if (lockoutSeconds === 0) setError('');
     };
+
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
@@ -187,8 +189,10 @@ export default function Login() {
                             onChange={handleChange}
                             placeholder="Enter your phone number"
                             required
+                            maxLength={11}
                             className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
                         />
+
 
                         <Input
                             label="Password"

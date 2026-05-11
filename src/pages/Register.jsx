@@ -55,10 +55,12 @@ export default function Register() {
         let { name, value } = e.target;
         if (name === 'phone') {
             value = value.replace(/\s+/g, '');
+            if (value.length > 11) return;
         }
         setFormData({ ...formData, [name]: value });
         setError('');
     };
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -167,8 +169,10 @@ export default function Register() {
                             onChange={handleChange}
                             placeholder="08012345678"
                             required
+                            maxLength={11}
                             className="rounded-xl border-gray-200 focus:border-primary focus:ring-primary/20 bg-gray-50/50"
                         />
+
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

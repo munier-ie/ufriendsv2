@@ -43,6 +43,8 @@ import X from 'lucide-react/dist/esm/icons/x';
 import Code from 'lucide-react/dist/esm/icons/code';
 import Bot from 'lucide-react/dist/esm/icons/bot';
 import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
+import Printer from 'lucide-react/dist/esm/icons/printer';
+
 import Logo from '../ui/Logo';
 import { motion } from 'framer-motion';
 import ChatConsultant from '../dashboard/ChatConsultant';
@@ -183,8 +185,11 @@ export default function DashboardLayout() {
         { icon: PhoneCall, label: 'Airtime', path: '/dashboard/services?type=airtime' },
         { icon: Landmark, label: 'Gov Services', path: '/dashboard/gov-services' },
         { icon: ShoppingBag, label: 'Exam PINs', path: '/dashboard/exam-pins' },
-        { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
+        { icon: ArrowRightLeft, label: 'Airtime2cash', path: '/dashboard/airtime2cash' },
         { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
+        { icon: Printer, label: 'Recharge Cards', path: '/dashboard/recharge-cards' },
+        { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
+
         { icon: Tag, label: 'Data PINs', path: '/dashboard/data-pins' },
         { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
         { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
@@ -192,7 +197,6 @@ export default function DashboardLayout() {
         { icon: ShieldCheck, label: 'Verification', path: '/dashboard/verify' },
         { icon: Banknote, label: 'Pricing', path: '/dashboard/pricing' },
         { icon: MessageSquare, label: 'Bulk SMS', path: '/dashboard/bulk-sms' },
-        { icon: ArrowRightLeft, label: 'Sell Airtime', path: '/dashboard/sell-pin' },
         { icon: CalculatorIcon, label: 'Calculator', path: '/dashboard/calculator' },
         { icon: Users, label: 'Referrals', path: '/dashboard/referrals' },
         { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },

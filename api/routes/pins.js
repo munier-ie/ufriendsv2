@@ -93,7 +93,7 @@ router.post('/purchase', authenticateUser, async (req, res) => {
 
         if (availablePins.length < quantity) {
             // STOCK EMPTY -> Check if we can VEND via API
-            if (service.type === 'exam' || service.type === 'data_pin') {
+            if (service.type === 'exam' || service.type === 'data_pin' || service.type === 'recharge_card') {
                 console.log(`[PinPurchase] Falling back to API vending for ${service.type}`);
                 return await handleApiPinVending(req, res, service, quantity, totalCost, businessName);
             }
@@ -193,6 +193,8 @@ async function handleApiPinVending(req, res, service, quantity, totalCost, busin
         // service.code already contains the eduType (NEONE, WATWO etc.)
         // vend.service.js reads service.code directly, quantity is just a formality here
         result = await vendService.vendExam(transaction, service, 1, req.user.phone);
+    } else if (service.type === 'recharge_card') {
+        result = await vendService.vendEPin(transaction, service, quantity, req.user.phone, businessName);
     } else {
         result = await vendService.vendDataPin(transaction, service, quantity, req.user.phone, businessName);
     }

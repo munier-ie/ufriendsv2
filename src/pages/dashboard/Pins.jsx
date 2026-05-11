@@ -12,6 +12,7 @@ export default function Pins() {
     const [quantity, setQuantity] = useState(1);
     const [purchasedPin, setPurchasedPin] = useState(null);
     const [error, setError] = useState('');
+    const [businessName, setBusinessName] = useState('');
 
     useEffect(() => {
         fetchServices();
@@ -43,10 +44,12 @@ export default function Pins() {
             const response = await axios.post('http://localhost:3000/api/pins/purchase',
                 {
                     serviceId: selectedService.id,
-                    quantity: 1 // Only 1 for now to keep it simple, or implement quantity loop in backend
+                    quantity: 1, // Only 1 for now to keep it simple, or implement quantity loop in backend
+                    businessName: businessName
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+
 
             setPurchasedPin(response.data.pin);
             // Refresh balance or services if needed
@@ -162,6 +165,20 @@ export default function Pins() {
                                 <p className="font-bold text-xl text-indigo-600">₦{selectedService.price}</p>
                             </div>
                         </div>
+
+                        {selectedService.type === 'recharge_card' && (
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Business Name (to print on card)</label>
+                                <input
+                                    type="text"
+                                    value={businessName}
+                                    onChange={(e) => setBusinessName(e.target.value)}
+                                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    placeholder="Enter your business name"
+                                />
+                            </div>
+                        )}
+
 
                         <button
                             onClick={handlePurchase}

@@ -42,17 +42,7 @@ const adminLoginSchema = z.object({
 // Health check — verifies this router is reachable (no DB, no auth)
 router.get('/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
 
-// DB connectivity test — isolates whether Prisma can query the adminUser table
-router.get('/dbtest', async (req, res) => {
-    const t0 = Date.now();
-    try {
-        const count = await prisma.adminUser.count();
-        res.json({ ok: true, adminUserCount: count, ms: Date.now() - t0 });
-    } catch (err) {
-        console.error('[dbtest] ✗ DB error:', err);
-        res.status(500).json({ ok: false, error: err.message, ms: Date.now() - t0 });
-    }
-});
+
 
 // Admin login (renamed to access to bypass WAF rules on /login and /signin paths)
 router.post('/access', async (req, res) => {

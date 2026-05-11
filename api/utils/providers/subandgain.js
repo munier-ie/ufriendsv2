@@ -657,4 +657,53 @@ async function fetchExamPlans(config) {
     }
 }
 
-module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, checkBalance, fetchDataPlans, fetchCablePlans, fetchExamPlans };
+/**
+ * Purchase Recharge Card Pins (E-Pin) via Subandgain
+ */
+async function purchaseEPin(details, config) {
+    try {
+        const { network, denomination, name, quantity } = details;
+        const { apiKey, username } = config;
+
+        const url = 'https://subandgain.com/api/epin.php';
+        const params = {
+            username: username,
+            apiKey: apiKey,
+            network: network.toUpperCase(),
+            denomination: denomination,
+            name: name,
+            quantity: quantity
+        };
+
+        const response = await axios.get(url, { params });
+        const result = response.data;
+
+        console.log('Subandgain EPin Purchase Response:', result);
+
+        if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
+            return {
+                status: result.status.toLowerCase() === 'approved' ? 'success' : 'pending',
+                message: 'EPin Purchase Successful',
+                data: result,
+                pins: result.bundle, // array of {token, serial}
+                reference: result.transaction_id
+            };
+        } else {
+            return {
+                status: 'failed',
+                message: result.description || 'Transaction Failed',
+                data: result
+            };
+        }
+    } catch (error) {
+        console.error('Subandgain EPin Error:', error.response?.data || error.message);
+        return {
+            status: 'failed',
+            message: 'Provider Connection Error',
+            error: error.message
+        };
+    }
+}
+
+module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, purchaseEPin, checkBalance, fetchDataPlans, fetchCablePlans, fetchExamPlans };
+

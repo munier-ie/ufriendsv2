@@ -178,6 +178,7 @@ app.use('/api/webhooks', require('./routes/webhooks')); // Payment gateway webho
 app.use('/api/referrals', require('./routes/referral')); // Referral system routes
 app.use('/api/airtime-cash', require('./routes/airtimeToCash')); // Airtime to Cash routes
 app.use('/api/transfer', actionLimiterMiddleware, require('./routes/transfer')); // P2P Transfer routes
+app.use('/api/recharge-cards', require('./routes/rechargeCards')); // Recharge Card Printing routes
 app.use('/api/notifications', require('./routes/notifications')); // Notifications routes
 app.use('/api/professional', require('./routes/professional')); // Professional services (NIN, BVN, CAC)
 app.use('/api/bvn', require('./routes/bvn')); // BVN verification and reports
