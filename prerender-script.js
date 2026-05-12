@@ -19,28 +19,21 @@ const PUBLIC_ROUTES = [
     '/subscribe-cable-tv-nigeria',
     '/buy-exam-pins-nigeria',
     '/cac-registration-nigeria',
-    '/blog',
-    '/blog/how-to-print-nin-slip-online-nigeria',
-    '/blog/how-to-modify-bvn-nigeria',
-    '/blog/cheapest-data-plans-nigeria-2026',
-    '/blog/how-to-retrieve-bvn-with-phone-number-nigeria',
-    '/blog/how-to-pay-dstv-subscription-online-nigeria',
-    '/blog/how-to-pay-electricity-bill-online-nigeria',
-    '/blog/how-to-buy-waec-pin-online-nigeria',
-    '/blog/how-to-register-business-cac-online-nigeria',
-    '/blog/nin-vs-bvn-difference-nigeria',
-    '/blog/best-vtu-website-nigeria-2026',
-    '/blog/how-to-get-pos-terminal-nigeria',
-    '/blog/how-to-convert-airtime-to-cash-nigeria',
-    '/blog/how-to-start-vtu-business-nigeria',
-    '/blog/how-to-subscribe-gotv-online-nigeria',
-    '/blog/mtn-sme-data-nigeria',
-    '/blog/how-to-link-nin-to-bank-account-nigeria',
-    '/blog/buy-cheap-airtel-data-online-nigeria',
-    '/blog/nin-modification-portal-nigeria',
-    '/blog/e-wallet-vs-virtual-account-nigeria',
-    '/blog/buy-cheap-glo-data-plans-nigeria-2026'
+    '/cac-registration-nigeria',
+    '/blog'
 ];
+
+// Dynamically read all blog JSON files
+const blogContentDir = path.join(__dirname, 'src/pages/blog/content');
+if (fs.existsSync(blogContentDir)) {
+    const files = fs.readdirSync(blogContentDir);
+    for (const file of files) {
+        if (file.endsWith('.json')) {
+            const slug = file.replace('.json', '');
+            PUBLIC_ROUTES.push(`/blog/${slug}`);
+        }
+    }
+}
 
 async function prerender() {
     console.log('Starting prerender script...');

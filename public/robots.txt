@@ -15,6 +15,9 @@ Allow: /privacy
 Allow: /terms
 Allow: /blog
 Allow: /blog/
+Allow: /reseller
+Allow: /contact
+Allow: /about
 
 # Block auth-gated pages from indexing
 Disallow: /dashboard
