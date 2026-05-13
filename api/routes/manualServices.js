@@ -12,8 +12,16 @@ const { creditReferralBonus } = require('../services/referral.service');
 const whatsappService = require('../services/whatsapp.service');
 
 // ID Upload directory
+// Uses the local uploads/manual-ids folder on both dev and production server.
+// The directory is created on startup if it doesn't exist.
 const idUploadDir = path.join(__dirname, '../uploads/manual-ids');
-if (!fs.existsSync(idUploadDir)) fs.mkdirSync(idUploadDir, { recursive: true });
+
+try {
+    if (!fs.existsSync(idUploadDir)) fs.mkdirSync(idUploadDir, { recursive: true });
+} catch (mkdirErr) {
+    // Log clearly — if this fails in production it means a permissions issue
+    console.error('[ManualServices] CRITICAL: Could not create upload dir at', idUploadDir, ':', mkdirErr.message);
+}
 
 const idStorage = multer.diskStorage({
     destination: (_req, _file, cb) => cb(null, idUploadDir),
@@ -38,7 +46,15 @@ const idUpload = multer({
 // ============================================================
 // POST /api/manual-services/upload-id
 // ============================================================
-router.post('/upload-id', authenticateUser, idUpload.single('file'), async (req, res) => {
+router.post('/upload-id', authenticateUser, (req, res, next) => {
+    idUpload.single('file')(req, res, (err) => {
+        if (err) {
+            console.error('[ManualServices] Multer upload error:', err.message);
+            return res.status(400).json({ error: err.message || 'Failed to upload file' });
+        }
+        next();
+    });
+}, async (req, res) => {
     try {
         if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
         const filePath = `/api/uploads/manual-ids/${req.file.filename}`;
@@ -47,6 +63,20 @@ router.post('/upload-id', authenticateUser, idUpload.single('file'), async (req,
         console.error('ID upload error:', err);
         res.status(500).json({ error: 'Failed to upload identification document' });
     }
+});
+
+// ============================================================
+// GET /api/manual-services/id-file/:filename
+// Protected fallback for serving uploaded ID documents.
+// The primary route is via /api/uploads/manual-ids/ (express.static in app.js).
+// ============================================================
+router.get('/id-file/:filename', authenticateUser, (req, res) => {
+    const filename = path.basename(req.params.filename); // prevent path traversal
+    const filePath = path.join(idUploadDir, filename);
+    if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+    }
+    res.sendFile(filePath);
 });
 
 // ============================================================
