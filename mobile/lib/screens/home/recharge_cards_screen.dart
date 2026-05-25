@@ -23,10 +23,10 @@ class _RechargeCardsScreenState extends State<RechargeCardsScreen> {
   List<dynamic> _generatedPins = [];
 
   final List<Map<String, String>> _networks = [
-    {'name': 'MTN', 'image': 'assets/images/mtn.png'},
-    {'name': 'AIRTEL', 'image': 'assets/images/airtel.png'},
-    {'name': 'GLO', 'image': 'assets/images/glo.png'},
-    {'name': '9MOBILE', 'image': 'assets/images/9mobile.png'},
+    {'name': 'MTN', 'image': 'assets/images/ISPlogo/mtnlogo.png'},
+    {'name': 'AIRTEL', 'image': 'assets/images/ISPlogo/airtellogo.png'},
+    {'name': 'GLO', 'image': 'assets/images/ISPlogo/glologo.jpg'},
+    {'name': '9MOBILE', 'image': 'assets/images/ISPlogo/9mobile.png'},
   ];
 
   final List<String> _denominations = ['100', '200', '500', '1000'];

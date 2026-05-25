@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/api_service.dart';
+import 'pin_screen.dart';
 
 class PinsScreen extends StatefulWidget {
   const PinsScreen({super.key});
@@ -32,44 +33,56 @@ class _PinsScreenState extends State<PinsScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'] ?? 'Failed to fetch services')));
     }
-
   }
 
   void _handlePurchase() async {
     if (_selectedService == null) return;
 
-    setState(() => _purchaseLoading = true);
-    final res = await ApiService.purchasePins(
-      serviceId: _selectedService['id'].toString(),
-      quantity: 1,
-      businessName: _businessNameController.text.isEmpty ? null : _businessNameController.text,
+    final navigator = Navigator.of(context);
+    final pinResult = await navigator.push(
+      MaterialPageRoute(
+        builder: (_) => PinScreen(
+          title: 'Enter Transaction PIN',
+          onVerify: (pin) async {
+            return await ApiService.purchasePins(
+              serviceId: _selectedService['id'].toString(),
+              quantity: 1,
+              amount: (_selectedService['price'] ?? 0).toDouble(),
+              pin: pin,
+              businessName: _businessNameController.text.isEmpty ? null : _businessNameController.text,
+            );
+          },
+        ),
+      ),
     );
-    setState(() => _purchaseLoading = false);
+
     if (!mounted) return;
 
-    if (res['success']) {
-      final pin = res['data']['pin'];
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Purchase Successful'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('PIN: ${pin['content']}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              if (pin['serialNumber'] != null) Text('Serial: ${pin['serialNumber']}'),
+    if (pinResult != null) {
+      final bool isSuccess = pinResult is Map ? pinResult['success'] == true : (pinResult == true);
+      if (isSuccess) {
+        final pin = pinResult['data']['pinContent'];
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Purchase Successful'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('PIN: $pin', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              ],
+            ),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
             ],
           ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
-          ],
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'] ?? 'Purchase failed')));
+        );
+      } else {
+        final errorMsg = pinResult is Map ? pinResult['error'] : 'Purchase failed';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg ?? 'Purchase failed')));
+      }
     }
-
   }
 
   @override
@@ -85,8 +98,7 @@ class _PinsScreenState extends State<PinsScreen> {
                   children: [
                     DropdownButtonFormField<dynamic>(
                       initialValue: _selectedService,
-
-                      items: _services.map((s) => DropdownMenuItem(value: s, child: Text('${s['name']} - ₦${s['price']}'))).toList(),
+                      items: _services.map((s) => DropdownMenuItem(value: s, child: Text('${s['name']} - ₦${s['price']}' ))).toList(),
                       onChanged: (val) => setState(() => _selectedService = val),
                       decoration: const InputDecoration(labelText: 'Select Pin Plan'),
                     ),

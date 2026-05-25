@@ -31,12 +31,22 @@ class ApiService {
 
       final data = jsonDecode(response.body);
 
-      if (response.statusCode == 200 && data['token'] != null) {
-        await AuthService.saveToken(data['token']);
-        return {'success': true, 'data': data};
-      } else {
-        return {'success': false, 'error': data['error'] ?? 'Login failed'};
+      if (response.statusCode == 200) {
+        if (data['token'] != null) {
+          await AuthService.saveToken(data['token']);
+          return {'success': true, 'data': data};
+        } else if (data['emailVerificationRequired'] == true || data['twoFaRequired'] == true) {
+          return {
+            'success': false, 
+            'error': data['message'] ?? 'Verification required',
+            'verificationRequired': true,
+            'type': data['emailVerificationRequired'] == true ? 'email' : '2fa',
+            'userId': data['userId']
+          };
+        }
       }
+      
+      return {'success': false, 'error': data['error'] ?? 'Login failed'};
     } catch (e) {
       return {'success': false, 'error': 'Network error. Please check your connection.'};
     }
@@ -74,10 +84,60 @@ class ApiService {
       if (response.statusCode == 201 || response.statusCode == 200) {
         return {'success': true, 'data': data};
       } else {
-        return {'success': false, 'error': data['error'] ?? 'Registration failed'};
+        String error = data['error'] ?? 'Registration failed';
+        if (data['details'] != null) {
+          error += ': ${data['details']}';
+        }
+        return {'success': false, 'error': error};
       }
     } catch (e) {
       return {'success': false, 'error': 'Network error. Please check your connection.'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyEmail(String userId, String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/verify-email'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': int.tryParse(userId),
+          'code': code,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        if (data['token'] != null) {
+          await AuthService.saveToken(data['token']);
+        }
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Verification failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verify2fa(String userId, String code) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/verify-2fa'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'userId': int.tryParse(userId),
+          'code': code,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        if (data['token'] != null) {
+          await AuthService.saveToken(data['token']);
+        }
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Verification failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
     }
   }
 
@@ -299,12 +359,51 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> verifyUtility({
+    required String type, // 'cable' or 'electricity'
+    required String provider, // 'dstv', 'gotv', etc.
+    required String number, // IUC or Meter number
+    String? meterType,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/services/verify'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'type': type,
+          'provider': provider,
+          'number': number,
+          if (meterType != null) 'meterType': meterType,
+        }),
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Verification failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
   static Future<Map<String, dynamic>> purchaseService({
     required String serviceId,
     required String recipient,
     required double amount,
     required String pin,
     String? networkType,
+    String? iucNumber,
+    String? subscriptionType,
+    String? accessToken,
+    String? meterNumber,
+    String? meterType,
   }) async {
     try {
       final token = await AuthService.getToken();
@@ -319,7 +418,12 @@ class ApiService {
           'recipient': recipient,
           'amount': amount,
           'pin': pin,
-          'networkType': networkType,
+          if (networkType != null) 'networkType': networkType,
+          if (iucNumber != null) 'iucNumber': iucNumber,
+          if (subscriptionType != null) 'subscriptionType': subscriptionType,
+          if (accessToken != null) 'accessToken': accessToken,
+          if (meterNumber != null) 'meterNumber': meterNumber,
+          if (meterType != null) 'meterType': meterType,
         }),
       );
       final data = jsonDecode(response.body);
@@ -605,6 +709,8 @@ class ApiService {
   static Future<Map<String, dynamic>> purchasePins({
     required String serviceId,
     required int quantity,
+    required double amount,
+    required String pin,
     String? businessName,
   }) async {
     try {
@@ -618,6 +724,8 @@ class ApiService {
         body: jsonEncode({
           'serviceId': int.tryParse(serviceId) ?? 0,
           'quantity': quantity,
+          'amount': amount,
+          'pin': pin,
           'businessName': businessName,
         }..removeWhere((key, value) => value == null)),
       );
@@ -669,6 +777,64 @@ class ApiService {
       return {'success': false, 'error': 'Network error occurred'};
     }
   }
+
+  // ─── Government / Professional Services ─────────────────────────────────────
+
+  static Future<Map<String, dynamic>> getBvnPricing() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/api/bvn/pricing'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch BVN pricing'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getNinPricing() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/api/nin/pricing'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch NIN pricing'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> submitProfessionalRequest({
+    required String type,
+    required Map<String, dynamic> details,
+    required String pin,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/api/professional/request'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'type': type, 'details': details, 'pin': pin}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'report': data['report'], 'message': data['message']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Request failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
 }
-
-

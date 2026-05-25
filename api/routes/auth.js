@@ -42,8 +42,8 @@ const registerSchema = z.object({
     phone: z.string().trim().min(10),
     password: z.string().min(6),
     pin: z.string().length(4),
-    state: z.string().trim().optional(),
-    referral: z.string().trim().optional(),
+    state: z.string().trim().optional().nullable(),
+    referral: z.string().trim().optional().nullable(),
     type: z.number().int().min(1).max(3).default(1)
 });
 
@@ -58,7 +58,14 @@ router.post('/register', async (req, res) => {
         // Validate input
         const validation = registerSchema.safeParse(req.body);
         if (!validation.success) {
-            return res.status(400).json({ error: validation.error.errors[0].message });
+            // Log full error for server-side debugging
+            console.error('Validation failed:', JSON.stringify(validation.error.issues, null, 2));
+            
+            const firstError = validation.error.issues?.[0]?.message || 'Invalid input';
+            return res.status(400).json({ 
+                error: firstError,
+                details: validation.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ')
+            });
         }
 
         // Check if registration is enabled
@@ -149,8 +156,8 @@ router.post('/register', async (req, res) => {
 
         res.status(201).json({ message: 'User created successfully', userId: user.id });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('Registration Error:', error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
     }
 });
 

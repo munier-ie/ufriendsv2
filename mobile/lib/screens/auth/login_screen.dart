@@ -7,6 +7,7 @@ import '../../core/api_service.dart';
 import '../home/home_screen.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
+import 'verification_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -40,6 +41,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (result['success']) {
       Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+    } else if (result['verificationRequired'] == true) {
+      Navigator.push(
+        context, 
+        MaterialPageRoute(
+          builder: (_) => VerificationScreen(
+            userId: result['userId'],
+            type: result['type'],
+          )
+        )
+      );
     } else {
       AppToast.show(context, message: result['error'], type: ToastType.error);
     }
@@ -146,12 +157,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-              _isLoading
-                  ? const Skeleton(width: double.infinity, height: 50)
-                  : GradientButton(
-                      text: 'Log In',
-                      onPressed: _handleLogin,
-                    ),
+              GradientButton(
+                text: 'Log In',
+                onPressed: _handleLogin,
+                loading: _isLoading,
+              ),
               
               const SizedBox(height: 48),
               // Footer Match

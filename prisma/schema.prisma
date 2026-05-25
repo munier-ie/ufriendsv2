@@ -908,28 +908,28 @@ model SoftwareOption {
 }
 
 model ResellerRequest {
-  id            Int      @id @default(autoincrement())
-  userId        Int?
-  contactEmail  String
-  contactPhone  String
-  platforms     String[]
-  hostingType   String
-  extras        String[]
-  publishing    Json?
-  totalAmount   Float
-  status        String   @default("pending")
-  paymentRef    String?  @unique
-  paymentStatus String?  @default("unpaid")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  adminNote     String?
-  apkUrl        String?
-  webUrl        String?
-  appStoreUrl   String?
-  playStoreUrl  String?
+  id                  Int      @id @default(autoincrement())
+  userId              Int?
+  contactEmail        String
+  contactPhone        String
+  platforms           String[]
+  hostingType         String
+  extras              String[]
+  publishing          Json?
+  totalAmount         Float
+  status              String   @default("pending")
+  paymentRef          String?  @unique
+  paymentStatus       String?  @default("unpaid")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  adminNote           String?
+  apkUrl              String?
+  webUrl              String?
+  appStoreUrl         String?
+  playStoreUrl        String?
   onboardingCompleted Boolean  @default(false)
   onboardingData      Json?
-  user          User?    @relation(fields: [userId], references: [id])
+  user                User?    @relation(fields: [userId], references: [id])
 
   @@map("reseller_requests")
 }

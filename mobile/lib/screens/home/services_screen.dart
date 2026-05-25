@@ -6,6 +6,11 @@ import 'data_screen.dart';
 import 'pins_screen.dart';
 import 'airtime_to_cash_screen.dart';
 import 'recharge_cards_screen.dart';
+import 'cable_tv_screen.dart';
+import 'electricity_screen.dart';
+import 'data_pins_screen.dart';
+import 'exam_pins_screen.dart';
+import 'gov_services_screen.dart';
 
 
 
@@ -76,6 +81,13 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'color': const Color(0xFF004687),
       'desc': 'Print recharge cards for various networks.'
     },
+    {
+      'id': 'gov_services',
+      'name': 'Gov Services',
+      'icon': Icons.account_balance_rounded,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'NIN & BVN slips with instant PDF download.'
+    },
   ];
 
 
@@ -141,7 +153,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 20,
                 mainAxisSpacing: 20,
-                childAspectRatio: 0.82,
+                childAspectRatio: 0.75,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -190,12 +202,20 @@ class _ServicesScreenState extends State<ServicesScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeScreen()));
             } else if (cat['id'] == 'data') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const DataScreen()));
-            } else if (cat['id'] == 'data_pin' || cat['id'] == 'exam') {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const PinsScreen()));
+            } else if (cat['id'] == 'cable') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CableTvScreen()));
+            } else if (cat['id'] == 'electricity') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ElectricityScreen()));
+            } else if (cat['id'] == 'data_pin') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const DataPinsScreen()));
+            } else if (cat['id'] == 'exam') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamPinsScreen()));
             } else if (cat['id'] == 'airtime2cash') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
             } else if (cat['id'] == 'recharge_cards') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const RechargeCardsScreen()));
+            } else if (cat['id'] == 'gov_services') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const GovServicesScreen()));
             } else {
               AppToast.show(context, message: 'Coming soon: ${cat['name']}', type: ToastType.warning);
             }

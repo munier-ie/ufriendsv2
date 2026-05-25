@@ -5,6 +5,7 @@ import '../../core/skeleton_loader.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'login_screen.dart';
+import 'verification_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -80,8 +81,16 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      AppToast.show(context, message: 'Account created successfully! Please log in.', type: ToastType.success);
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+      AppToast.show(context, message: 'Account created successfully! Please verify your email.', type: ToastType.success);
+      Navigator.pushReplacement(
+        context, 
+        MaterialPageRoute(
+          builder: (_) => VerificationScreen(
+            userId: result['data']['userId'],
+            type: 'email',
+          )
+        )
+      );
     } else {
       AppToast.show(context, message: result['error'], type: ToastType.error);
     }
@@ -351,12 +360,11 @@ class _SignupScreenState extends State<SignupScreen> {
               ),
               
               const SizedBox(height: 50),
-              _isLoading
-                  ? const Skeleton(width: double.infinity, height: 50)
-                  : GradientButton(
-                      text: 'Sign Up',
-                      onPressed: _handleSignup,
-                    ),
+              GradientButton(
+                text: 'Sign Up',
+                onPressed: _handleSignup,
+                loading: _isLoading,
+              ),
               
               const SizedBox(height: 32),
               // Footer Match

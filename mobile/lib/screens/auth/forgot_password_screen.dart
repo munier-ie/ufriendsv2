@@ -196,12 +196,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 60),
-        _isLoading
-            ? const Skeleton(width: double.infinity, height: 50)
-            : GradientButton(
-                text: 'Send Code',
-                onPressed: _handleEmailSubmit,
-              ),
+        GradientButton(
+          text: 'Send Code',
+          onPressed: _handleEmailSubmit,
+          loading: _isLoading,
+        ),
       ],
     );
   }
@@ -258,12 +257,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           }),
         ),
         const SizedBox(height: 60),
-        _isLoading
-            ? const Skeleton(width: double.infinity, height: 50)
-            : GradientButton(
-                text: 'Verify OTP',
-                onPressed: _handleOtpSubmit,
-              ),
+        GradientButton(
+          text: 'Verify OTP',
+          onPressed: _handleOtpSubmit,
+          loading: _isLoading,
+        ),
         const SizedBox(height: 32),
         Center(
           child: TextButton(
@@ -324,12 +322,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           ),
         ),
         const SizedBox(height: 60),
-        _isLoading
-            ? const Skeleton(width: double.infinity, height: 50)
-            : GradientButton(
-                text: 'Reset Password',
-                onPressed: _handlePasswordSubmit,
-              ),
+        GradientButton(
+          text: 'Reset Password',
+          onPressed: _handlePasswordSubmit,
+          loading: _isLoading,
+        ),
       ],
     );
   }
