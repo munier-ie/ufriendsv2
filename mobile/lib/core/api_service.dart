@@ -784,7 +784,7 @@ class ApiService {
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}/api/bvn/pricing'),
+        Uri.parse('${AppConstants.baseUrl}/bvn/pricing'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
@@ -800,7 +800,7 @@ class ApiService {
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
-        Uri.parse('${AppConstants.baseUrl}/api/nin/pricing'),
+        Uri.parse('${AppConstants.baseUrl}/nin/pricing'),
         headers: {'Authorization': 'Bearer $token'},
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
@@ -820,7 +820,7 @@ class ApiService {
     try {
       final token = await AuthService.getToken();
       final response = await http.post(
-        Uri.parse('${AppConstants.baseUrl}/api/professional/request'),
+        Uri.parse('${AppConstants.baseUrl}/professional/request'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

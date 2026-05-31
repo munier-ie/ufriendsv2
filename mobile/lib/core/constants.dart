@@ -3,6 +3,9 @@ class AppConstants {
   // Current IP: 10.66.39.21
   static const String baseUrl = 'http://10.66.39.21:3000/api';
 
+  // Base server URL without /api — used for file downloads (slips, uploads)
+  static const String baseServerUrl = 'http://10.66.39.21:3000';
+
   static const String loginEndpoint = '/auth/access';
   static const String registerEndpoint = '/auth/register';
 }

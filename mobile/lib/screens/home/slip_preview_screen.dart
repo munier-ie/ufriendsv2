@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
@@ -30,8 +31,40 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
 
   String get _fullName {
     final first = widget.report['firstName'] ?? '';
-    final last = widget.report['lastName'] ?? '';
+    final last = widget.report['lastName'] ?? widget.report['surname'] ?? '';
     return '$first $last'.trim();
+  }
+
+  Widget _buildPhoto(Map<String, dynamic> r) {
+    String? b64 = r['base64Photo'] ?? r['base64Image'] ?? r['photo'];
+    if (b64 != null && b64.isNotEmpty) {
+      try {
+        final cleanB64 = b64.contains(',') ? b64.split(',').last : b64;
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(11),
+          child: Image.memory(
+            base64Decode(cleanB64.replaceAll(RegExp(r'\s+'), '')),
+            fit: BoxFit.cover,
+            errorBuilder: (c, e, s) => const Icon(Icons.person_rounded, size: 50, color: Colors.grey),
+          ),
+        );
+      } catch (e) {
+        // Fallback
+      }
+    }
+    
+    if (r['photoUrl'] != null && r['photoUrl'].toString().isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(11),
+        child: Image.network(
+          r['photoUrl'],
+          fit: BoxFit.cover,
+          errorBuilder: (c, e, s) => const Icon(Icons.person_rounded, size: 50, color: Colors.grey),
+        ),
+      );
+    }
+    
+    return const Icon(Icons.person_rounded, size: 50, color: Colors.grey);
   }
 
   String get _slipLabel {
@@ -84,7 +117,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
       final token = await AuthService.getToken();
       final fullUrl = pdfUrl.toString().startsWith('http')
           ? pdfUrl.toString()
-          : '${AppConstants.baseUrl}$pdfUrl';
+          : '${AppConstants.baseServerUrl}$pdfUrl';
 
       final response = await http.get(
         Uri.parse(fullUrl),
@@ -390,13 +423,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: r['photoUrl'] != null
-                      ? ClipRRect(
-                          borderRadius: BorderRadius.circular(11),
-                          child: Image.network(r['photoUrl'], fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => const Icon(Icons.person_rounded, size: 50, color: Colors.grey)),
-                        )
-                      : const Icon(Icons.person_rounded, size: 50, color: Colors.grey),
+                  child: _buildPhoto(r),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -450,8 +477,9 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                 ],
                 _buildRow('State of Origin', r['stateOfOrigin'] ?? r['state_of_origin'] ?? '—'),
                 _buildRow('LGA of Origin', r['lgaOfOrigin'] ?? r['lga_of_origin'] ?? '—'),
-                _buildRow('State of Residence', r['stateOfResidence'] ?? r['state_of_residence'] ?? '—'),
-                _buildRow('Address', r['residentialAddress'] ?? r['address'] ?? '—', fullWidth: true),
+                _buildRow('State of Residence', r['stateOfResidence'] ?? r['state_of_residence'] ?? r['residenceState'] ?? '—'),
+                _buildRow('LGA of Residence', r['lgaOfResidence'] ?? r['lga_of_residence'] ?? r['residenceLga'] ?? '—'),
+                _buildRow('Address', r['residentialAddress'] ?? r['residenceAddress'] ?? r['address'] ?? '—', fullWidth: true),
               ],
             ),
           ),

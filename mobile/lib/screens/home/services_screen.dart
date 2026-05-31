@@ -3,14 +3,14 @@ import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import 'airtime_screen.dart';
 import 'data_screen.dart';
-import 'pins_screen.dart';
 import 'airtime_to_cash_screen.dart';
 import 'recharge_cards_screen.dart';
 import 'cable_tv_screen.dart';
 import 'electricity_screen.dart';
 import 'data_pins_screen.dart';
 import 'exam_pins_screen.dart';
-import 'gov_services_screen.dart';
+import 'nin_slip_screen.dart';
+import 'bvn_slip_screen.dart';
 
 
 
@@ -82,11 +82,18 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'desc': 'Print recharge cards for various networks.'
     },
     {
-      'id': 'gov_services',
-      'name': 'Gov Services',
-      'icon': Icons.account_balance_rounded,
+      'id': 'nin_slip',
+      'name': 'NIN Slip',
+      'icon': Icons.fingerprint_rounded,
       'color': const Color(0xFF1E90FF),
-      'desc': 'NIN & BVN slips with instant PDF download.'
+      'desc': 'Verify NIN & generate downloadable identity slip.'
+    },
+    {
+      'id': 'bvn_slip',
+      'name': 'BVN Slip',
+      'icon': Icons.account_balance_rounded,
+      'color': const Color(0xFF004687),
+      'desc': 'Verify BVN & generate premium verification slip.'
     },
   ];
 
@@ -214,8 +221,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
             } else if (cat['id'] == 'recharge_cards') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const RechargeCardsScreen()));
-            } else if (cat['id'] == 'gov_services') {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const GovServicesScreen()));
+            } else if (cat['id'] == 'nin_slip') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinSlipScreen()));
+            } else if (cat['id'] == 'bvn_slip') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
             } else {
               AppToast.show(context, message: 'Coming soon: ${cat['name']}', type: ToastType.warning);
             }
