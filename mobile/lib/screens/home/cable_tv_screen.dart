@@ -5,6 +5,7 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 import 'transaction_status_screen.dart';
+import '../../main.dart';
 
 class CableTvScreen extends StatefulWidget {
   const CableTvScreen({super.key});
@@ -197,6 +198,20 @@ class _CableTvScreenState extends State<CableTvScreen> {
                           
                           final bool isSuccess = result is Map ? result['success'] == true : (result == true);
                           final String errorMessage = result is Map ? (result['error'] ?? 'Transaction failed') : 'Transaction failed';
+                          
+                          if (isSuccess) {
+                            showLocalNotification(
+                              id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                              title: 'Cable TV Subscription Successful',
+                              body: 'Your ${_selectedProvider!.toUpperCase()} subscription for ${_selectedPlan!['name']} was successful',
+                            );
+                          } else {
+                            showLocalNotification(
+                              id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                              title: 'Cable TV Subscription Failed',
+                              body: 'Failed to subscribe: $errorMessage',
+                            );
+                          }
                           
                           navigator.push(
                             MaterialPageRoute(

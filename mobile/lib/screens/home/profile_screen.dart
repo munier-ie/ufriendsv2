@@ -4,6 +4,9 @@ import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import 'notification_settings_screen.dart';
 import 'pin_settings_screen.dart';
+import 'change_password_screen.dart';
+import 'two_fa_screen.dart';
+import 'api_keys_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -147,7 +150,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _buildSection(
       'Account Settings',
       [
-        _settingsItem(Icons.key_rounded, 'Change Password', () {}),
+        _settingsItem(Icons.key_rounded, 'Change Password', () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()));
+        }),
         _settingsItem(Icons.dialpad_rounded, 'Transaction PIN', () {
           Navigator.push(
             context,
@@ -168,8 +173,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return _buildSection(
       'Security',
       [
-        _settingsItem(Icons.phonelink_lock_rounded, 'Two-Factor Auth (2FA)', () {}),
-        _settingsItem(Icons.code_rounded, 'Developer API Keys', () {}),
+        _settingsItem(Icons.phonelink_lock_rounded, 'Two-Factor Auth (2FA)', () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const TwoFaScreen()));
+        }),
+        _settingsItem(Icons.code_rounded, 'Developer API Keys', () {
+          Navigator.push(context, MaterialPageRoute(builder: (_) => const ApiKeysScreen()));
+        }),
       ],
     );
   }

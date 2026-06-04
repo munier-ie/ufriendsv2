@@ -5,6 +5,7 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 import 'transaction_status_screen.dart';
+import '../../main.dart';
 
 class DataPinsScreen extends StatefulWidget {
   const DataPinsScreen({super.key});
@@ -257,6 +258,12 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
       final errorMessage = result is Map ? (result['error'] ?? 'Purchase failed') : 'Purchase failed';
 
       if (isSuccess) {
+        showLocalNotification(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title: 'Data Pins Purchase Successful',
+          body: 'Your purchase of $_selectedQuantity $_selectedNetwork data pins was successful',
+        );
+
         final pinData = result is Map && result['data'] != null ? result['data']['pinContent'] : null;
         
         Navigator.push(
@@ -285,6 +292,12 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
           _nameController.clear();
         });
       } else {
+        showLocalNotification(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title: 'Data Pins Purchase Failed',
+          body: 'Failed to purchase data pins: $errorMessage',
+        );
+
         Navigator.push(
           context,
           MaterialPageRoute(

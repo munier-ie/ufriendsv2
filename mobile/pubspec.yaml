@@ -48,6 +48,10 @@ dependencies:
   fluentui_system_icons: ^1.1.273
   permission_handler: ^12.0.1
   flutter_native_contact_picker: ^0.0.8
+  image_picker: ^1.2.2
+  url_launcher: ^6.3.2
+  intl: ^0.20.2
+  font_awesome_flutter: ^11.0.0
 
 dev_dependencies:
   flutter_test:

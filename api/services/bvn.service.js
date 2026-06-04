@@ -565,16 +565,12 @@ async function processBvnVerification(userId, bvnNumber, transactionRef, userTyp
     const pdfUrl = await generateBvnPdf(report);
 
     // 4. Return success with report details
+    const { rawResponse, ...safeReport } = report;
+    safeReport.pdfUrl = pdfUrl;
     return {
       success: true,
       message: 'BVN verified successfully',
-      report: {
-        id: report.id,
-        transactionRef: report.transactionRef,
-        firstName: report.firstName,
-        lastName: report.lastName,
-        pdfUrl: pdfUrl
-      }
+      report: safeReport
     };
 
   } catch (error) {

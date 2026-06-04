@@ -7,9 +7,9 @@ const axios = require('axios');
 
 // Schema for updating verification settings
 const updateSettingsSchema = z.object({
-    apiKey: z.string().optional(),
-    appId: z.string().optional(),
-    baseUrl: z.string().url().optional(),
+    apiKey: z.string().nullable().optional(),
+    appId: z.string().nullable().optional(),
+    baseUrl: z.string().url().nullable().optional(),
     active: z.boolean().optional(),
     bvnUserPrice: z.number().nonnegative().optional(),
     bvnAgentPrice: z.number().nonnegative().optional(),

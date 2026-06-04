@@ -5,6 +5,7 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 import 'transaction_status_screen.dart';
+import '../../main.dart';
 
 class ExamPinsScreen extends StatefulWidget {
   const ExamPinsScreen({super.key});
@@ -130,6 +131,12 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
       final errorMessage = result is Map ? (result['error'] ?? 'Purchase failed') : 'Purchase failed';
 
       if (isSuccess) {
+        showLocalNotification(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title: 'Exam Pins Purchase Successful',
+          body: 'Your purchase of $_selectedQuantity ${_selectedProviderKey!.toUpperCase()} pins was successful',
+        );
+
         final pinData = result is Map && result['data'] != null ? result['data']['pinContent'] : null;
         
         Navigator.push(
@@ -156,6 +163,12 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
           _selectedQuantity = '1';
         });
       } else {
+        showLocalNotification(
+          id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          title: 'Exam Pins Purchase Failed',
+          body: 'Failed to purchase pins: $errorMessage',
+        );
+
         Navigator.push(
           context,
           MaterialPageRoute(

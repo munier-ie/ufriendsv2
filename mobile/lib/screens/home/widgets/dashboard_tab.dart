@@ -3,6 +3,18 @@ import '../../../core/app_theme.dart';
 import '../../../core/custom_widgets.dart';
 import '../airtime_screen.dart';
 import '../data_screen.dart';
+import '../exam_pins_screen.dart';
+import '../electricity_screen.dart';
+import '../cable_tv_screen.dart';
+import '../data_pins_screen.dart';
+import '../airtime_to_cash_screen.dart';
+import '../bvn_services_screen.dart';
+import '../nin_services_screen.dart';
+import '../nin_slip_screen.dart';
+import '../bvn_slip_screen.dart';
+import '../cac_registration_screen.dart';
+import '../upgrade_screen.dart';
+import '../academy_screen.dart';
 import 'spending_chart.dart';
 
 class DashboardTab extends StatefulWidget {
@@ -27,6 +39,7 @@ class _DashboardTabState extends State<DashboardTab> {
   bool _showManualServices = false;
   bool _showPrintingServices = false;
   bool _showGovtServices = false;
+  bool _showAccountLearning = false;
   int _currentPage = 0;
 
   @override
@@ -45,12 +58,24 @@ class _DashboardTabState extends State<DashboardTab> {
           onToggle: () => setState(() => _showManualServices = !_showManualServices),
           crossAxisCount: 3,
           children: [
-            _serviceItem(Icons.credit_card_rounded, 'BVN Mod', Colors.orange),
-            _serviceItem(Icons.search_rounded, 'BVN Retrieval', Colors.blue),
-            _serviceItem(Icons.swap_horiz_rounded, 'VNIN', Colors.purple),
-            _serviceItem(Icons.smartphone_rounded, 'BVN Android', Colors.green),
-            _serviceItem(Icons.badge_rounded, 'NIN Mod', Colors.teal),
-            _serviceItem(Icons.verified_rounded, 'NIN Valid', Colors.indigo),
+            _serviceItem(Icons.credit_card_rounded, 'BVN Mod', Colors.orange, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_MODIFICATION')));
+            }),
+            _serviceItem(Icons.search_rounded, 'BVN Retrieval', Colors.blue, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_RETRIEVAL')));
+            }),
+            _serviceItem(Icons.swap_horiz_rounded, 'VNIN', Colors.purple, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'VNIN_NIBSS')));
+            }),
+            _serviceItem(Icons.smartphone_rounded, 'BVN Android', Colors.green, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_ANDROID')));
+            }),
+            _serviceItem(Icons.badge_rounded, 'NIN Mod', Colors.teal, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 0)));
+            }),
+            _serviceItem(Icons.verified_rounded, 'NIN Valid', Colors.indigo, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 1)));
+            }),
           ],
         ),
         const SizedBox(height: 12),
@@ -59,8 +84,12 @@ class _DashboardTabState extends State<DashboardTab> {
           isExpanded: _showPrintingServices,
           onToggle: () => setState(() => _showPrintingServices = !_showPrintingServices),
           children: [
-            _serviceItem(Icons.print_rounded, 'Print NIN', Colors.teal),
-            _serviceItem(Icons.print_rounded, 'Print BVN', Colors.indigo),
+            _serviceItem(Icons.print_rounded, 'Print NIN', Colors.teal, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinSlipScreen()));
+            }),
+            _serviceItem(Icons.print_rounded, 'Print BVN', Colors.indigo, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
+            }),
           ],
         ),
         const SizedBox(height: 12),
@@ -69,7 +98,23 @@ class _DashboardTabState extends State<DashboardTab> {
           isExpanded: _showGovtServices,
           onToggle: () => setState(() => _showGovtServices = !_showGovtServices),
           children: [
-            _serviceItem(Icons.business_rounded, 'CAC Reg', Colors.red),
+            _serviceItem(Icons.business_rounded, 'CAC Reg', Colors.red, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CacRegistrationScreen()));
+            }),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _buildExpandableSection(
+          title: 'Account & Learning',
+          isExpanded: _showAccountLearning,
+          onToggle: () => setState(() => _showAccountLearning = !_showAccountLearning),
+          children: [
+            _serviceItem(Icons.school_rounded, 'Academy', Colors.deepOrange, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const AcademyScreen()));
+            }),
+            _serviceItem(Icons.workspace_premium_rounded, 'Upgrade', Colors.amber, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const UpgradeScreen()));
+            }),
           ],
         ),
         const SizedBox(height: 16),
@@ -184,11 +229,21 @@ class _DashboardTabState extends State<DashboardTab> {
       _serviceItem(Icons.swap_vert_rounded, 'Data', Colors.blue, onTap: () {
         Navigator.push(context, MaterialPageRoute(builder: (_) => const DataScreen()));
       }),
-      _serviceItem(Icons.school_rounded, 'Exam Pin', Colors.teal),
-      _serviceItem(Icons.bolt_rounded, 'Electricity', Colors.orange),
-      _serviceItem(Icons.tv_rounded, 'Cable TV', Colors.purple),
-      _serviceItem(Icons.style_rounded, 'Data Pin', Colors.indigo),
-      _serviceItem(Icons.swap_horiz_rounded, 'Air Swap', Colors.pink),
+      _serviceItem(Icons.school_rounded, 'Exam Pin', Colors.teal, onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamPinsScreen()));
+      }),
+      _serviceItem(Icons.bolt_rounded, 'Electricity', Colors.orange, onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const ElectricityScreen()));
+      }),
+      _serviceItem(Icons.tv_rounded, 'Cable TV', Colors.purple, onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const CableTvScreen()));
+      }),
+      _serviceItem(Icons.style_rounded, 'Data Pin', Colors.indigo, onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const DataPinsScreen()));
+      }),
+      _serviceItem(Icons.swap_horiz_rounded, 'Air Swap', Colors.pink, onTap: () {
+        Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
+      }),
       _serviceItem(Icons.account_balance_rounded, 'Transfer', Colors.cyan),
     ];
 

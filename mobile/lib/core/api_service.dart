@@ -837,4 +837,461 @@ class ApiService {
       return {'success': false, 'error': 'Network error'};
     }
   }
+  static Future<Map<String, dynamic>> fetchCacPricing() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/professional/cac-pricing'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch CAC pricing'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchCacHistory() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/professional/cac-history'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data['registrations']};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch CAC history'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> submitCacRegistration({
+    required Map<String, String> fields,
+    required String pin,
+    required String directorIdCardPath,
+    required String passportPhotoPath,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${AppConstants.baseUrl}/professional/cac-register'),
+      );
+      
+      request.headers['Authorization'] = 'Bearer $token';
+      
+      // Add text fields
+      fields.forEach((key, value) {
+        request.fields[key] = value;
+      });
+      request.fields['pin'] = pin;
+      
+      // Add files
+      request.files.add(await http.MultipartFile.fromPath('directorIdCard', directorIdCardPath));
+      request.files.add(await http.MultipartFile.fromPath('passportPhoto', passportPhotoPath));
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Registration failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Manual Services (NIN/BVN Professional Services) ──
+
+  static Future<Map<String, dynamic>> fetchManualServicePricing() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/manual-services/pricing'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch pricing'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchManualServiceHistory() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/manual-services/history'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data['requests'] ?? []};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch history'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> submitManualService({
+    required String serviceType,
+    String? subType,
+    required Map<String, dynamic> details,
+    required String pin,
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/manual-services/submit'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'serviceType': serviceType,
+          'subType': subType,
+          'details': details,
+          'pin': pin,
+        }),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message'] ?? 'Request submitted', 'bvn': data['bvn']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Submission failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> uploadIdDocument(String filePath) async {
+    try {
+      final token = await AuthService.getToken();
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${AppConstants.baseUrl}/manual-services/upload-id'),
+      );
+      request.headers['Authorization'] = 'Bearer $token';
+      request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'filePath': data['filePath']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Upload failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Academy ──
+
+  static Future<Map<String, dynamic>> fetchAcademyContent() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/academy'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to load academy content'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> fetchAcademyItem(String id) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/academy/$id'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to load content details'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> purchaseAcademyContent(String id, String pin) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/academy/$id/purchase'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'transactionPin': pin}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Account Upgrade ──
+
+  static Future<Map<String, dynamic>> fetchUpgradePlans() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/user/upgrade-plans'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch upgrade plans'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> upgradeAccount(int targetType) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/user/upgrade'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'targetType': targetType}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Upgrade failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Support ──
+
+  static Future<Map<String, dynamic>> getSupportMessages() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/user/support'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'messages': data['messages'] ?? []};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch messages'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> createSupportMessage({required String subject, required String message}) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/user/support'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'subject': subject, 'message': message}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) return {'success': true, 'data': data['data']};
+      return {'success': false, 'error': data['error'] ?? 'Failed to send message'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Pricing ──
+
+  static Future<Map<String, dynamic>> getPricingServices() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/services/all'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'services': data['services'] ?? []};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch services'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Referrals ──
+
+  static Future<Map<String, dynamic>> getReferralStats() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/referrals/stats'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch stats'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> withdrawReferralCommission([String? amount]) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/referrals/withdraw'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(amount != null && amount.isNotEmpty ? {'amount': amount} : {}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Withdrawal failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Profile Settings ──
+
+  static Future<Map<String, dynamic>> updatePassword(String currentPassword, String newPassword) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.put(
+        Uri.parse('${AppConstants.baseUrl}/auth/update-password'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        body: jsonEncode({'currentPassword': currentPassword, 'newPassword': newPassword}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Password update failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── 2FA ──
+
+  static Future<Map<String, dynamic>> setupTwoFa() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/twofa/setup'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'Failed to setup 2FA'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> setupTwoFaEmail() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/twofa/setup-email'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Failed to setup email 2FA'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> enableTwoFa({required String code, required String method, String? tempToken}) async {
+    try {
+      final token = await AuthService.getToken();
+      final body = {'code': code, 'method': method};
+      if (tempToken != null) {
+        body['tempToken'] = tempToken;
+      }
+      
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/twofa/enable'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        body: jsonEncode(body),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Failed to enable 2FA'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> disableTwoFa(String code) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/twofa/disable'),
+        headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $token'},
+        body: jsonEncode({'code': code}),
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      return {'success': false, 'error': data['error'] ?? 'Failed to disable 2FA'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  // ── Developer API Keys ──
+
+  static Future<Map<String, dynamic>> generateApiKey() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/generate-api-key'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'apiKey': data['apiKey']};
+      return {'success': false, 'error': data['error'] ?? 'Failed to generate API Key'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
 }

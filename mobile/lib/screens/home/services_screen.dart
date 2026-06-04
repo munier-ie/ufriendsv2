@@ -11,6 +11,9 @@ import 'data_pins_screen.dart';
 import 'exam_pins_screen.dart';
 import 'nin_slip_screen.dart';
 import 'bvn_slip_screen.dart';
+import 'cac_registration_screen.dart';
+import 'nin_services_screen.dart';
+import 'bvn_services_screen.dart';
 
 
 
@@ -94,6 +97,27 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'icon': Icons.account_balance_rounded,
       'color': const Color(0xFF004687),
       'desc': 'Verify BVN & generate premium verification slip.'
+    },
+    {
+      'id': 'cac',
+      'name': 'CAC Reg.',
+      'icon': Icons.business_center_rounded,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'Register your business or company with CAC.'
+    },
+    {
+      'id': 'nin_services',
+      'name': 'NIN Services',
+      'icon': Icons.edit_document,
+      'color': const Color(0xFF004687),
+      'desc': 'NIN modification, validation & more.'
+    },
+    {
+      'id': 'bvn_services',
+      'name': 'BVN Services',
+      'icon': Icons.manage_accounts_rounded,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'BVN modification, retrieval & more.'
     },
   ];
 
@@ -225,6 +249,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const NinSlipScreen()));
             } else if (cat['id'] == 'bvn_slip') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
+            } else if (cat['id'] == 'cac') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const CacRegistrationScreen()));
+            } else if (cat['id'] == 'nin_services') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen()));
+            } else if (cat['id'] == 'bvn_services') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen()));
             } else {
               AppToast.show(context, message: 'Coming soon: ${cat['name']}', type: ToastType.warning);
             }

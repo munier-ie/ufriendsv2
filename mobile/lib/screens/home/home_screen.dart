@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../../core/app_theme.dart';
 import '../../core/skeleton_loader.dart';
@@ -201,6 +203,20 @@ class _HomeScreenState extends State<HomeScreen> {
         bottomNavigationBar: FloatingNavBar(
           currentIndex: _currentIndex,
           onTabSelected: _onTabSelected,
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            final whatsappUrl = Uri.parse('https://wa.me/2347026417709?text=${Uri.encodeComponent('Hi Ufriends IT, I need support.')}');
+            if (await canLaunchUrl(whatsappUrl)) {
+              await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
+            } else {
+              if (mounted) {
+                AppToast.show(context, message: 'Could not launch WhatsApp', type: ToastType.error);
+              }
+            }
+          },
+          backgroundColor: Colors.green.shade600,
+          child: const FaIcon(FontAwesomeIcons.whatsapp, color: Colors.white, size: 28),
         ),
         extendBody: true, // Important for the floating navbar effect
       ),

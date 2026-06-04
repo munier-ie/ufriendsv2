@@ -1024,17 +1024,12 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
     const pdfUrl = await generateNinPdf(report, slipType);
 
     // 5. Return success with report details
+    const { rawResponse, ...safeReport } = report;
+    safeReport.pdfUrl = pdfUrl;
     return {
       success: true,
       message: 'NIN verified successfully',
-      report: {
-        id: report.id,
-        transactionRef: report.transactionRef,
-        firstName: report.firstName,
-        surname: report.surname,
-        slipType: report.slipType,
-        pdfUrl: pdfUrl
-      }
+      report: safeReport
     };
 
   } catch (error) {

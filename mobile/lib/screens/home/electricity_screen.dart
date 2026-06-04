@@ -5,6 +5,7 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 import 'transaction_status_screen.dart';
+import '../../main.dart';
 
 class ElectricityScreen extends StatefulWidget {
   const ElectricityScreen({super.key});
@@ -244,6 +245,20 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                           
                           final bool isSuccess = result is Map ? result['success'] == true : (result == true);
                           final String errorMessage = result is Map ? (result['error'] ?? 'Transaction failed') : 'Transaction failed';
+                          
+                          if (isSuccess) {
+                            showLocalNotification(
+                              id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                              title: 'Electricity Purchase Successful',
+                              body: 'Your ${_selectedProvider!.toUpperCase()} electricity token of ₦${formatCurrency(amount)} was successful',
+                            );
+                          } else {
+                            showLocalNotification(
+                              id: DateTime.now().millisecondsSinceEpoch ~/ 1000,
+                              title: 'Electricity Purchase Failed',
+                              body: 'Failed to purchase electricity: $errorMessage',
+                            );
+                          }
                           
                           navigator.push(
                             MaterialPageRoute(
