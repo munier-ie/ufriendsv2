@@ -5,6 +5,7 @@ import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'upgrade_screen.dart';
+import 'pin_screen.dart';
 
 class ApiKeysScreen extends StatefulWidget {
   const ApiKeysScreen({super.key});
@@ -39,15 +40,28 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   }
 
   Future<void> _generateKey() async {
-    setState(() => _generating = true);
-    final result = await ApiService.generateApiKey();
-    if (mounted) {
-      setState(() => _generating = false);
-      if (result['success']) {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PinScreen(
+          onVerify: (pin) async {
+            return await ApiService.generateApiKey(pin);
+          },
+        ),
+      ),
+    );
+
+    if (result != null) {
+      if (!mounted) return;
+      
+      final bool isSuccess = result is Map ? result['success'] == true : (result == true);
+      final String errorMessage = result is Map ? (result['error'] ?? 'Failed to generate API Key') : 'Failed to generate API Key';
+
+      if (isSuccess) {
         AppToast.show(context, message: 'API Key generated successfully!', type: ToastType.success);
         _fetchProfile(); // refresh to get new key
       } else {
-        AppToast.show(context, message: result['error'] ?? 'Failed to generate API Key', type: ToastType.error);
+        AppToast.show(context, message: errorMessage, type: ToastType.error);
       }
     }
   }

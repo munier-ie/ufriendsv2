@@ -3,8 +3,9 @@ import '../../core/app_theme.dart';
 import '../../core/skeleton_loader.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'slip_preview_screen.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
@@ -129,8 +130,29 @@ class _ActivityScreenState extends State<ActivityScreen> {
                       child: GradientButton(
                         text: 'Download',
                         icon: Icons.download_rounded,
-                        onPressed: () {
-                          AppToast.show(context, message: 'Downloading slip...', type: ToastType.success);
+                        onPressed: () async {
+                          AppToast.show(context, message: 'Fetching slip details...', type: ToastType.success);
+                          final res = await ApiService.getTransaction(tx['reference']);
+                          if (res['success'] == true) {
+                            final fullTx = res['transaction'];
+                            if (fullTx['report'] != null && mounted) {
+                              Navigator.pop(context); // close details modal
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => SlipPreviewScreen(
+                                    report: fullTx['report'],
+                                    slipType: fullTx['slipType'] ?? 'bvn',
+                                    selectedSlipVariant: fullTx['slipVariant'] ?? 'regular',
+                                  ),
+                                ),
+                              );
+                            } else if (mounted) {
+                              AppToast.show(context, message: 'Slip not found', type: ToastType.error);
+                            }
+                          } else if (mounted) {
+                            AppToast.show(context, message: res['error'] ?? 'Failed to fetch slip', type: ToastType.error);
+                          }
                         },
                       ),
                     )
@@ -371,6 +393,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     _buildFilterChip('Airtime', 'airtime'),
                     const SizedBox(width: 8),
                     _buildFilterChip('Data', 'data'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Cable', 'cable'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Electricity', 'electricity'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Cards', 'recharge_card'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('A2C', 'airtime2cash'),
                     const SizedBox(width: 8),
                     _buildFilterChip('Printing', 'professional_slip'),
                     const SizedBox(width: 8),

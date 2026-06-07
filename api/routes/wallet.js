@@ -362,24 +362,33 @@ router.get('/transactions/:reference', authenticateUser, async (req, res) => {
 
         // Add slipUrl if it's a professional transaction
         let slipUrl = null;
+        let report = null;
+        let slipType = null;
+        let slipVariant = null;
         if (transaction.type === 'professional') {
             const ninReport = await prisma.ninReport.findUnique({
-                where: { transactionRef: transaction.reference },
-                select: { pdfUrl: true }
+                where: { transactionRef: transaction.reference }
             });
-            if (ninReport?.pdfUrl) {
+            if (ninReport) {
                 slipUrl = ninReport.pdfUrl;
+                report = ninReport;
+                slipType = 'nin';
+                slipVariant = ninReport.slipType;
             } else {
                 const bvnReport = await prisma.bvnReport.findUnique({
-                    where: { transactionRef: transaction.reference },
-                    select: { pdfUrl: true }
+                    where: { transactionRef: transaction.reference }
                 });
-                if (bvnReport?.pdfUrl) slipUrl = bvnReport.pdfUrl;
+                if (bvnReport) {
+                    slipUrl = bvnReport.pdfUrl;
+                    report = bvnReport;
+                    slipType = 'bvn';
+                    slipVariant = bvnReport.slipType;
+                }
             }
         }
 
         res.json({
-            transaction: { ...transaction, slipUrl }
+            transaction: { ...transaction, slipUrl, report, slipType, slipVariant }
         });
     } catch (error) {
         console.error(error);

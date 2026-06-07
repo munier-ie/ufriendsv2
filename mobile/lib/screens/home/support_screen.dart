@@ -4,6 +4,7 @@ import '../../core/app_theme.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
 import 'package:intl/intl.dart';
+import 'ai_chat_screen.dart';
 
 class SupportScreen extends StatefulWidget {
   const SupportScreen({super.key});
@@ -157,12 +158,12 @@ class _SupportScreenState extends State<SupportScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -225,7 +226,7 @@ class _SupportScreenState extends State<SupportScreen> {
                                 color: Colors.white,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
-                                  BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 2)),
+                                  BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 2)),
                                 ],
                               ),
                               child: Column(
@@ -311,11 +312,26 @@ class _SupportScreenState extends State<SupportScreen> {
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _showNewRequestDialog,
-        backgroundColor: AppTheme.primaryColor,
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('New Request', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'ai_chat',
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
+            backgroundColor: Colors.indigo,
+            icon: const Icon(Icons.auto_awesome, color: Colors.white),
+            label: const Text('AI Consultant', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton.extended(
+            heroTag: 'human_support',
+            onPressed: _showNewRequestDialog,
+            backgroundColor: AppTheme.primaryColor,
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text('New Request', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

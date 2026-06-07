@@ -1,4 +1,5 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'api_service.dart';
 
 class AuthService {
   static const String _tokenKey = 'auth_token';
@@ -19,6 +20,7 @@ class AuthService {
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    ApiService.clearCache();
   }
 
   static Future<bool> isLoggedIn() async {

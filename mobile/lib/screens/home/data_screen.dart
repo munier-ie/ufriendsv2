@@ -48,11 +48,28 @@ class _DataScreenState extends State<DataScreen> {
   bool _isLoadingPlans = false;
   Map<String, dynamic>? _selectedDataPlan;
 
+  List<dynamic> _beneficiaries = [];
+  bool _isLoadingBeneficiaries = false;
+
   @override
   void initState() {
     super.initState();
     _phoneController.addListener(_autoSelectNetwork);
     _fetchPlans();
+    _loadBeneficiaries();
+  }
+
+  Future<void> _loadBeneficiaries() async {
+    setState(() => _isLoadingBeneficiaries = true);
+    final res = await ApiService.getBeneficiaries();
+    if (res['success'] == true && mounted) {
+      setState(() {
+        _beneficiaries = res['beneficiaries']['beneficiaries'] ?? res['beneficiaries'];
+        _isLoadingBeneficiaries = false;
+      });
+    } else if (mounted) {
+      setState(() => _isLoadingBeneficiaries = false);
+    }
   }
 
   Future<void> _fetchPlans() async {
@@ -568,8 +585,38 @@ class _DataScreenState extends State<DataScreen> {
                 },
                 decoration: const InputDecoration(
                   hintText: 'Enter phone number',
+                  prefixIcon: Icon(Icons.phone_android_rounded),
                 ),
               ),
+              if (_isLoadingBeneficiaries)
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+                )
+              else if (_beneficiaries.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 40,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _beneficiaries.length,
+                    itemBuilder: (context, index) {
+                      final b = _beneficiaries[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8.0),
+                        child: ActionChip(
+                          avatar: const Icon(Icons.person, size: 16),
+                          label: Text('${b['name']}'),
+                          onPressed: () {
+                            _phoneController.text = b['phone'];
+                            _autoSelectNetwork();
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
               const SizedBox(height: 24),
               
               const Text(

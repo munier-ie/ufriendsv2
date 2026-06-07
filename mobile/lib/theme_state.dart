@@ -33,6 +33,20 @@ class ThemeState extends ChangeNotifier {
     'Outfit',
   ];
 
+  bool isDarkMode = false;
+
+  void toggleTheme() {
+    isDarkMode = !isDarkMode;
+    if (isDarkMode) {
+      backgroundColor = const Color(0xFF121212);
+      surfaceColor = const Color(0xFF1E1E1E);
+    } else {
+      backgroundColor = const Color(0xFFF3F4F6);
+      surfaceColor = const Color(0xFFFFFFFF);
+    }
+    notifyListeners();
+  }
+
   void updatePrimaryColor(Color color) {
     primaryColor = color;
     notifyListeners();
@@ -89,31 +103,34 @@ class ThemeState extends ChangeNotifier {
   }
 
   ThemeData get themeData {
+    final textColor = isDarkMode ? Colors.white : Colors.black87;
     final textTheme = GoogleFonts.getTextTheme(fontFamily).copyWith(
-      bodyLarge: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize + 2),
-      bodyMedium: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize),
-      titleLarge: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize + 8, fontWeight: FontWeight.bold),
-      titleMedium: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize + 4, fontWeight: FontWeight.bold),
+      bodyLarge: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize + 2, color: textColor),
+      bodyMedium: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize, color: textColor),
+      titleLarge: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize + 8, fontWeight: FontWeight.bold, color: textColor),
+      titleMedium: GoogleFonts.getFont(fontFamily, fontSize: baseFontSize + 4, fontWeight: FontWeight.bold, color: textColor),
     );
 
     return ThemeData(
       useMaterial3: true,
+      brightness: isDarkMode ? Brightness.dark : Brightness.light,
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
+        brightness: isDarkMode ? Brightness.dark : Brightness.light,
         primary: primaryColor,
         secondary: secondaryColor,
         error: errorColor,
         surface: surfaceColor,
-        onSurface: Colors.black87,
+        onSurface: textColor,
       ),
       textTheme: textTheme,
       scaffoldBackgroundColor: backgroundColor,
       cardTheme: CardThemeData(
         color: surfaceColor,
-        elevation: 0, // Minimalist: low elevation, use borders or subtle shadows
+        elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(borderRadius),
-          side: BorderSide(color: Colors.grey.shade200, width: 1),
+          side: BorderSide(color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200, width: 1),
         ),
         margin: EdgeInsets.all(8.0 * spacingMultiplier),
       ),

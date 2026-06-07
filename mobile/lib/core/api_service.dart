@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'http_client.dart' as http;
 import 'constants.dart';
 import 'auth_service.dart';
 import '../main.dart';
@@ -262,6 +262,51 @@ class ApiService {
         return {'success': true, 'transactions': data['transactions']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch transactions'};
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getTransaction(String reference) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/wallet/transactions/$reference'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'transaction': data['transaction']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch transaction'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getBeneficiaries() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/beneficiaries'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return {'success': true, 'beneficiaries': data};
+      }
+      return {'success': false, 'error': 'Failed to fetch beneficiaries'};
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
     }
@@ -315,6 +360,11 @@ class ApiService {
 
   static final Map<String, dynamic> _cache = {};
   static final Map<String, DateTime> _cacheTime = {};
+
+  static void clearCache() {
+    _cache.clear();
+    _cacheTime.clear();
+  }
 
   static Future<Map<String, dynamic>> getServices(String type) async {
     final cacheKey = 'services_$type';
@@ -721,6 +771,34 @@ class ApiService {
       return {'success': false, 'error': 'Network error occurred'};
     }
   }
+
+  static Future<Map<String, dynamic>> sendAiConsult(String message, List<Map<String, String>> history) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/ai-chat/consult'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'message': message,
+          'history': history,
+        }),
+      );
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired'};
+      }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'reply': data['reply']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to reach AI'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
   static Future<Map<String, dynamic>> getPinsServices() async {
     try {
       final token = await AuthService.getToken();
@@ -1317,12 +1395,16 @@ class ApiService {
 
   // ── Developer API Keys ──
 
-  static Future<Map<String, dynamic>> generateApiKey() async {
+  static Future<Map<String, dynamic>> generateApiKey(String pin) async {
     try {
       final token = await AuthService.getToken();
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}/auth/generate-api-key'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token'
+        },
+        body: jsonEncode({'pin': pin})
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);

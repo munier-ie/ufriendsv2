@@ -166,13 +166,41 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const Spacer(),
                         Builder(
-                          builder: (context) => IconButton(
-                            onPressed: () {
-                              _fetchNotifications();
-                              _showNotificationsBottomSheet(context);
-                            },
-                            icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.secondaryColor),
-                          ),
+                          builder: (context) {
+                            int unreadCount = _notifications.where((n) => n['isRead'] != true).length;
+                            return Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                IconButton(
+                                  onPressed: () {
+                                    _fetchNotifications();
+                                    _showNotificationsBottomSheet(context);
+                                  },
+                                  icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.secondaryColor),
+                                ),
+                                if (unreadCount > 0)
+                                  Positioned(
+                                    right: 8,
+                                    top: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Text(
+                                        unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(width: 8),
                       ],

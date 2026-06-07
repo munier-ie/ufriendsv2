@@ -5,6 +5,7 @@ import '../../core/app_theme.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
 import 'package:intl/intl.dart';
+import 'pin_screen.dart';
 
 class ReferralsScreen extends StatefulWidget {
   const ReferralsScreen({super.key});
@@ -53,17 +54,30 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
       return;
     }
 
-    setState(() => _withdrawing = true);
-    final result = await ApiService.withdrawReferralCommission(_amountController.text);
-    if (!mounted) return;
-    setState(() => _withdrawing = false);
-    
-    if (result['success']) {
-      AppToast.show(context, message: result['message'] ?? 'Withdrawal successful', type: ToastType.success);
-      _amountController.clear();
-      _fetchStats();
-    } else {
-      AppToast.show(context, message: result['error'] ?? 'Withdrawal failed', type: ToastType.error);
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PinScreen(
+          onVerify: (pin) async {
+            return await ApiService.withdrawReferralCommission(pin, _amountController.text);
+          },
+        ),
+      ),
+    );
+
+    if (result != null) {
+      if (!mounted) return;
+      
+      final bool isSuccess = result is Map ? result['success'] == true : (result == true);
+      final String errorMessage = result is Map ? (result['error'] ?? 'Withdrawal failed') : 'Withdrawal failed';
+
+      if (isSuccess) {
+        AppToast.show(context, message: 'Withdrawal successful', type: ToastType.success);
+        _amountController.clear();
+        _fetchStats();
+      } else {
+        AppToast.show(context, message: errorMessage, type: ToastType.error);
+      }
     }
   }
 
@@ -87,12 +101,12 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -146,7 +160,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(color: Colors.grey.shade100),
                                     boxShadow: [
-                                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                                      BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
                                     ],
                                   ),
                                   child: Column(
@@ -174,7 +188,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                     borderRadius: BorderRadius.circular(20),
                                     border: Border.all(color: Colors.grey.shade100),
                                     boxShadow: [
-                                      BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+                                      BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
                                     ],
                                   ),
                                   child: Column(
@@ -206,7 +220,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(color: Colors.grey.shade100),
                               boxShadow: [
-                                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 4))
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))
                               ],
                             ),
                             child: Column(
@@ -276,7 +290,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                               borderRadius: BorderRadius.circular(24),
                               border: Border.all(color: Colors.grey.shade100),
                               boxShadow: [
-                                BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 15, offset: const Offset(0, 4))
+                                BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))
                               ],
                             ),
                             child: Column(
@@ -398,7 +412,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
           Container(
             width: 20,
             height: 20,
-            decoration: BoxDecoration(color: AppTheme.primaryColor.withOpacity(0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: AppTheme.primaryColor.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Center(child: Text(num, style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold, fontSize: 10))),
           ),
           const SizedBox(width: 8),

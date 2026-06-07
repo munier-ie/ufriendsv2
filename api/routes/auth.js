@@ -913,6 +913,15 @@ router.post('/generate-api-key', authenticateUser, async (req, res) => {
             return res.status(403).json({ error: 'Only vendors can generate API keys.' });
         }
 
+        const { pin } = req.body;
+        if (!pin) return res.status(400).json({ error: 'Transaction PIN required' });
+
+        const bcrypt = require('bcrypt');
+        const validPin = await bcrypt.compare(pin, user.transactionPin);
+        if (!validPin) {
+            return res.status(400).json({ error: 'Incorrect PIN' });
+        }
+
         const crypto = require('crypto');
         const newApiKey = crypto.randomBytes(32).toString('hex');
 

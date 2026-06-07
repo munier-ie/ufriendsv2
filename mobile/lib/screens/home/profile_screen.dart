@@ -6,6 +6,8 @@ import 'notification_settings_screen.dart';
 import 'pin_settings_screen.dart';
 import 'change_password_screen.dart';
 import 'two_fa_screen.dart';
+import 'package:provider/provider.dart';
+import '../../theme_state.dart';
 import 'api_keys_screen.dart';
 import 'kyc_screen.dart';
 
@@ -178,6 +180,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
             MaterialPageRoute(builder: (context) => const NotificationSettingsScreen()),
           );
         }),
+        Consumer<ThemeState>(
+          builder: (context, themeState, _) {
+            return _settingsItem(
+              themeState.isDarkMode ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+              'Dark Mode',
+              () => themeState.toggleTheme(),
+              trailing: Switch(
+                value: themeState.isDarkMode,
+                onChanged: (val) => themeState.toggleTheme(),
+                activeColor: AppTheme.secondaryColor,
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -234,11 +250,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _settingsItem(IconData icon, String label, VoidCallback onTap) {
+  Widget _settingsItem(IconData icon, String label, VoidCallback onTap, {Widget? trailing}) {
     return ListTile(
       leading: Icon(icon, size: 20, color: const Color(0xFF1E90FF)),
       title: Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-      trailing: const Icon(Icons.chevron_right_rounded, size: 20),
+      trailing: trailing ?? const Icon(Icons.chevron_right_rounded, size: 20),
       onTap: onTap,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );

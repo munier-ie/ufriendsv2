@@ -4,6 +4,8 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'core/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
+import 'package:provider/provider.dart';
+import 'theme_state.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -59,7 +61,12 @@ void main() async {
     },
   );
 
-  runApp(const UfriendsApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeState(),
+      child: const UfriendsApp(),
+    ),
+  );
 }
 
 class UfriendsApp extends StatelessWidget {
@@ -67,12 +74,16 @@ class UfriendsApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Ufriends',
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.themeData,
-      home: const SplashScreen(),
+    return Consumer<ThemeState>(
+      builder: (context, themeState, child) {
+        return MaterialApp(
+          title: 'Ufriends',
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          theme: themeState.themeData,
+          home: const SplashScreen(),
+        );
+      },
     );
   }
 }

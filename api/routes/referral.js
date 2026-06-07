@@ -60,6 +60,15 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
 
         if (!user) return res.status(404).json({ error: 'User not found' });
 
+        const { pin } = req.body;
+        if (!pin) return res.status(400).json({ error: 'Transaction PIN required' });
+
+        const bcrypt = require('bcrypt');
+        const validPin = await bcrypt.compare(pin, user.transactionPin);
+        if (!validPin) {
+            return res.status(400).json({ error: 'Incorrect PIN' });
+        }
+
         if (user.refWallet <= 0) {
             return res.status(400).json({ error: 'Insufficient referral balance' });
         }
