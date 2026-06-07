@@ -455,8 +455,25 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
   const surname = (reportData.surname || '').toUpperCase();
   const firstname = (reportData.firstName || '').toUpperCase();
   const middlename = (reportData.middleName || '').toUpperCase();
-  const dobDate = reportData.dateOfBirth ? new Date(reportData.dateOfBirth) : null;
-  const dob = dobDate && !isNaN(dobDate) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
+  let dobDate = null;
+  if (reportData.dateOfBirth) {
+    const raw = reportData.dateOfBirth;
+    const parts = raw.split(/[-/]/);
+    if (parts.length === 3) {
+      if (parts[2].length === 4) {
+        // DD-MM-YYYY format (Prembly API format)
+        dobDate = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      } else if (parts[0].length === 4) {
+        // YYYY-MM-DD format
+        dobDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      } else {
+        dobDate = new Date(raw);
+      }
+    } else {
+      dobDate = new Date(raw);
+    }
+  }
+  const dob = dobDate && !isNaN(dobDate.getTime()) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -577,8 +594,25 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
   const surname = (reportData.surname || '').toUpperCase();
   const firstname = (reportData.firstName || '').toUpperCase();
   const middlename = (reportData.middleName || '').toUpperCase();
-  const dobDate = reportData.dateOfBirth ? new Date(reportData.dateOfBirth) : null;
-  const dob = dobDate && !isNaN(dobDate) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
+  let dobDate = null;
+  if (reportData.dateOfBirth) {
+    const raw = reportData.dateOfBirth;
+    const parts = raw.split(/[-/]/);
+    if (parts.length === 3) {
+      if (parts[2].length === 4) {
+        // DD-MM-YYYY format (Prembly API format)
+        dobDate = new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]));
+      } else if (parts[0].length === 4) {
+        // YYYY-MM-DD format
+        dobDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      } else {
+        dobDate = new Date(raw);
+      }
+    } else {
+      dobDate = new Date(raw);
+    }
+  }
+  const dob = dobDate && !isNaN(dobDate.getTime()) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
   const gender = (reportData.gender || '').toUpperCase();
   const issueD = reportData.createdAt ? new Date(reportData.createdAt) : new Date();
   const issueDate = `${String(issueD.getDate()).padStart(2, '0')}  ${issueD.toLocaleString('en-GB', { month: 'short' })} ${issueD.getFullYear()}`.toUpperCase();

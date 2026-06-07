@@ -20,6 +20,7 @@ class ActivityScreen extends StatefulWidget {
 
 class _ActivityScreenState extends State<ActivityScreen> {
   List<dynamic> _transactions = [];
+  List<dynamic> _filteredTransactions = [];
   bool _isLoading = true;
   String? _selectedType;
 
@@ -32,9 +33,32 @@ class _ActivityScreenState extends State<ActivityScreen> {
   Future<void> _fetchTransactions() async {
     setState(() => _isLoading = true);
     try {
-      final res = await ApiService.getTransactions(limit: 50, type: _selectedType);
+      // For slip/manual pseudo-filters, fetch all 'professional' from the API
+      final apiType = (_selectedType == 'professional_slip' || _selectedType == 'professional_manual')
+          ? 'professional'
+          : _selectedType;
+
+      final res = await ApiService.getTransactions(limit: 50, type: apiType);
       if (res['success']) {
-        setState(() => _transactions = res['transactions'] ?? []);
+        final all = res['transactions'] ?? [];
+        List<dynamic> filtered = all;
+
+        if (_selectedType == 'professional_slip') {
+          filtered = all.where((tx) {
+            final name = (tx['serviceName'] ?? '').toString().toUpperCase();
+            return name.contains('SLIP');
+          }).toList();
+        } else if (_selectedType == 'professional_manual') {
+          filtered = all.where((tx) {
+            final name = (tx['serviceName'] ?? '').toString().toUpperCase();
+            return !name.contains('SLIP');
+          }).toList();
+        }
+
+        setState(() {
+          _transactions = all;
+          _filteredTransactions = filtered;
+        });
       }
     } catch (e) {
       debugPrint('Error fetching transactions: $e');
@@ -337,19 +361,22 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
             ),
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Expanded(child: _buildFilterChip('All', null)),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildFilterChip('Airtime', 'airtime')),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildFilterChip('Data', 'data')),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildFilterChip('Manual', 'professional')),
-                    const SizedBox(width: 4),
-                    Expanded(child: _buildFilterChip('E-Pins', 'pin')),
+                    _buildFilterChip('All', null),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Airtime', 'airtime'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Data', 'data'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Printing', 'professional_slip'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('Manual', 'professional_manual'),
+                    const SizedBox(width: 8),
+                    _buildFilterChip('E-Pins', 'pin'),
                   ],
                 ),
               ),
@@ -376,10 +403,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final tx = _transactions[index];
+                    final tx = _filteredTransactions[index];
                     return _buildTransactionItem(tx);
                   },
-                  childCount: _transactions.length,
+                  childCount: _filteredTransactions.length,
                 ),
               ),
             const SliverToBoxAdapter(child: SizedBox(height: 100)),

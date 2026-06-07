@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
+import 'package:pinput/pinput.dart';
 
 class TwoFaScreen extends StatefulWidget {
   const TwoFaScreen({super.key});
@@ -127,83 +128,90 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            // Custom Header
-            Container(
-              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
-                boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 4)),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
-                        onPressed: () {
-                          if (_setupData != null && !_twoFaEnabled) {
-                            setState(() => _setupData = null); // Go back to choice
-                          } else {
-                            Navigator.pop(context);
-                          }
-                        },
-                      ),
-                      const Spacer(),
-                      const Text(
-                        'Two-Factor Auth',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const Spacer(),
-                      const SizedBox(width: 48),
-                    ],
+            if (_setupData == null)
+              Container(
+                margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                height: 56,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 4)),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                        const Spacer(),
+                        const Text(
+                          'Two-Factor Auth',
+                          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        ),
+                        const Spacer(),
+                        const SizedBox(width: 48),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF003B73), size: 24),
+                    onPressed: () {
+                      setState(() => _setupData = null); // Go back to choice
+                    },
                   ),
                 ),
               ),
-            ),
             
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            _twoFaEnabled ? Icons.security : Icons.shield_outlined,
-                            size: 80,
-                            color: _twoFaEnabled ? Colors.green : Colors.grey,
+                      child: _setupData != null 
+                        ? _buildSetupSection()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Icon(
+                                _twoFaEnabled ? Icons.security : Icons.shield_outlined,
+                                size: 80,
+                                color: _twoFaEnabled ? Colors.green : Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                _twoFaEnabled ? '2FA is Enabled' : '2FA is Disabled',
+                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                _twoFaEnabled 
+                                    ? 'Your account is currently protected with two-factor authentication.' 
+                                    : 'Enable two-factor authentication to add an extra layer of security to your account.',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 32),
+                              
+                              if (_twoFaEnabled)
+                                _buildDisableSection()
+                              else
+                                _buildChoiceSection(),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            _twoFaEnabled ? '2FA is Enabled' : '2FA is Disabled',
-                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            _twoFaEnabled 
-                                ? 'Your account is currently protected with two-factor authentication.' 
-                                : 'Enable two-factor authentication to add an extra layer of security to your account.',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.grey),
-                          ),
-                          const SizedBox(height: 32),
-                          
-                          if (_twoFaEnabled)
-                            _buildDisableSection()
-                          else if (_setupData != null)
-                            _buildSetupSection()
-                          else
-                            _buildChoiceSection(),
-                        ],
-                      ),
                     ),
             ),
           ],
@@ -290,35 +298,50 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
     final isEmail = _setupData!['method'] == 'email';
     final qrCodeDataUrl = _setupData!['qrCode'];
     
-    return Container(
-      padding: const EdgeInsets.all(24),
+    final defaultPinTheme = PinTheme(
+      width: 50,
+      height: 60,
+      textStyle: const TextStyle(fontSize: 22, color: Colors.black87, fontWeight: FontWeight.bold),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))],
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Column(
-        children: [
-          if (isEmail) ...[
-            const Icon(Icons.mark_email_read, size: 48, color: Colors.orange),
-            const SizedBox(height: 16),
-            const Text('Enter the code sent to your email to enable 2FA.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
-          ] else ...[
-            const Text('Scan this QR code with your Authenticator App', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            if (qrCodeDataUrl != null)
-              Container(
-                padding: const EdgeInsets.all(16),
-                color: Colors.white,
-                // Fallback since decoding base64 image data url in Flutter requires some string manipulation
-                child: Image.network(qrCodeDataUrl, height: 200, width: 200, errorBuilder: (_,__,___) => const Icon(Icons.qr_code, size: 100)),
-              ),
-            const SizedBox(height: 16),
-            if (_setupData!['secret'] != null) ...[
-              const Text('Or enter this code manually:', style: TextStyle(color: Colors.grey, fontSize: 12)),
-              const SizedBox(height: 8),
-              GestureDetector(
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        const Text(
+          'Verification',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF003B73),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          isEmail 
+              ? 'Enter the 6-digit code sent to your email.'
+              : 'Enter the 6-digit code from your Authenticator App.',
+          style: const TextStyle(fontSize: 16, color: Colors.grey),
+        ),
+        const SizedBox(height: 48),
+        
+        if (!isEmail && qrCodeDataUrl != null) ...[
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              color: Colors.white,
+              child: Image.network(qrCodeDataUrl, height: 150, width: 150, errorBuilder: (_,__,___) => const Icon(Icons.qr_code, size: 100)),
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_setupData!['secret'] != null)
+            Center(
+              child: GestureDetector(
                 onTap: _copySecret,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -333,31 +356,55 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
                   ),
                 ),
               ),
-            ],
-          ],
+            ),
           const SizedBox(height: 32),
-          TextField(
+        ],
+
+        Center(
+          child: Pinput(
+            length: 6,
             controller: _codeController,
-            keyboardType: TextInputType.number,
-            textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 24, letterSpacing: 8, fontWeight: FontWeight.bold),
-            maxLength: 6,
-            decoration: InputDecoration(
-              counterText: '',
-              hintText: '000000',
-              filled: true,
-              fillColor: Colors.grey.shade50,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            defaultPinTheme: defaultPinTheme,
+            focusedPinTheme: defaultPinTheme.copyDecorationWith(
+              border: Border.all(color: const Color(0xFF1E90FF), width: 2),
+            ),
+            onCompleted: (pin) => _enableTwoFa(),
+          ),
+        ),
+        const SizedBox(height: 48),
+        
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _submitting ? null : _enableTwoFa,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1E90FF),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              elevation: 4,
+            ),
+            child: _submitting
+                ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Verify', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+        ),
+        const SizedBox(height: 16),
+        
+        if (isEmail)
+          Center(
+            child: TextButton(
+              onPressed: () {
+                _codeController.clear();
+                _startEmailSetup();
+              },
+              child: const Text(
+                'Resend Code',
+                style: TextStyle(color: Color(0xFF003B73), fontSize: 16, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
-          const SizedBox(height: 24),
-          GradientButton(
-            text: 'Verify & Enable',
-            loading: _submitting,
-            onPressed: () => _enableTwoFa(),
-          ),
-        ],
-      ),
+      ],
     );
   }
 

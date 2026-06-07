@@ -4,6 +4,7 @@ import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import '../home/home_screen.dart';
+import 'package:pinput/pinput.dart';
 
 class VerificationScreen extends StatefulWidget {
   final int userId;
@@ -20,23 +21,17 @@ class VerificationScreen extends StatefulWidget {
 }
 
 class _VerificationScreenState extends State<VerificationScreen> {
-  final List<TextEditingController> _controllers = List.generate(6, (_) => TextEditingController());
-  final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
+  final TextEditingController _pinController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    for (var node in _focusNodes) {
-      node.dispose();
-    }
+    _pinController.dispose();
     super.dispose();
   }
 
   Future<void> _handleVerify() async {
-    String code = _controllers.map((c) => c.text).join();
+    String code = _pinController.text;
     if (code.length < 6) {
       AppToast.show(context, message: 'Please enter the 6-digit code', type: ToastType.warning);
       return;
@@ -109,43 +104,32 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
               ),
               const SizedBox(height: 48),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(6, (index) {
-                  return SizedBox(
-                    width: 45,
-                    child: TextField(
-                      controller: _controllers[index],
-                      focusNode: _focusNodes[index],
-                      keyboardType: TextInputType.number,
-                      textAlign: TextAlign.center,
-                      maxLength: 1,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      decoration: InputDecoration(
-                        counterText: "",
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        if (value.isNotEmpty && index < 5) {
-                          _focusNodes[index + 1].requestFocus();
-                        } else if (value.isEmpty && index > 0) {
-                          _focusNodes[index - 1].requestFocus();
-                        }
-                        if (value.length == 1 && index == 5) {
-                          FocusScope.of(context).unfocus();
-                          _handleVerify();
-                        }
-                      },
+              Center(
+                child: Pinput(
+                  length: 6,
+                  controller: _pinController,
+                  defaultPinTheme: PinTheme(
+                    width: 50,
+                    height: 60,
+                    textStyle: const TextStyle(fontSize: 22, color: Colors.black87, fontWeight: FontWeight.bold),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.grey.shade300),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-                }),
+                  ),
+                  focusedPinTheme: PinTheme(
+                    width: 50,
+                    height: 60,
+                    textStyle: const TextStyle(fontSize: 22, color: Colors.black87, fontWeight: FontWeight.bold),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: AppTheme.primaryColor, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onCompleted: (pin) => _handleVerify(),
+                ),
               ),
               const SizedBox(height: 48),
               GradientButton(

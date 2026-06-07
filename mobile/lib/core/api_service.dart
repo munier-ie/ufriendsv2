@@ -141,6 +141,44 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> verifyNin(String nin) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/kyc/verify-nin'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'nin': nin}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'NIN Verification failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> verifyBvn(String bvn) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/kyc/verify-bvn'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'bvn': bvn}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) return {'success': true, 'data': data};
+      return {'success': false, 'error': data['error'] ?? 'BVN Verification failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
   static Future<Map<String, dynamic>> forgotPasswordOtp(String email) async {
     try {
       final response = await http.post(

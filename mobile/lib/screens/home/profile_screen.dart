@@ -7,6 +7,7 @@ import 'pin_settings_screen.dart';
 import 'change_password_screen.dart';
 import 'two_fa_screen.dart';
 import 'api_keys_screen.dart';
+import 'kyc_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -90,7 +91,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
       'Personal Information',
       [
         _infoItem(Icons.smartphone_rounded, 'Phone', user?['phone'] ?? '...'),
-        _infoItem(Icons.verified_rounded, 'KYC Status', user?['kycStatus'] == true ? 'Verified' : 'Not Verified'),
+        InkWell(
+          onTap: (user?['kycStatus'] == true || user?['kycStatus'] == 'verified') ? null : () async {
+            final result = await Navigator.push(context, MaterialPageRoute(builder: (_) => const KycScreen()));
+            if (result == true) {
+              widget.onRefresh();
+            }
+          },
+          child: _infoItem(
+            Icons.verified_rounded, 
+            'KYC Status', 
+            (user?['kycStatus'] == true || user?['kycStatus'] == 'verified') ? 'Verified' : 'Not Verified (Tap)',
+          ),
+        ),
         Theme(
           data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
           child: ExpansionTile(

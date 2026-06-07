@@ -13,6 +13,8 @@ const prisma = new PrismaClient();
  */
 router.post('/create-paymentpoint', authenticateUser, async (req, res) => {
     try {
+        const { bvn, nin } = req.body;
+        
         const user = await prisma.user.findUnique({
             where: { id: req.user.id }
         });
@@ -28,12 +30,25 @@ router.post('/create-paymentpoint', authenticateUser, async (req, res) => {
             });
         }
 
+        const { decrypt } = require('../utils/encryption');
+        let userBvn = bvn;
+        let userNin = nin;
+        
+        if (!userBvn && user.bvn) {
+            try { userBvn = decrypt(user.bvn); } catch(e) {}
+        }
+        if (!userNin && user.nin) {
+            try { userNin = decrypt(user.nin); } catch(e) {}
+        }
+
         // Create PaymentPoint virtual account (NO KYC required)
         const paymentpointResponse = await paymentpointService.createVirtualAccount({
             email: user.email,
             name: `${user.firstName} ${user.lastName}`,
             phoneNumber: user.phone,
-            bankCodes: ['20946'] // Palmpay
+            bankCodes: ['20946'], // Palmpay
+            bvn: userBvn,
+            nin: userNin
         });
 
         if (paymentpointResponse.success) {

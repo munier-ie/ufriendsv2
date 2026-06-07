@@ -272,11 +272,19 @@ router.post('/access', loginRateLimit, async (req, res) => {
 
         // Auto-generate Virtual Account if missing
         if (!user.bankNo) {
+            const { decrypt } = require('../utils/encryption');
+            let userBvn = null;
+            let userNin = null;
+            if (user.bvn) { try { userBvn = decrypt(user.bvn); } catch(e){} }
+            if (user.nin) { try { userNin = decrypt(user.nin); } catch(e){} }
+
             paymentpointService.createVirtualAccount({
                 email: user.email,
                 name: `${user.firstName} ${user.lastName}`,
                 phoneNumber: user.phone,
-                bankCodes: ['20946'] // Palmpay
+                bankCodes: ['20946'], // Palmpay
+                bvn: userBvn,
+                nin: userNin
             }).then(async (paymentpointResponse) => {
                 if (paymentpointResponse.success) {
                     const accountDetails = paymentpointResponse.accountDetails;
@@ -326,11 +334,19 @@ async function completeLoginProcess(user, req, res) {
 
     // Auto-generate Virtual Account if missing
     if (!user.bankNo) {
+        const { decrypt } = require('../utils/encryption');
+        let userBvn = null;
+        let userNin = null;
+        if (user.bvn) { try { userBvn = decrypt(user.bvn); } catch(e){} }
+        if (user.nin) { try { userNin = decrypt(user.nin); } catch(e){} }
+
         paymentpointService.createVirtualAccount({
             email: user.email,
             name: `${user.firstName} ${user.lastName}`,
             phoneNumber: user.phone,
-            bankCodes: ['20946'] // Palmpay
+            bankCodes: ['20946'], // Palmpay
+            bvn: userBvn,
+            nin: userNin
         }).then(async (paymentpointResponse) => {
             if (paymentpointResponse.success) {
                 const accountDetails = paymentpointResponse.accountDetails;

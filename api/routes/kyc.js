@@ -8,7 +8,7 @@ const paymentpointService = require('../services/paymentpoint.service');
 
 /**
  * @route   POST /api/kyc/verify-nin
- * @desc    Verify user's NIN and create virtual accounts
+ * @desc    Verify NIN via payment provider — if provider generates an account, NIN is valid.
  * @access  Private
  */
 router.post('/verify-nin', authenticateUser, async (req, res) => {
@@ -16,55 +16,77 @@ router.post('/verify-nin', authenticateUser, async (req, res) => {
         const { nin } = req.body;
         const userId = req.user.id;
 
-        // Validate NIN format (11 digits)
         if (!nin || nin.length !== 11 || !/^\d{11}$/.test(nin)) {
-            return res.status(400).json({ error: 'Invalid NIN format. Must be 11 digits.' });
+            return res.status(400).json({ error: 'Invalid NIN format. Must be exactly 11 digits.' });
         }
 
-        // Check if user already verified
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (user.kycStatus === 'verified') {
-            return res.status(400).json({ error: 'KYC already verified' });
+            return res.status(400).json({ error: 'KYC already verified.' });
         }
 
-        // TODO: Call NIN verification API (Flutterwave, Youverify, Dojah, etc.)
-        // For now, we'll simulate verification
-        const ninVerified = false; // Replace with actual API call
-
-        if (!ninVerified) {
-            return res.status(503).json({ error: 'NIN verification service is currently unavailable. Please contact support.' });
-        }
-
-        // Encrypt NIN before storing
+        // Save encrypted NIN to DB immediately for security audit trail
         const encryptedNin = encrypt(nin);
-
-        // Update user with NIN and KYC status
         await prisma.user.update({
             where: { id: userId },
-            data: {
-                nin: encryptedNin,
-                kycStatus: 'verified'
-            }
+            data: { nin: encryptedNin }
         });
 
-        // Create virtual accounts with both gateways
-        const accountCreationResults = await createVirtualAccounts(userId);
+        // Use payment provider as KYC oracle — if it generates an account, NIN is valid
+        let paymentpointResponse;
+        try {
+            paymentpointResponse = await paymentpointService.createVirtualAccount({
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`,
+                phoneNumber: user.phone,
+                bankCodes: ['20946'], // Palmpay
+                nin
+            });
+        } catch (providerErr) {
+            return res.status(400).json({
+                error: 'NIN verification failed: ' + (providerErr.message || 'The provided NIN could not be validated by our payment partner.')
+            });
+        }
 
-        res.json({
+        if (!paymentpointResponse.success) {
+            return res.status(400).json({
+                error: 'NIN could not be verified. Please check the number and try again.'
+            });
+        }
+
+        // Provider accepted the NIN and generated an account — mark as verified
+        const accountDetails = paymentpointResponse.accountDetails;
+        const updateData = { kycStatus: 'verified' };
+        if (accountDetails?.bankAccounts?.[0]?.accountNumber) {
+            updateData.bankName = 'Palmpay (PaymentPoint)';
+            updateData.bankNo = accountDetails.bankAccounts[0].accountNumber;
+            updateData.accountReference = `PP_${user.phone}_${user.id}`;
+            if (accountDetails.bankAccounts[0].accountName) {
+                updateData.virtualAccountName = accountDetails.bankAccounts[0].accountName;
+            }
+        }
+
+        await prisma.user.update({ where: { id: userId }, data: updateData });
+
+        return res.json({
             success: true,
-            message: 'NIN verified successfully',
+            message: 'NIN verified successfully. Your virtual account has been generated!',
             kycStatus: 'verified',
-            virtualAccounts: accountCreationResults
+            account: updateData.bankNo ? {
+                bankName: 'Palmpay',
+                accountNumber: updateData.bankNo,
+                accountName: updateData.virtualAccountName
+            } : null
         });
     } catch (error) {
-        console.error('NIN verification error:', error);
-        res.status(500).json({ error: 'Failed to verify NIN' });
+        console.error('NIN KYC error:', error);
+        res.status(500).json({ error: 'An unexpected error occurred. Please try again.' });
     }
 });
 
 /**
  * @route   POST /api/kyc/verify-bvn
- * @desc    Verify user's BVN and create virtual accounts
+ * @desc    Verify BVN via payment provider — if provider generates an account, BVN is valid.
  * @access  Private
  */
 router.post('/verify-bvn', authenticateUser, async (req, res) => {
@@ -72,48 +94,71 @@ router.post('/verify-bvn', authenticateUser, async (req, res) => {
         const { bvn } = req.body;
         const userId = req.user.id;
 
-        // Validate BVN format (11 digits)
         if (!bvn || bvn.length !== 11 || !/^\d{11}$/.test(bvn)) {
-            return res.status(400).json({ error: 'Invalid BVN format. Must be 11 digits.' });
+            return res.status(400).json({ error: 'Invalid BVN format. Must be exactly 11 digits.' });
         }
 
-        // Check if user already verified
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (user.kycStatus === 'verified') {
-            return res.status(400).json({ error: 'KYC already verified' });
+            return res.status(400).json({ error: 'KYC already verified.' });
         }
 
-        // TODO: Call BVN verification API
-        const bvnVerified = false; // Replace with actual API call
-
-        if (!bvnVerified) {
-            return res.status(503).json({ error: 'BVN verification service is currently unavailable. Please contact support.' });
-        }
-
-        // Encrypt BVN before storing
+        // Save encrypted BVN to DB immediately for security audit trail
         const encryptedBvn = encrypt(bvn);
-
-        // Update user with BVN and KYC status
         await prisma.user.update({
             where: { id: userId },
-            data: {
-                bvn: encryptedBvn,
-                kycStatus: 'verified'
-            }
+            data: { bvn: encryptedBvn }
         });
 
-        // Create virtual accounts with both gateways
-        const accountCreationResults = await createVirtualAccounts(userId);
+        // Use payment provider as KYC oracle — if it generates an account, BVN is valid
+        let paymentpointResponse;
+        try {
+            paymentpointResponse = await paymentpointService.createVirtualAccount({
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`,
+                phoneNumber: user.phone,
+                bankCodes: ['20946'], // Palmpay
+                bvn
+            });
+        } catch (providerErr) {
+            return res.status(400).json({
+                error: 'BVN verification failed: ' + (providerErr.message || 'The provided BVN could not be validated by our payment partner.')
+            });
+        }
 
-        res.json({
+        if (!paymentpointResponse.success) {
+            return res.status(400).json({
+                error: 'BVN could not be verified. Please check the number and try again.'
+            });
+        }
+
+        // Provider accepted the BVN and generated an account — mark as verified
+        const accountDetails = paymentpointResponse.accountDetails;
+        const updateData = { kycStatus: 'verified' };
+        if (accountDetails?.bankAccounts?.[0]?.accountNumber) {
+            updateData.bankName = 'Palmpay (PaymentPoint)';
+            updateData.bankNo = accountDetails.bankAccounts[0].accountNumber;
+            updateData.accountReference = `PP_${user.phone}_${user.id}`;
+            if (accountDetails.bankAccounts[0].accountName) {
+                updateData.virtualAccountName = accountDetails.bankAccounts[0].accountName;
+            }
+        }
+
+        await prisma.user.update({ where: { id: userId }, data: updateData });
+
+        return res.json({
             success: true,
-            message: 'BVN verified successfully',
+            message: 'BVN verified successfully. Your virtual account has been generated!',
             kycStatus: 'verified',
-            virtualAccounts: accountCreationResults
+            account: updateData.bankNo ? {
+                bankName: 'Palmpay',
+                accountNumber: updateData.bankNo,
+                accountName: updateData.virtualAccountName
+            } : null
         });
     } catch (error) {
-        console.error('BVN verification error:', error);
-        res.status(500).json({ error: 'Failed to verify BVN' });
+        console.error('BVN KYC error:', error);
+        res.status(500).json({ error: 'An unexpected error occurred. Please try again.' });
     }
 });
 
@@ -236,6 +281,39 @@ async function createVirtualAccounts(userId) {
         }
     } else {
         results.monnify = { error: 'BVN is required for Monnify accounts' };
+    }
+
+    // Try to create PaymentPoint account if they don't have one (new Palmpay policy)
+    if (!user.bankNo || !user.bankName?.includes('PaymentPoint')) {
+        try {
+            const paymentpointResponse = await paymentpointService.createVirtualAccount({
+                email: user.email,
+                name: `${user.firstName} ${user.lastName}`,
+                phoneNumber: user.phone,
+                bankCodes: ['20946'], // Palmpay
+                bvn,
+                nin
+            });
+
+            if (paymentpointResponse.success) {
+                const accountDetails = paymentpointResponse.accountDetails;
+                if (accountDetails.bankAccounts?.[0]?.accountNumber) {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: {
+                            bankName: 'Palmpay (PaymentPoint)',
+                            bankNo: accountDetails.bankAccounts[0].accountNumber,
+                            accountReference: `PP_${user.phone}_${user.id}`,
+                            virtualAccountName: accountDetails.bankAccounts[0].accountName
+                        }
+                    });
+                    results.paymentpoint = paymentpointResponse;
+                }
+            }
+        } catch (error) {
+            console.error('PaymentPoint account creation error during KYC:', error.message);
+            results.paymentpoint = { error: error.message };
+        }
     }
 
     return results;

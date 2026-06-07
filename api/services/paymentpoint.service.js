@@ -64,15 +64,26 @@ class PaymentPointService {
         }
 
         try {
+            const payload = {
+                email: userData.email,
+                name: userData.name,
+                phoneNumber: userData.phoneNumber,
+                bankCode: userData.bankCodes || ['20946'], // Default to Palmpay if not specified
+                businessId: creds.businessId
+            };
+            
+            // Add ID verification if provided (new Palmpay policy)
+            if (userData.bvn) {
+                payload.idType = 'bvn';
+                payload.idNumber = userData.bvn;
+            } else if (userData.nin) {
+                payload.idType = 'nin';
+                payload.idNumber = userData.nin;
+            }
+
             const response = await axios.post(
                 `${creds.baseUrl}/api/v1/createVirtualAccount`,
-                {
-                    email: userData.email,
-                    name: userData.name,
-                    phoneNumber: userData.phoneNumber,
-                    bankCode: userData.bankCodes || ['20946'], // Default to Palmpay if not specified
-                    businessId: creds.businessId
-                },
+                payload,
                 {
                     headers: {
                         'Authorization': `Bearer ${creds.apiSecret}`,
