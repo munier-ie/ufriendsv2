@@ -1,3 +1,4 @@
+/* eslint-disable i18next/no-literal-string */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -14,7 +15,8 @@ import Button from '../../components/ui/Button';
 export default function Verify() {
     const [submitting, setSubmitting] = useState(false);
     const [kycStatus, setKycStatus] = useState(null);
-    const [virtualAccounts, setVirtualAccounts] = useState(null);
+    const [generatedAccount, setGeneratedAccount] = useState(null);
+    const [allAccounts, setAllAccounts] = useState(null);
     const [error, setError] = useState('');
     const [formData, setFormData] = useState({
         type: 'nin',
@@ -34,7 +36,9 @@ export default function Verify() {
 
             if (res.data.success) {
                 setKycStatus(res.data.kycStatus);
-                setVirtualAccounts(res.data.virtualAccounts);
+                if (res.data.virtualAccounts) {
+                    setAllAccounts(res.data.virtualAccounts);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch KYC status:', error);
@@ -58,8 +62,11 @@ export default function Verify() {
 
             if (res.data.success) {
                 setKycStatus('verified');
-                setVirtualAccounts(res.data.virtualAccounts);
-                // Refresh to show accounts
+                // New backend returns res.data.account (single Palmpay account)
+                if (res.data.account) {
+                    setGeneratedAccount(res.data.account);
+                }
+                // Also refresh full account list from /api/kyc/status
                 fetchKycStatus();
             }
         } catch (error) {
@@ -75,6 +82,10 @@ export default function Verify() {
     };
 
     if (kycStatus === 'verified') {
+        // Prefer the freshly generated account, else fall back to loaded accounts
+        const primaryAccount = generatedAccount || allAccounts?.primary;
+        const secondaryAccounts = allAccounts?.secondary || [];
+
         return (
             <div className="max-w-2xl mx-auto space-y-6">
                 <div className="text-center mb-8">
@@ -85,73 +96,70 @@ export default function Verify() {
                     <p className="text-gray-500 mt-2">Your identity has been verified successfully</p>
                 </div>
 
-                {/* Virtual Accounts Display */}
-                {virtualAccounts && (
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-bold text-gray-900">Your Virtual Accounts</h2>
+                <div className="space-y-4">
+                    <h2 className="text-lg font-bold text-gray-900">Your Virtual Account(s)</h2>
 
-                        {/* Primary Account */}
-                        {virtualAccounts.primary && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-6 text-white shadow-xl"
-                            >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div>
-                                        <p className="text-xs opacity-70 mb-1">Primary Account</p>
-                                        <h3 className="text-xl font-bold">{virtualAccounts.primary.bankName}</h3>
-                                    </div>
-                                    <Bank className="opacity-20" size={40} />
+                    {/* Primary / Generated Account */}
+                    {primaryAccount && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-gradient-to-br from-primary to-secondary rounded-2xl p-6 text-white shadow-xl"
+                        >
+                            <div className="flex items-start justify-between mb-4">
+                                <div>
+                                    <p className="text-xs opacity-70 mb-1">Primary Account</p>
+                                    <h3 className="text-xl font-bold">{primaryAccount.bankName}</h3>
                                 </div>
+                                <Bank className="opacity-20" size={40} />
+                            </div>
 
-                                <div className="bg-white/10 rounded-xl p-4 mb-3">
-                                    <p className="text-xs opacity-70 mb-1">Account Number</p>
+                            <div className="bg-white/10 rounded-xl p-4 mb-3">
+                                <p className="text-xs opacity-70 mb-1">Account Number</p>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-2xl font-mono font-bold tracking-wider">{primaryAccount.accountNumber}</p>
+                                    <button
+                                        onClick={() => copyToClipboard(primaryAccount.accountNumber)}
+                                        className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                    >
+                                        <Copy size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p className="text-sm opacity-90">{primaryAccount.accountName}</p>
+                        </motion.div>
+                    )}
+
+                    {/* Additional Monnify Accounts (if any) */}
+                    {secondaryAccounts.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-sm font-medium text-gray-600">Additional Accounts</p>
+                            {secondaryAccounts.map((account, index) => (
+                                <motion.div
+                                    key={index}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.1 }}
+                                    className="bg-white rounded-xl p-4 shadow-lg border border-gray-100"
+                                >
                                     <div className="flex items-center justify-between">
-                                        <p className="text-2xl font-mono font-bold tracking-wider">{virtualAccounts.primary.accountNumber}</p>
+                                        <div>
+                                            <p className="font-medium text-gray-900">{account.bank}</p>
+                                            <p className="text-lg font-mono font-bold text-gray-700 mt-1">{account.accountNumber}</p>
+                                        </div>
                                         <button
-                                            onClick={() => copyToClipboard(virtualAccounts.primary.accountNumber)}
-                                            className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                                            onClick={() => copyToClipboard(account.accountNumber)}
+                                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                                         >
-                                            <Copy size={20} />
+                                            <Copy size={20} className="text-gray-600" />
                                         </button>
                                     </div>
-                                </div>
-
-                                <p className="text-sm opacity-90">{virtualAccounts.primary.accountName}</p>
-                            </motion.div>
-                        )}
-
-                        {/* Secondary Accounts */}
-                        {virtualAccounts.secondary && virtualAccounts.secondary.length > 0 && (
-                            <div className="space-y-3">
-                                <p className="text-sm font-medium text-gray-600">Additional Accounts</p>
-                                {virtualAccounts.secondary.map((account, index) => (
-                                    <motion.div
-                                        key={index}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: index * 0.1 }}
-                                        className="bg-white rounded-xl p-4 shadow-lg border border-gray-100"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="font-medium text-gray-900">{account.bank}</p>
-                                                <p className="text-lg font-mono font-bold text-gray-700 mt-1">{account.accountNumber}</p>
-                                            </div>
-                                            <button
-                                                onClick={() => copyToClipboard(account.accountNumber)}
-                                                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-                                            >
-                                                <Copy size={20} className="text-gray-600" />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
+                                </motion.div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         );
     }
@@ -163,7 +171,7 @@ export default function Verify() {
                     <ShieldCheck size={32} />
                 </div>
                 <h1 className="text-2xl font-bold text-gray-900">KYC Verification</h1>
-                <p className="text-gray-500 mt-2">Verify your NIN or BVN to unlock Monnify virtual accounts</p>
+                <p className="text-gray-500 mt-2">Verify your NIN or BVN to generate your Palmpay virtual account</p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
@@ -211,10 +219,9 @@ export default function Verify() {
                         <div>
                             <p className="font-medium mb-1">After verification, you'll receive:</p>
                             <ul className="list-disc list-inside space-y-1 text-xs">
-                                <li>Wema Bank virtual account</li>
-                                <li>Monie Point virtual account</li>
-                                <li>Sterling Bank virtual account</li>
-                                <li>Additional bank accounts (Fidelity, GTBank)</li>
+                                <li>A Palmpay virtual account number for receiving payments</li>
+                                <li>Your KYC status will be marked as <strong>Verified</strong></li>
+                                <li>Your BVN/NIN is encrypted and stored securely</li>
                             </ul>
                         </div>
                     </div>
