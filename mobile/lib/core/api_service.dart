@@ -262,6 +262,7 @@ class ApiService {
         return {'success': true, 'transactions': data['transactions']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch transactions'};
+    } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
     }
   }
@@ -1281,16 +1282,22 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> withdrawReferralCommission([String? amount]) async {
+  static Future<Map<String, dynamic>> withdrawReferralCommission(String pin, [String? amount]) async {
     try {
       final token = await AuthService.getToken();
+      
+      final Map<String, dynamic> requestBody = {'pin': pin};
+      if (amount != null && amount.isNotEmpty) {
+        requestBody['amount'] = amount;
+      }
+      
       final response = await http.post(
         Uri.parse('${AppConstants.baseUrl}/referrals/withdraw'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode(amount != null && amount.isNotEmpty ? {'amount': amount} : {}),
+        body: jsonEncode(requestBody),
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);

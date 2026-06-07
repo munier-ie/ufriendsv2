@@ -21,7 +21,7 @@ router.post('/verify-nin', authenticateUser, async (req, res) => {
         }
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user.kycStatus === 'verified') {
+        if (user.kycStatus === true) {
             return res.status(400).json({ error: 'KYC already verified.' });
         }
 
@@ -56,7 +56,7 @@ router.post('/verify-nin', authenticateUser, async (req, res) => {
 
         // Provider accepted the NIN and generated an account — mark as verified
         const accountDetails = paymentpointResponse.accountDetails;
-        const updateData = { kycStatus: 'verified' };
+        const updateData = { kycStatus: true };
         if (accountDetails?.bankAccounts?.[0]?.accountNumber) {
             updateData.bankName = 'Palmpay (PaymentPoint)';
             updateData.bankNo = accountDetails.bankAccounts[0].accountNumber;
@@ -99,7 +99,7 @@ router.post('/verify-bvn', authenticateUser, async (req, res) => {
         }
 
         const user = await prisma.user.findUnique({ where: { id: userId } });
-        if (user.kycStatus === 'verified') {
+        if (user.kycStatus === true) {
             return res.status(400).json({ error: 'KYC already verified.' });
         }
 
@@ -134,7 +134,7 @@ router.post('/verify-bvn', authenticateUser, async (req, res) => {
 
         // Provider accepted the BVN and generated an account — mark as verified
         const accountDetails = paymentpointResponse.accountDetails;
-        const updateData = { kycStatus: 'verified' };
+        const updateData = { kycStatus: true };
         if (accountDetails?.bankAccounts?.[0]?.accountNumber) {
             updateData.bankName = 'Palmpay (PaymentPoint)';
             updateData.bankNo = accountDetails.bankAccounts[0].accountNumber;
@@ -185,8 +185,8 @@ router.get('/status', authenticateUser, async (req, res) => {
 
         res.json({
             success: true,
-            kycStatus: user.kycStatus,
-            virtualAccounts: user.kycStatus === 'verified' ? {
+            kycStatus: user.kycStatus ? 'verified' : 'unverified',
+            virtualAccounts: user.kycStatus ? {
                 primary: {
                     bankName: user.bankName,
                     accountNumber: user.bankNo,

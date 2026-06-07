@@ -40,25 +40,8 @@ export default function VirtualAccounts() {
         }
     };
 
-    const createPaymentPointAccount = async () => {
-        setCreating(true);
-        setError('');
-
-        try {
-            const token = localStorage.getItem('token');
-            const res = await axios.post('/api/virtual-accounts/create-paymentpoint', {}, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-
-            if (res.data.success) {
-                // Refresh accounts
-                await fetchAccounts();
-            }
-        } catch (error) {
-            setError(error.response?.data?.error || 'Failed to create account');
-        } finally {
-            setCreating(false);
-        }
+    const goToVerify = () => {
+        window.location.href = '/dashboard/verify';
     };
 
     const copyToClipboard = (text, label) => {
@@ -97,16 +80,15 @@ export default function VirtualAccounts() {
                             <CreditCard className="text-blue-600" size={24} />
                         </div>
                         <div className="flex-1">
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Get Instant Virtual Account</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Get Your Virtual Account</h3>
                             <p className="text-sm text-gray-600 mb-4">
-                                Create a PaymentPoint virtual account instantly. No KYC required!
+                                Verify your BVN or NIN to instantly generate a dedicated Palmpay virtual account for funding your wallet.
                             </p>
                             <Button
-                                onClick={createPaymentPointAccount}
-                                loading={creating}
+                                onClick={goToVerify}
                                 className="bg-primary hover:bg-primary/90"
                             >
-                                Create Account Now
+                                Verify &amp; Generate Account
                             </Button>
                         </div>
                     </div>
@@ -179,13 +161,12 @@ export default function VirtualAccounts() {
                     <div className="flex items-start space-x-3">
                         <AlertCircle className="text-yellow-600 shrink-0 mt-0.5" size={20} />
                         <div>
-                            <p className="font-medium text-yellow-900 mb-1">Unlock More Accounts</p>
+                            <p className="font-medium text-yellow-900 mb-1">Complete KYC Verification</p>
                             <p className="text-sm text-yellow-700 mb-3">
-                                Complete KYC verification to get Monnify virtual accounts with multiple banks
-                                (Wema, Monie Point, Sterling, Fidelity, GTBank)
+                                Submit your BVN or NIN to verify your identity and generate your virtual account.
                             </p>
                             <Button
-                                onClick={() => window.location.href = '/dashboard/verify'}
+                                onClick={goToVerify}
                                 className="bg-yellow-600 hover:bg-yellow-700 text-white text-sm"
                             >
                                 Verify Now

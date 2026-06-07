@@ -4,6 +4,7 @@ import '../../core/app_theme.dart';
 import '../../core/skeleton_loader.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
+import 'kyc_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -46,20 +47,14 @@ class _WalletScreenState extends State<WalletScreen> {
     AppToast.show(context, message: 'Copied to clipboard', type: ToastType.success);
   }
 
-  Future<void> _generateAccount() async {
-    setState(() => _isLoading = true);
-    try {
-      final res = await ApiService.createVirtualAccount();
-      if (res['success']) {
-        if (mounted) AppToast.show(context, message: 'Account generated successfully!', type: ToastType.success);
-        await _fetchAccounts();
-      } else {
-        if (mounted) AppToast.show(context, message: res['error'], type: ToastType.error);
-      }
-    } catch (e) {
-      if (mounted) AppToast.show(context, message: 'An unexpected error occurred', type: ToastType.error);
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+  Future<void> _goToKycScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const KycScreen()),
+    );
+    if (result == true) {
+      await _fetchAccounts();
+      await widget.onRefresh();
     }
   }
 
@@ -222,19 +217,19 @@ class _WalletScreenState extends State<WalletScreen> {
           ),
           const SizedBox(height: 8),
           const Text(
-            'Generate a dedicated virtual account to fund your wallet instantly.',
+            'Verify your BVN or NIN to generate a dedicated virtual account for funding your wallet.',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.black54, fontSize: 13),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _generateAccount,
+            onPressed: _goToKycScreen,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E90FF),
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
-            child: const Text('Generate Account'),
+            child: const Text('Verify & Generate Account'),
           ),
         ],
       ),
