@@ -20,7 +20,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   Map<String, dynamic>? _settings;
   List<dynamic> _history = [];
   bool _loadingHistory = false;
-  bool _submitting = false;
+  final bool _submitting = false;
   Map<String, dynamic> _formData = {};
 
   // NIN Modification sub-type
@@ -108,10 +108,6 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   String _formatPrice(double price) {
     return price.toInt().toString().replaceAllMapped(
       RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},');
-  }
-
-  void _updateField(String key, String value) {
-    setState(() => _formData[key] = value);
   }
 
   Future<void> _submitRequest(String serviceType, String? subType) async {
@@ -509,7 +505,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
       child: ListView.separated(
         padding: const EdgeInsets.all(24),
         itemCount: ninHistory.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) {
           final req = ninHistory[index];
           return _buildHistoryCard(req);

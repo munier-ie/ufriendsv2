@@ -12,7 +12,7 @@ class PinsScreen extends StatefulWidget {
 class _PinsScreenState extends State<PinsScreen> {
   List<dynamic> _services = [];
   bool _loading = false;
-  bool _purchaseLoading = false;
+  final bool _purchaseLoading = false;
   dynamic _selectedService;
   final _businessNameController = TextEditingController();
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'core/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'theme_state.dart';

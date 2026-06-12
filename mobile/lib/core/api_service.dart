@@ -466,7 +466,7 @@ class ApiService {
           'type': type,
           'provider': provider,
           'number': number,
-          if (meterType != null) 'meterType': meterType,
+          'meterType': ?meterType,
         }),
       );
       final data = jsonDecode(response.body);
@@ -507,12 +507,12 @@ class ApiService {
           'recipient': recipient,
           'amount': amount,
           'pin': pin,
-          if (networkType != null) 'networkType': networkType,
-          if (iucNumber != null) 'iucNumber': iucNumber,
-          if (subscriptionType != null) 'subscriptionType': subscriptionType,
-          if (accessToken != null) 'accessToken': accessToken,
-          if (meterNumber != null) 'meterNumber': meterNumber,
-          if (meterType != null) 'meterType': meterType,
+          'networkType': ?networkType,
+          'iucNumber': ?iucNumber,
+          'subscriptionType': ?subscriptionType,
+          'accessToken': ?accessToken,
+          'meterNumber': ?meterNumber,
+          'meterType': ?meterType,
         }),
       );
       final data = jsonDecode(response.body);

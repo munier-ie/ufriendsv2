@@ -329,7 +329,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: _filters.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    separatorBuilder: (_, _) => const SizedBox(width: 8),
                     itemBuilder: (context, index) {
                       final f = _filters[index];
                       final isSelected = _activeFilter == f['value'];
@@ -413,7 +413,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   Container(
                     color: typeColor.withValues(alpha: 0.1),
                     child: content['thumbnailUrl'] != null && content['thumbnailUrl'].toString().isNotEmpty
-                        ? Image.network(content['thumbnailUrl'], fit: BoxFit.cover, errorBuilder: (_, __, ___) => Icon(_getTypeIcon(type), size: 48, color: typeColor.withValues(alpha: 0.3)))
+                        ? Image.network(content['thumbnailUrl'], fit: BoxFit.cover, errorBuilder: (_, _, _) => Icon(_getTypeIcon(type), size: 48, color: typeColor.withValues(alpha: 0.3)))
                         : Icon(_getTypeIcon(type), size: 48, color: typeColor.withValues(alpha: 0.3)),
                   ),
                   Positioned(

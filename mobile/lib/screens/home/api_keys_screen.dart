@@ -17,7 +17,7 @@ class ApiKeysScreen extends StatefulWidget {
 class _ApiKeysScreenState extends State<ApiKeysScreen> {
   bool _loading = true;
   Map<String, dynamic>? _user;
-  bool _generating = false;
+  final bool _generating = false;
   bool _showKey = false;
 
   @override

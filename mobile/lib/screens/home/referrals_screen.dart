@@ -16,10 +16,9 @@ class ReferralsScreen extends StatefulWidget {
 
 class _ReferralsScreenState extends State<ReferralsScreen> {
   bool _loading = true;
-  bool _withdrawing = false;
+  final bool _withdrawing = false;
   Map<String, dynamic>? _stats;
   final _amountController = TextEditingController();
-  bool _tcExpanded = false;
 
   @override
   void initState() {
@@ -357,7 +356,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                   ],
                                 ),
                               );
-                            }).toList(),
+                            }),
                             
                           const SizedBox(height: 32),
                           
@@ -373,7 +372,6 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                               child: ExpansionTile(
                                 leading: const Icon(Icons.description, color: AppTheme.primaryColor),
                                 title: const Text('Referral Terms & Conditions', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                onExpansionChanged: (v) => setState(() => _tcExpanded = v),
                                 children: [
                                   Padding(
                                     padding: const EdgeInsets.all(16.0),

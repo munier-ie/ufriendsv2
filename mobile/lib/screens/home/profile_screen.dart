@@ -189,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               trailing: Switch(
                 value: themeState.isDarkMode,
                 onChanged: (val) => themeState.toggleTheme(),
-                activeColor: AppTheme.secondaryColor,
+                activeThumbColor: AppTheme.secondaryColor,
               ),
             );
           },

@@ -495,7 +495,7 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
                           borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
                         ),
                       ),
-                      value: _selectedQuantity,
+                      initialValue: _selectedQuantity,
                       items: _quantities.map((q) {
                         return DropdownMenuItem(
                           value: q,

@@ -20,7 +20,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
   Map<String, dynamic>? _settings;
   List<dynamic> _history = [];
   bool _loadingHistory = false;
-  bool _submitting = false;
+  final bool _submitting = false;
   bool _uploading = false;
   Map<String, dynamic> _formData = {};
 
@@ -752,7 +752,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
       child: ListView.separated(
         padding: const EdgeInsets.all(24),
         itemCount: bvnHistory.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, index) => _buildHistoryCard(bvnHistory[index]),
       ),
     );

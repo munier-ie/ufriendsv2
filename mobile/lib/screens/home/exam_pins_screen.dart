@@ -357,7 +357,7 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
                           borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
                         ),
                       ),
-                      value: _selectedQuantity,
+                      initialValue: _selectedQuantity,
                       items: _quantities.map((q) {
                         return DropdownMenuItem(
                           value: q,

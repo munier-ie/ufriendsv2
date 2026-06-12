@@ -135,7 +135,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                           final res = await ApiService.getTransaction(tx['reference']);
                           if (res['success'] == true) {
                             final fullTx = res['transaction'];
-                            if (fullTx['report'] != null && mounted) {
+                            if (fullTx['report'] != null && context.mounted) {
                               Navigator.pop(context); // close details modal
                               Navigator.push(
                                 context,
@@ -147,10 +147,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                   ),
                                 ),
                               );
-                            } else if (mounted) {
+                            } else if (context.mounted) {
                               AppToast.show(context, message: 'Slip not found', type: ToastType.error);
                             }
-                          } else if (mounted) {
+                          } else if (context.mounted) {
                             AppToast.show(context, message: res['error'] ?? 'Failed to fetch slip', type: ToastType.error);
                           }
                         },
@@ -285,7 +285,12 @@ class _ActivityScreenState extends State<ActivityScreen> {
                             final file = await File('${tempDir.path}/receipt_${tx['reference'] ?? 'tx'}.png').create();
                             await file.writeAsBytes(pngBytes);
 
-                            await Share.shareXFiles([XFile(file.path)], text: 'Ufriends Receipt');
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                files: [XFile(file.path)],
+                                text: 'Ufriends Receipt',
+                              ),
+                            );
                           } catch (e) {
                             if (context.mounted) {
                               AppToast.show(context, message: 'Failed to share image: $e', type: ToastType.error);

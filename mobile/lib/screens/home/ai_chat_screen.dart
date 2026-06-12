@@ -1,8 +1,6 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_service.dart';
-import '../../core/custom_widgets.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});

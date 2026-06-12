@@ -75,12 +75,12 @@ class _PricingScreenState extends State<PricingScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.85),
+                color: Colors.white.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withOpacity(0.6), width: 1.5),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -152,7 +152,7 @@ class _PricingScreenState extends State<PricingScreen> {
                         boxShadow: isSelected
                             ? [
                                 BoxShadow(
-                                  color: AppTheme.primaryColor.withOpacity(0.3),
+                                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 )
@@ -186,16 +186,16 @@ class _PricingScreenState extends State<PricingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.05),
+                    color: AppTheme.primaryColor.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: AppTheme.primaryColor.withOpacity(0.1)),
+                    border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.1)),
                   ),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withOpacity(0.2),
+                          color: AppTheme.primaryColor.withValues(alpha: 0.2),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.info_outline, color: AppTheme.primaryColor, size: 24),

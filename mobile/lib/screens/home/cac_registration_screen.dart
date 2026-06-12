@@ -125,8 +125,6 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
       return;
     }
 
-    final price = _getCurrentPrice();
-
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -575,7 +573,7 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
       child: ListView.separated(
         padding: const EdgeInsets.all(24),
         itemCount: _history.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 16),
+        separatorBuilder: (_, _) => const SizedBox(height: 16),
         itemBuilder: (context, index) {
           final item = _history[index];
           final status = item['status'] ?? 0;

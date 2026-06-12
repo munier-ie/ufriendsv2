@@ -335,7 +335,7 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
             child: Container(
               padding: const EdgeInsets.all(16),
               color: Colors.white,
-              child: Image.network(qrCodeDataUrl, height: 150, width: 150, errorBuilder: (_,__,___) => const Icon(Icons.qr_code, size: 100)),
+              child: Image.network(qrCodeDataUrl, height: 150, width: 150, errorBuilder: (_,_,_) => const Icon(Icons.qr_code, size: 100)),
             ),
           ),
           const SizedBox(height: 16),

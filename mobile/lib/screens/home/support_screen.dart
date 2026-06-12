@@ -125,7 +125,7 @@ class _SupportScreenState extends State<SupportScreen> {
                         message: messageController.text.trim(),
                       );
                       
-                      if (!mounted) return;
+                      if (!context.mounted) return;
                       
                       if (result['success']) {
                         Navigator.pop(context);

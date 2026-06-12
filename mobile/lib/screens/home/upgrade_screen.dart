@@ -15,7 +15,7 @@ class UpgradeScreen extends StatefulWidget {
 
 class _UpgradeScreenState extends State<UpgradeScreen> {
   bool _loading = true;
-  bool _upgrading = false;
+  final bool _upgrading = false;
   Map<String, dynamic>? _user;
   List<dynamic> _tiers = [];
 

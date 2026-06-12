@@ -238,7 +238,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (await canLaunchUrl(whatsappUrl)) {
               await launchUrl(whatsappUrl, mode: LaunchMode.externalApplication);
             } else {
-              if (mounted) {
+              if (context.mounted) {
                 AppToast.show(context, message: 'Could not launch WhatsApp', type: ToastType.error);
               }
             }
