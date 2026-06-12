@@ -31,28 +31,28 @@ function sanitizeAlrahuzError(message) {
     return message;
 }
 
-const CABLE_MAP = {
-    'gotv': 1,
-    'dstv': 2,
-    'startimes': 3,
-    'startime': 3
-};
+const CABLE_MAP = new Map([
+    ['gotv', 1],
+    ['dstv', 2],
+    ['startimes', 3],
+    ['startime', 3]
+]);
 
-const DISCO_MAP = {
-    'ikeja-electric': 1,
-    'eko-electric': 2,
-    'kano-electric': 3,
-    'port-harcourt-electric': 4,
-    'ph-electric': 4,
-    'jos-electric': 5,
-    'ibadan-electric': 6,
-    'kaduna-electric': 7,
-    'abuja-electric': 8,
-    'enugu-electric': 9,
-    'yola-electric': 10,
-    'benin-electric': 11,
-    'aedc-electric': 8
-};
+const DISCO_MAP = new Map([
+    ['ikeja-electric', 1],
+    ['eko-electric', 2],
+    ['kano-electric', 3],
+    ['port-harcourt-electric', 4],
+    ['ph-electric', 4],
+    ['jos-electric', 5],
+    ['ibadan-electric', 6],
+    ['kaduna-electric', 7],
+    ['abuja-electric', 8],
+    ['enugu-electric', 9],
+    ['yola-electric', 10],
+    ['benin-electric', 11],
+    ['aedc-electric', 8]
+]);
 
 async function purchaseAirtime(details, config) {
     try {
@@ -176,7 +176,7 @@ async function verifyTV(details, config) {
         const { cableId, number } = details;
         const { baseUrl, apiKey } = config;
 
-        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || cableId;
+        const mappedCable = CABLE_MAP.get(String(cableId).toLowerCase()) || cableId;
 
         // https://alrahuzdata.com.ng/api/validateiuc/?smart_card_number=iuc&&cablename=id
         const url = `${getApiBase(baseUrl)}/validateiuc/?smart_card_number=${number}&cablename=${mappedCable}`;
@@ -222,7 +222,7 @@ async function purchaseTV(details, config) {
         const { cableId, planId, number } = details;
         const { baseUrl, apiKey } = config;
 
-        const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || cableId;
+        const mappedCable = CABLE_MAP.get(String(cableId).toLowerCase()) || cableId;
 
         // https://alrahuzdata.com.ng/api/cablesub/
         const url = `${getApiBase(baseUrl)}/cablesub/`;
@@ -281,7 +281,7 @@ async function verifyElectricity(details, config) {
         const { discoId, number, type } = details;
         const { baseUrl, apiKey } = config;
 
-        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || discoId;
+        const mappedDisco = DISCO_MAP.get(String(discoId).toLowerCase()) || discoId;
 
         let mType = type || 'prepaid';
         if (mType.toLowerCase() === 'prepaid') mType = '1';
@@ -331,7 +331,7 @@ async function purchaseElectricity(details, config) {
         const { discoId, number, type, amount } = details;
         const { baseUrl, apiKey } = config;
 
-        const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || discoId;
+        const mappedDisco = DISCO_MAP.get(String(discoId).toLowerCase()) || discoId;
 
         let mType = type || 'prepaid';
         if (mType.toLowerCase() === 'prepaid') mType = '1';
@@ -454,8 +454,8 @@ async function checkBalance(config) {
         });
 
         const result = response.data;
-        // Depending on response structure, could be result.user.balance or result.balance
-        const balance = result.user?.balance || result.Balance || result.balance || 0;
+        // Depending on response structure, could be result.user.Account_Balance or wallet_balance
+        const balance = result.user?.Account_Balance || result.user?.wallet_balance || result.user?.balance || result.Balance || result.balance || 0;
 
         return {
             success: true,
@@ -570,11 +570,11 @@ async function fetchCablePlans(config) {
             return { success: false, message: 'cableplan property missing from Alrahuz response' };
         }
 
-        const SERVICE_MAP = { DSTV: 'dstv', GOTV: 'gotv', STARTIMES: 'startimes', STARTIME: 'startimes' };
+        const SERVICE_MAP = new Map([['DSTV', 'dstv'], ['GOTV', 'gotv'], ['STARTIMES', 'startimes'], ['STARTIME', 'startimes']]);
         const plans = [];
 
         for (const plan of res.data.cableplan) {
-            const providerSlug = SERVICE_MAP[String(plan.cable || '').toUpperCase()];
+            const providerSlug = SERVICE_MAP.get(String(plan.cable || '').toUpperCase());
             if (!providerSlug) continue;
             const apiPrice = parseFloat(plan.plan_amount ?? 0);
             if (isNaN(apiPrice) || apiPrice <= 0) continue;
