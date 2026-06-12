@@ -57,8 +57,8 @@ class _SupportScreenState extends State<SupportScreen> {
                 top: 24,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
               ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: context.bottomSheetBg,
                 borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
               ),
               child: Column(
@@ -89,7 +89,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     decoration: InputDecoration(
                       hintText: 'Briefly summarize your issue',
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: context.subtleBg,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
                   ),
@@ -104,7 +104,7 @@ class _SupportScreenState extends State<SupportScreen> {
                     decoration: InputDecoration(
                       hintText: 'Please provide details about your issue...',
                       filled: true,
-                      fillColor: Colors.grey.shade50,
+                      fillColor: context.subtleBg,
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     ),
                   ),
@@ -149,7 +149,7 @@ class _SupportScreenState extends State<SupportScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: context.subtleBg,
       body: SafeArea(
         child: Column(
           children: [
@@ -158,12 +158,12 @@ class _SupportScreenState extends State<SupportScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -180,9 +180,9 @@ class _SupportScreenState extends State<SupportScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Support Center',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -223,7 +223,7 @@ class _SupportScreenState extends State<SupportScreen> {
                             return Container(
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.cardColor,
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 2)),
@@ -270,7 +270,7 @@ class _SupportScreenState extends State<SupportScreen> {
                                     ],
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(dateStr, style: TextStyle(color: Colors.grey.shade400, fontSize: 11)),
+                                  Text(dateStr, style: TextStyle(color: context.iconMuted, fontSize: 11)),
                                   const SizedBox(height: 12),
                                   Text(
                                     msg['message'] ?? '',

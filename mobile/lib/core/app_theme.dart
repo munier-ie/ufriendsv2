@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../theme_state.dart';
 
 class AppTheme {
   static const Color primaryColor = Color(0xFF004687);
@@ -131,4 +133,56 @@ class AppTheme {
       ),
     );
   }
+}
+
+/// Extension on [BuildContext] providing semantic, dark-mode-aware colors.
+/// Use these getters in all screen widgets instead of hardcoded Colors.white/black87/grey.
+extension AppThemeContext on BuildContext {
+  ThemeState get _ts => Provider.of<ThemeState>(this, listen: true);
+  bool get isDark => _ts.isDarkMode;
+
+  // ── Surfaces ──────────────────────────────────────────────────────────────
+  Color get cardColor => isDark ? const Color(0xFF1E1E1E) : Colors.white;
+  Color get scaffoldBg => isDark ? const Color(0xFF121212) : const Color(0xFFF3F4F6);
+  Color get surfaceColor => isDark ? const Color(0xFF2A2A2A) : Colors.white;
+  Color get bottomSheetBg => isDark ? const Color(0xFF1E1E1E) : Colors.white;
+  Color get inputFillColor => isDark ? const Color(0xFF2A2A2A) : Colors.white;
+
+  // ── Text ───────────────────────────────────────────────────────────────────
+  Color get textPrimary => isDark ? Colors.white : Colors.black87;
+  Color get textSecondary => isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+  Color get textMuted => isDark ? Colors.grey.shade500 : Colors.grey.shade500;
+  Color get textHint => isDark ? Colors.grey.shade600 : Colors.grey.shade400;
+
+  // ── Borders & dividers ─────────────────────────────────────────────────────
+  Color get borderColor => isDark ? Colors.grey.shade800 : Colors.grey.shade200;
+  Color get dividerColor => isDark ? Colors.grey.shade800 : Colors.grey.shade100;
+  Color get subtleBg => isDark ? Colors.grey.shade900 : Colors.grey.shade50;
+
+  // ── Glass / frosted elements (top bar, nav bar) ────────────────────────────
+  Color get glassBg => isDark
+      ? const Color(0xFF3E3E3E).withValues(alpha: 0.60)
+      : Colors.white.withValues(alpha: 0.90);
+  Color get glassBorder => isDark
+      ? Colors.white.withValues(alpha: 0.10)
+      : Colors.white.withValues(alpha: 0.60);
+  Color get glassShadow => isDark
+      ? Colors.black.withValues(alpha: 0.30)
+      : Colors.black.withValues(alpha: 0.10);
+
+  // ── Card Gradients ─────────────────────────────────────────────────────────
+  LinearGradient get cardGradient => isDark
+      ? const LinearGradient(
+          colors: [
+            Color(0xFF1F2937), // Deep slate grey/blue
+            Color(0xFF111827), // Almost black
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
+      : AppTheme.primaryGradient;
+
+  // ── Icon colors ────────────────────────────────────────────────────────────
+  Color get iconDefault => isDark ? Colors.grey.shade400 : Colors.grey.shade600;
+  Color get iconMuted => isDark ? Colors.grey.shade600 : Colors.grey.shade400;
 }

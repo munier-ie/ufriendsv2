@@ -66,7 +66,7 @@ class _PricingScreenState extends State<PricingScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -75,12 +75,12 @@ class _PricingScreenState extends State<PricingScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -97,9 +97,9 @@ class _PricingScreenState extends State<PricingScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Service Pricing',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -120,7 +120,7 @@ class _PricingScreenState extends State<PricingScreen> {
                   hintText: 'Search network or service...',
                   prefixIcon: const Icon(Icons.search, color: Colors.grey),
                   filled: true,
-                  fillColor: Colors.grey.shade50,
+                  fillColor: context.subtleBg,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
@@ -267,7 +267,7 @@ class _PricingScreenState extends State<PricingScreen> {
                                       const SizedBox(height: 2),
                                       Text(
                                         (s['type'] ?? '').toString().replaceAll('_', ' ').toUpperCase(),
-                                        style: TextStyle(fontSize: 9, color: Colors.grey.shade600, fontWeight: FontWeight.w900),
+                                        style: TextStyle(fontSize: 9, color: context.textSecondary, fontWeight: FontWeight.w900),
                                       ),
                                     ],
                                   ),

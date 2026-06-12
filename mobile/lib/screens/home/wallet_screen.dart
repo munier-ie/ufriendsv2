@@ -84,11 +84,11 @@ class _WalletScreenState extends State<WalletScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: AppTheme.primaryGradient,
+        gradient: context.cardGradient,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.3),
+            color: context.isDark ? Colors.black.withValues(alpha: 0.4) : AppTheme.primaryColor.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -186,9 +186,9 @@ class _WalletScreenState extends State<WalletScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Virtual Accounts',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.textPrimary),
         ),
         const SizedBox(height: 12),
         if (_accounts.isEmpty)
@@ -216,10 +216,10 @@ class _WalletScreenState extends State<WalletScreen> {
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Verify your BVN or NIN to generate a dedicated virtual account for funding your wallet.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black54, fontSize: 13),
+            style: TextStyle(color: context.textSecondary, fontSize: 13),
           ),
           const SizedBox(height: 16),
           ElevatedButton(
@@ -241,9 +241,9 @@ class _WalletScreenState extends State<WalletScreen> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.dividerColor),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
         ],
@@ -277,7 +277,7 @@ class _WalletScreenState extends State<WalletScreen> {
           const SizedBox(height: 4),
           Text(
             acc['accountName'] ?? 'Ufriends User',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            style: TextStyle(color: context.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -288,22 +288,22 @@ class _WalletScreenState extends State<WalletScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: context.subtleBg,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '💡 How to Fund',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.textPrimary),
           ),
           SizedBox(height: 8),
           Text(
             '1. Transfer any amount to your virtual account number.\n'
             '2. Your wallet will be credited automatically.\n'
             '3. No fees, instant confirmation.',
-            style: TextStyle(color: Colors.black54, fontSize: 12, height: 1.5),
+            style: TextStyle(color: context.textSecondary, fontSize: 12, height: 1.5),
           ),
         ],
       ),

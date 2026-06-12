@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../../core/app_theme.dart';
 import '../../../core/api_service.dart';
 import '../../../core/chart_utils.dart';
 import '../../../core/custom_widgets.dart';
@@ -84,11 +85,11 @@ class _SpendingChartState extends State<SpendingChart> {
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: context.glassShadow,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -119,7 +120,7 @@ class _SpendingChartState extends State<SpendingChart> {
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       margin: const EdgeInsets.only(left: 4),
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFF1E90FF) : Colors.grey.shade100,
+                        color: isSelected ? const Color(0xFF1E90FF) : context.subtleBg,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -127,7 +128,7 @@ class _SpendingChartState extends State<SpendingChart> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: isSelected ? Colors.white : Colors.grey.shade600,
+                          color: isSelected ? Colors.white : context.textSecondary,
                         ),
                       ),
                     ),

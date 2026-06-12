@@ -128,15 +128,11 @@ class _DashboardTabState extends State<DashboardTab> {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppTheme.primaryColor, AppTheme.secondaryColor],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        gradient: context.cardGradient,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: AppTheme.primaryColor.withValues(alpha: 0.25),
+            color: context.isDark ? Colors.black.withValues(alpha: 0.4) : AppTheme.primaryColor.withValues(alpha: 0.25),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -410,7 +406,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: _currentPage > 0 ? () => setState(() => _currentPage--) : null,
                   child: Icon(
                     Icons.chevron_left_rounded,
-                    color: _currentPage > 0 ? Colors.black87 : Colors.grey[400],
+                    color: _currentPage > 0 ? context.textPrimary : context.iconMuted,
                     size: 24,
                   ),
                 ),
@@ -460,7 +456,7 @@ class _DashboardTabState extends State<DashboardTab> {
                   onTap: _currentPage < ((widget.recentTransactions.length / 2).ceil() - 1) ? () => setState(() => _currentPage++) : null,
                   child: Icon(
                     Icons.chevron_right_rounded,
-                    color: _currentPage < ((widget.recentTransactions.length / 2).ceil() - 1) ? Colors.black87 : Colors.grey[400],
+                    color: _currentPage < ((widget.recentTransactions.length / 2).ceil() - 1) ? context.textPrimary : context.iconMuted,
                     size: 24,
                   ),
                 ),
@@ -476,9 +472,9 @@ class _DashboardTabState extends State<DashboardTab> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.dividerColor),
       ),
       child: Row(
         children: [
@@ -497,7 +493,7 @@ class _DashboardTabState extends State<DashboardTab> {
               children: [
                 Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 const SizedBox(height: 4),
-                Text(desc, style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Text(desc, style: TextStyle(color: context.textSecondary, fontSize: 13)),
               ],
             ),
           ),
@@ -540,7 +536,7 @@ class _DashboardTabState extends State<DashboardTab> {
           child: Text(
             '${index + 1}',
             style: TextStyle(
-              color: isActive ? Colors.white : Colors.black87,
+              color: isActive ? Colors.white : context.textPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -559,10 +555,10 @@ class _DashboardTabState extends State<DashboardTab> {
         color: Colors.transparent,
         shape: BoxShape.circle,
       ),
-      child: const Center(
+      child: Center(
         child: Text(
           '...',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold),
         ),
       ),
     );

@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: context.surfaceColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               Text(
                 'Log in to continue using Ufriends.',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                style: TextStyle(color: context.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 60),
               
@@ -167,7 +167,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Don\'t have an account? ', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                  Text('Don\'t have an account? ', style: TextStyle(color: context.textSecondary, fontSize: 16)),
                   GestureDetector(
                     onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const SignupScreen())),
                     child: const Text(

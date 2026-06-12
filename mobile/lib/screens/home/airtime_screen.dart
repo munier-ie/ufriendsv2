@@ -143,8 +143,8 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                 top: 24,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24, // Handle keyboard
               ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: context.bottomSheetBg,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
@@ -302,11 +302,11 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+          Text(label, style: TextStyle(color: context.textMuted, fontSize: 12)),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: context.textPrimary),
           ),
           const Divider(height: 16, color: Color(0xFFF5F5F5)),
         ],
@@ -325,7 +325,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -334,12 +334,12 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -356,9 +356,9 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Buy Airtime',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48), // To balance the back button
@@ -385,13 +385,13 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               const SizedBox(height: 8),
               Text(
                 'Recharge your phone or send airtime to others.',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                style: TextStyle(color: context.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 40),
               
-              const Text(
+              Text(
                 'Select Network',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
               ),
               const SizedBox(height: 12),
               Row(
@@ -404,10 +404,10 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                       width: 65,
                       height: 65,
                       decoration: BoxDecoration(
-                        color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
+                        color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : context.subtleBg,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+                          color: isSelected ? AppTheme.primaryColor : context.borderColor,
                           width: isSelected ? 1.5 : 1,
                         ),
                       ),
@@ -430,7 +430,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                              color: isSelected ? AppTheme.primaryColor : context.textPrimary,
                             ),
                           ),
                         ],
@@ -444,9 +444,9 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Phone Number',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
                   ),
                   GestureDetector(
                     onTap: _selectContact,
@@ -507,9 +507,9 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
               ],
               const SizedBox(height: 32),
               
-              const Text(
+              Text(
                 'Amount',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
               ),
               const SizedBox(height: 8),
               TextField(

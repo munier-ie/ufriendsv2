@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
@@ -149,91 +150,91 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Container(
-            height: 180,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF004687), Color(0xFF1E90FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      backgroundColor: context.cardColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Floating TopBar
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              height: 56,
+              decoration: BoxDecoration(
+                color: context.glassBg,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: context.glassBorder, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.glassShadow,
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
+                      const Spacer(),
+                      Text(
                         'NIN Services',
-                        style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
+                      const Spacer(),
+                      const SizedBox(width: 48), // To balance the back button
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: Container(
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(23),
-                    ),
-                    child: TabBar(
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Tab Bar
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                height: 46,
+                decoration: BoxDecoration(
+                  color: context.dividerColor,
+                  borderRadius: BorderRadius.circular(23),
+                ),
+                child: TabBar(
+                  controller: _tabController,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  indicator: BoxDecoration(
+                    color: AppTheme.secondaryColor,
+                    borderRadius: BorderRadius.circular(23),
+                  ),
+                  labelColor: Colors.white,
+                  unselectedLabelColor: Colors.black54,
+                  labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                  tabs: const [
+                    Tab(text: 'Modification'),
+                    Tab(text: 'Validation'),
+                    Tab(text: 'History'),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: _loadingSettings
+                  ? const Center(child: CircularProgressIndicator())
+                  : TabBarView(
                       controller: _tabController,
-                      indicatorSize: TabBarIndicatorSize.tab,
-                      indicator: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(23),
-                        boxShadow: [
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))
-                        ],
-                      ),
-                      labelColor: AppTheme.primaryColor,
-                      unselectedLabelColor: Colors.white,
-                      labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                      tabs: const [
-                        Tab(text: 'Modification'),
-                        Tab(text: 'Validation'),
-                        Tab(text: 'History'),
+                      children: [
+                        _buildModificationTab(),
+                        _buildValidationTab(),
+                        _buildHistoryTab(),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: Container(
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                    ),
-                    child: _loadingSettings
-                        ? const Center(child: CircularProgressIndicator())
-                        : TabBarView(
-                            controller: _tabController,
-                            children: [
-                              _buildModificationTab(),
-                              _buildValidationTab(),
-                              _buildHistoryTab(),
-                            ],
-                          ),
-                  ),
-                ),
-              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -494,7 +495,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
             const SizedBox(height: 16),
             Text('No Requests Yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
             const SizedBox(height: 8),
-            Text('Your NIN service requests will appear here.', style: TextStyle(color: Colors.grey.shade500)),
+            Text('Your NIN service requests will appear here.', style: TextStyle(color: context.textMuted)),
           ],
         ),
       );
@@ -523,9 +524,9 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: context.borderColor),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Column(
@@ -538,16 +539,16 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(req['transRef'] ?? '', style: TextStyle(fontSize: 11, color: Colors.grey.shade400)),
+                      Text(req['transRef'] ?? '', style: TextStyle(fontSize: 11, color: context.iconMuted)),
                       const SizedBox(height: 2),
                       Text(
                         _serviceDisplay[req['serviceType']] ?? req['serviceType'] ?? '',
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       if (req['subType'] != null)
                         Text(
                           (req['subType'] as String).replaceAll('_', ' '),
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                          style: TextStyle(fontSize: 12, color: context.textSecondary),
                         ),
                     ],
                   ),
@@ -573,7 +574,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
             const SizedBox(height: 8),
             Text(
               req['createdAt'] != null ? DateTime.parse(req['createdAt']).toLocal().toString().substring(0, 16) : '',
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade400),
+              style: TextStyle(fontSize: 11, color: context.iconMuted),
             ),
             if (req['adminNote'] != null) ...[
               const SizedBox(height: 6),
@@ -613,8 +614,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
         maxChildSize: 0.85,
         minChildSize: 0.4,
         builder: (_, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.cardColor,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: ListView(
@@ -635,14 +636,14 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
               if (req['adminNote'] != null) _detailRow('Admin Note', req['adminNote']),
               if (detailsMap.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                const Text('Submitted Data', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                Text('Submitted Data', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: context.subtleBg,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: context.borderColor),
                   ),
                   child: Column(
                     children: detailsMap.entries
@@ -669,7 +670,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+          Text(label, style: TextStyle(fontSize: 13, color: context.textSecondary)),
           const SizedBox(width: 16),
           Expanded(child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), textAlign: TextAlign.right, maxLines: 10, overflow: TextOverflow.ellipsis)),
         ],
@@ -698,11 +699,11 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
             child: Icon(Icons.shield_rounded, size: 32, color: Colors.blue.shade600),
           ),
           const SizedBox(height: 16),
-          const Text('NIN Modification Agreement', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          Text('NIN Modification Agreement', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text(
             'Read the following terms carefully before proceeding.',
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
+            style: TextStyle(color: context.textSecondary, fontSize: 13),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 20),
@@ -777,11 +778,11 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.construction_rounded, size: 64, color: Colors.grey.shade400),
+          Icon(Icons.construction_rounded, size: 64, color: context.iconMuted),
           const SizedBox(height: 16),
           Text('Service Unavailable', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
           const SizedBox(height: 8),
-          Text('This service is currently disabled.', style: TextStyle(color: Colors.grey.shade600)),
+          Text('This service is currently disabled.', style: TextStyle(color: context.textSecondary)),
         ],
       ),
     );
@@ -791,7 +792,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
 
   Widget _buildSectionLabel(String text) => Text(
     text,
-    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87),
+    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
   );
 
   Widget _buildTextInput({
@@ -805,15 +806,10 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
       keyboardType: keyboardType,
       maxLength: maxLength,
       onChanged: (v) => _formData[key] = v,
+      style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
       decoration: InputDecoration(
         hintText: hint,
         counterText: '',
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
     );
   }
@@ -835,8 +831,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           isScrollControlled: true,
           backgroundColor: Colors.transparent,
           builder: (ctx) => Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
+            decoration: BoxDecoration(
+              color: context.bottomSheetBg,
               borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
             ),
             child: SafeArea(
@@ -872,13 +868,9 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
       child: AbsorbPointer(
         child: TextField(
           controller: TextEditingController(text: label),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.grey.shade50,
-            suffixIcon: const Icon(Icons.arrow_drop_down),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+          decoration: const InputDecoration(
+            suffixIcon: Icon(Icons.arrow_drop_down),
           ),
         ),
       ),

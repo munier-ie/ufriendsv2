@@ -135,7 +135,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: context.surfaceColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -183,7 +183,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         Text(
           'Enter your email address to receive a password reset code.',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+          style: TextStyle(color: context.textSecondary, fontSize: 16),
         ),
         const SizedBox(height: 60),
         TextField(
@@ -221,7 +221,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         Text(
           'We have sent a 6-digit code to ${_emailController.text}.',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+          style: TextStyle(color: context.textSecondary, fontSize: 16),
         ),
         const SizedBox(height: 60),
         Row(
@@ -292,7 +292,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         const SizedBox(height: 16),
         Text(
           'Please choose a strong password for your account.',
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+          style: TextStyle(color: context.textSecondary, fontSize: 16),
         ),
         const SizedBox(height: 60),
         TextField(
@@ -358,7 +358,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           Text(
             'Your password has been reset successfully.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+            style: TextStyle(color: context.textSecondary, fontSize: 16),
           ),
           const SizedBox(height: 60),
           GradientButton(

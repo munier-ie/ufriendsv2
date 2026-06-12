@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeState extends ChangeNotifier {
   Color primaryColor = const Color(0xFF004687);
@@ -35,7 +36,18 @@ class ThemeState extends ChangeNotifier {
 
   bool isDarkMode = false;
 
-  void toggleTheme() {
+  /// Load dark mode preference from SharedPreferences on startup.
+  Future<void> init() async {
+    final prefs = await SharedPreferences.getInstance();
+    isDarkMode = prefs.getBool('isDarkMode') ?? false;
+    if (isDarkMode) {
+      backgroundColor = const Color(0xFF121212);
+      surfaceColor = const Color(0xFF1E1E1E);
+    }
+    notifyListeners();
+  }
+
+  void toggleTheme() async {
     isDarkMode = !isDarkMode;
     if (isDarkMode) {
       backgroundColor = const Color(0xFF121212);
@@ -45,6 +57,9 @@ class ThemeState extends ChangeNotifier {
       surfaceColor = const Color(0xFFFFFFFF);
     }
     notifyListeners();
+    // Persist the preference
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', isDarkMode);
   }
 
   void updatePrimaryColor(Color color) {

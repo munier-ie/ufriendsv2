@@ -91,7 +91,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
     final link = 'https://ufriends.com/register?referral=$referralCode';
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -100,12 +100,12 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -122,9 +122,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Referrals',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -155,9 +155,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: context.cardColor,
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: Colors.grey.shade100),
+                                    border: Border.all(color: context.dividerColor),
                                     boxShadow: [
                                       BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
                                     ],
@@ -183,9 +183,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color: context.cardColor,
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: Colors.grey.shade100),
+                                    border: Border.all(color: context.dividerColor),
                                     boxShadow: [
                                       BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
                                     ],
@@ -215,9 +215,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: context.cardColor,
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: Colors.grey.shade100),
+                              border: Border.all(color: context.dividerColor),
                               boxShadow: [
                                 BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))
                               ],
@@ -232,8 +232,8 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                     Expanded(
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                                        child: Text(referralCode, style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: Colors.black87)),
+                                        decoration: BoxDecoration(color: context.subtleBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: context.borderColor)),
+                                        child: Text(referralCode, style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: context.textPrimary)),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -257,8 +257,8 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                     Expanded(
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        decoration: BoxDecoration(color: Colors.grey.shade50, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
-                                        child: Text(link, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.black87, fontSize: 13)),
+                                        decoration: BoxDecoration(color: context.subtleBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: context.borderColor)),
+                                        child: Text(link, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: context.textPrimary, fontSize: 13)),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
@@ -285,9 +285,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: context.cardColor,
                               borderRadius: BorderRadius.circular(24),
-                              border: Border.all(color: Colors.grey.shade100),
+                              border: Border.all(color: context.dividerColor),
                               boxShadow: [
                                 BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))
                               ],
@@ -303,7 +303,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                                   decoration: InputDecoration(
                                     hintText: 'Leave empty to withdraw all',
                                     filled: true,
-                                    fillColor: Colors.grey.shade50,
+                                    fillColor: context.subtleBg,
                                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                                   ),
                                 ),
@@ -363,9 +363,9 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                           // Terms
                           Container(
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: context.cardColor,
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.grey.shade200),
+                              border: Border.all(color: context.borderColor),
                             ),
                             child: Theme(
                               data: Theme.of(context).copyWith(dividerColor: Colors.transparent),

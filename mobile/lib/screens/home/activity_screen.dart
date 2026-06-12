@@ -93,8 +93,8 @@ class _ActivityScreenState extends State<ActivityScreen> {
       builder: (context) {
         return Container(
           padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.bottomSheetBg,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -183,7 +183,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 14)),
+          Text(label, style: TextStyle(color: context.textSecondary, fontSize: 14)),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
@@ -208,7 +208,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.cardColor,
               borderRadius: BorderRadius.circular(24),
             ),
             child: Column(
@@ -229,13 +229,13 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         const SizedBox(height: 4),
                         Text(
                           'Transaction Receipt',
-                          style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                          style: TextStyle(fontSize: 14, color: context.textSecondary),
                         ),
                         const SizedBox(height: 24),
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
+                            color: context.subtleBg,
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -315,7 +315,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+          Text(label, style: TextStyle(color: context.textSecondary, fontSize: 12)),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -341,7 +341,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E90FF) : Colors.grey[200],
+          color: isSelected ? const Color(0xFF1E90FF) : (context.isDark ? Colors.grey.shade800 : Colors.grey[200]),
           borderRadius: BorderRadius.circular(20),
           boxShadow: isSelected ? [
             BoxShadow(
@@ -356,7 +356,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black87,
+              color: isSelected ? Colors.white : (context.isDark ? Colors.grey.shade300 : Colors.black87),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 14,
             ),
@@ -430,7 +430,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   children: [
                     Icon(Icons.history_rounded, size: 64, color: Colors.grey.shade300),
                     const SizedBox(height: 16),
-                    Text('No transactions yet', style: TextStyle(color: Colors.grey.shade500)),
+                    Text('No transactions yet', style: TextStyle(color: context.textMuted)),
                   ],
                 ),
               )
@@ -462,7 +462,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
@@ -500,12 +500,12 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     tx['description'] ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    style: TextStyle(color: context.textSecondary, fontSize: 12),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     formatDate(tx['date']),
-                    style: TextStyle(color: Colors.grey.shade400, fontSize: 10),
+                    style: TextStyle(color: context.iconMuted, fontSize: 10),
                   ),
                 ],
               ),

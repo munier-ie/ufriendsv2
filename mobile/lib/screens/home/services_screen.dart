@@ -155,12 +155,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  const Text(
+                  Text(
                     'Ufriends Services',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
-                      color: Colors.black87,
+                      color: context.textPrimary,
                       letterSpacing: -1,
                     ),
                   ),
@@ -168,7 +168,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                   Text(
                     'Choose a service to continue',
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: context.textSecondary,
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -206,12 +206,12 @@ class _ServicesScreenState extends State<ServicesScreen> {
   Widget _buildServiceCard(Map<String, dynamic> cat, bool isEven) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(32),
         gradient: LinearGradient(
           colors: [
-            Colors.white,
-            cat['color'].withValues(alpha: 0.05),
+            context.cardColor,
+            cat['color'].withValues(alpha: context.isDark ? 0.15 : 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
@@ -223,7 +223,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
             offset: const Offset(0, 10),
           ),
         ],
-        border: Border.all(color: Colors.grey.shade100, width: 1.5),
+        border: Border.all(color: context.dividerColor, width: 1.5),
       ),
       child: Material(
         color: Colors.transparent,
@@ -287,10 +287,10 @@ class _ServicesScreenState extends State<ServicesScreen> {
                 const Spacer(),
                 Text(
                   cat['name'],
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: context.textPrimary,
                     letterSpacing: -0.5,
                   ),
                 ),
@@ -301,7 +301,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.grey.shade600,
+                    color: context.textSecondary,
                     height: 1.4,
                   ),
                 ),

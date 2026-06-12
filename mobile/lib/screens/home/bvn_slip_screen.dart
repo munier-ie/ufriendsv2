@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
@@ -64,7 +65,7 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
   void _showSamplePreview(String assetPath, String label) {
     showDialog(
       context: context,
-      barrierColor: Colors.black87,
+      barrierColor: context.textPrimary,
       builder: (_) => SlipSamplePreviewDialog(assetPath: assetPath, label: label),
     );
   }
@@ -76,8 +77,8 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.bottomSheetBg,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -201,128 +202,144 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          Container(
-            height: 240,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF004687), Color(0xFF1E90FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      backgroundColor: context.cardColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Floating TopBar
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              height: 56,
+              decoration: BoxDecoration(
+                color: context.glassBg,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: context.glassBorder, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.glassShadow,
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // App bar
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
-                      const Expanded(
-                        child: Text(
-                          'BVN Slip Service',
-                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
+                      const Spacer(),
+                      Text(
+                        'BVN Slip Service',
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
+                      const Spacer(),
+                      const SizedBox(width: 48), // To balance the back button
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    'Verify your BVN and generate a premium bank verification slip instantly.',
-                    style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // ── BVN Input
-                        _sectionLabel('11-Digit BVN'),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _controller,
-                          keyboardType: TextInputType.number,
-                          maxLength: 11,
-                          decoration: _inputDecoration('e.g. 22312345678'),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // ── Slip type selector
-                        _sectionLabel('Select Slip Type'),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: _showSlipTypePicker,
-                          child: AbsorbPointer(
-                            child: TextField(
-                              controller: TextEditingController(
-                                text: _slipType == null ? '' : _slipOptions.firstWhere((o) => o['key'] == _slipType)['label']
-                              ),
-                              decoration: _inputDecoration('Select a slip type').copyWith(
-                                suffixIcon: const Icon(Icons.arrow_drop_down),
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        if (_slipType != null) ...[
-                          const SizedBox(height: 20),
-
-                          // Price summary
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Service Fee',
-                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                                Text(
-                                  '₦${formatCurrency(_getPrice(_slipType!))}',
-                                  style: const TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppTheme.primaryColor),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 16),
-
-                        GradientButton(
-                          text: 'Verify & Generate BVN Slip',
-                          icon: Icons.verified_rounded,
-                          onPressed: _loading ? () {} : _onSubmit,
-                          loading: _loading,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    Text(
+                      'BVN Slip Service',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Verify your BVN and generate a premium bank verification slip instantly.',
+                      style: TextStyle(color: context.textSecondary, fontSize: 16),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // ── BVN Input
+                    _sectionLabel('11-Digit BVN'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _controller,
+                      keyboardType: TextInputType.number,
+                      maxLength: 11,
+                      style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+                      decoration: _inputDecoration('e.g. 22312345678'),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Slip type selector
+                    _sectionLabel('Select Slip Type'),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _showSlipTypePicker,
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: _slipType == null ? '' : _slipOptions.firstWhere((o) => o['key'] == _slipType)['label']
+                          ),
+                          style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+                          decoration: _inputDecoration('Select a slip type').copyWith(
+                            suffixIcon: const Icon(Icons.arrow_drop_down),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    if (_slipType != null) ...[
+                      const SizedBox(height: 24),
+
+                      // Price summary
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Service Fee',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                            Text(
+                              '₦${formatCurrency(_getPrice(_slipType!))}',
+                              style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+
+                    GradientButton(
+                      text: 'Verify & Generate BVN Slip',
+                      icon: Icons.verified_rounded,
+                      onPressed: _loading ? () {} : _onSubmit,
+                      loading: _loading,
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -330,26 +347,11 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
   Widget _sectionLabel(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: Text(text,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary)),
       );
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
         counterText: '',
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       );
 }

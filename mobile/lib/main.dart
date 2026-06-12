@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/auth/splash_screen.dart';
@@ -18,12 +17,6 @@ const String _channelDescription = 'Notifications for transactions and wallet ac
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.dark,
-    statusBarBrightness: Brightness.light,
-  ));
 
   // Create the Android notification channel BEFORE initializing the plugin
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -60,9 +53,13 @@ void main() async {
     },
   );
 
+  // Initialize ThemeState with persisted dark mode preference
+  final themeState = ThemeState();
+  await themeState.init();
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeState(),
+    ChangeNotifierProvider.value(
+      value: themeState,
       child: const UfriendsApp(),
     ),
   );

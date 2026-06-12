@@ -126,8 +126,8 @@ class _CableTvScreenState extends State<CableTvScreen> {
             top: 24,
             bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.bottomSheetBg,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -257,11 +257,11 @@ class _CableTvScreenState extends State<CableTvScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+          Text(label, style: TextStyle(color: context.textMuted, fontSize: 12)),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: context.textPrimary),
           ),
           const Divider(height: 16, color: Color(0xFFF5F5F5)),
         ],
@@ -278,7 +278,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -286,12 +286,12 @@ class _CableTvScreenState extends State<CableTvScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -308,9 +308,9 @@ class _CableTvScreenState extends State<CableTvScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Cable TV',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -337,13 +337,13 @@ class _CableTvScreenState extends State<CableTvScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Renew your DSTV, GOTV & Startimes subscriptions.',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      style: TextStyle(color: context.textSecondary, fontSize: 14),
                     ),
                     const SizedBox(height: 40),
                     
-                    const Text(
+                    Text(
                       'Select Provider',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -356,10 +356,10 @@ class _CableTvScreenState extends State<CableTvScreen> {
                             width: 80,
                             height: 80,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
+                              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : context.subtleBg,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+                                color: isSelected ? AppTheme.primaryColor : context.borderColor,
                                 width: isSelected ? 1.5 : 1,
                               ),
                             ),
@@ -385,9 +385,9 @@ class _CableTvScreenState extends State<CableTvScreen> {
                     
                     if (_selectedProvider != null) ...[
                       const SizedBox(height: 32),
-                      const Text(
+                      Text(
                         'Smart Card / IUC Number',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -445,9 +445,9 @@ class _CableTvScreenState extends State<CableTvScreen> {
                       ),
                       
                       const SizedBox(height: 32),
-                      const Text(
+                      Text(
                         'Select Plan',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                       ),
                       const SizedBox(height: 8),
                       Container(
@@ -455,7 +455,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade300),
                           borderRadius: BorderRadius.circular(16),
-                          color: Colors.grey.shade50,
+                          color: context.subtleBg,
                         ),
                         child: _isLoadingPlans 
                           ? const Padding(padding: EdgeInsets.all(16), child: Center(child: CircularProgressIndicator()))
@@ -497,7 +497,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
                         children: [
                           Text(
                             'Supported Providers',
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: context.textMuted, fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 12),
                           Row(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/custom_widgets.dart';
+import '../../core/app_theme.dart';
 
 class TransactionStatusScreen extends StatelessWidget {
   final bool isSuccess;
@@ -18,7 +19,7 @@ class TransactionStatusScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -63,10 +64,10 @@ class TransactionStatusScreen extends StatelessWidget {
             // Title
             Text(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: context.textPrimary,
               ),
             ),
             
@@ -80,7 +81,7 @@ class TransactionStatusScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey.shade600,
+                  color: context.textSecondary,
                 ),
               ),
             ),
@@ -93,9 +94,9 @@ class TransactionStatusScreen extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 24),
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: context.subtleBg,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: context.borderColor),
                 ),
                 child: Column(
                   children: details!.entries.map((entry) {
@@ -106,14 +107,14 @@ class TransactionStatusScreen extends StatelessWidget {
                         children: [
                           Text(
                             entry.key,
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                            style: TextStyle(color: context.textSecondary, fontSize: 14),
                           ),
                           Text(
                             entry.value,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: Colors.black87,
+                              color: context.textPrimary,
                             ),
                           ),
                         ],

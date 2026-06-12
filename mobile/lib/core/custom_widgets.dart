@@ -107,6 +107,7 @@ class AppToast {
       elevation: 0,
       behavior: SnackBarBehavior.floating,
       backgroundColor: Colors.transparent,
+      margin: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
       content: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
@@ -164,9 +165,9 @@ Future<void> showPermissionDeniedDrawer(BuildContext context) async {
     backgroundColor: Colors.transparent,
     builder: (context) => Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      decoration: BoxDecoration(
+        color: context.bottomSheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -175,22 +176,22 @@ Future<void> showPermissionDeniedDrawer(BuildContext context) async {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: context.borderColor,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 24),
           const Icon(Icons.notifications_off_rounded, size: 48, color: Color(0xFF1E90FF)),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Permission Required',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: context.textPrimary),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Notifications are required for updates. Please enable them in your app settings.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.black54, fontSize: 14),
+            style: TextStyle(color: context.textSecondary, fontSize: 14),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -262,10 +263,10 @@ class PremiumEmptyState extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: context.textPrimary,
               ),
             ),
             const SizedBox(height: 8),

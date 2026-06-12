@@ -1421,4 +1421,20 @@ class ApiService {
       return {'success': false, 'error': 'Network error'};
     }
   }
+
+  static Future<Map<String, dynamic>> fetchPublicSettings() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/admin/config/public-settings'),
+        headers: {'Content-Type': 'application/json'},
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'settings': data['settings']};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to fetch settings'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
 }

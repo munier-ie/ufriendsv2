@@ -74,7 +74,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: context.surfaceColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -100,7 +100,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               const SizedBox(height: 8),
               Text(
                 'Enter the 6-digit code sent to your ${widget.type == 'email' ? 'email' : 'device'}.',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                style: TextStyle(color: context.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 48),
               Center(
@@ -110,9 +110,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   defaultPinTheme: PinTheme(
                     width: 50,
                     height: 60,
-                    textStyle: const TextStyle(fontSize: 22, color: Colors.black87, fontWeight: FontWeight.bold),
+                    textStyle: TextStyle(fontSize: 22, color: context.textPrimary, fontWeight: FontWeight.bold),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       border: Border.all(color: Colors.grey.shade300),
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -120,9 +120,9 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   focusedPinTheme: PinTheme(
                     width: 50,
                     height: 60,
-                    textStyle: const TextStyle(fontSize: 22, color: Colors.black87, fontWeight: FontWeight.bold),
+                    textStyle: TextStyle(fontSize: 22, color: context.textPrimary, fontWeight: FontWeight.bold),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       border: Border.all(color: AppTheme.primaryColor, width: 2),
                       borderRadius: BorderRadius.circular(12),
                     ),

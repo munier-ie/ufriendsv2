@@ -39,7 +39,7 @@ class HomeDrawer extends StatelessWidget {
     return SizedBox(
       width: drawerWidth,
       child: Drawer(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             topRight: Radius.circular(AppTheme.borderRadius),
@@ -51,9 +51,9 @@ class HomeDrawer extends StatelessWidget {
             // Header
             Container(
               padding: const EdgeInsets.fromLTRB(20, 60, 20, 30),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                border: Border(bottom: BorderSide(color: Color(0xFFF0F0F0), width: 1)),
+              decoration: BoxDecoration(
+                color: context.cardColor,
+                border: Border(bottom: BorderSide(color: context.dividerColor, width: 1)),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -76,9 +76,9 @@ class HomeDrawer extends StatelessWidget {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold, 
-                      color: Colors.black87, 
+                      color: context.textPrimary, 
                       fontSize: 18,
                       letterSpacing: -0.5,
                     ),
@@ -90,7 +90,7 @@ class HomeDrawer extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.grey.shade600, 
+                      color: context.textSecondary, 
                       fontSize: 13,
                     ),
                   ),
@@ -103,97 +103,97 @@ class HomeDrawer extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                 children: [
-                  _drawerItem(Icons.workspace_premium_rounded, 'Upgrade Account', false, onTap: () {
+                  _drawerItem(context, Icons.workspace_premium_rounded, 'Upgrade Account', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const UpgradeScreen()));
                   }),
-                  _drawerItem(Icons.dashboard_outlined, 'Dashboard', true),
-                  _drawerItem(Icons.grid_view_rounded, 'Services', false, onTap: () {
+                  _drawerItem(context, Icons.dashboard_outlined, 'Dashboard', true),
+                  _drawerItem(context, Icons.grid_view_rounded, 'Services', false, onTap: () {
                     Navigator.pop(context);
                     onTabSelected(2);
                   }),
-                  _drawerItem(Icons.swap_vert_rounded, 'Data', false, onTap: () {
+                  _drawerItem(context, Icons.swap_vert_rounded, 'Data', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const DataScreen()));
                   }),
-                  _drawerItem(Icons.phone_android_rounded, 'Airtime', false, onTap: () {
+                  _drawerItem(context, Icons.phone_android_rounded, 'Airtime', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeScreen()));
                   }),
-                  _drawerItem(Icons.live_tv_rounded, 'Cable TV', false, onTap: () {
+                  _drawerItem(context, Icons.live_tv_rounded, 'Cable TV', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const CableTvScreen()));
                   }),
-                  _drawerItem(Icons.lightbulb_outline_rounded, 'Electricity', false, onTap: () {
+                  _drawerItem(context, Icons.lightbulb_outline_rounded, 'Electricity', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ElectricityScreen()));
                   }),
-                  _drawerItem(Icons.document_scanner_outlined, 'NIN Slip', false, onTap: () {
+                  _drawerItem(context, Icons.document_scanner_outlined, 'NIN Slip', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NinSlipScreen()));
                   }),
-                  _drawerItem(Icons.account_balance_rounded, 'BVN Slip', false, onTap: () {
+                  _drawerItem(context, Icons.account_balance_rounded, 'BVN Slip', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
                   }),
-                  _drawerItem(Icons.shopping_bag_outlined, 'Exam PINs', false, onTap: () {
+                  _drawerItem(context, Icons.shopping_bag_outlined, 'Exam PINs', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamPinsScreen()));
                   }),
-                  _drawerItem(Icons.swap_horizontal_circle_outlined, 'Airtime2cash', false, onTap: () {
+                  _drawerItem(context, Icons.swap_horizontal_circle_outlined, 'Airtime2cash', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
                   }),
-                  _drawerItem(Icons.edit_note_rounded, 'NIN Services', false, onTap: () {
+                  _drawerItem(context, Icons.edit_note_rounded, 'NIN Services', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen()));
                   }),
-                  _drawerItem(Icons.manage_accounts_rounded, 'BVN Services', false, onTap: () {
+                  _drawerItem(context, Icons.manage_accounts_rounded, 'BVN Services', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen()));
                   }),
-                  _drawerItem(Icons.business_center_rounded, 'CAC Reg.', false, onTap: () {
+                  _drawerItem(context, Icons.business_center_rounded, 'CAC Reg.', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const CacRegistrationScreen()));
                   }),
-                  _drawerItem(Icons.print_rounded, 'Recharge Cards', false, onTap: () {
+                  _drawerItem(context, Icons.print_rounded, 'Recharge Cards', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const RechargeCardsScreen()));
                   }),
-                  _drawerItem(Icons.emoji_emotions_outlined, 'Smile Data', false),
+                  _drawerItem(context, Icons.emoji_emotions_outlined, 'Smile Data', false),
 
-                  _drawerItem(Icons.tag_rounded, 'Data PINs', false, onTap: () {
+                  _drawerItem(context, Icons.tag_rounded, 'Data PINs', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const DataPinsScreen()));
                   }),
-                  _drawerItem(Icons.history_rounded, 'Transactions', false, onTap: () {
+                  _drawerItem(context, Icons.history_rounded, 'Transactions', false, onTap: () {
                     Navigator.pop(context);
                     onTabSelected(3);
                   }),
-                  _drawerItem(Icons.price_change_outlined, 'Pricing', false, onTap: () {
+                  _drawerItem(context, Icons.price_change_outlined, 'Pricing', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const PricingScreen()));
                   }),
-                  _drawerItem(Icons.message_outlined, 'Bulk SMS', false),
-                  _drawerItem(Icons.people_outline, 'Referrals', false, onTap: () {
+                  _drawerItem(context, Icons.message_outlined, 'Bulk SMS', false),
+                  _drawerItem(context, Icons.people_outline, 'Referrals', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ReferralsScreen()));
                   }),
-                  _drawerItem(Icons.school_outlined, 'Academy', false, onTap: () {
+                  _drawerItem(context, Icons.school_outlined, 'Academy', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const AcademyScreen()));
                   }),
 
-                  _drawerItem(Icons.rocket_launch_outlined, 'Own a VTU App', false, onTap: () async {
+                  _drawerItem(context, Icons.rocket_launch_outlined, 'Own a VTU App', false, onTap: () async {
                     Navigator.pop(context);
                     final url = Uri.parse('${AppConstants.baseServerUrl.replaceAll(':3000', ':5173')}/reseller');
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   }),
-                  _drawerItem(Icons.help_outline_rounded, 'Support Center', false, onTap: () {
+                  _drawerItem(context, Icons.help_outline_rounded, 'Support Center', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const SupportScreen()));
                   }),
-                  _drawerItem(Icons.person_outline_rounded, 'Profile', false, onTap: () {
+                  _drawerItem(context, Icons.person_outline_rounded, 'Profile', false, onTap: () {
                     Navigator.pop(context);
                     onTabSelected(4);
                   }),
@@ -210,14 +210,14 @@ class HomeDrawer extends StatelessWidget {
                   width: double.infinity,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: context.subtleBg,
                     borderRadius: BorderRadius.circular(25),
                   ),
                   alignment: Alignment.center,
-                  child: const Text(
+                  child: Text(
                     'Sign Out',
                     style: TextStyle(
-                      color: Colors.black87,
+                      color: context.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
                     ),
@@ -231,7 +231,7 @@ class HomeDrawer extends StatelessWidget {
     );
   }
 
-  Widget _drawerItem(IconData icon, String title, bool selected, {Color? color, VoidCallback? onTap}) {
+  Widget _drawerItem(BuildContext context, IconData icon, String title, bool selected, {Color? color, VoidCallback? onTap}) {
     const Color activeColor = Color(0xFF1E90FF); // DodgerBlue
     
     return Padding(
@@ -243,13 +243,13 @@ class HomeDrawer extends StatelessWidget {
           visualDensity: const VisualDensity(vertical: -2),
           leading: Icon(
             icon, 
-            color: color ?? (selected ? activeColor : Colors.grey.shade600),
+            color: color ?? (selected ? activeColor : context.iconDefault),
             size: 22,
           ),
           title: Text(
             title,
             style: TextStyle(
-              color: color ?? (selected ? activeColor : Colors.black87),
+              color: color ?? (selected ? activeColor : context.textPrimary),
               fontWeight: selected ? FontWeight.bold : FontWeight.w500,
               fontSize: 14,
             ),

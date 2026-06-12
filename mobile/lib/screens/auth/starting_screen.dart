@@ -38,7 +38,7 @@ class _StartingScreenState extends State<StartingScreen> {
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: AppTheme.surfaceColor, // Premium clean white background
+        backgroundColor: context.surfaceColor, // Premium clean white background
         body: SafeArea(
           child: Column(
             children: [
@@ -126,7 +126,7 @@ class _StartingScreenState extends State<StartingScreen> {
                           Text(
                             _carouselData[index]["description"]!,
                             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey.shade600,
+                              color: context.textSecondary,
                               fontSize: 16,
                               height: 1.5,
                             ),
@@ -174,7 +174,7 @@ class _StartingScreenState extends State<StartingScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Already have an account? ', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                      Text('Already have an account? ', style: TextStyle(color: context.textSecondary, fontSize: 16)),
                       GestureDetector(
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (_) => const LoginScreen()));

@@ -1,6 +1,8 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/skeleton_loader.dart';
+import '../../core/app_theme.dart';
 
 class PinScreen extends StatefulWidget {
   final String title;
@@ -58,7 +60,7 @@ class _PinScreenState extends State<PinScreen> {
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         body: SafeArea(
           child: Column(
           children: [
@@ -67,30 +69,36 @@ class _PinScreenState extends State<PinScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 10,
+                    color: context.glassShadow,
+                    blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Color(0xFF1E90FF)),
-                    onPressed: () => Navigator.pop(context),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        widget.title,
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.textPrimary),
+                      ),
+                      const Spacer(),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    widget.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                  ),
-                  const Spacer(),
-                ],
+                ),
               ),
             ),
             
@@ -113,9 +121,9 @@ class _PinScreenState extends State<PinScreen> {
                 ),
               ),
             ] else ...[
-              const Text(
+              Text(
                 'Enter your 4-digit PIN',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.textPrimary),
               ),
               const SizedBox(height: 12),
               const Text(
@@ -135,7 +143,7 @@ class _PinScreenState extends State<PinScreen> {
                     height: 56,
                     margin: const EdgeInsets.symmetric(horizontal: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: context.cardColor,
                       border: Border.all(
                         color: isFilled ? const Color(0xFF1E90FF) : Colors.grey.shade300,
                         width: 2,
@@ -170,7 +178,7 @@ class _PinScreenState extends State<PinScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: context.subtleBg,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(32),
                     topRight: Radius.circular(32),
@@ -218,8 +226,9 @@ class _PinScreenState extends State<PinScreen> {
         width: 64,
         height: 64,
         decoration: BoxDecoration(
-          color: isBackspace ? Colors.transparent : Colors.white,
+          color: isBackspace ? Colors.transparent : context.cardColor,
           shape: BoxShape.circle,
+          border: isBackspace ? null : Border.all(color: context.borderColor, width: 1),
           boxShadow: isBackspace ? [] : [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.05),
@@ -230,10 +239,10 @@ class _PinScreenState extends State<PinScreen> {
         ),
         alignment: Alignment.center,
         child: isBackspace
-            ? const Icon(Icons.backspace_rounded, color: Color(0xFF1E90FF), size: 24)
+            ? Icon(Icons.backspace_rounded, color: Color(0xFF1E90FF), size: 24)
             : Text(
                 key,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.textPrimary),
               ),
       ),
     );

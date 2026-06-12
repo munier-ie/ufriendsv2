@@ -124,7 +124,7 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -133,11 +133,12 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
                 margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.85),
+                  color: context.glassBg,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                  border: Border.all(color: context.glassBorder, width: 1.5),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 4)),
+                    BoxShadow(
+                    color: context.glassShadow, blurRadius: 15, offset: const Offset(0, 4)),
                   ],
                 ),
                 child: ClipRRect(
@@ -151,9 +152,9 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
                           onPressed: () => Navigator.pop(context),
                         ),
                         const Spacer(),
-                        const Text(
+                        Text(
                           'Two-Factor Auth',
-                          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                          style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
                         const Spacer(),
                         const SizedBox(width: 48),
@@ -228,9 +229,9 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.cardColor,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: context.borderColor),
               boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Row(
@@ -262,9 +263,9 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.cardColor,
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: context.borderColor),
               boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
             ),
             child: Row(
@@ -301,9 +302,9 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
     final defaultPinTheme = PinTheme(
       width: 50,
       height: 60,
-      textStyle: const TextStyle(fontSize: 22, color: Colors.black87, fontWeight: FontWeight.bold),
+      textStyle: TextStyle(fontSize: 22, color: context.textPrimary, fontWeight: FontWeight.bold),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12),
       ),
@@ -345,7 +346,7 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
                 onTap: _copySecret,
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(color: Colors.grey.shade100, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(color: context.dividerColor, borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -412,9 +413,9 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: context.dividerColor),
         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))],
       ),
       child: Column(
@@ -431,7 +432,7 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
               counterText: '',
               hintText: '000000',
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: context.subtleBg,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
             ),
           ),

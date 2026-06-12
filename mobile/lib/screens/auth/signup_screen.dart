@@ -118,8 +118,8 @@ class _SignupScreenState extends State<SignupScreen> {
           builder: (context, setModalState) {
             return Container(
               height: MediaQuery.of(context).size.height * 0.7,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: context.bottomSheetBg,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
@@ -149,7 +149,7 @@ class _SignupScreenState extends State<SignupScreen> {
                         hintText: 'Search state...',
                         prefixIcon: const Icon(Icons.search),
                         filled: true,
-                        fillColor: Colors.grey.shade50,
+                        fillColor: context.subtleBg,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
@@ -197,7 +197,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: context.surfaceColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -243,7 +243,7 @@ class _SignupScreenState extends State<SignupScreen> {
               const SizedBox(height: 8),
               Text(
                 'Join Ufriends and simplify your transactions.',
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                style: TextStyle(color: context.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 50),
               
@@ -344,7 +344,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Expanded(
                     child: RichText(
                       text: TextSpan(
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 14, fontFamily: AppTheme.fontFamily),
+                        style: TextStyle(color: context.textSecondary, fontSize: 14, fontFamily: AppTheme.fontFamily),
                         children: const [
                           TextSpan(text: 'I agree to the '),
                           TextSpan(text: 'Terms of Service', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
@@ -370,7 +370,7 @@ class _SignupScreenState extends State<SignupScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Already have an account? ', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                  Text('Already have an account? ', style: TextStyle(color: context.textSecondary, fontSize: 16)),
                   GestureDetector(
                     onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
                     child: const Text(

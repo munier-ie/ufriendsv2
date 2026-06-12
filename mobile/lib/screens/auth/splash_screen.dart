@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import '../../core/auth_service.dart';
 import '../../core/custom_widgets.dart';
+import '../../core/biometric_service.dart';
 import 'starting_screen.dart';
 import 'login_screen.dart';
+import 'lock_screen.dart';
 import '../home/home_screen.dart';
+import '../../core/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -53,7 +56,12 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
       await AuthService.setHasLaunched(); // Set to false for next time
       nextScreen = const StartingScreen();
     } else if (loggedIn) {
-      nextScreen = const HomeScreen();
+      final biometricsEnabled = await BiometricService.isBiometricsEnabled();
+      if (biometricsEnabled) {
+        nextScreen = const LockScreen();
+      } else {
+        nextScreen = const HomeScreen();
+      }
     } else {
       nextScreen = const LoginScreen();
     }
@@ -84,7 +92,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark,
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         body: Stack(
           children: [
             const Center(
@@ -114,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                   const SizedBox(height: 16),
                   Text(
                     'Loading...',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 14),
+                    style: TextStyle(color: context.textMuted, fontSize: 14),
                   ),
                 ],
               ),

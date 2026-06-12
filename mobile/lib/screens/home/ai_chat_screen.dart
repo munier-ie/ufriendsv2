@@ -105,7 +105,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         child: Text(
           message['content']!,
           style: TextStyle(
-            color: isUser ? Colors.white : Colors.black87,
+            color: isUser ? Colors.white : context.textPrimary,
             fontSize: 15,
           ),
         ),
@@ -116,10 +116,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       appBar: AppBar(
-        title: const Text('AI Consultant', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 18)),
-        backgroundColor: Colors.white,
+        title: Text('AI Consultant', style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: context.cardColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -166,7 +166,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
           Container(
             padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.cardColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.05),

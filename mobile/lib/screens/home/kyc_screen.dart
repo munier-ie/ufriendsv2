@@ -105,49 +105,79 @@ class _KycScreenState extends State<KycScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.surfaceColor,
+      backgroundColor: context.surfaceColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('KYC Verification', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'KYC Verification',
+          style: TextStyle(color: AppTheme.secondaryColor, fontWeight: FontWeight.bold),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.primaryColor),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.secondaryColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Icon(Icons.verified_user_rounded, size: 80, color: AppTheme.primaryColor),
+            // Centered shield icon with dodger blue background circle
+            Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                color: AppTheme.secondaryColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.verified_user_rounded,
+                size: 48,
+                color: AppTheme.secondaryColor,
+              ),
+            ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'Complete Your KYC',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: context.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Verify your identity using your BVN or NIN to generate your virtual bank accounts and unlock higher transaction limits.',
-              style: TextStyle(fontSize: 16, color: Colors.grey),
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: context.textSecondary, height: 1.5),
             ),
             const SizedBox(height: 32),
+            // ID Type selector
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: context.subtleBg,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.grey.shade200),
+                border: Border.all(color: context.borderColor),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _selectedType,
                   isExpanded: true,
-                  icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.primaryColor),
+                  icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.secondaryColor),
                   items: ['BVN', 'NIN'].map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      child: Text(
+                        value,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                          color: context.textPrimary,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (newValue) {
@@ -161,22 +191,42 @@ class _KycScreenState extends State<KycScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            // ID number input
             TextField(
               controller: _idController,
               keyboardType: TextInputType.number,
               maxLength: 11,
+              style: TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 15,
+                color: context.textPrimary,
+              ),
               decoration: InputDecoration(
                 labelText: 'Enter your 11-digit $_selectedType',
-                prefixIcon: const Icon(Icons.numbers_rounded, color: AppTheme.primaryColor),
+                labelStyle: TextStyle(
+                  color: context.textMuted,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 14,
+                ),
+                prefixIcon: const Icon(Icons.numbers_rounded, color: AppTheme.secondaryColor),
                 filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.grey.shade200)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2)),
+                fillColor: context.subtleBg,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide(color: context.borderColor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: const BorderSide(color: AppTheme.secondaryColor, width: 2),
+                ),
               ),
             ),
-            const SizedBox(height: 48),
+            const SizedBox(height: 36),
             GradientButton(
               text: 'Verify Identity',
               onPressed: _submitKyc,
@@ -186,18 +236,18 @@ class _KycScreenState extends State<KycScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppTheme.secondaryColor.withValues(alpha: 0.06),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.blue.shade100),
+                border: Border.all(color: AppTheme.secondaryColor.withValues(alpha: 0.15)),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, color: Colors.blue),
-                  SizedBox(width: 12),
+                  Icon(Icons.info_outline_rounded, color: AppTheme.secondaryColor.withValues(alpha: 0.7)),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Your data is encrypted and securely transmitted. We do not store your BVN or NIN in plain text.',
-                      style: TextStyle(color: Colors.blue, fontSize: 12),
+                      style: TextStyle(color: context.textSecondary, fontSize: 12, height: 1.4),
                     ),
                   ),
                 ],

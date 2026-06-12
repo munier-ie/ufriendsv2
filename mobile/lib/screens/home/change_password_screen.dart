@@ -74,7 +74,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           decoration: InputDecoration(
             hintText: 'Enter $label',
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: context.subtleBg,
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
             suffixIcon: IconButton(
               icon: Icon(obscure ? Icons.visibility_off : Icons.visibility, color: Colors.grey),
@@ -89,7 +89,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -98,11 +98,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: context.glassShadow, blurRadius: 15, offset: const Offset(0, 4)),
                 ],
               ),
               child: ClipRRect(
@@ -116,9 +117,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Change Password',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -136,9 +137,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: context.cardColor,
                         borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: Colors.grey.shade100),
+                        border: Border.all(color: context.dividerColor),
                         boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 15, offset: const Offset(0, 4))],
                       ),
                       child: Column(

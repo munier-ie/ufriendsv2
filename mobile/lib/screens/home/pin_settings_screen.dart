@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../core/api_service.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/skeleton_loader.dart';
+import '../../core/app_theme.dart';
 
 class PinSettingsScreen extends StatefulWidget {
   const PinSettingsScreen({super.key});
@@ -167,7 +168,7 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
         statusBarColor: Colors.transparent,
       ),
       child: Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         body: SafeArea(
           child: Column(
             children: [
@@ -176,9 +177,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                 margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: context.cardColor,
                   borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: Colors.grey.shade200, width: 1.5),
+                  border: Border.all(color: context.borderColor, width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -194,9 +195,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                       onPressed: () => Navigator.pop(context),
                     ),
                     const SizedBox(width: 8),
-                    const Text(
+                    Text(
                       'PIN Settings',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.textPrimary),
                     ),
                     const Spacer(),
                   ],
@@ -221,14 +222,14 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                             const SizedBox(height: 16),
                             Text(
                               _isSettingPin ? 'Set New PIN' : 'Change PIN',
-                              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: Colors.black87),
+                              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: context.textPrimary),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               _isSettingPin 
                                 ? 'Verify your account and set a new transaction PIN.'
                                 : 'Update your existing transaction PIN.',
-                              style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                              style: TextStyle(fontSize: 14, color: context.textSecondary),
                             ),
                             const SizedBox(height: 32),
                             
@@ -236,9 +237,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                               Container(
                                 height: 50,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
+                                  color: context.dividerColor,
                                   borderRadius: BorderRadius.circular(25),
-                                  border: Border.all(color: Colors.grey.shade200),
+                                  border: Border.all(color: context.borderColor),
                                 ),
                                 child: Row(
                                   children: [
@@ -298,9 +299,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                             Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: context.cardColor,
                                 borderRadius: BorderRadius.circular(24),
-                                border: Border.all(color: Colors.grey.shade100),
+                                border: Border.all(color: context.dividerColor),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.03),
@@ -324,11 +325,11 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                                       ),
                                     ),
                                     const SizedBox(height: 8),
-                                    const Center(
+                                    Center(
                                       child: Text(
                                         'We need to verify your account before you can set a PIN.',
                                         textAlign: TextAlign.center,
-                                        style: TextStyle(fontSize: 14, color: Colors.black54),
+                                        style: TextStyle(fontSize: 14, color: context.textSecondary),
                                       ),
                                     ),
                                     const SizedBox(height: 24),
@@ -343,9 +344,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                                   ],
                                   
                                   if (_isSettingPin && _otpSent) ...[
-                                    const Text(
+                                    Text(
                                       'Enter 6-digit OTP',
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textSecondary),
                                     ),
                                     const SizedBox(height: 12),
                                     _buildPinInput(
@@ -358,9 +359,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                                   ],
                                   
                                   if (!_isSettingPin) ...[
-                                    const Text(
+                                    Text(
                                       'Current PIN',
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textSecondary),
                                     ),
                                     const SizedBox(height: 12),
                                     _buildPinInput(
@@ -373,9 +374,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                                   ],
                                   
                                   if (!_isSettingPin || (_isSettingPin && _otpSent)) ...[
-                                    const Text(
+                                    Text(
                                       'New PIN',
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textSecondary),
                                     ),
                                     const SizedBox(height: 12),
                                     _buildPinInput(
@@ -386,9 +387,9 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                                     ),
                                     const SizedBox(height: 32),
                                     
-                                    const Text(
+                                    Text(
                                       'Confirm New PIN',
-                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black54),
+                                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textSecondary),
                                     ),
                                     const SizedBox(height: 12),
                                     _buildPinInput(
@@ -464,7 +465,7 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
               width: length == 6 ? 40 : 50,
               height: length == 6 ? 45 : 56,
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                color: context.subtleBg,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isFocused 
@@ -478,8 +479,8 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                   ? Container(
                       width: 12,
                       height: 12,
-                      decoration: const BoxDecoration(
-                        color: Colors.black87,
+                      decoration: BoxDecoration(
+                        color: context.textPrimary,
                         shape: BoxShape.circle,
                       ),
                     )

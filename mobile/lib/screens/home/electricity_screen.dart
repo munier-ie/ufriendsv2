@@ -171,8 +171,8 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
             top: 24,
             bottom: MediaQuery.of(context).viewInsets.bottom + 24,
           ),
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.bottomSheetBg,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -303,11 +303,11 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+          Text(label, style: TextStyle(color: context.textMuted, fontSize: 12)),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.black87),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: context.textPrimary),
           ),
           const Divider(height: 16, color: Color(0xFFF5F5F5)),
         ],
@@ -325,7 +325,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -333,12 +333,12 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -355,9 +355,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Electricity',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -386,13 +386,13 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Pay your electricity bills without hassle.',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                      style: TextStyle(color: context.textSecondary, fontSize: 14),
                     ),
                     const SizedBox(height: 40),
                     
-                    const Text(
+                    Text(
                       'Select Distribution Company',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                     ),
                     const SizedBox(height: 12),
                     
@@ -410,10 +410,10 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                               width: 80,
                               margin: const EdgeInsets.only(right: 12),
                               decoration: BoxDecoration(
-                                color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
+                                color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : context.subtleBg,
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+                                  color: isSelected ? AppTheme.primaryColor : context.borderColor,
                                   width: isSelected ? 1.5 : 1,
                                 ),
                               ),
@@ -436,7 +436,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                                      color: isSelected ? AppTheme.primaryColor : context.textPrimary,
                                     ),
                                     textAlign: TextAlign.center,
                                     maxLines: 1,
@@ -453,9 +453,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     if (_selectedProvider != null) ...[
                       const SizedBox(height: 32),
                       
-                      const Text(
+                      Text(
                         'Meter Type',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -477,7 +477,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                                   child: Text(
                                     'Prepaid',
                                     style: TextStyle(
-                                      color: _selectedMeterType == 'prepaid' ? Colors.white : Colors.black87,
+                                      color: _selectedMeterType == 'prepaid' ? Colors.white : context.textPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -503,7 +503,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                                   child: Text(
                                     'Postpaid',
                                     style: TextStyle(
-                                      color: _selectedMeterType == 'postpaid' ? Colors.white : Colors.black87,
+                                      color: _selectedMeterType == 'postpaid' ? Colors.white : context.textPrimary,
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
@@ -515,9 +515,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                       ),
                       
                       const SizedBox(height: 24),
-                      const Text(
+                      Text(
                         'Meter Number',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                       ),
                       const SizedBox(height: 8),
                       Row(
@@ -575,9 +575,9 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                       ),
                       
                       const SizedBox(height: 32),
-                      const Text(
+                      Text(
                         'Amount',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
                       ),
                       const SizedBox(height: 8),
                       TextField(
@@ -603,7 +603,7 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                         children: [
                           Text(
                             'Supported Distribution Companies',
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: context.textMuted, fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 12),
                           Wrap(

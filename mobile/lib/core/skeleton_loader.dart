@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
+import 'app_theme.dart';
 
 class Skeleton extends StatelessWidget {
   final double? width;
@@ -26,13 +27,17 @@ class Skeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: Colors.grey[200]!.withValues(alpha: 0.5),
-      highlightColor: Colors.grey[50]!.withValues(alpha: 0.5),
+      baseColor: context.isDark
+          ? Colors.grey[800]!.withValues(alpha: 0.5)
+          : Colors.grey[200]!.withValues(alpha: 0.5),
+      highlightColor: context.isDark
+          ? Colors.grey[700]!.withValues(alpha: 0.5)
+          : Colors.grey[50]!.withValues(alpha: 0.5),
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           shape: shape,
           borderRadius: shape == BoxShape.rectangle 
               ? (borderRadius ?? BorderRadius.circular(8)) 
@@ -86,9 +91,9 @@ class SkeletonCard extends StatelessWidget {
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: context.borderColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

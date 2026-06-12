@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/app_theme.dart';
@@ -185,30 +186,15 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+        Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary)),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
           validator: validator,
+          style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade300),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
-            ),
-            filled: true,
-            fillColor: Colors.grey.shade50,
           ),
         ),
       ],
@@ -220,95 +206,85 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(
-          children: [
-            // Header Gradient
+        backgroundColor: context.cardColor,
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Custom Floating TopBar
             Container(
-              height: 180,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF004687), Color(0xFF1E90FF)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              height: 56,
+                decoration: BoxDecoration(
+                  color: context.glassBg,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: context.glassBorder, width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                    color: context.glassShadow,
+                      blurRadius: 15,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-              ),
-            ),
-            SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     child: Row(
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
                           onPressed: () => Navigator.pop(context),
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
+                        const Spacer(),
+                        Text(
                           'CAC Registration',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                         ),
+                        const Spacer(),
+                        const SizedBox(width: 48), // To balance the back button
                       ],
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  // Tab Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(23),
-                      ),
-                      child: TabBar(
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        indicator: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(23),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
-                            )
-                          ],
-                        ),
-                        labelColor: AppTheme.primaryColor,
-                        unselectedLabelColor: Colors.white,
-                        labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-                        tabs: const [
-                          Tab(text: 'Register'),
-                          Tab(text: 'History'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                      ),
-                      child: TabBarView(
-                        children: [
-                          _buildRegisterTab(),
-                          _buildHistoryTab(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              // Tab Bar
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Container(
+                  height: 46,
+                  decoration: BoxDecoration(
+                    color: context.dividerColor,
+                    borderRadius: BorderRadius.circular(23),
+                  ),
+                  child: TabBar(
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    indicator: BoxDecoration(
+                      color: AppTheme.secondaryColor,
+                      borderRadius: BorderRadius.circular(23),
+                    ),
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.black54,
+                    labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                    tabs: const [
+                      Tab(text: 'Register'),
+                      Tab(text: 'History'),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: TabBarView(
+                  children: [
+                    _buildRegisterTab(),
+                    _buildHistoryTab(),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -323,11 +299,11 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.construction_rounded, size: 64, color: Colors.grey.shade400),
+            Icon(Icons.construction_rounded, size: 64, color: context.iconMuted),
             const SizedBox(height: 16),
             Text('Service Unavailable', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey.shade700)),
             const SizedBox(height: 8),
-            Text('CAC Registration is currently disabled.', style: TextStyle(color: Colors.grey.shade600)),
+            Text('CAC Registration is currently disabled.', style: TextStyle(color: context.textSecondary)),
           ],
         ),
       );
@@ -425,23 +401,10 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
               ],
             ),
             const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              height: 56,
-              child: ElevatedButton(
-                onPressed: _submitting ? null : _submitForm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primaryColor,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 0,
-                ),
-                child: _submitting
-                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : Text(
-                        'Pay NGN ${_formatPrice(_getCurrentPrice())}',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-              ),
+            GradientButton(
+              text: 'Pay NGN ${_formatPrice(_getCurrentPrice())}',
+              onPressed: _submitting ? () {} : () => _submitForm(),
+              loading: _submitting,
             ),
             const SizedBox(height: 24),
             Container(
@@ -476,31 +439,23 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Certificate Type', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87)),
+        Text('Certificate Type', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary)),
         const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade300),
+        DropdownButtonFormField<String>(
+          initialValue: _businessType,
+          style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+          decoration: const InputDecoration(
+            hintText: 'Select Certificate Type',
           ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _businessType,
-              isExpanded: true,
-              icon: const Icon(Icons.keyboard_arrow_down_rounded),
-              items: const [
-                DropdownMenuItem(value: 'biz', child: Text('Business Name Registration')),
-                DropdownMenuItem(value: 'limited', child: Text('Limited Liability Company (LTD)')),
-                DropdownMenuItem(value: 'enterprise', child: Text('Enterprise (Business Name)')),
-                DropdownMenuItem(value: 'ngo', child: Text('NGO / Incorporated Trustees')),
-              ],
-              onChanged: (v) {
-                if (v != null) setState(() => _businessType = v);
-              },
-            ),
-          ),
+          items: const [
+            DropdownMenuItem(value: 'biz', child: Text('Business Name Registration', style: TextStyle(fontWeight: FontWeight.normal))),
+            DropdownMenuItem(value: 'limited', child: Text('Limited Liability Company (LTD)', style: TextStyle(fontWeight: FontWeight.normal))),
+            DropdownMenuItem(value: 'enterprise', child: Text('Enterprise (Business Name)', style: TextStyle(fontWeight: FontWeight.normal))),
+            DropdownMenuItem(value: 'ngo', child: Text('NGO / Incorporated Trustees', style: TextStyle(fontWeight: FontWeight.normal))),
+          ],
+          onChanged: (v) {
+            if (v != null) setState(() => _businessType = v);
+          },
         ),
       ],
     );
@@ -512,7 +467,7 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
       child: Container(
         height: 120,
         decoration: BoxDecoration(
-          color: file != null ? Colors.blue.shade50 : Colors.grey.shade50,
+          color: file != null ? Colors.blue.shade50 : context.subtleBg,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: file != null ? AppTheme.primaryColor : Colors.grey.shade300, style: BorderStyle.solid),
         ),
@@ -538,10 +493,10 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(isDirector ? Icons.badge_rounded : Icons.camera_alt_rounded, color: Colors.grey.shade400, size: 32),
+                  Icon(isDirector ? Icons.badge_rounded : Icons.camera_alt_rounded, color: context.iconMuted, size: 32),
                   const SizedBox(height: 8),
-                  Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500)),
-                  Text('Tap to select', style: TextStyle(fontSize: 10, color: Colors.grey.shade400)),
+                  Text(label, style: TextStyle(fontSize: 12, color: context.textSecondary, fontWeight: FontWeight.w500)),
+                  Text('Tap to select', style: TextStyle(fontSize: 10, color: context.iconMuted)),
                 ],
               ),
       ),
@@ -562,7 +517,7 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
             const SizedBox(height: 16),
             Text('No CAC Registrations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
             const SizedBox(height: 8),
-            Text('Your past submissions will appear here.', style: TextStyle(color: Colors.grey.shade500)),
+            Text('Your past submissions will appear here.', style: TextStyle(color: context.textMuted)),
           ],
         ),
       );
@@ -594,9 +549,9 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
           return Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: context.cardColor,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: context.borderColor),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.02),
@@ -631,9 +586,9 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text('Alt: ${item['altBusinessName'] ?? '-'}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Text('Alt: ${item['altBusinessName'] ?? '-'}', style: TextStyle(color: context.textSecondary, fontSize: 13)),
                 const SizedBox(height: 4),
-                Text('Type: ${(item['businessType'] ?? '').toUpperCase()}', style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Text('Type: ${(item['businessType'] ?? '').toUpperCase()}', style: TextStyle(color: context.textSecondary, fontSize: 13)),
                 const SizedBox(height: 12),
                 const Divider(),
                 const SizedBox(height: 8),
@@ -642,7 +597,7 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
                   children: [
                     Text(
                       item['createdAt'] != null ? DateTime.parse(item['createdAt']).toLocal().toString().substring(0, 10) : '',
-                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                      style: TextStyle(color: context.textMuted, fontSize: 12),
                     ),
                     if (status == 2 && item['adminNotes'] != null)
                       Flexible(

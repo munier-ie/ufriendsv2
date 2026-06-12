@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
@@ -80,7 +81,7 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
   void _showSamplePreview(String assetPath, String label) {
     showDialog(
       context: context,
-      barrierColor: Colors.black87,
+      barrierColor: context.textPrimary,
       builder: (_) => SlipSamplePreviewDialog(assetPath: assetPath, label: label),
     );
   }
@@ -92,8 +93,8 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.bottomSheetBg,
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
@@ -225,157 +226,171 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Gradient header
-          Container(
-            height: 240,
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFF004687), Color(0xFF1E90FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+      backgroundColor: context.cardColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Floating TopBar
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              height: 56,
+              decoration: BoxDecoration(
+                color: context.glassBg,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: context.glassBorder, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.glassShadow,
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // App bar
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 8, 16, 0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
                         onPressed: () => Navigator.pop(context),
                       ),
-                      const Expanded(
-                        child: Text(
-                          'NIN Slip Service',
-                          style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
+                      const Spacer(),
+                      Text(
+                        'NIN Slip Service',
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
+                      const Spacer(),
+                      const SizedBox(width: 48), // To balance the back button
                     ],
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Text(
-                    'Verify your NIN and generate a downloadable identity slip instantly.',
-                    style: TextStyle(color: Colors.white70, fontSize: 13, height: 1.4),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Content
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 40),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              ),
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                    Text(
+                      'NIN Slip Service',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Verify your NIN and generate a downloadable identity slip instantly.',
+                      style: TextStyle(color: context.textSecondary, fontSize: 16),
+                    ),
+                    const SizedBox(height: 40),
+
+                    // ── Lookup Method
+                    _sectionLabel('Lookup Method'),
+                    const SizedBox(height: 12),
+                    Row(
                       children: [
-                        // ── Lookup Method
-                        _sectionLabel('Lookup Method'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _toggleChip(
-                                selected: _lookupMethod == 'nin',
-                                label: 'NIN Number',
-                                icon: Icons.tag_rounded,
-                                onTap: () => setState(() => _lookupMethod = 'nin'),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _toggleChip(
-                                selected: _lookupMethod == 'phone',
-                                label: 'Phone Number',
-                                icon: Icons.phone_android_rounded,
-                                onTap: () => setState(() => _lookupMethod = 'phone'),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        // ── Input
-                        _sectionLabel(_lookupMethod == 'nin' ? '11-Digit NIN' : 'Registered Phone Number'),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _controller,
-                          keyboardType: TextInputType.number,
-                          maxLength: _lookupMethod == 'nin' ? 11 : 14,
-                          decoration: _inputDecoration(
-                            _lookupMethod == 'nin' ? 'e.g. 12345678901' : 'e.g. 08012345678',
+                        Expanded(
+                          child: _toggleChip(
+                            selected: _lookupMethod == 'nin',
+                            label: 'NIN Number',
+                            icon: Icons.tag_rounded,
+                            onTap: () => setState(() => _lookupMethod = 'nin'),
                           ),
                         ),
-
-                        const SizedBox(height: 20),
-
-                        // ── Slip Type selector
-                        _sectionLabel('Select Slip Type'),
-                        const SizedBox(height: 8),
-                        GestureDetector(
-                          onTap: _showSlipTypePicker,
-                          child: AbsorbPointer(
-                            child: TextField(
-                              controller: TextEditingController(
-                                text: _slipType == null ? '' : _slipOptions.firstWhere((o) => o['key'] == _slipType)['label']
-                              ),
-                              decoration: _inputDecoration('Select a slip type').copyWith(
-                                suffixIcon: const Icon(Icons.arrow_drop_down),
-                              ),
-                            ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _toggleChip(
+                            selected: _lookupMethod == 'phone',
+                            label: 'Phone Number',
+                            icon: Icons.phone_android_rounded,
+                            onTap: () => setState(() => _lookupMethod = 'phone'),
                           ),
-                        ),
-
-                        if (_slipType != null) ...[
-                          const SizedBox(height: 20),
-
-                          // ── Price summary
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Service Fee',
-                                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                                Text(
-                                  '₦${formatCurrency(_getPrice(_slipType!))}',
-                                  style: const TextStyle(
-                                      fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-
-                        const SizedBox(height: 16),
-
-                        GradientButton(
-                          text: 'Verify & Generate NIN Slip',
-                          icon: Icons.verified_rounded,
-                          onPressed: _loading ? () {} : _onSubmit,
-                          loading: _loading,
                         ),
                       ],
                     ),
-                  ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Input
+                    _sectionLabel(_lookupMethod == 'nin' ? '11-Digit NIN' : 'Registered Phone Number'),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _controller,
+                      keyboardType: TextInputType.number,
+                      maxLength: _lookupMethod == 'nin' ? 11 : 14,
+                      style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+                      decoration: _inputDecoration(
+                        _lookupMethod == 'nin' ? 'e.g. 12345678901' : 'e.g. 08012345678',
+                      ),
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // ── Slip Type selector
+                    _sectionLabel('Select Slip Type'),
+                    const SizedBox(height: 8),
+                    GestureDetector(
+                      onTap: _showSlipTypePicker,
+                      child: AbsorbPointer(
+                        child: TextField(
+                          controller: TextEditingController(
+                            text: _slipType == null ? '' : _slipOptions.firstWhere((o) => o['key'] == _slipType)['label']
+                          ),
+                          style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+                          decoration: _inputDecoration('Select a slip type').copyWith(
+                            suffixIcon: const Icon(Icons.arrow_drop_down),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    if (_slipType != null) ...[
+                      const SizedBox(height: 24),
+
+                      // ── Price summary
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('Service Fee',
+                                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                            Text(
+                              '₦${formatCurrency(_getPrice(_slipType!))}',
+                              style: const TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    const SizedBox(height: 32),
+
+                    GradientButton(
+                      text: 'Verify & Generate NIN Slip',
+                      icon: Icons.verified_rounded,
+                      onPressed: _loading ? () {} : _onSubmit,
+                      loading: _loading,
+                    ),
+                    const SizedBox(height: 40),
+                  ],
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -383,27 +398,12 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
   Widget _sectionLabel(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 4),
         child: Text(text,
-            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.black87)),
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary)),
       );
 
   InputDecoration _inputDecoration(String hint) => InputDecoration(
         hintText: hint,
         counterText: '',
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.grey.shade200),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       );
 
   Widget _toggleChip({
@@ -418,10 +418,10 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         decoration: BoxDecoration(
-          color: selected ? AppTheme.primaryColor.withValues(alpha: 0.08) : Colors.grey.shade50,
+          color: selected ? AppTheme.primaryColor.withValues(alpha: 0.08) : context.subtleBg,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: selected ? AppTheme.primaryColor : Colors.grey.shade200,
+            color: selected ? AppTheme.primaryColor : context.borderColor,
             width: selected ? 2 : 1,
           ),
         ),

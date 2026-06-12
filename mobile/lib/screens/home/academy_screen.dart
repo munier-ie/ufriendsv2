@@ -117,8 +117,8 @@ class _AcademyScreenState extends State<AcademyScreen> {
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, controller) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
+          decoration: BoxDecoration(
+            color: context.cardColor,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           child: Column(
@@ -152,7 +152,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     content['body'] ?? 'No content available.',
-                    style: const TextStyle(fontSize: 16, height: 1.6, color: Colors.black87),
+                    style: TextStyle(fontSize: 16, height: 1.6, color: context.textPrimary),
                   ),
                 ),
               ),
@@ -238,7 +238,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
     }).toList();
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: context.subtleBg,
       appBar: AppBar(
         title: const Text('Academy', style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF004687),
@@ -308,7 +308,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
           
           // Search & Filters
           Container(
-            color: Colors.grey.shade50,
+            color: context.subtleBg,
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Column(
               children: [
@@ -318,7 +318,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                     hintText: 'Search lessons, guides, tutorials...',
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: context.inputFillColor,
                     contentPadding: const EdgeInsets.symmetric(vertical: 0),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                   ),
@@ -396,7 +396,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
       onTap: () => _handleView(content),
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: context.cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
         ),

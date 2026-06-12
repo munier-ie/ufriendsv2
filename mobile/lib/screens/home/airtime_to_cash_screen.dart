@@ -112,8 +112,8 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                 top: 24,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
               ),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: context.bottomSheetBg,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
@@ -139,7 +139,7 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                   Text(
                     'Enter the OTP sent to ${_phoneController.text} and your SIM transfer PIN.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                    style: TextStyle(color: context.textSecondary, fontSize: 14),
                   ),
                   const SizedBox(height: 24),
                   TextField(
@@ -304,7 +304,7 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -313,12 +313,12 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: context.glassShadow,
                     blurRadius: 15,
                     offset: const Offset(0, 4),
                   ),
@@ -335,9 +335,9 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Airtime2cash',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48), // To balance the back button
@@ -364,13 +364,13 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                     const SizedBox(height: 8),
                     Text(
                       'Convert your airtime to wallet balance.',
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                      style: TextStyle(color: context.textSecondary, fontSize: 16),
                     ),
                     const SizedBox(height: 40),
                     
-                    const Text(
+                    Text(
                       'Select Network',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -383,10 +383,10 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                             width: 65,
                             height: 65,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
+                              color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : context.subtleBg,
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
-                                color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
+                                color: isSelected ? AppTheme.primaryColor : context.borderColor,
                                 width: isSelected ? 1.5 : 1,
                               ),
                             ),
@@ -409,7 +409,7 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                    color: isSelected ? AppTheme.primaryColor : Colors.black87,
+                                    color: isSelected ? AppTheme.primaryColor : context.textPrimary,
                                   ),
                                 ),
                               ],
@@ -420,9 +420,9 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                     ),
                     const SizedBox(height: 32),
                     
-                    const Text(
+                    Text(
                       'Phone Number',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     TextField(
@@ -434,9 +434,9 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                     ),
                     const SizedBox(height: 24),
                     
-                    const Text(
+                    Text(
                       'Amount',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black87),
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
                     ),
                     const SizedBox(height: 8),
                     TextField(

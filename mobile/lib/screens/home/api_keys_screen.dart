@@ -74,7 +74,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -83,11 +83,12 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
               margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
               height: 56,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.85),
+                color: context.glassBg,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 1.5),
+                border: Border.all(color: context.glassBorder, width: 1.5),
                 boxShadow: [
-                  BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 15, offset: const Offset(0, 4)),
+                  BoxShadow(
+                    color: context.glassShadow, blurRadius: 15, offset: const Offset(0, 4)),
                 ],
               ),
               child: ClipRRect(
@@ -101,9 +102,9 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                         onPressed: () => Navigator.pop(context),
                       ),
                       const Spacer(),
-                      const Text(
+                      Text(
                         'Developer API Keys',
-                        style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const Spacer(),
                       const SizedBox(width: 48),
@@ -203,9 +204,9 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: context.subtleBg,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.shade200),
+              border: Border.all(color: context.borderColor),
             ),
             child: apiKey.isEmpty
                 ? const Center(child: Text('No API Key generated yet', style: TextStyle(color: Colors.grey)))
@@ -216,7 +217,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
                           _showKey ? apiKey : '••••••••••••••••••••••••••••••••••••••••••••',
                           style: TextStyle(
                             fontFamily: 'monospace',
-                            color: Colors.black87,
+                            color: context.textPrimary,
                             letterSpacing: _showKey ? 0 : 2,
                             fontSize: _showKey ? 13 : 16,
                           ),
@@ -266,7 +267,7 @@ class _ApiKeysScreenState extends State<ApiKeysScreen> {
             child: ElevatedButton(
               onPressed: _generating ? null : _generateKey,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
+                backgroundColor: context.cardColor,
                 foregroundColor: AppTheme.primaryColor,
                 side: const BorderSide(color: AppTheme.primaryColor),
                 padding: const EdgeInsets.symmetric(vertical: 16),

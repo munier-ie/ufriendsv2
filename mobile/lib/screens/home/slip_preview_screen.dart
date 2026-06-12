@@ -8,6 +8,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/auth_service.dart';
 import '../../core/constants.dart';
+import '../../core/app_theme.dart';
 
 class SlipPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> report;
@@ -284,7 +285,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.9),
-                    border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                    border: Border(top: BorderSide(color: context.borderColor)),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -336,7 +337,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -419,7 +420,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                   width: 90,
                   height: 100,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: context.dividerColor,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: Colors.grey.shade300),
                   ),
@@ -432,7 +433,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                     children: [
                       Text(
                         _fullName.isNotEmpty ? _fullName : '—',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.textPrimary),
                       ),
                       const SizedBox(height: 8),
                       _pillLabel(primaryLabel),
@@ -488,7 +489,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: context.subtleBg,
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
@@ -502,10 +503,10 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Transaction Ref', style: TextStyle(fontSize: 10, color: Colors.grey)),
+                        Text('Transaction Ref', style: TextStyle(fontSize: 10, color: Colors.grey)),
                         Text(
                           (widget.report['transactionRef'] ?? '—').toString(),
-                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87),
+                          style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: context.textPrimary),
                         ),
                       ],
                     ),
@@ -524,7 +525,7 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'This slip is for verification purposes only and remains valid for the lifetime of the holder.',
-                  style: TextStyle(fontSize: 10, color: Colors.grey.shade500, height: 1.4),
+                  style: TextStyle(fontSize: 10, color: context.textMuted, height: 1.4),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -556,14 +557,14 @@ class _SlipPreviewScreenState extends State<SlipPreviewScreen> {
             width: fullWidth ? null : 140,
             child: Text(
               label,
-              style: TextStyle(fontSize: 12, color: Colors.grey.shade600, fontWeight: FontWeight.w500),
+              style: TextStyle(fontSize: 12, color: context.textSecondary, fontWeight: FontWeight.w500),
             ),
           ),
           if (!fullWidth) const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Colors.black87),
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: context.textPrimary),
             ),
           ),
         ],

@@ -5,6 +5,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../theme_state.dart';
+import '../core/app_theme.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -46,10 +47,11 @@ class _ThemeBuilderScreenState extends State<ThemeBuilderScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Ufriends Theme Builder', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+        iconTheme: IconThemeData(color: themeState.isDarkMode ? Colors.white : Colors.black),
+        title: Text('Ufriends Theme Builder', style: TextStyle(color: themeState.isDarkMode ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.code, color: Colors.black),
+            icon: Icon(Icons.code, color: themeState.isDarkMode ? Colors.white : Colors.black),
             tooltip: 'Export Theme Code',
             onPressed: () => _showExportDialog(context),
           ),
@@ -85,7 +87,7 @@ class _ThemeBuilderScreenState extends State<ThemeBuilderScreen> {
                 decoration: BoxDecoration(
                   color: themeState.surfaceColor,
                   borderRadius: BorderRadius.circular(35),
-                  border: Border.all(color: Colors.grey.shade200, width: 1),
+                  border: Border.all(color: context.borderColor, width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: themeState.primaryColor.withValues(alpha: 0.1),
@@ -322,7 +324,7 @@ class _DrawerItem extends StatelessWidget {
     final themeState = Provider.of<ThemeState>(context);
     return ListTile(
       leading: Icon(icon, color: themeState.primaryColor),
-      title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500, color: Colors.black87)),
+      title: Text(label, style: TextStyle(fontWeight: FontWeight.w500, color: themeState.isDarkMode ? Colors.white : Colors.black87)),
       trailing: trailing != null
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -497,7 +499,7 @@ class PreviewPane extends StatelessWidget {
             const SizedBox(height: 24),
             const SectionHeader(title: 'Loading States'),
             Shimmer.fromColors(
-              baseColor: Colors.grey.shade200,
+              baseColor: context.borderColor,
               highlightColor: Colors.grey.shade100,
               child: Card(child: SizedBox(height: 80, width: double.infinity)),
             ),

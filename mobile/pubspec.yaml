@@ -53,6 +53,7 @@ dependencies:
   intl: ^0.20.2
   font_awesome_flutter: ^11.0.0
   pinput: ^6.0.2
+  local_auth: ^2.3.0
 
 dev_dependencies:
   flutter_test:

@@ -190,234 +190,221 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            height: 300,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppTheme.primaryColor.withValues(alpha: 0.1),
-                  Colors.white,
+      backgroundColor: context.cardColor,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Custom Floating TopBar
+            Container(
+              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+              height: 56,
+              decoration: BoxDecoration(
+                color: context.glassBg,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: context.glassBorder, width: 1.5),
+                boxShadow: [
+                  BoxShadow(
+                    color: context.glassShadow,
+                    blurRadius: 15,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
               ),
-            ),
-          ),
-
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Floating Top Bar (Custom)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: Colors.white.withValues(alpha: 0.5)),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 5),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87),
-                                onPressed: () => Navigator.pop(context),
-                              ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Exam Pins',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(28),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
+                        onPressed: () => Navigator.pop(context),
                       ),
-                    ),
-                    
-                    const SizedBox(height: 32),
-
-                    // Exam Board Selector
-                    const Text(
-                      'Select Exam Board',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_isLoadingPlans)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else if (_allPlans.isEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.orange.shade200),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.info_outline, color: Colors.orange.shade700),
-                            const SizedBox(width: 12),
-                            const Expanded(child: Text('No exam pins available at the moment.')),
-                          ],
-                        ),
-                      )
-                    else
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: _examTypes.map((exam) {
-                          bool isSelected = _selectedProviderKey == exam['provider_key'];
-                          return GestureDetector(
-                            onTap: () => _setProvider(exam['provider_key']),
-                            child: Container(
-                              width: MediaQuery.of(context).size.width * 0.4,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : Colors.grey.shade50,
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: isSelected ? AppTheme.primaryColor : Colors.grey.shade200,
-                                  width: isSelected ? 2 : 1,
-                                ),
-                              ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(12),
-                                    child: Image.asset(
-                                      exam['assetPath'],
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => Icon(Icons.school, color: exam['color'], size: 48),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    exam['name'],
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                      color: isSelected ? AppTheme.primaryColor : Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }).toList(),
+                      const Spacer(),
+                      Text(
+                        'Exam Pins',
+                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
                       ),
-
-                    const SizedBox(height: 32),
-
-                    // Quantity Dropdown (1 to 5)
-                    const Text(
-                      'Quantity (Max 5)',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 12),
-                    DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: BorderSide(color: Colors.grey.shade200),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: AppTheme.primaryColor, width: 2),
-                        ),
-                      ),
-                      initialValue: _selectedQuantity,
-                      items: _quantities.map((q) {
-                        return DropdownMenuItem(
-                          value: q,
-                          child: Text('$q Piece(s)'),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            _selectedQuantity = val;
-                          });
-                        }
-                      },
-                    ),
-
-                    const SizedBox(height: 40),
-
-                    // Total Preview
-                    if (_selectedExamPlan != null)
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Total Amount',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                            ),
-                            Text(
-                              '₦${formatCurrency(((_selectedExamPlan!['price'] ?? 0) as num).toDouble() * int.parse(_selectedQuantity))}',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    const SizedBox(height: 40),
-
-                    // Proceed Button
-                    GradientButton(
-                      text: 'Purchase Pin',
-                      onPressed: _onProceed,
-                      loading: _loading,
-                    ),
-                    const SizedBox(height: 40),
-                  ],
+                      const Spacer(),
+                      const SizedBox(width: 48), // To balance the back button
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.05),
+                      Text(
+                        'Exam Pins',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Purchase exam result checker scratch cards.',
+                        style: TextStyle(color: context.textSecondary, fontSize: 16),
+                      ),
+                      const SizedBox(height: 40),
+
+                      // Exam Board Selector
+                      Text(
+                        'Select Exam Board',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_isLoadingPlans)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 20),
+                          child: Center(child: CircularProgressIndicator()),
+                        )
+                      else if (_allPlans.isEmpty)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.orange.shade200),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.orange.shade700),
+                              const SizedBox(width: 12),
+                              const Expanded(child: Text('No exam pins available at the moment.')),
+                            ],
+                          ),
+                        )
+                      else
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: _examTypes.map((exam) {
+                            bool isSelected = _selectedProviderKey == exam['provider_key'];
+                            return GestureDetector(
+                              onTap: () => _setProvider(exam['provider_key']),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.4,
+                                height: 120,
+                                decoration: BoxDecoration(
+                                  color: isSelected ? AppTheme.primaryColor.withValues(alpha: 0.05) : context.subtleBg,
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: isSelected ? AppTheme.primaryColor : context.borderColor,
+                                    width: isSelected ? 2 : 1,
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.asset(
+                                        exam['assetPath'],
+                                        width: 48,
+                                        height: 48,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => Icon(Icons.school, color: exam['color'], size: 48),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      exam['name'],
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                                        color: isSelected ? AppTheme.primaryColor : context.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+
+                      const SizedBox(height: 32),
+
+                      // Quantity Dropdown (1 to 5)
+                      Text(
+                        'Quantity (Max 5)',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: context.textPrimary),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          hintText: 'Select Quantity',
+                        ),
+                        initialValue: _selectedQuantity,
+                        style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),
+                        items: _quantities.map((q) {
+                          return DropdownMenuItem(
+                            value: q,
+                            child: Text('$q Piece(s)', style: const TextStyle(fontWeight: FontWeight.normal)),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedQuantity = val;
+                            });
+                          }
+                        },
+                      ),
+
+                      const SizedBox(height: 32),
+
+                      // Total Preview
+                      if (_selectedExamPlan != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Total Amount',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                              ),
+                              Text(
+                                '₦${formatCurrency(((_selectedExamPlan!['price'] ?? 0) as num).toDouble() * int.parse(_selectedQuantity))}',
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+
+                      // Proceed Button
+                      GradientButton(
+                        text: 'Purchase Pin',
+                        onPressed: _onProceed,
+                        loading: _loading,
+                      ),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -69,13 +69,13 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: context.scaffoldBg,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: context.cardColor,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'Notification Settings',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+          style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.secondaryColor),
@@ -167,14 +167,14 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.grey.shade500,
+            color: context.textMuted,
             letterSpacing: 0.5,
           ),
         ),
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: context.cardColor,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -195,11 +195,11 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
       contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       title: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
       ),
       subtitle: Text(
         subtitle,
-        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+        style: TextStyle(color: context.textSecondary, fontSize: 12),
       ),
       trailing: Switch.adaptive(
         value: value,

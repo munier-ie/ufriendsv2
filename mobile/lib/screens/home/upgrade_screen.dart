@@ -116,12 +116,12 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cardColor,
       appBar: AppBar(
-        title: const Text('Upgrade Account', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.white,
+        title: Text('Upgrade Account', style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: context.cardColor,
         elevation: 0,
-        foregroundColor: Colors.black87,
+        foregroundColor: context.textPrimary,
         centerTitle: true,
       ),
       body: _loading
@@ -147,14 +147,14 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             child: Icon(Icons.workspace_premium_rounded, size: 48, color: Colors.amber.shade700),
           ),
           const SizedBox(height: 16),
-          const Text('Unlock Premium Features', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+          Text('Unlock Premium Features', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.textPrimary)),
           const SizedBox(height: 8),
-          const Text('Upgrade your account tier to enjoy exclusive discounts on all services.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: Colors.black54)),
+          Text('Upgrade your account tier to enjoy exclusive discounts on all services.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: context.textSecondary)),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: context.dividerColor,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text('Current Balance: ₦${balance.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
@@ -197,10 +197,10 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: context.cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isCurrent ? badgeColor : Colors.grey.shade200,
+          color: isCurrent ? badgeColor : context.borderColor,
           width: isCurrent ? 2 : 1,
         ),
         boxShadow: [
@@ -251,12 +251,12 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(tier['name'], style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          Text(tier['name'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           const SizedBox(height: 4),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(tier['price'] == 0 ? 'Free' : '₦${tier['price']}', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
+                              Text(tier['price'] == 0 ? 'Free' : '₦${tier['price']}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.textPrimary)),
                               if (tier['price'] > 0)
                                 const Text(' / one-time', style: TextStyle(color: Colors.grey, fontSize: 12)),
                             ],
