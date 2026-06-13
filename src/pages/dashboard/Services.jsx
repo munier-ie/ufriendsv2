@@ -18,6 +18,12 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import NetworkStatus from '../../components/dashboard/NetworkStatus';
 import BeneficiaryModal from '../../components/dashboard/BeneficiaryModal';
+import Clock from 'lucide-react/dist/esm/icons/clock';
+import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
+import Copy from 'lucide-react/dist/esm/icons/copy';
+import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import FileText from 'lucide-react/dist/esm/icons/file-text';
+import Receipt from '../../components/dashboard/Receipt';
 
 // Logos (using placeholders for now, can be replaced with real assets)
 const PROVIDER_LOGOS = {
@@ -52,6 +58,10 @@ export default function Services() {
         const [verifiedName, setVerifiedName] = useState(null);
     const [showBeneficiaryModal, setShowBeneficiaryModal] = useState(false);
     const [showPinModal, setShowPinModal] = useState(false); // New State
+    const [recentTransactions, setRecentTransactions] = useState([]);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
+    const [selectedTx, setSelectedTx] = useState(null);
+    const [showReceipt, setShowReceipt] = useState(false);
 
     // Enhanced Form State
     const [formData, setFormData] = useState({
@@ -89,6 +99,7 @@ export default function Services() {
 
     useEffect(() => {
         fetchServices(activeTab);
+        fetchRecentTransactions(activeTab);
     }, [activeTab]);
 
     // Calculate Amount to Pay
@@ -115,6 +126,21 @@ export default function Services() {
         let discount = price * discountPercent;
         setAmountToPay(price - discount);
     }, [formData.amount, formData.serviceId, formData.quantity, services, activeTab, formData.networkType]);
+
+    const fetchRecentTransactions = async (tab) => {
+        setLoadingTransactions(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get(`/api/wallet/transactions?type=${tab}&limit=5`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setRecentTransactions(res.data.transactions || []);
+        } catch (error) {
+            console.error('Failed to fetch recent transactions:', error);
+        } finally {
+            setLoadingTransactions(false);
+        }
+    };
 
     const fetchServices = async (type) => {
         setLoading(true);
@@ -248,6 +274,7 @@ export default function Services() {
             toast.success(successMsg );
             setShowPinModal(false);
             resetForm();
+            fetchRecentTransactions(activeTab);
         } catch (error) {
             const errorMsg = error.response?.data?.error || 'Transaction failed';
             
@@ -815,6 +842,182 @@ export default function Services() {
                     <li>Transactions are usually processed instantly.</li>
                 </ul>
             </div >
+
+            {/* ==================== Recent Transactions ==================== */}
+            <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <Clock size={20} className="text-primary" />
+                    Recent {activeTab === 'airtime' ? 'Airtime' : activeTab === 'data' ? 'Data' : activeTab === 'cable' ? 'Cable TV' : activeTab === 'electricity' ? 'Electricity' : activeTab === 'data_pin' ? 'Data Pins' : 'Exam Pins'} Transactions
+                </h3>
+
+                {loadingTransactions ? (
+                    <div className="flex justify-center py-8">
+                        <Loader2 className="animate-spin text-primary" size={28} />
+                    </div>
+                ) : recentTransactions.length === 0 ? (
+                    <div className="text-center py-8 text-gray-500">
+                        <Clock size={40} className="mx-auto text-gray-300 mb-3" />
+                        <p>No recent transactions found for this service.</p>
+                    </div>
+                ) : (
+                    <div className="divide-y divide-gray-100">
+                        {recentTransactions.map((tx) => {
+                            const isDebit = tx.amount < 0;
+                            return (
+                                <div
+                                    key={tx.id}
+                                    className="flex items-center justify-between gap-4 py-3 hover:bg-gray-50/50 px-2 rounded-xl transition-colors cursor-pointer"
+                                    onClick={() => setSelectedTx(tx)}
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`p-2.5 rounded-lg shrink-0 ${
+                                            activeTab === 'airtime' ? 'bg-blue-50 text-blue-600' :
+                                            activeTab === 'data' ? 'bg-green-50 text-green-600' :
+                                            activeTab === 'cable' ? 'bg-indigo-50 text-indigo-600' :
+                                            activeTab === 'electricity' ? 'bg-amber-50 text-amber-600' :
+                                            'bg-purple-50 text-purple-600'
+                                        }`}>
+                                            {activeTab === 'airtime' ? <Phone size={18} /> :
+                                             activeTab === 'data' ? <Wifi size={18} /> :
+                                             activeTab === 'cable' ? <Tv size={18} /> :
+                                             activeTab === 'electricity' ? <Zap size={18} /> :
+                                             activeTab === 'data_pin' ? <Hash size={18} /> :
+                                             <GraduationCap size={18} />}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-gray-900 truncate">{tx.serviceName}</p>
+                                            <p className="text-xs text-gray-500 truncate">{tx.description}</p>
+                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                {new Date(tx.date).toLocaleDateString('en-NG', {
+                                                    day: 'numeric', month: 'short', year: 'numeric'
+                                                })}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                        <p className={`text-sm font-bold ${isDebit ? 'text-red-600' : 'text-green-600'}`}>
+                                            {isDebit ? '-' : '+'}₦{Math.abs(tx.amount).toLocaleString()}
+                                        </p>
+                                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                            tx.status === 0 ? 'bg-green-100 text-green-800' :
+                                            tx.status === 1 ? 'bg-red-100 text-red-800' :
+                                            'bg-yellow-100 text-yellow-800'
+                                        }`}>
+                                            {tx.status === 0 ? 'Success' : tx.status === 1 ? 'Failed' : 'Pending'}
+                                        </span>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                )}
+            </div>
+
+            {/* Transaction Detail Modal */}
+            <AnimatePresence>
+                {selectedTx && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+                        onClick={() => setSelectedTx(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50">
+                                <h3 className="text-lg font-bold text-gray-900">Transaction Details</h3>
+                                <button onClick={() => setSelectedTx(null)} className="text-gray-400 hover:text-gray-600">
+                                    <XCircle size={24} />
+                                </button>
+                            </div>
+
+                            <div className="p-6 space-y-4">
+                                <div className="text-center mb-6">
+                                    <div className="flex justify-center mb-3">
+                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedTx.status === 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                            {selectedTx.status === 0 ? <CheckCircle size={32} /> : <XCircle size={32} />}
+                                        </div>
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-gray-900">₦{Math.abs(selectedTx.amount).toLocaleString()}</h2>
+                                    <p className="text-gray-500">{selectedTx.serviceName}</p>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <div className="flex justify-between py-2 border-b border-gray-100">
+                                        <span className="text-gray-500">Reference</span>
+                                        <span className="font-mono font-medium text-gray-900 text-sm break-all">{selectedTx.reference}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-gray-100">
+                                        <span className="text-gray-500">Date</span>
+                                        <span className="font-medium text-gray-900">{new Date(selectedTx.date).toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-gray-100">
+                                        <span className="text-gray-500">Status</span>
+                                        <span className={`font-bold ${selectedTx.status === 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                            {selectedTx.status === 0 ? 'Successful' : 'Failed'}
+                                        </span>
+                                    </div>
+                                    <div className="flex justify-between py-2 border-b border-gray-100">
+                                        <span className="text-gray-500">Description</span>
+                                        <span className="font-medium text-gray-900 text-right text-sm">{selectedTx.description}</span>
+                                    </div>
+
+                                    {selectedTx.pinContent && (
+                                        <div className="mt-4 bg-gray-900 rounded-xl p-4 text-white relative group">
+                                            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Purchased PIN</p>
+                                            <div className="font-mono text-xl font-bold tracking-widest break-all">
+                                                {selectedTx.pinContent}
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(selectedTx.pinContent);
+                                                    toast.success('PIN copied to clipboard');
+                                                }}
+                                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors"
+                                            >
+                                                <Copy size={16} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-gray-50 border-t border-gray-100 flex gap-2">
+                                <Button
+                                    variant="secondary"
+                                    onClick={() => setSelectedTx(null)}
+                                    className="flex-1"
+                                >
+                                    Close
+                                </Button>
+                                {selectedTx.status === 0 && (
+                                    <Button
+                                        onClick={() => setShowReceipt(true)}
+                                        className="flex-1 gap-2"
+                                    >
+                                        <FileText size={18} /> Receipt
+                                    </Button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showReceipt && selectedTx && (
+                    <Receipt
+                        transaction={selectedTx}
+                        onClose={() => setShowReceipt(false)}
+                    />
+                )}
+            </AnimatePresence>
         </div >
     );
 }

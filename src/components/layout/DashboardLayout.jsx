@@ -44,9 +44,11 @@ import Code from 'lucide-react/dist/esm/icons/code';
 import Bot from 'lucide-react/dist/esm/icons/bot';
 import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
 import Printer from 'lucide-react/dist/esm/icons/printer';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 
 import Logo from '../ui/Logo';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatConsultant from '../dashboard/ChatConsultant';
 
 export default function DashboardLayout() {
@@ -59,6 +61,9 @@ export default function DashboardLayout() {
     const [siteName, setSiteName] = useState('Ufriends');
     const [globalSettings, setGlobalSettings] = useState(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
+    const [expandedCategories, setExpandedCategories] = useState({
+        'Overview': true
+    });
 
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
@@ -72,6 +77,8 @@ export default function DashboardLayout() {
             if (adminUser) setUser(JSON.parse(adminUser));
             fetchAdminProfile();
         } else if (token) {
+            // Regular users: also open Services & Utilities by default
+            setExpandedCategories(prev => ({ ...prev, 'Services & Utilities': true }));
             const storedUser = localStorage.getItem('user');
             if (storedUser) setUser(JSON.parse(storedUser));
             fetchProfile();
@@ -177,81 +184,146 @@ export default function DashboardLayout() {
 
     const isActive = (path) => location.pathname === path;
 
-    const userSidebarItems = [
-        { icon: Crown, label: 'Upgrade Account', path: '/dashboard/upgrade' },
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
-        { icon: Grid3X3, label: 'Services', path: '/dashboard/services' },
-        { icon: Wifi, label: 'Data', path: '/dashboard/services?type=data' },
-        { icon: PhoneCall, label: 'Airtime', path: '/dashboard/services?type=airtime' },
-        { icon: Landmark, label: 'Gov Services', path: '/dashboard/gov-services' },
-        { icon: ShoppingBag, label: 'Exam PINs', path: '/dashboard/exam-pins' },
-        { icon: ArrowRightLeft, label: 'Airtime2cash', path: '/dashboard/airtime2cash' },
-        { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
-        { icon: Printer, label: 'Recharge Cards', path: '/dashboard/recharge-cards' },
-        { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
-
-        { icon: Tag, label: 'Data PINs', path: '/dashboard/data-pins' },
-        { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
-        { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
-        { icon: Wallet, label: 'Transactions', path: '/dashboard/transactions' },
-        { icon: ShieldCheck, label: 'Verification', path: '/dashboard/verify' },
-        { icon: Banknote, label: 'Pricing', path: '/dashboard/pricing' },
-        { icon: MessageSquare, label: 'Bulk SMS', path: '/dashboard/bulk-sms' },
-        { icon: CalculatorIcon, label: 'Calculator', path: '/dashboard/calculator' },
-        { icon: Users, label: 'Referrals', path: '/dashboard/referrals' },
-        { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },
-        { icon: Globe, label: 'Become a Reseller', path: '/reseller' },
-        { icon: HelpCircle, label: 'Support Center', path: '/dashboard/support' },
-        { icon: User, label: 'Profile', path: '/dashboard/profile' },
+    // Categorized configuration for regular users
+    const userCategoriesConfig = [
+        {
+            title: 'Overview',
+            items: [
+                { icon: Crown, label: 'Upgrade Account', path: '/dashboard/upgrade' },
+                { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
+                { icon: User, label: 'Profile', path: '/dashboard/profile' },
+            ]
+        },
+        {
+            title: 'Services & Utilities',
+            items: [
+                { icon: Grid3X3, label: 'Services', path: '/dashboard/services' },
+                { icon: Wifi, label: 'Data', path: '/dashboard/services?type=data' },
+                { icon: PhoneCall, label: 'Airtime', path: '/dashboard/services?type=airtime' },
+                { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
+                { icon: Tag, label: 'Data PINs', path: '/dashboard/data-pins' },
+                { icon: Printer, label: 'Recharge Cards', path: '/dashboard/recharge-cards' },
+                { icon: ArrowRightLeft, label: 'Airtime2cash', path: '/dashboard/airtime2cash' },
+                { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
+                { icon: Landmark, label: 'Gov Services', path: '/dashboard/gov-services' },
+                { icon: ShoppingBag, label: 'Exam PINs', path: '/dashboard/exam-pins' },
+            ]
+        },
+        {
+            title: 'Financial Services',
+            items: [
+                { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
+                { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
+                { icon: Wallet, label: 'Transactions', path: '/dashboard/transactions' },
+                { icon: Banknote, label: 'Pricing', path: '/dashboard/pricing' },
+            ]
+        },
+        {
+            title: 'Developer Tools',
+            items: [
+                { icon: Book, label: 'API Docs', path: '/dashboard/api-docs', isVendorOnly: true },
+                { icon: Activity, label: 'Analytics', path: '/dashboard/vendor-analytics', isVendorOnly: true },
+                { icon: Upload, label: 'Bulk Transactions', path: '/dashboard/bulk-transactions', isVendorOnly: true },
+            ]
+        },
+        {
+            title: 'Education & Tools',
+            items: [
+                { icon: MessageSquare, label: 'Bulk SMS', path: '/dashboard/bulk-sms' },
+                { icon: CalculatorIcon, label: 'Calculator', path: '/dashboard/calculator' },
+                { icon: Users, label: 'Referrals', path: '/dashboard/referrals' },
+                { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },
+                { icon: Globe, label: 'Become a Reseller', path: '/reseller' },
+            ]
+        },
+        {
+            title: 'Support',
+            items: [
+                { icon: HelpCircle, label: 'Support Center', path: '/dashboard/support' },
+            ]
+        }
     ];
 
-    // Vendor-specific navigation items
-    const vendorSidebarItems = [
-        { icon: Book, label: 'API Docs', path: '/dashboard/api-docs' },
-        { icon: Activity, label: 'Analytics', path: '/dashboard/vendor-analytics' },
-        { icon: Upload, label: 'Bulk Transactions', path: '/dashboard/bulk-transactions' },
+    // Categorized configuration for Admin users
+    const adminCategoriesConfig = [
+        {
+            title: 'Overview',
+            items: [
+                { icon: LayoutDashboard, label: 'Admin Home', path: '/admin/dashboard' },
+                { icon: BarChart, label: 'Analytics', path: '/admin/dashboard/reports', moduleId: 'reports' },
+                { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales', moduleId: 'reports' },
+                { icon: User, label: 'My Account', path: '/admin/dashboard/profile' },
+            ]
+        },
+        {
+            title: 'User Management',
+            items: [
+                { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
+                { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
+                { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
+                { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },
+            ]
+        },
+        {
+            title: 'Routing & Providers',
+            items: [
+                { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers', moduleId: 'providers' },
+                { icon: Wallet, label: 'API Wallets', path: '/admin/dashboard/api-wallets', moduleId: 'api-wallets' },
+                { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans', moduleId: 'services' },
+                { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing', moduleId: 'settings' },
+            ]
+        },
+        {
+            title: 'Telecom & Utilities',
+            items: [
+                { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services', moduleId: 'services' },
+                { icon: Tv, label: 'Cable TV', path: '/admin/dashboard/cable', moduleId: 'services' },
+                { icon: Zap, label: 'Electricity', path: '/admin/dashboard/electricity', moduleId: 'services' },
+                { icon: Wifi, label: 'Smile Data', path: '/admin/dashboard/smile-plans', moduleId: 'services' },
+                { icon: Tag, label: 'Pin Stock', path: '/admin/dashboard/pins', moduleId: 'services' },
+            ]
+        },
+        {
+            title: 'Special Services',
+            items: [
+                { icon: PhoneCall, label: 'Airtime 2 Cash', path: '/admin/dashboard/airtime-cash', moduleId: 'services' },
+                { icon: Crown, label: 'Alpha Topup', path: '/admin/dashboard/alpha-topup', moduleId: 'services' },
+                { icon: FileText, label: 'CAC Registration', path: '/admin/dashboard/cac', moduleId: 'cac' },
+                { icon: FileEdit, label: 'Manual Services', path: '/admin/dashboard/manual-services', moduleId: 'manual-services' },
+                { icon: GraduationCap, label: 'Academy', path: '/admin/dashboard/academy', moduleId: 'services' },
+            ]
+        },
+        {
+            title: 'Portal & Comms',
+            items: [
+                { icon: Globe, label: 'Homepage Editor', path: '/admin/dashboard/homepage', moduleId: 'settings' },
+                { icon: Send, label: 'Messages', path: '/admin/dashboard/contact', moduleId: 'contact' },
+                { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast', moduleId: 'contact' },
+            ]
+        },
+        {
+            title: 'System Settings',
+            items: [
+                { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings', moduleId: 'settings' },
+                { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments', moduleId: 'settings' },
+                { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks', moduleId: 'settings' },
+                { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist', moduleId: 'settings' },
+                { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades', moduleId: 'settings' },
+                { icon: Code, label: 'Software Options', path: '/admin/dashboard/settings/software', moduleId: 'settings' },
+                { icon: DollarSign, label: 'Reseller Pricing', path: '/admin/dashboard/settings/reseller-pricing', moduleId: 'settings' },
+            ]
+        }
     ];
 
-    const adminSidebarItems = [
-        { icon: LayoutDashboard, label: 'Admin Home', path: '/admin/dashboard' },
-        { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
-        { icon: Grid3X3, label: 'Services', path: '/admin/dashboard/services', moduleId: 'services' },
-        { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
-        { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers', moduleId: 'providers' },
-        { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans', moduleId: 'services' },
-        { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
-        { icon: ShoppingBag, label: 'Sales Reports', path: '/admin/dashboard/reports/sales', moduleId: 'reports' },
-        { icon: Globe, label: 'Homepage Editor', path: '/admin/dashboard/homepage', moduleId: 'settings' },
-        { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings', moduleId: 'settings' },
-        { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments', moduleId: 'settings' },
-        { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks', moduleId: 'settings' },
-        { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist', moduleId: 'settings' },
-        { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
-        { icon: Wallet, label: 'API Wallets', path: '/admin/dashboard/api-wallets', moduleId: 'api-wallets' },
-        { icon: PhoneCall, label: 'Airtime 2 Cash', path: '/admin/dashboard/airtime-cash', moduleId: 'services' },
-        { icon: Crown, label: 'Alpha Topup', path: '/admin/dashboard/alpha-topup', moduleId: 'services' },
-        { icon: FileText, label: 'CAC Registration', path: '/admin/dashboard/cac', moduleId: 'cac' },
-        { icon: Send, label: 'Messages', path: '/admin/dashboard/contact', moduleId: 'contact' },
-        { icon: Wifi, label: 'Smile Data', path: '/admin/dashboard/smile-plans', moduleId: 'services' },
-        { icon: GraduationCap, label: 'Exam Pins', path: '/admin/dashboard/exam-pins', moduleId: 'services' },
-        { icon: Tag, label: 'Pin Stock', path: '/admin/dashboard/pins', moduleId: 'services' },
-        { icon: Users, label: 'Referrals', path: '/admin/dashboard/referrals', moduleId: 'users' },
-        { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades', moduleId: 'settings' },
-        { icon: Code, label: 'Software Options', path: '/admin/dashboard/settings/software', moduleId: 'settings' },
-        { icon: DollarSign, label: 'Reseller Pricing', path: '/admin/dashboard/settings/reseller-pricing', moduleId: 'settings' },
-        { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing', moduleId: 'settings' },
-        { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast', moduleId: 'contact' },
-        { icon: BarChart, label: 'Analytics', path: '/admin/dashboard/reports', moduleId: 'reports' },
-        { icon: Tv, label: 'Cable TV', path: '/admin/dashboard/cable', moduleId: 'services' },
-        { icon: Zap, label: 'Electricity', path: '/admin/dashboard/electricity', moduleId: 'services' },
-        { icon: MessageSquare, label: 'Bulk SMS', path: '/admin/dashboard/sms', moduleId: 'services' },
-        { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },
-        { icon: FileEdit, label: 'Manual Services', path: '/admin/dashboard/manual-services', moduleId: 'manual-services' },
-        { icon: GraduationCap, label: 'Academy', path: '/admin/dashboard/academy', moduleId: 'services' },
-        { icon: User, label: 'My Account', path: '/admin/dashboard/profile' },
-    ];
+    const toggleCategory = (title) => {
+        setExpandedCategories(prev => ({
+            ...prev,
+            [title]: !prev[title]
+        }));
+    };
 
-    const getFilteredAdminItems = () => {
+    // Filter and build visible category objects
+    const getFilteredCategories = () => {
         let perms = {};
         if (user?.permissions) {
             if (typeof user.permissions === 'string') {
@@ -261,22 +333,46 @@ export default function DashboardLayout() {
             }
         }
 
-        return adminSidebarItems.filter(item => {
-            if (user?.role === 1) return true; // Super Admin sees all
+        const rawCategories = isAdmin ? adminCategoriesConfig : userCategoriesConfig;
 
-            if (item.moduleId === 'system-users') return false; // Hidden for non-super admins
-            
-            if (item.moduleId && perms[item.moduleId] === false) {
-                return false;
-            }
+        return rawCategories.map(category => {
+            const filteredItems = category.items.filter(item => {
+                if (!isAdmin) {
+                    if (item.isVendorOnly && user?.accountType !== 'vendor') {
+                        return false;
+                    }
+                    return true;
+                }
 
-            return true;
-        });
+                if (user?.role === 1) return true; // Super Admin sees all
+                if (item.moduleId === 'system-users') return false; // Hidden for non-super admins
+                if (item.moduleId && perms[item.moduleId] === false) {
+                    return false;
+                }
+                return true;
+            });
+
+            return {
+                ...category,
+                items: filteredItems
+            };
+        }).filter(cat => cat.items.length > 0);
     };
 
-    const sidebarItems = isAdmin
-        ? getFilteredAdminItems()
-        : (user?.accountType === 'vendor' ? [...userSidebarItems, ...vendorSidebarItems] : userSidebarItems);
+    const categories = getFilteredCategories();
+
+    // Auto-expand active category
+    useEffect(() => {
+        const activeCat = categories.find(cat =>
+            cat.items.some(item => isActive(item.path))
+        );
+        if (activeCat) {
+            setExpandedCategories(prev => ({
+                ...prev,
+                [activeCat.title]: true
+            }));
+        }
+    }, [location.pathname, user]);
 
     return (
         <div className="flex h-[100dvh] bg-tertiary overflow-hidden">
@@ -311,21 +407,52 @@ export default function DashboardLayout() {
                     </button>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto no-scrollbar">
-                    {sidebarItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => setIsMobileMenuOpen(false)}
-                            className={`flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive(item.path)
-                                ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25'
-                                : 'text-gray-600 hover:bg-primary/5 hover:text-primary'
-                                } `}
-                        >
-                            <item.icon size={20} />
-                            <span className="font-medium">{item.label}</span>
-                        </Link>
-                    ))}
+                <nav className="flex-1 px-4 space-y-3 mt-4 overflow-y-auto no-scrollbar pb-6">
+                    {categories.map((category) => {
+                        const isExpanded = !!expandedCategories[category.title];
+                        return (
+                            <div key={category.title} className="space-y-1">
+                                <button
+                                    onClick={() => toggleCategory(category.title)}
+                                    className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider hover:text-primary transition-colors focus:outline-none"
+                                >
+                                    <span>{category.title}</span>
+                                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                </button>
+                                
+                                <AnimatePresence initial={false}>
+                                    {isExpanded && (
+                                        <motion.div
+                                            initial="collapsed"
+                                            animate="open"
+                                            exit="collapsed"
+                                            variants={{
+                                                open: { opacity: 1, height: "auto" },
+                                                collapsed: { opacity: 0, height: 0 }
+                                            }}
+                                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                                            className="overflow-hidden space-y-1 pl-2 border-l border-gray-100 ml-2.5"
+                                        >
+                                            {category.items.map((item) => (
+                                                <Link
+                                                    key={item.path}
+                                                    to={item.path}
+                                                    onClick={() => setIsMobileMenuOpen(false)}
+                                                    className={`flex items-center space-x-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${isActive(item.path)
+                                                        ? 'bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/25 font-semibold'
+                                                        : 'text-gray-600 hover:bg-primary/5 hover:text-primary'
+                                                        } `}
+                                                >
+                                                    <item.icon size={18} />
+                                                    <span className="text-sm font-medium">{item.label}</span>
+                                                </Link>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        );
+                    })}
                 </nav>
 
                 <div className="p-4 border-t border-gray-100 bg-white">

@@ -105,6 +105,12 @@ export default function GovServices() {
     const [cacHistory, setCacHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(false);
 
+    // NIN/BVN History states
+    const [ninHistory, setNinHistory] = useState([]);
+    const [loadingNinHistory, setLoadingNinHistory] = useState(false);
+    const [bvnHistory, setBvnHistory] = useState([]);
+    const [loadingBvnHistory, setLoadingBvnHistory] = useState(false);
+
     const [formData, setFormData] = useState(INITIAL_FORM);
     const [termsAgreed, setTermsAgreed] = useState(false);
 
@@ -113,8 +119,14 @@ export default function GovServices() {
     }, []);
 
     useEffect(() => {
-        if (activeTab === 'bvn') fetchBvnPricing();
-        else if (activeTab === 'nin') fetchNinPricing();
+        if (activeTab === 'bvn') {
+            fetchBvnPricing();
+            fetchBvnHistory();
+        }
+        else if (activeTab === 'nin') {
+            fetchNinPricing();
+            fetchNinHistory();
+        }
         else if (activeTab === 'cac') {
             fetchCacPricing();
             fetchCacHistory();
@@ -178,6 +190,36 @@ export default function GovServices() {
             console.error('Failed to fetch CAC history', error);
         } finally {
             setLoadingHistory(false);
+        }
+    };
+
+    const fetchNinHistory = async () => {
+        setLoadingNinHistory(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get('/api/nin/reports?limit=5', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setNinHistory(res.data.reports || []);
+        } catch (error) {
+            console.error('Failed to fetch NIN history', error);
+        } finally {
+            setLoadingNinHistory(false);
+        }
+    };
+
+    const fetchBvnHistory = async () => {
+        setLoadingBvnHistory(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await axios.get('/api/bvn/reports?limit=5', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setBvnHistory(res.data.reports || []);
+        } catch (error) {
+            console.error('Failed to fetch BVN history', error);
+        } finally {
+            setLoadingBvnHistory(false);
         }
     };
 
@@ -301,6 +343,8 @@ export default function GovServices() {
                 if (res.data.success && res.data.report) {
                     setSlipPreview(res.data.report);
                     toast.success(`${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`);
+                    if (activeTab === 'nin') fetchNinHistory();
+                    if (activeTab === 'bvn') fetchBvnHistory();
                 } else {
                     toast.success(res.data.message );
                 }
@@ -392,21 +436,21 @@ export default function GovServices() {
                     animate={{ opacity: 1, y: 0 }}
                     className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-2xl p-6 border-2 border-green-200"
                 >
-                    <div className="flex items-start justify-between">
-                        <div className="flex-1">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-bold text-green-900 mb-2">✓ {activeTab === 'nin' ? 'NIN' : 'BVN'} Slip Generated</h3>
-                            <p className="text-green-700 text-sm mb-3">
-                                <strong>{slipPreview.firstName} {slipPreview.lastName}</strong>
+                            <p className="text-green-700 text-sm mb-3 truncate">
+                                <strong>{slipPreview.firstName} {slipPreview.lastName || slipPreview.surname}</strong>
                             </p>
-                            <p className="text-green-600 text-xs">
+                            <p className="text-green-600 text-xs truncate">
                                 Transaction Ref: {slipPreview.transactionRef}
                             </p>
                         </div>
-                        <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" icon={Eye} onClick={() => setShowPreviewModal(true)} className="border-green-300 text-green-700 hover:bg-green-100">
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4 lg:mt-0 w-full lg:w-auto shrink-0">
+                            <Button variant="outline" size="sm" icon={Eye} onClick={() => setShowPreviewModal(true)} className="border-green-300 text-green-700 hover:bg-green-100 w-full sm:w-auto justify-center">
                                 Preview
                             </Button>
-                            <Button size="sm" icon={Download} onClick={handleDownloadSlip} className="bg-green-600 hover:bg-green-700">
+                            <Button size="sm" icon={Download} onClick={handleDownloadSlip} className="bg-green-600 hover:bg-green-700 w-full sm:w-auto justify-center">
                                 Download PDF
                             </Button>
                         </div>
@@ -774,6 +818,180 @@ export default function GovServices() {
                 </form>
             </div>
 
+            {/* Info Card */}
+            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                <h3 className="text-primary font-bold mb-2 flex items-center space-x-2">
+                    <AlertCircle size={18} />
+                    <span>Information</span>
+                </h3>
+                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 opacity-80">
+                    {activeTab === 'bvn' ? (
+                        <>
+                            <li>BVN verification is instant - your slip will be generated immediately.</li>
+                            <li>Ensure your BVN number is correct before submitting.</li>
+                            <li>Your slip will include your photo and all registered BVN details.</li>
+                            <li>Service fees are non-refundable for successful verifications.</li>
+                        </>
+                    ) : activeTab === 'cac' ? (
+                        <>
+                            <li>CAC registration is processed within 5-14 working days.</li>
+                            <li>Our agents will contact you via email/phone for additional documents if needed.</li>
+                            <li>Business Name registration is faster than Limited Liability.</li>
+                            <li>Provide two proposed names — CAC may reject a name if it's already taken.</li>
+                            <li>Service fees are non-refundable once processing has started.</li>
+                        </>
+                    ) : (
+                        <>
+                            <li>NIN verification is instant - your slip will be generated immediately.</li>
+                            <li>Ensure your NIN number is correct before submitting.</li>
+                            <li>Ensure your transaction PIN is correct before submitting.</li>
+                            <li>Service fees are non-refundable once processing has started.</li>
+                        </>
+                    )}
+                </ul>
+            </div>
+
+            {/* ==================== NIN Slip History ==================== */}
+            {activeTab === 'nin' ? (
+                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <Clock size={20} className="text-primary" />
+                        Recent NIN Slips
+                    </h3>
+
+                    {loadingNinHistory ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="animate-spin text-primary" size={28} />
+                        </div>
+                    ) : ninHistory.length === 0 ? (
+                        <div className="text-center py-8">
+                            <Landmark size={40} className="mx-auto text-gray-300 mb-3" />
+                            <p className="text-gray-500">No recent NIN verifications found.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {ninHistory.map((report) => (
+                                <div
+                                    key={report.id}
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="flex items-start gap-4 min-w-0">
+                                        <div className="p-2.5 bg-primary/5 rounded-lg shrink-0">
+                                            <Landmark size={20} className="text-primary" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-gray-900 truncate">
+                                                {report.firstName} {report.surname || report.lastName}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                NIN: {report.ninNumber ? `${report.ninNumber.substring(0, 4)}***${report.ninNumber.substring(7)}` : 'N/A'} | Ref: {report.transactionRef}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-1 font-semibold capitalize">
+                                                {report.slipType} Slip
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+                                        <p className="text-xs text-gray-500 font-medium">
+                                            {new Date(report.createdAt).toLocaleDateString('en-NG', {
+                                                day: 'numeric', month: 'short', year: 'numeric'
+                                            })}
+                                        </p>
+                                        {report.pdfUrl ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                icon={Download}
+                                                onClick={() => {
+                                                    const slipUrl = report.pdfUrl.includes('?') 
+                                                        ? `${report.pdfUrl}&token=${localStorage.getItem('token')}`
+                                                        : `${report.pdfUrl}?token=${localStorage.getItem('token')}`;
+                                                    window.open(slipUrl, '_blank');
+                                                }}
+                                                className="border-primary/20 text-primary hover:bg-primary/5 shrink-0"
+                                            >
+                                                Download
+                                            </Button>
+                                        ) : (
+                                            <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Error</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : null}
+
+            {/* ==================== BVN Slip History ==================== */}
+            {activeTab === 'bvn' ? (
+                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                        <Clock size={20} className="text-primary" />
+                        Recent BVN Slips
+                    </h3>
+
+                    {loadingBvnHistory ? (
+                        <div className="flex justify-center py-8">
+                            <Loader2 className="animate-spin text-primary" size={28} />
+                        </div>
+                    ) : bvnHistory.length === 0 ? (
+                        <div className="text-center py-8">
+                            <FileText size={40} className="mx-auto text-gray-300 mb-3" />
+                            <p className="text-gray-500">No recent BVN verifications found.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {bvnHistory.map((report) => (
+                                <div
+                                    key={report.id}
+                                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors"
+                                >
+                                    <div className="flex items-start gap-4 min-w-0">
+                                        <div className="p-2.5 bg-primary/5 rounded-lg shrink-0">
+                                            <FileText size={20} className="text-primary" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-semibold text-gray-900 truncate">
+                                                {report.firstName} {report.lastName || report.surname}
+                                            </p>
+                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                BVN: {report.bvnNumber ? `${report.bvnNumber.substring(0, 4)}***${report.bvnNumber.substring(7)}` : 'N/A'} | Ref: {report.transactionRef}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+                                        <p className="text-xs text-gray-500 font-medium">
+                                            {new Date(report.createdAt).toLocaleDateString('en-NG', {
+                                                day: 'numeric', month: 'short', year: 'numeric'
+                                            })}
+                                        </p>
+                                        {report.pdfUrl ? (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                icon={Download}
+                                                onClick={() => {
+                                                    const slipUrl = report.pdfUrl.includes('?') 
+                                                        ? `${report.pdfUrl}&token=${localStorage.getItem('token')}`
+                                                        : `${report.pdfUrl}?token=${localStorage.getItem('token')}`;
+                                                    window.open(slipUrl, '_blank');
+                                                }}
+                                                className="border-primary/20 text-primary hover:bg-primary/5 shrink-0"
+                                            >
+                                                Download
+                                            </Button>
+                                        ) : (
+                                            <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full">Error</span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            ) : null}
+
             {/* ==================== CAC Submission History ==================== */}
             {activeTab === 'cac' ? (
                 <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
@@ -838,39 +1056,6 @@ export default function GovServices() {
                     )}
                 </div>
             ) : null}
-
-            {/* Info Card */}
-            <div className="bg-primary/5 rounded-2xl p-6 border border-primary/10">
-                <h3 className="text-primary font-bold mb-2 flex items-center space-x-2">
-                    <AlertCircle size={18} />
-                    <span>Information</span>
-                </h3>
-                <ul className="list-disc list-inside text-sm text-gray-700 space-y-1 opacity-80">
-                    {activeTab === 'bvn' ? (
-                        <>
-                            <li>BVN verification is instant - your slip will be generated immediately.</li>
-                            <li>Ensure your BVN number is correct before submitting.</li>
-                            <li>Your slip will include your photo and all registered BVN details.</li>
-                            <li>Service fees are non-refundable for successful verifications.</li>
-                        </>
-                    ) : activeTab === 'cac' ? (
-                        <>
-                            <li>CAC registration is processed within 5-14 working days.</li>
-                            <li>Our agents will contact you via email/phone for additional documents if needed.</li>
-                            <li>Business Name registration is faster than Limited Liability.</li>
-                            <li>Provide two proposed names — CAC may reject a name if it's already taken.</li>
-                            <li>Service fees are non-refundable once processing has started.</li>
-                        </>
-                    ) : (
-                        <>
-                            <li>NIN verification is instant - your slip will be generated immediately.</li>
-                            <li>Ensure your NIN number is correct before submitting.</li>
-                            <li>Ensure your transaction PIN is correct before submitting.</li>
-                            <li>Service fees are non-refundable once processing has started.</li>
-                        </>
-                    )}
-                </ul>
-            </div>
 
             {/* ==================== PIN Modal ==================== */}
             <AnimatePresence>

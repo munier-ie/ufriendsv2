@@ -6,7 +6,15 @@ const svgFile = path.join(__dirname, 'public/favicon.svg');
 const outputDir = path.join(__dirname, 'mobile/assets');
 
 async function renderSVG(width, height, outputPath, paddingPercent = 0) {
-    const browser = await puppeteer.launch();
+    const { getChromePath } = require('./api/utils/chrome');
+    const chromePath = getChromePath();
+
+    const launchOptions = {};
+    if (chromePath) {
+        launchOptions.executablePath = chromePath;
+    }
+
+    const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
     const svgContent = fs.readFileSync(svgFile, 'utf8');
     

@@ -1,10 +1,17 @@
 const baseAxios = require('axios');
 const https = require('https');
+const dns = require('dns');
 
 // Alrahuz has a broken IPv6 configuration which causes ENETUNREACH/ETIMEDOUT. 
 // We create an axios instance that forces IPv4 to ensure stable connections.
+// We also supply a custom dns lookup function to bypass any failing IPv6 DNS lookups entirely.
 const axios = baseAxios.create({
-    httpsAgent: new https.Agent({ family: 4 })
+    httpsAgent: new https.Agent({
+        family: 4,
+        lookup: (hostname, options, callback) => {
+            dns.lookup(hostname, { family: 4 }, callback);
+        }
+    })
 });
 
 // Helper: ensure the base URL ends at /api so all endpoints include /api/

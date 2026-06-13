@@ -52,10 +52,18 @@ async function prerender() {
         console.log(`Static server listening on port ${port}`);
         
         try {
-            const browser = await puppeteer.launch({ 
+            const { getChromePath } = require('./api/utils/chrome');
+            const chromePath = getChromePath();
+
+            const launchOptions = {
                 headless: true,
-                args: ['--no-sandbox', '--disable-setuid-sandbox'] 
-            });
+                args: ['--no-sandbox', '--disable-setuid-sandbox']
+            };
+            if (chromePath) {
+                launchOptions.executablePath = chromePath;
+            }
+
+            const browser = await puppeteer.launch(launchOptions);
             const page = await browser.newPage();
             
             for (const route of PUBLIC_ROUTES) {

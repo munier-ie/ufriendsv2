@@ -6,11 +6,14 @@ import Save from 'lucide-react/dist/esm/icons/save';
 import Palette from 'lucide-react/dist/esm/icons/palette';
 import Percent from 'lucide-react/dist/esm/icons/percent';
 import Image from 'lucide-react/dist/esm/icons/image';
+import Eye from 'lucide-react/dist/esm/icons/eye';
+import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 
 export default function SiteSettings() {
     const [settings, setSettings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showWhatsappApiKey, setShowWhatsappApiKey] = useState(false);
     
     useEffect(() => {
         fetchSettings();
@@ -479,12 +482,21 @@ export default function SiteSettings() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp API Key</label>
+                            <div className="relative">
                                 <input
-                                    type="password"
+                                    type={showWhatsappApiKey ? "text" : "password"}
                                     value={settings?.whatsappApiKey || ''}
                                     onChange={(e) => setSettings({ ...settings, whatsappApiKey: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
+                                    className="w-full pr-11 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent"
                                 />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowWhatsappApiKey(!showWhatsappApiKey)}
+                                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                >
+                                    {showWhatsappApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                                </button>
+                            </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">WhatsApp API Base URL</label>

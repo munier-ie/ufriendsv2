@@ -6,6 +6,8 @@ import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
 import XCircle from 'lucide-react/dist/esm/icons/x-circle';
 import Save from 'lucide-react/dist/esm/icons/save';
 import Link from 'lucide-react/dist/esm/icons/link';
+import Eye from 'lucide-react/dist/esm/icons/eye';
+import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
@@ -15,6 +17,8 @@ export default function VerificationSettings() {
     const [saving, setSaving] = useState(false);
     const [testingConnection, setTestingConnection] = useState(false);
     const [connectionStatus, setConnectionStatus] = useState(null);
+    const [showApiKey, setShowApiKey] = useState(false);
+    const [showAppId, setShowAppId] = useState(false);
 
     useEffect(() => {
         fetchSettings();
@@ -126,15 +130,33 @@ export default function VerificationSettings() {
                         label="API Key"
                         value={settings?.apiKey || ''}
                         onChange={(e) => handleUpdate('apiKey', e.target.value)}
-                        type="password"
+                        type={showApiKey ? "text" : "password"}
                         placeholder="Enter Prembly API Key (x-api-key)"
+                        rightElement={
+                            <button
+                                type="button"
+                                onClick={() => setShowApiKey(!showApiKey)}
+                                className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                            >
+                                {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        }
                     />
                     <Input
                         label="App ID (Optional)"
                         value={settings?.appId || ''}
                         onChange={(e) => handleUpdate('appId', e.target.value)}
-                        type="password"
+                        type={showAppId ? "text" : "password"}
                         placeholder="Enter Prembly App ID (app-id) - if required"
+                        rightElement={
+                            <button
+                                type="button"
+                                onClick={() => setShowAppId(!showAppId)}
+                                className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                            >
+                                {showAppId ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
+                        }
                     />
                     <Input
                         label="Base URL"

@@ -3,6 +3,7 @@ const axios = require('axios');
 const puppeteer = require('puppeteer');
 const fs = require('fs').promises;
 const path = require('path');
+const { getChromePath } = require('../utils/chrome');
 const crypto = require('crypto');
 
 /**
@@ -489,39 +490,40 @@ async function generateBvnPdf(reportData) {
     const pdfFilename = `${reportData.transactionRef}.pdf`;
     const pdfPath = path.join(uploadsDir, pdfFilename);
 
-    // Generate PDF using Puppeteer
-    let browser;
-    const chromePath = process.env.CHROME_BIN || '/usr/bin/google-chrome';
+    const chromePath = getChromePath();
 
-    try {
-      // Check if the explicitly provided or default path exists
-      await fs.access(chromePath);
+    if (chromePath) {
       browser = await puppeteer.launch({
         executablePath: chromePath,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: 'new'
       });
-    } catch (e) {
-      // Fallback to bundled puppeteer browser if path doesn't exist
+    } else {
+      // Fallback to bundled puppeteer browser if no path exists
       browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: 'new'
       });
     }
-    const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    const pdfOptions = {
-      format: 'A4',
-      margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' },
-      printBackground: true
-    };
+    let pdfBuffer;
+    try {
+      const page = await browser.newPage();
+      await page.setContent(html, { waitUntil: 'networkidle0' });
 
-    // For plastic slip, we might want a different size or layout, 
-    // but keeping A4 and letting the CSS handle the card size is safer for printing.
+      const pdfOptions = {
+        format: 'A4',
+        margin: { top: '10mm', right: '10mm', bottom: '10mm', left: '10mm' },
+        printBackground: true
+      };
 
-    const pdfBuffer = await page.pdf(pdfOptions);
-    await browser.close();
+      // For plastic slip, we might want a different size or layout, 
+      // but keeping A4 and letting the CSS handle the card size is safer for printing.
+
+      pdfBuffer = await page.pdf(pdfOptions);
+    } finally {
+      await browser.close();
+    }
 
     // Save PDF to file
     await fs.writeFile(pdfPath, pdfBuffer);

@@ -7,6 +7,8 @@ import Edit3 from 'lucide-react/dist/esm/icons/edit-3';
 import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
 import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
 import XCircle from 'lucide-react/dist/esm/icons/x-circle';
+import Eye from 'lucide-react/dist/esm/icons/eye';
+import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
@@ -17,6 +19,8 @@ export default function ProviderManagement() {
     const [isAdding, setIsAdding] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [formData, setFormData] = useState({ name: '', baseUrl: '', apiKey: '', apiToken: '', username: '', active: true });
+    const [showApiKey, setShowApiKey] = useState(false);
+    const [showApiToken, setShowApiToken] = useState(false);
 
     useEffect(() => {
         fetchProviders();
@@ -72,12 +76,16 @@ export default function ProviderManagement() {
             active: provider.active
         });
         setIsAdding(false);
+        setShowApiKey(false);
+        setShowApiToken(false);
     };
 
     const handleAdd = () => {
         setFormData({ name: '', baseUrl: '', apiKey: '', apiToken: '', username: '', active: true });
         setIsAdding(true);
         setEditingProvider(null);
+        setShowApiKey(false);
+        setShowApiToken(false);
     };
 
     return (
@@ -168,9 +176,18 @@ export default function ProviderManagement() {
                                 />
                                 <Input
                                     label="API Key"
-                                    type="password"
+                                    type={showApiKey ? "text" : "password"}
                                     value={formData.apiKey}
                                     onChange={e => setFormData({ ...formData, apiKey: e.target.value })}
+                                    rightElement={
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowApiKey(!showApiKey)}
+                                            className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                        >
+                                            {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    }
                                 />
                                 <Input
                                     label="Username (Required for Subandgain)"
@@ -180,9 +197,18 @@ export default function ProviderManagement() {
                                 />
                                 <Input
                                     label="API Token (Optional depending on provider)"
-                                    type="password"
+                                    type={showApiToken ? "text" : "password"}
                                     value={formData.apiToken}
                                     onChange={e => setFormData({ ...formData, apiToken: e.target.value })}
+                                    rightElement={
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowApiToken(!showApiToken)}
+                                            className="text-gray-400 hover:text-primary transition-colors focus:outline-none"
+                                        >
+                                            {showApiToken ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    }
                                 />
 
                                 <div className="flex items-center space-x-2 py-2">
@@ -197,7 +223,7 @@ export default function ProviderManagement() {
                                 </div>
 
                                 <div className="flex space-x-3 pt-4">
-                                    <Button type="button" variant="outline" onClick={() => { setIsAdding(false); setEditingProvider(null); }} className="flex-1">Cancel</Button>
+                                    <Button type="button" variant="outline" onClick={() => { setIsAdding(false); setEditingProvider(null); setShowApiKey(false); setShowApiToken(false); }} className="flex-1">Cancel</Button>
                                     <Button type="submit" loading={submitting} className="flex-1">{isAdding ? 'Create' : 'Save Changes'}</Button>
                                 </div>
                             </form>

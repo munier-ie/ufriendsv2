@@ -4,6 +4,7 @@ const puppeteer = require('puppeteer');
 const fs = require('fs').promises;
 const path = require('path');
 const QRCode = require('qrcode');
+const { getChromePath } = require('../utils/chrome');
 
 /**
  * Get Verification Settings from database
@@ -448,7 +449,7 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
   const idBkgSolo = loadImageAsBase64('id-bkg-solo.jpg');     // front card background pattern
 
   const photoSrc = reportData.base64Photo
-    ? `data:image/png;base64,${reportData.base64Photo}`
+    ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
 
   const nin = reportData.ninNumber || '';
@@ -587,7 +588,7 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
 
 
   const photoSrc = reportData.base64Photo
-    ? `data:image/png;base64,${reportData.base64Photo}`
+    ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
 
   const nin = reportData.ninNumber || '';
@@ -973,20 +974,16 @@ async function generateNinPdf(reportData, slipType) {
     const pdfFilename = `${reportData.transactionRef}.pdf`;
     const pdfPath = path.join(uploadsDir, pdfFilename);
 
-    // Generate PDF using Puppeteer
-    let browser;
-    const chromePath = process.env.CHROME_BIN || '/usr/bin/google-chrome';
+    const chromePath = getChromePath();
 
-    try {
-      // Check if the explicitly provided or default path exists
-      await fs.access(chromePath);
+    if (chromePath) {
       browser = await puppeteer.launch({
         executablePath: chromePath,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: 'new'
       });
-    } catch (e) {
-      // Fallback to bundled puppeteer browser if path doesn't exist
+    } else {
+      // Fallback to bundled puppeteer browser if no path exists
       browser = await puppeteer.launch({
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
         headless: 'new'
