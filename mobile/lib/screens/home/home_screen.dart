@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   void _lockApp() {
     navigatorKey.currentState?.push(
-      MaterialPageRoute(builder: (_) => const LockScreen()),
+      MaterialPageRoute(builder: (_) => const LockScreen(isOverlay: true)),
     );
   }
 

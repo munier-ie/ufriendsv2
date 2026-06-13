@@ -8,7 +8,8 @@ import '../home/home_screen.dart';
 import 'login_screen.dart';
 
 class LockScreen extends StatefulWidget {
-  const LockScreen({super.key});
+  final bool isOverlay;
+  const LockScreen({super.key, this.isOverlay = false});
 
   static bool isShowing = false;
 
@@ -44,9 +45,13 @@ class _LockScreenState extends State<LockScreen> {
     if (mounted) {
       setState(() => _authenticating = false);
       if (success) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+        if (widget.isOverlay) {
+          Navigator.of(context).pop();
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+        }
       } else {
         // Silently fail on backgrounding / lock screen initialization to prevent annoying repetitive toasts
       }
@@ -56,8 +61,9 @@ class _LockScreenState extends State<LockScreen> {
   Future<void> _handleManualLogin() async {
     await AuthService.logout();
     if (mounted) {
-      Navigator.of(context).pushReplacement(
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
       );
     }
   }
