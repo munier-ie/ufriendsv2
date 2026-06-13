@@ -9,7 +9,15 @@ const axios = baseAxios.create({
     httpsAgent: new https.Agent({
         family: 4,
         lookup: (hostname, options, callback) => {
-            dns.lookup(hostname, { family: 4 }, callback);
+            if (typeof options === 'function') {
+                callback = options;
+                options = { family: 4 };
+            } else if (options && typeof options === 'object') {
+                options = Object.assign({}, options, { family: 4 });
+            } else {
+                options = { family: 4 };
+            }
+            dns.lookup(hostname, options, callback);
         }
     })
 });
@@ -469,8 +477,17 @@ async function checkBalance(config) {
             balance: parseFloat(balance)
         };
     } catch (error) {
-        console.error('Alrahuz Balance Error:', error.message);
-        return { success: false, message: 'Connection Error' };
+        console.error('Alrahuz Balance Error:', error.response?.data || error.message);
+        let errorMsg = 'Connection Error';
+        if (error.response) {
+            const apiError = error.response.data?.error || error.response.data?.message || error.response.data?.detail || null;
+            errorMsg = `API Error (Status ${error.response.status})${apiError ? ': ' + JSON.stringify(apiError) : ''}`;
+        } else if (error.code) {
+            errorMsg = `Network Error (${error.code}): ${error.message}`;
+        } else {
+            errorMsg = `Error: ${error.message}`;
+        }
+        return { success: false, message: errorMsg };
     }
 }
 
