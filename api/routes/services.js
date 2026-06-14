@@ -413,7 +413,7 @@ router.post('/purchase', authenticateUser, async (req, res) => {
         let vendResult;
         if (service.type === 'airtime') {
             vendResult = await vendAirtime(
-                result.transaction,
+                { ...result.transaction, faceValue: amount },
                 service,
                 recipient,
                 providerName,

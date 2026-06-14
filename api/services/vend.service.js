@@ -128,7 +128,7 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
         // 3. Prepare Details
         const details = {
             network: network,
-            amount: Math.abs(transaction.amount),
+            amount: transaction.faceValue || Math.abs(transaction.amount),
             phone: phone,
             requestId: transaction.reference,
             airtimeType: airtimeType,
