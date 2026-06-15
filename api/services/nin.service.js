@@ -2,9 +2,34 @@ const prisma = require('../../prisma/client');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 const fs = require('fs').promises;
+const fsSync = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
 const { getChromePath } = require('../utils/chrome');
+
+function escapeHtml(unsafe) {
+  if (typeof unsafe !== 'string') return unsafe;
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeHTML(strings, ...values) {
+  let result = '';
+  for (const str of strings) {
+    result += str;
+    if (values.length > 0) {
+      const val = values.shift();
+      if (val !== undefined) {
+        result += val;
+      }
+    }
+  }
+  return result;
+}
 
 /**
  * Get Verification Settings from database
@@ -44,23 +69,39 @@ async function getVerificationSettings() {
  * Get NIN pricing based on slip type and user type
  */
 async function getNinPricing(slipType, userType) {
+  const validSlipTypes = ['regular', 'standard', 'premium', 'vnin'];
+  if (!validSlipTypes.includes(slipType)) {
+    throw new Error('Invalid slip type');
+  }
+
   const settings = await getVerificationSettings();
 
   let userPrice, apiPrice;
-  const slipTypeCapitalized = slipType.charAt(0).toUpperCase() + slipType.slice(1);
 
-  switch (userType) {
-    case 2: // Agent
-      userPrice = settings[`nin${slipTypeCapitalized}AgentPrice`];
-      apiPrice = settings[`nin${slipTypeCapitalized}ApiPrice`];
-      break;
-    case 3: // Vendor
-      userPrice = settings[`nin${slipTypeCapitalized}VendorPrice`];
-      apiPrice = settings[`nin${slipTypeCapitalized}ApiPrice`];
-      break;
-    default: // Regular user
-      userPrice = settings[`nin${slipTypeCapitalized}UserPrice`];
-      apiPrice = settings[`nin${slipTypeCapitalized}ApiPrice`];
+  if (slipType === 'regular') {
+    switch (userType) {
+      case 2: userPrice = settings.ninRegularAgentPrice; apiPrice = settings.ninRegularApiPrice; break;
+      case 3: userPrice = settings.ninRegularVendorPrice; apiPrice = settings.ninRegularApiPrice; break;
+      default: userPrice = settings.ninRegularUserPrice; apiPrice = settings.ninRegularApiPrice; break;
+    }
+  } else if (slipType === 'standard') {
+    switch (userType) {
+      case 2: userPrice = settings.ninStandardAgentPrice; apiPrice = settings.ninStandardApiPrice; break;
+      case 3: userPrice = settings.ninStandardVendorPrice; apiPrice = settings.ninStandardApiPrice; break;
+      default: userPrice = settings.ninStandardUserPrice; apiPrice = settings.ninStandardApiPrice; break;
+    }
+  } else if (slipType === 'premium') {
+    switch (userType) {
+      case 2: userPrice = settings.ninPremiumAgentPrice; apiPrice = settings.ninPremiumApiPrice; break;
+      case 3: userPrice = settings.ninPremiumVendorPrice; apiPrice = settings.ninPremiumApiPrice; break;
+      default: userPrice = settings.ninPremiumUserPrice; apiPrice = settings.ninPremiumApiPrice; break;
+    }
+  } else if (slipType === 'vnin') {
+    switch (userType) {
+      case 2: userPrice = settings.ninVninAgentPrice; apiPrice = settings.ninVninApiPrice; break;
+      case 3: userPrice = settings.ninVninVendorPrice; apiPrice = settings.ninVninApiPrice; break;
+      default: userPrice = settings.ninVninUserPrice; apiPrice = settings.ninVninApiPrice; break;
+    }
   }
 
   return { userPrice, apiPrice, settings };
@@ -310,12 +351,26 @@ async function generateNinSlipHtml(reportData, slipType) {
  */
 function loadImageAsBase64(imagePath) {
   try {
-    const fs = require('fs');
-    const path = require('path');
-    const fullPath = path.join(__dirname, '../slip-assets', imagePath);
-    if (fs.existsSync(fullPath)) {
-      const data = fs.readFileSync(fullPath);
-      const ext = path.extname(imagePath).toLowerCase().replace('.', '');
+    let validFile = '';
+    switch(imagePath) {
+      case 'id-header-nimc-slip.jpg': validFile = 'id-header-nimc-slip.jpg'; break;
+      case 'cloud-icon.jpg': validFile = 'cloud-icon.jpg'; break;
+      case 'internet-icon.jpeg': validFile = 'internet-icon.jpeg'; break;
+      case 'call-icon.png': validFile = 'call-icon.png'; break;
+      case 'save-icon.png': validFile = 'save-icon.png'; break;
+      case 'coat-of-arm.png': validFile = 'coat-of-arm.png'; break;
+      case 'id-back-solo.jpg': validFile = 'id-back-solo.jpg'; break;
+      case 'id-bkg-solo.jpg': validFile = 'id-bkg-solo.jpg'; break;
+      case 'id-header-premium.png': validFile = 'id-header-premium.png'; break;
+      case 'id-back-premium.jpg': validFile = 'id-back-premium.jpg'; break;
+      case 'id-bkg-premium.png': validFile = 'id-bkg-premium.png'; break;
+      case 'nimc.png': validFile = 'nimc.png'; break;
+      default: return '';
+    }
+    const fullPath = path.join(__dirname, '../slip-assets', validFile);
+    if (fsSync.existsSync(fullPath)) {
+      const data = fsSync.readFileSync(fullPath);
+      const ext = path.extname(validFile).toLowerCase().replace('.', '');
       const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'png' ? 'image/png' : 'image/jpeg';
       return `data:${mimeType};base64,${data.toString('base64')}`;
     }
@@ -329,19 +384,28 @@ function loadImageAsBase64(imagePath) {
  * Generate Regular NIN Slip HTML (Exact V3 NIMC Table Style)
  */
 function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
-  const headerImg = loadImageAsBase64('id-header-nimc-slip.jpg');
-  const cloudIcon = loadImageAsBase64('cloud-icon.jpg');
-  const internetIcon = loadImageAsBase64('internet-icon.jpeg');
-  const callIcon = loadImageAsBase64('call-icon.png');
-  const saveIcon = loadImageAsBase64('save-icon.png');
+  const headerImg = escapeHtml(loadImageAsBase64('id-header-nimc-slip.jpg'));
+  const cloudIcon = escapeHtml(loadImageAsBase64('cloud-icon.jpg'));
+  const internetIcon = escapeHtml(loadImageAsBase64('internet-icon.jpeg'));
+  const callIcon = escapeHtml(loadImageAsBase64('call-icon.png'));
+  const saveIcon = escapeHtml(loadImageAsBase64('save-icon.png'));
 
-  const photoSrc = reportData.base64Photo
+  const rawPhotoSrc = reportData.base64Photo
     ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
+  const photoSrc = escapeHtml(rawPhotoSrc);
 
-  const nin = reportData.ninNumber || '';
+  const nin = escapeHtml(reportData.ninNumber || '');
+  const trackingId = escapeHtml(reportData.trackingId || '');
+  const surname = escapeHtml(reportData.surname || '');
+  const firstName = escapeHtml(reportData.firstName || '');
+  const middleName = escapeHtml(reportData.middleName || '');
+  const residenceAddress = escapeHtml(reportData.residenceAddress || '');
+  const residenceLga = escapeHtml(reportData.residenceLga || '');
+  const residenceState = escapeHtml(reportData.residenceState || '');
+  const gender = escapeHtml(reportData.gender || '');
 
-  return `<!DOCTYPE html>
+  return safeHTML`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -380,10 +444,10 @@ function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
       </tr>
       <tr>
         <th class="width-100 border-right-none border-top-none">Tracking ID: </th>
-        <td class="border-left-none border-top-none border-right-thick">${reportData.trackingId || ''}</td>
+        <td class="border-left-none border-top-none border-right-thick">${trackingId}</td>
         <th class="border-top-none border-bottom-none border-left-thick border-right-none" nowrap> Surname: </th>
-        <td class="border-left-none border-top-none border-bottom-none">${reportData.surname || ''}</td>
-        <td rowspan="2" class="border-none"><b>Address:</b> <br> ${reportData.residenceAddress || ''}</td>
+        <td class="border-left-none border-top-none border-bottom-none">${surname}</td>
+        <td rowspan="2" class="border-none"><b>Address:</b> <br> ${residenceAddress}</td>
         <td rowspan="4" class="border-left-none border-bottom-none border-top-none">
           ${photoSrc ? `<img src="${photoSrc}" height="150" width="120" class="rounded">` : '<div style="width:120px;height:150px;background:#eee;display:inline-block;"></div>'}
         </td>
@@ -392,19 +456,19 @@ function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
         <th class="width-100 border-top-none border-right-none border-bottom-none">NIN: </th>
         <td class="border-none">${nin}</td>
         <th class="border-right-none border-bottom-none" nowrap>First Name:</th>
-        <td class="border-left-none border-bottom-none">${reportData.firstName || ''}</td>
+        <td class="border-left-none border-bottom-none">${firstName}</td>
       </tr>
       <tr>
         <td colspan="2" class="border-bottom-none border-right-none"></td>
         <th class="border-right-none border-bottom-none" nowrap> Middle Name: </th>
-        <td class="border-left-none border-bottom-none">${reportData.middleName || ''}</td>
-        <td class="border-none">${reportData.residenceLga || ''}</td>
+        <td class="border-left-none border-bottom-none">${middleName}</td>
+        <td class="border-none">${residenceLga}</td>
       </tr>
       <tr>
         <td class="width-100 border-top-none border-right-none border-bottom-none" colspan="2"></td>
         <th class="border-right-none border-bottom-none">Gender:</th>
-        <td class="border-left-none border-bottom-none">${reportData.gender || ''}</td>
-        <td class="border-none">${reportData.residenceState || ''}</td>
+        <td class="border-left-none border-bottom-none">${gender}</td>
+        <td class="border-none">${residenceState}</td>
       </tr>
       <tr>
         <td colspan="6" class="text-black border-bottom-none" style="margin: 5px 1px; font-size: 11px; padding: 5px 1px;">
@@ -444,18 +508,24 @@ function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
  * Generate Standard NIN Slip HTML (Exact V3 ID Card with QR)
  */
 function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeDataUrl) {
-  const coatOfArm = loadImageAsBase64('coat-of-arm.png');
-  const idBackSolo = loadImageAsBase64('id-back-solo.jpg');   // back of the card image
-  const idBkgSolo = loadImageAsBase64('id-bkg-solo.jpg');     // front card background pattern
+  const coatOfArm = escapeHtml(loadImageAsBase64('coat-of-arm.png'));
+  const idBackSolo = escapeHtml(loadImageAsBase64('id-back-solo.jpg'));   // back of the card image
+  const idBkgSolo = escapeHtml(loadImageAsBase64('id-bkg-solo.jpg'));     // front card background pattern
 
-  const photoSrc = reportData.base64Photo
+  const rawPhotoSrc = reportData.base64Photo
     ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
+  const photoSrc = escapeHtml(rawPhotoSrc);
+  const safeQrCode = escapeHtml(qrCodeDataUrl || '');
 
   const nin = reportData.ninNumber || '';
-  const surname = (reportData.surname || '').toUpperCase();
-  const firstname = (reportData.firstName || '').toUpperCase();
-  const middlename = (reportData.middleName || '').toUpperCase();
+  const ninEscaped = escapeHtml(nin);
+  const ninP1 = escapeHtml(nin.substr(0, 4));
+  const ninP2 = escapeHtml(nin.substr(4, 3));
+  const ninP3 = escapeHtml(nin.substr(7));
+  const surname = escapeHtml((reportData.surname || '').toUpperCase());
+  const firstname = escapeHtml((reportData.firstName || '').toUpperCase());
+  const middlename = escapeHtml((reportData.middleName || '').toUpperCase());
   let dobDate = null;
   if (reportData.dateOfBirth) {
     const raw = reportData.dateOfBirth;
@@ -474,9 +544,10 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
       dobDate = new Date(raw);
     }
   }
-  const dob = dobDate && !isNaN(dobDate.getTime()) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
+  const dobStr = dobDate && !isNaN(dobDate.getTime()) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
+  const dob = escapeHtml(dobStr);
 
-  return `<!DOCTYPE html>
+  return safeHTML`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -527,7 +598,7 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
               </td>
               <td class="text-center text-black">
                 <h6 class="mb-0 pt-2" style="font-weight: bold; font-family: Helvetica, sans-serif; color: rgb(34,34,34);"> NGA </h6>
-                <span class="nin-watermark nin-watermark-1">${nin}</span>
+                <span class="nin-watermark nin-watermark-1">${ninEscaped}</span>
               </td>
             </tr>
             <tr>
@@ -545,7 +616,7 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
                 </div>
               </td>
               <td rowspan="3" class="text-center p-0">
-                ${qrCodeDataUrl ? `<img src="${qrCodeDataUrl}" width="91" height="91" style="width: 90px; height: 90px;">` : ''}
+                ${safeQrCode ? safeHTML`<img src="${safeQrCode}" width="91" height="91" style="width: 90px; height: 90px;">` : ''}
               </td>
             </tr>
             <tr></tr>
@@ -555,13 +626,13 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
                 <p class="m-0 p-0 text-black" style="height: 10px;"> National Identification Number (NIN)</p>
                 <h2 class="nin p-0 m-0" style="height: 29px;">
                   <span class="text-black font-ocrb" style="padding: 0px 5px;">
-                    ${nin.substr(0, 4)} ${nin.substr(4, 3)} ${nin.substr(7)}
+                    ${ninP1} ${ninP2} ${ninP3}
                   </span>
                 </h2>
                 <p class="mb-1" style="font-style: italic; font-size: 8px; font-weight: normal;"> Kindly ensure you scan the barcode to verify the credentials </p>
-                <span class="nin-watermark nin-watermark-2">${nin}</span>
-                <span class="nin-watermark nin-watermark-3">${nin}</span>
-                <span class="nin-watermark nin-watermark-4">${nin}</span>
+                <span class="nin-watermark nin-watermark-2">${ninEscaped}</span>
+                <span class="nin-watermark nin-watermark-3">${ninEscaped}</span>
+                <span class="nin-watermark nin-watermark-4">${ninEscaped}</span>
               </td>
             </tr>
           </table>
@@ -582,19 +653,25 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
  * Generate Premium NIN Slip HTML (Exact V3 Premium ID Card)
  */
 function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataUrl) {
-  const premiumHeader = loadImageAsBase64('id-header-premium.png');
-  const idBackPremium = loadImageAsBase64('id-back-premium.jpg');
-  const idBkgPremium = loadImageAsBase64('id-bkg-premium.png');
+  const premiumHeader = escapeHtml(loadImageAsBase64('id-header-premium.png'));
+  const idBackPremium = escapeHtml(loadImageAsBase64('id-back-premium.jpg'));
+  const idBkgPremium = escapeHtml(loadImageAsBase64('id-bkg-premium.png'));
 
 
-  const photoSrc = reportData.base64Photo
+  const rawPhotoSrc = reportData.base64Photo
     ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
+  const photoSrc = escapeHtml(rawPhotoSrc);
+  const safeQrCode = escapeHtml(qrCodeDataUrl || '');
 
   const nin = reportData.ninNumber || '';
-  const surname = (reportData.surname || '').toUpperCase();
-  const firstname = (reportData.firstName || '').toUpperCase();
-  const middlename = (reportData.middleName || '').toUpperCase();
+  const ninEscaped = escapeHtml(nin);
+  const ninP1 = escapeHtml(nin.substr(0, 4));
+  const ninP2 = escapeHtml(nin.substr(4, 3));
+  const ninP3 = escapeHtml(nin.substr(7));
+  const surname = escapeHtml((reportData.surname || '').toUpperCase());
+  const firstname = escapeHtml((reportData.firstName || '').toUpperCase());
+  const middlename = escapeHtml((reportData.middleName || '').toUpperCase());
   let dobDate = null;
   if (reportData.dateOfBirth) {
     const raw = reportData.dateOfBirth;
@@ -613,12 +690,13 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
       dobDate = new Date(raw);
     }
   }
-  const dob = dobDate && !isNaN(dobDate.getTime()) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
-  const gender = (reportData.gender || '').toUpperCase();
+  const dobStr = dobDate && !isNaN(dobDate.getTime()) ? `${String(dobDate.getDate()).padStart(2, '0')}  ${dobDate.toLocaleString('en-GB', { month: 'short' })} ${dobDate.getFullYear()}`.toUpperCase() : '';
+  const dob = escapeHtml(dobStr);
+  const gender = escapeHtml((reportData.gender || '').toUpperCase());
   const issueD = reportData.createdAt ? new Date(reportData.createdAt) : new Date();
-  const issueDate = `${String(issueD.getDate()).padStart(2, '0')}  ${issueD.toLocaleString('en-GB', { month: 'short' })} ${issueD.getFullYear()}`.toUpperCase();
+  const issueDate = escapeHtml(`${String(issueD.getDate()).padStart(2, '0')}  ${issueD.toLocaleString('en-GB', { month: 'short' })} ${issueD.getFullYear()}`.toUpperCase());
 
-  return `<!DOCTYPE html>
+  return safeHTML`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -660,7 +738,7 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
                 ${premiumHeader ? `<img src="${premiumHeader}" width="220" height="27" class="mb-1">` : ''}
               </td>
               <td rowspan="3" class="p-0 pr-2 pt-3">
-                ${qrCodeDataUrl ? `<img src="${qrCodeDataUrl}" width="101" height="101" style="width: 100px; height: 100px;">` : ''}
+                ${safeQrCode ? safeHTML`<img src="${safeQrCode}" width="101" height="101" style="width: 100px; height: 100px;">` : ''}
                 <h5 class="text-center m-0 p-0" style="font-weight: bold; color: #000;"> NGA </h5>
               </td>
             </tr>
@@ -693,7 +771,7 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
                 <p class="m-0 p-0" style="height: 20px;"> National Identification Number (NIN)</p>
                 <h2 class="nin p-0 m-0 mb-2" style="height: 27px;">
                   <span class="font-ocrb" style="padding: 0px 5px; color: #000;">
-                    ${nin.substr(0, 4)} ${nin.substr(4, 3)} ${nin.substr(7)}
+                    ${ninP1} ${ninP2} ${ninP3}
                   </span>
                 </h2>
               </td>
@@ -717,15 +795,16 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
  */
 async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
   // Assets
-  const templateBase64 = loadImageAsBase64('nimc.png');
+  const templateBase64 = escapeHtml(loadImageAsBase64('nimc.png'));
 
   // Only use photo if it's large enough to be a real face photo.
   // The NIMC API returns a tiny solid-green PNG placeholder (~few hundred bytes)
   // for NINs without a real photo. Real photos are always > 10,000 base64 chars.
   const isRealPhoto = reportData.base64Photo && reportData.base64Photo.replace(/\s/g, '').length > 10000;
-  const photoSrc = isRealPhoto
+  const rawPhotoSrc = isRealPhoto
     ? (reportData.base64Photo.startsWith('data') ? reportData.base64Photo : `data:image/png;base64,${reportData.base64Photo}`)
     : '';
+  const photoSrc = escapeHtml(rawPhotoSrc);
 
   // Robust DOB parsing
   let dob = '';
@@ -751,7 +830,7 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
       const day = String(dobDate.getDate()).padStart(2, '0');
       const month = dobDate.toLocaleString('en-GB', { month: 'short' }).toUpperCase();
       const year = dobDate.getFullYear();
-      dob = `${day} ${month} ${year}`;
+      dob = escapeHtml(`${day} ${month} ${year}`);
     }
   }
 
@@ -773,14 +852,20 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
   const qrCodeDataUrl = await generateQRCode(qrBlob, {
     width: 600, errorCorrectionLevel: 'M'
   });
+  const safeQrCode = escapeHtml(qrCodeDataUrl || '');
   
   // Format timestamp with dashes: DD-MM-YYYY HH:mm:ss
   const now = reportData.createdAt ? new Date(reportData.createdAt) : new Date();
-  const timestamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const timestampStr = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const timestamp = escapeHtml(timestampStr);
   
-  const agentId = reportData.agentId || '';
+  const agentId = escapeHtml(reportData.agentId || '');
+  const transactionRef = escapeHtml(reportData.transactionRef || '');
+  const surname = escapeHtml((reportData.surname || '').toUpperCase());
+  const firstName = escapeHtml((reportData.firstName || '').toUpperCase());
+  const middleName = escapeHtml((reportData.middleName || '').toUpperCase());
 
-  return `<!DOCTYPE html>
+  return safeHTML`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -931,22 +1016,22 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
       
       <!-- Mini ID Card Overlays -->
       ${photoSrc ? `<img src="${photoSrc}" class="m-photo">` : `<div class="m-photo"></div>`}
-      <div class="m-txt-surname">${(reportData.surname || '').toUpperCase()}</div>
-      <div class="m-txt-given">${(reportData.firstName || '').toUpperCase()} ${(reportData.middleName || '').toUpperCase()}</div>
+      <div class="m-txt-surname">${surname}</div>
+      <div class="m-txt-given">${firstName} ${middleName}</div>
       <div class="m-txt-dob">${dob}</div>
       
       <!-- Center Text Overlays -->
-      <div class="d-val-surname">${(reportData.surname || '').toUpperCase()}</div>
-      <div class="d-val-given">${(reportData.firstName || '').toUpperCase()} ${(reportData.middleName || '').toUpperCase()}</div>
+      <div class="d-val-surname">${surname}</div>
+      <div class="d-val-given">${firstName} ${middleName}</div>
       
       <!-- Main QR Code Overlay -->
-      <img src="${qrCodeDataUrl}" class="main-qr">
-      <img src="${qrCodeDataUrl}" class="mini-qr">
+      <img src="${safeQrCode}" class="main-qr">
+      <img src="${safeQrCode}" class="mini-qr">
       
       <!-- Table Data Overlay (Bottom Row) -->
       <div class="t-row">
         <div class="t-cell t-time">${timestamp}</div>
-        <div class="t-cell t-ref">${reportData.transactionRef}</div>
+        <div class="t-cell t-ref">${transactionRef}</div>
         <div class="t-cell t-type"></div>
         <div class="t-cell t-status"></div>
         <div class="t-cell t-agent">${agentId}</div>
@@ -963,15 +1048,25 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
  */
 async function generateNinPdf(reportData, slipType) {
   try {
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(__dirname, `../../uploads/slips/nin/${slipType}`);
+    let safeSlipType = '';
+    switch(slipType) {
+        case 'regular': safeSlipType = 'regular'; break;
+        case 'standard': safeSlipType = 'standard'; break;
+        case 'premium': safeSlipType = 'premium'; break;
+        case 'vnin': safeSlipType = 'vnin'; break;
+        default: throw new Error('Invalid slip type');
+    }
+
+    const uploadsDir = path.join(__dirname, '../../uploads/slips/nin', safeSlipType);
+    
     await fs.mkdir(uploadsDir, { recursive: true });
 
     // Generate HTML
     const html = await generateNinSlipHtml(reportData, slipType);
 
     // Generate PDF filename
-    const pdfFilename = `${reportData.transactionRef}.pdf`;
+    const safeTransactionRef = String(reportData.transactionRef || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '');
+    const pdfFilename = `${safeTransactionRef}.pdf`;
     const pdfPath = path.join(uploadsDir, pdfFilename);
 
     const chromePath = getChromePath();
