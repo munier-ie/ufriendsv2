@@ -259,6 +259,7 @@ export default function DashboardLayout() {
             title: 'User Management',
             items: [
                 { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
+                { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
                 { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
                 { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
                 { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },
