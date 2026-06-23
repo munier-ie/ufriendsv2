@@ -541,6 +541,8 @@ model ManualServiceSettings {
   bvnAndroidActive      Boolean  @default(true)
   ninModificationActive Boolean  @default(true)
   ninValidationActive   Boolean  @default(true)
+  posRequestActive      Boolean  @default(true)
+  loanRequestActive     Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

@@ -18,16 +18,11 @@ class WhatsappService {
             }
         });
 
-        const config = {};
-        settings.forEach(s => {
-            config[s.key] = s.value;
-        });
+        const adminNumber = settings.find(s => s.key === 'admin_whatsapp_number')?.value;
+        const apiKey = settings.find(s => s.key === 'whatsapp_api_key')?.value;
+        const apiUrl = settings.find(s => s.key === 'whatsapp_api_url')?.value;
 
-        return {
-            adminNumber: config.admin_whatsapp_number,
-            apiKey: config.whatsapp_api_key,
-            apiUrl: config.whatsapp_api_url
-        };
+        return { adminNumber, apiKey, apiUrl };
     }
 
     /**
@@ -83,6 +78,23 @@ class WhatsappService {
             `Please log in to the admin dashboard to review and process this request.`;
 
         return this.sendMessage(message);
+    }
+
+    /**
+     * Notify user about a manual service request update
+     */
+    async notifyManualServiceUpdate(user, serviceType, updatedStatus, transRef, adminNote) {
+        const statusStr = updatedStatus === 1 ? 'Approved' : updatedStatus === 2 ? 'Rejected' : updatedStatus === 3 ? 'In Progress' : 'Pending';
+        let message = `*Service Update - Ufriends*\n\n` +
+            `Hello ${user.firstName},\n` +
+            `Your manual service request for *${serviceType}* (Ref: ${transRef}) has been updated.\n\n` +
+            `*Status:* ${statusStr}\n`;
+            
+        if (adminNote) {
+            message += `\n*Admin Note:*\n${adminNote}\n`;
+        }
+        
+        return this.sendMessage(message, user.phone);
     }
 }
 

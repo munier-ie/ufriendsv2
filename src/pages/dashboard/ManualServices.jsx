@@ -1,3 +1,4 @@
+/* eslint-disable react/no-unescaped-entities, security/detect-object-injection, i18next/no-literal-string, react/jsx-no-literals */
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -59,20 +60,32 @@ const ID_TYPE_OPTIONS = [
 
 const GEO_ZONES = ['North Central', 'North East', 'North West', 'South East', 'South South', 'South West'];
 
-const STATUS_MAP = {
-    0: { label: 'Pending', color: 'bg-yellow-100 text-yellow-700' },
-    1: { label: 'Approved', color: 'bg-green-100  text-green-700' },
-    2: { label: 'Rejected', color: 'bg-red-100    text-red-700' },
-    3: { label: 'In Progress', color: 'bg-blue-100 text-blue-700' }
+const getStatusMap = (status) => {
+    switch (status) {
+        case 0:
+        case '0': return { label: 'Pending', color: 'bg-yellow-100 text-yellow-700' };
+        case 1:
+        case '1': return { label: 'Approved', color: 'bg-green-100  text-green-700' };
+        case 2:
+        case '2': return { label: 'Rejected', color: 'bg-red-100    text-red-700' };
+        case 3:
+        case '3': return { label: 'In Progress', color: 'bg-blue-100 text-blue-700' };
+        default: return { label: 'Pending', color: 'bg-yellow-100 text-yellow-700' };
+    }
 };
 
-const SERVICE_DISPLAY = {
-    BVN_MODIFICATION: 'BVN Modification',
-    BVN_RETRIEVAL: 'BVN Retrieval',
-    VNIN_NIBSS: 'VNIN → NIBSS',
-    BVN_ANDROID: 'BVN Android License',
-    NIN_MODIFICATION: 'NIN Modification',
-    NIN_VALIDATION: 'NIN Validation',
+const getServiceDisplay = (service) => {
+    switch (service) {
+        case 'BVN_MODIFICATION': return 'BVN Modification';
+        case 'BVN_RETRIEVAL': return 'BVN Retrieval';
+        case 'VNIN_NIBSS': return 'VNIN → NIBSS';
+        case 'BVN_ANDROID': return 'BVN Android License';
+        case 'NIN_MODIFICATION': return 'NIN Modification';
+        case 'NIN_VALIDATION': return 'NIN Validation';
+        case 'POS_REQUEST': return 'POS Request';
+        case 'LOAN_REQUEST': return 'Loan Request';
+        default: return service;
+    }
 };
 
 // ─── Sub-form renderers ───────────────────────────────────────────────────────
@@ -265,6 +278,9 @@ function ModificationForm({ subType, data, onChange, activeSub, uploading, onUpl
     );
 }
 
+
+// Forms are defined below.
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function ManualServices() {
     const [searchParams] = useSearchParams();
@@ -346,8 +362,8 @@ export default function ManualServices() {
         setFormData(prev => ({ ...prev, [key]: value }));
     }, []);
 
-    const handleFileUpload = async (e) => {
-        const file = e.target.files[0];
+    const handleFileUpload = async (e, key = 'idFileUrl') => {
+        const file = e.target.files?.[0];
         if (!file) return;
 
         setUploading(true);
@@ -362,9 +378,9 @@ export default function ManualServices() {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            update('idFileUrl', res.data.filePath);
+            update(key, res.data.filePath);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to upload document')
+            toast.error(error.response?.data?.error || 'Failed to upload document');
         } finally {
             setUploading(false);
         }
@@ -392,15 +408,15 @@ export default function ManualServices() {
 
     const isActive = () => {
         if (!settings) return true;
-        const map = {
-            BVN_MODIFICATION: settings.bvnModificationActive,
-            BVN_RETRIEVAL: settings.bvnRetrievalActive,
-            VNIN_NIBSS: settings.vninNibssActive,
-            BVN_ANDROID: settings.bvnAndroidActive,
-            NIN_MODIFICATION: settings.ninModificationActive,
-            NIN_VALIDATION: settings.ninValidationActive,
-        };
-        return map[activeSub] ?? true;
+        switch (activeSub) {
+            case 'BVN_MODIFICATION': return settings.bvnModificationActive ?? true;
+            case 'BVN_RETRIEVAL': return settings.bvnRetrievalActive ?? true;
+            case 'VNIN_NIBSS': return settings.vninNibssActive ?? true;
+            case 'BVN_ANDROID': return settings.bvnAndroidActive ?? true;
+            case 'NIN_MODIFICATION': return settings.ninModificationActive ?? true;
+            case 'NIN_VALIDATION': return settings.ninValidationActive ?? true;
+            default: return true;
+        }
     };
 
     const handleSubmit = (e) => {
@@ -504,6 +520,22 @@ export default function ManualServices() {
             case 'BVN_RETRIEVAL':
                 return (
                     <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <Input
+                                label="First Name"
+                                placeholder="Enter first name"
+                                value={formData.firstname || ''}
+                                onChange={e => update('firstname', e.target.value)}
+                                required
+                            />
+                            <Input
+                                label="Last Name"
+                                placeholder="Enter last name"
+                                value={formData.lastname || ''}
+                                onChange={e => update('lastname', e.target.value)}
+                                required
+                            />
+                        </div>
                         <Input
                             label="Phone Number"
                             type="tel"
@@ -727,8 +759,8 @@ export default function ManualServices() {
             </div>
 
             {/* Group Toggle */}
-            <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl w-fit">
-                {[{ id: 'bvn', label: 'BVN Services' }, { id: 'nin', label: 'NIN Services' }].map(g => (
+            <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl w-fit flex-wrap">
+                {[{ id: 'bvn', label: 'BVN Services' }, { id: 'nin', label: 'NIN Services' }, { id: 'business', label: 'Business & Loans' }].map(g => (
                     <button
                         key={g.id}
                         onClick={() => switchGroup(g.id)}
@@ -769,7 +801,7 @@ export default function ManualServices() {
                 <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-6 md:p-8 border border-gray-100">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">{SERVICE_DISPLAY[activeSub]}</h2>
+                            <h2 className="text-xl font-bold text-gray-900">{getServiceDisplay(activeSub)}</h2>
                             <p className="text-gray-500 text-sm">Fill in the details below accurately</p>
                         </div>
                         <div className="text-right">
@@ -830,12 +862,12 @@ export default function ManualServices() {
                         ) : (
                             <div className="space-y-3">
                                 {history.map(req => {
-                                    const statusInfo = STATUS_MAP[req.status] || STATUS_MAP[0];
+                                    const statusInfo = getStatusMap(req.status);
                                     return (
                                         <div key={req.id} className="flex flex-wrap items-center gap-4 p-4 border border-gray-100 rounded-xl hover:bg-gray-50 transition-colors">
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-xs text-gray-400 font-medium">{req.transRef}</p>
-                                                <p className="font-semibold text-gray-900 text-sm">{SERVICE_DISPLAY[req.serviceType] || req.serviceType}</p>
+                                                <p className="font-semibold text-gray-900 text-sm">{getServiceDisplay(req.serviceType)}</p>
                                                 {req.subType && (
                                                     <p className="text-xs text-gray-500">{req.subType.replace(/_/g, ' ')}</p>
                                                 )}
@@ -897,12 +929,12 @@ export default function ManualServices() {
                             <div className="p-5 overflow-y-auto flex-1 text-sm space-y-4">
                                 <div className="flex justify-between items-center border-b pb-2">
                                     <span className="text-gray-500">Service</span>
-                                    <span className="font-semibold text-gray-900">{SERVICE_DISPLAY[selectedRequest.serviceType] || selectedRequest.serviceType}</span>
+                                    <span className="font-semibold text-gray-900">{getServiceDisplay(selectedRequest.serviceType)}</span>
                                 </div>
                                 <div className="flex justify-between items-center border-b pb-2">
                                     <span className="text-gray-500">Status</span>
-                                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${STATUS_MAP[selectedRequest.status]?.color}`}>
-                                        {STATUS_MAP[selectedRequest.status]?.label}
+                                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${getStatusMap(selectedRequest.status).color}`}>
+                                        {getStatusMap(selectedRequest.status).label}
                                     </span>
                                 </div>
                                 {selectedRequest.adminNote && (

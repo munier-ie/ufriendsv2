@@ -54,7 +54,8 @@ router.put('/settings', adminAuth, async (req, res) => {
             bvnModificationPrice, bvnRetrievalPrice, vninNibssPrice, bvnAndroidPrice,
             ninModificationPrice, ninValidationPrice,
             bvnModificationActive, bvnRetrievalActive, vninNibssActive, bvnAndroidActive,
-            ninModificationActive, ninValidationActive
+            ninModificationActive, ninValidationActive,
+            posRequestActive, loanRequestActive
         } = req.body;
 
         const existing = await prisma.manualServiceSettings.findFirst();
@@ -72,6 +73,8 @@ router.put('/settings', adminAuth, async (req, res) => {
             ...(bvnAndroidActive !== undefined && { bvnAndroidActive: Boolean(bvnAndroidActive) }),
             ...(ninModificationActive !== undefined && { ninModificationActive: Boolean(ninModificationActive) }),
             ...(ninValidationActive !== undefined && { ninValidationActive: Boolean(ninValidationActive) }),
+            ...(posRequestActive !== undefined && { posRequestActive: Boolean(posRequestActive) }),
+            ...(loanRequestActive !== undefined && { loanRequestActive: Boolean(loanRequestActive) }),
         };
 
         let settings;
@@ -178,7 +181,10 @@ router.put('/requests/:id', adminAuth, proofUpload.single('proof'), async (req, 
         const id = parseInt(req.params.id);
         const { status, adminNote, proofUrl: bodyProofUrl } = req.body;
 
-        const request = await prisma.manualServiceRequest.findUnique({ where: { id } });
+        const request = await prisma.manualServiceRequest.findUnique({ 
+            where: { id },
+            include: { user: true }
+        });
         if (!request) return res.status(404).json({ error: 'Request not found' });
 
         // Determine proof URL (uploaded file takes precedence over pasted URL)
@@ -223,6 +229,16 @@ router.put('/requests/:id', adminAuth, proofUpload.single('proof'), async (req, 
                     .catch(err => console.error('Admin MS Bonus error:', err));
             }
         }
+
+        // Send notifications to user
+        const { sendManualServiceUpdateNotification } = require('../services/email.service');
+        const whatsappService = require('../services/whatsapp.service');
+        
+        sendManualServiceUpdateNotification(request.user, request.serviceType, updatedStatus, request.transRef, updated.adminNote)
+            .catch(err => console.error('Failed to send user email notification:', err));
+            
+        whatsappService.notifyManualServiceUpdate(request.user, request.serviceType, updatedStatus, request.transRef, updated.adminNote)
+            .catch(err => console.error('Failed to send user whatsapp notification:', err));
 
         res.json({ success: true, message: 'Request updated', request: updated });
     } catch (err) {

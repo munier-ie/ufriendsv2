@@ -15,6 +15,8 @@ import '../bvn_slip_screen.dart';
 import '../cac_registration_screen.dart';
 import '../upgrade_screen.dart';
 import '../academy_screen.dart';
+import '../pos_request_screen.dart';
+import '../loan_request_screen.dart';
 import 'spending_chart.dart';
 
 class DashboardTab extends StatefulWidget {
@@ -40,6 +42,7 @@ class _DashboardTabState extends State<DashboardTab> {
   bool _showPrintingServices = false;
   bool _showGovtServices = false;
   bool _showAccountLearning = false;
+  bool _showBusinessServices = false;
   int _currentPage = 0;
 
   @override
@@ -75,6 +78,20 @@ class _DashboardTabState extends State<DashboardTab> {
             }),
             _serviceItem(Icons.verified_rounded, 'NIN Valid', Colors.indigo, onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 1)));
+            }),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _buildExpandableSection(
+          title: 'Business & Loans',
+          isExpanded: _showBusinessServices,
+          onToggle: () => setState(() => _showBusinessServices = !_showBusinessServices),
+          children: [
+            _serviceItem(Icons.point_of_sale_rounded, 'POS Request', Colors.green, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const PosRequestScreen()));
+            }),
+            _serviceItem(Icons.money_rounded, 'Loan Request', Colors.blue, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const LoanRequestScreen()));
             }),
           ],
         ),

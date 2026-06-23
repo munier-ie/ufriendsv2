@@ -484,6 +484,51 @@ async function sendResellerDeploymentReady(request) {
     return sendEmail(request.contactEmail, subject, html);
 }
 
+/**
+ * Send Manual Service Update Notification
+ */
+async function sendManualServiceUpdateNotification(user, serviceType, updatedStatus, transRef, adminNote) {
+    const statusStr = updatedStatus === 1 ? 'Approved' : updatedStatus === 2 ? 'Rejected' : updatedStatus === 3 ? 'In Progress' : 'Pending';
+    const color = updatedStatus === 1 ? '#28a745' : updatedStatus === 2 ? '#dc3545' : updatedStatus === 3 ? '#17a2b8' : '#ffc107';
+    
+    const subject = `Update on your Service Request: ${serviceType}`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; padding: 20px;">
+            <h2 style="color: ${color}; text-align: center;">Request ${statusStr}</h2>
+            <div style="padding: 15px; background-color: #f8f9fa; border-radius: 5px; margin: 20px 0;">
+                <p>Hello <strong>${user.firstName}</strong>,</p>
+                <p>Your manual service request for <strong>${serviceType}</strong> has been updated by an admin.</p>
+            </div>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Reference</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right;">${transRef}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; color: #666;">Status</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-weight: bold; text-align: right; color: ${color};">${statusStr}</td>
+                </tr>
+                ${adminNote ? `
+                <tr>
+                    <td colspan="2" style="padding: 10px; color: #666;">
+                        <div style="background: #e9ecef; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            <strong>Admin Note:</strong><br/>
+                            ${adminNote.replace(/\n/g, '<br/>')}
+                        </div>
+                    </td>
+                </tr>` : ''}
+            </table>
+
+            <br>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/dashboard/manual-services" style="background-color: #004687; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View in Dashboard</a>
+            </div>
+        </div>
+    `;
+    return sendEmail(user.email, subject, html);
+}
+
 module.exports = {
     sendEmail,
     sendEmailStrict,
@@ -492,6 +537,7 @@ module.exports = {
     sendTransactionReceipt,
     sendAdminAlert,
     sendAdminServiceRequestNotification,
+    sendManualServiceUpdateNotification,
     send2FaOtpEmail,
     sendVerificationOtpEmail,
     sendSystemUpdateEmail,

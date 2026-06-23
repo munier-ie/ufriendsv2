@@ -145,6 +145,8 @@ function resolveActive(settings, serviceType) {
         BVN_ANDROID: settings.bvnAndroidActive,
         NIN_MODIFICATION: settings.ninModificationActive,
         NIN_VALIDATION: settings.ninValidationActive,
+        POS_REQUEST: settings.posRequestActive,
+        LOAN_REQUEST: settings.loanRequestActive,
     };
     return map[serviceType] ?? false;
 }
@@ -156,6 +158,8 @@ const SERVICE_LABELS = {
     BVN_ANDROID: 'BVN Android License',
     NIN_MODIFICATION: 'NIN Modification',
     NIN_VALIDATION: 'NIN Validation',
+    POS_REQUEST: 'POS Request',
+    LOAN_REQUEST: 'Loan Request',
 };
 
 const VALID_TYPES = Object.keys(SERVICE_LABELS);

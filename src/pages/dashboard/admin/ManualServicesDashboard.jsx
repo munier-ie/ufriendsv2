@@ -95,6 +95,7 @@ export default function ManualServicesDashboard() {
     const [proofUrl, setProofUrl] = useState('');
     const [proofFile, setProofFile] = useState(null);
     const [processingId, setProcessingId] = useState(null);
+    const [bvnResult, setBvnResult] = useState('');
     const [settings, setSettings] = useState(DEFAULT_SETTINGS);
     const [filterType, setFilterType] = useState('');
     const [savingSettings, setSavingSettings] = useState(false);
@@ -146,6 +147,7 @@ export default function ManualServicesDashboard() {
         setAdminNote(req.adminNote || '');
         setProofUrl(req.proofUrl || '');
         setProofFile(null);
+        setBvnResult('');
     };
 
     const parseDetails = (raw) => {
@@ -159,11 +161,16 @@ export default function ManualServicesDashboard() {
 
         if (!window.confirm(`Are you sure you want to ${action} this request?`)) return;
 
+        let finalAdminNote = adminNote;
+        if (bvnResult) {
+            finalAdminNote = `Retrieved BVN: ${bvnResult}\n\n${adminNote}`.trim();
+        }
+
         setProcessingId(id);
         try {
             const fd = new FormData();
             fd.append('status', status);
-            if (adminNote) fd.append('adminNote', adminNote);
+            if (finalAdminNote) fd.append('adminNote', finalAdminNote);
             if (proofUrl) fd.append('proofUrl', proofUrl);
             if (proofFile) fd.append('proof', proofFile);
 
@@ -178,6 +185,7 @@ export default function ManualServicesDashboard() {
             setAdminNote('');
             setProofUrl('');
             setProofFile(null);
+            setBvnResult('');
         } catch (e) {
             toast.error(e.response?.data?.error || 'Failed to process request')
         } finally {
@@ -211,6 +219,8 @@ export default function ManualServicesDashboard() {
         { label: 'BVN Android License', priceKey: 'bvnAndroidPrice', activeKey: 'bvnAndroidActive' },
         { label: 'NIN Modification', priceKey: 'ninModificationPrice', activeKey: 'ninModificationActive' },
         { label: 'NIN Validation', priceKey: 'ninValidationPrice', activeKey: 'ninValidationActive' },
+        { label: 'POS Request', priceKey: '', activeKey: 'posRequestActive' },
+        { label: 'Loan Request', priceKey: '', activeKey: 'loanRequestActive' },
     ];
 
     return (
@@ -434,6 +444,21 @@ export default function ManualServicesDashboard() {
                                         <ExternalLink size={16} />
                                         View Existing Proof
                                     </a>
+                                )}
+
+                                {/* BVN Result Input (If BVN Retrieval) */}
+                                {selectedReq.serviceType === 'BVN_RETRIEVAL' && (
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-medium text-gray-700">Retrieved BVN (If Found)</label>
+                                        <input
+                                            type="text"
+                                            value={bvnResult}
+                                            onChange={e => setBvnResult(e.target.value.replace(/\D/g, ''))}
+                                            placeholder="Enter 11-digit BVN"
+                                            maxLength={11}
+                                            className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm font-medium text-blue-800"
+                                        />
+                                    </div>
                                 )}
 
                                 {/* Admin Note */}

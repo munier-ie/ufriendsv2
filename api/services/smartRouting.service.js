@@ -109,6 +109,10 @@ async function syncDataPlans(providers) {
     const ourPlans = await prisma.dataPlan.findMany();
 
     for (const plan of allFetched) {
+        if (plan.apiPrice == null || isNaN(plan.apiPrice)) {
+            console.warn(`[SmartRoutingBot] Skipping plan with invalid price: ${plan.network} ${plan.dataName} [ID: ${plan.planId}] via ${plan.providerName}`);
+            continue;
+        }
         const prices = calcPrices(plan.apiPrice);
 
         // ✅ Match by planId + apiProviderId — NOT by name
@@ -235,6 +239,10 @@ async function syncCablePlans(providers) {
     const ourCable = await prisma.service.findMany({ where: { type: 'cable' } });
 
     for (const plan of allFetched) {
+        if (plan.apiPrice == null || isNaN(plan.apiPrice)) {
+            console.warn(`[SmartRoutingBot] Skipping cable plan with invalid price: ${plan.provider} - ${plan.name} [${plan.code}] via ${plan.providerName}`);
+            continue;
+        }
         const prices = calcPrices(plan.apiPrice);
 
         // ✅ Match by type=cable + code + apiProviderId
@@ -330,6 +338,10 @@ async function syncExamPlans(providers) {
     const ourExam = await prisma.service.findMany({ where: { type: 'exam' } });
 
     for (const plan of allFetched) {
+        if (plan.apiPrice == null || isNaN(plan.apiPrice)) {
+            console.warn(`[SmartRoutingBot] Skipping exam plan with invalid price: ${plan.examType} - ${plan.name} [${plan.code}] via ${plan.providerName}`);
+            continue;
+        }
         const prices = calcPrices(plan.apiPrice);
 
         // ✅ Match by type=exam + code + apiProviderId
@@ -394,16 +406,15 @@ async function runSmartRoutingSwitch(providers) {
     console.log('[SmartRoutingBot] --- Phase 4: Smart Routing Switch ---');
 
     const updatedPlans = await prisma.dataPlan.findMany({ where: { active: true } });
-    const routingGroups = {};
+    const routingGroups = new Map();
 
     updatedPlans.forEach(p => {
         const groupKey = `${p.network}_${p.dataType}`;
-        if (!routingGroups[groupKey]) routingGroups[groupKey] = [];
-        routingGroups[groupKey].push(p);
+        if (!routingGroups.has(groupKey)) routingGroups.set(groupKey, []);
+        routingGroups.get(groupKey).push(p);
     });
 
-    for (const groupKey of Object.keys(routingGroups)) {
-        const plans = routingGroups[groupKey];
+    for (const [groupKey, plans] of routingGroups.entries()) {
         const network = plans[0].network;
         const networkType = plans[0].dataType;
 
