@@ -7,18 +7,19 @@ const prisma = require('../../prisma/client');
  * IP whitelisting, and security logging
  */
 
-// Rate limiters for different account types
+// Rate limiters for different account tiers
+// user.type: 1 = regular user, 2 = agent, 3 = vendor
 const rateLimiters = {
-    user: new RateLimiterMemory({
-        points: parseInt(process.env.RATE_LIMIT_USER || '60'),
+    1: new RateLimiterMemory({
+        points:   parseInt(process.env.RATE_LIMIT_USER   || '60'),
         duration: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000') / 1000
     }),
-    agent: new RateLimiterMemory({
-        points: parseInt(process.env.RATE_LIMIT_AGENT || '120'),
+    2: new RateLimiterMemory({
+        points:   parseInt(process.env.RATE_LIMIT_AGENT  || '120'),
         duration: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000') / 1000
     }),
-    vendor: new RateLimiterMemory({
-        points: parseInt(process.env.RATE_LIMIT_VENDOR || '300'),
+    3: new RateLimiterMemory({
+        points:   parseInt(process.env.RATE_LIMIT_VENDOR || '300'),
         duration: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000') / 1000
     })
 };
@@ -57,18 +58,28 @@ const apiKeyAuth = async (req, res, next) => {
             });
         }
 
-        // Check if account is active
-        if (user.status !== 1) {
+        // Check if account is blocked (mirrors authenticateUser middleware: regStatus===1 means blocked)
+        if (user.regStatus === 1) {
             await logApiRequest(user.id, req, 403, Date.now() - startTime);
             return res.status(403).json({
                 status: 1,
-                message: 'Account suspended',
+                message: 'Account suspended. Please contact support.',
                 errorCode: 4003
             });
         }
 
-        // Apply rate limiting based on account type
-        const rateLimiter = rateLimiters[user.accountType] || rateLimiters.user;
+        // [SEC] Only Vendor accounts (type === 3) may use the external API
+        if (user.type !== 3) {
+            await logApiRequest(user.id, req, 403, Date.now() - startTime);
+            return res.status(403).json({
+                status:    1,
+                message:   'API access is restricted to Vendor accounts. Please upgrade your account.',
+                errorCode: 4031
+            });
+        }
+
+        // Apply rate limiting based on account tier (user.type: 1=user, 2=agent, 3=vendor)
+        const rateLimiter = rateLimiters[user.type] || rateLimiters[3];
 
         try {
             await rateLimiter.consume(user.id.toString());
@@ -82,9 +93,20 @@ const apiKeyAuth = async (req, res, next) => {
             });
         }
 
-        // IP Whitelist check (if configured)
-        // Note: This would require adding ipWhitelist field to User model
-        // For now, we'll skip this check
+        // IP Whitelist check
+        if (user.apiIps && user.apiIps.trim() !== '') {
+            const clientIp = req.ip || req.socket.remoteAddress || req.headers['x-forwarded-for'];
+            const allowedIps = user.apiIps.split(',').map(ip => ip.trim());
+            
+            if (!allowedIps.includes(clientIp)) {
+                await logApiRequest(user.id, req, 403, Date.now() - startTime);
+                return res.status(403).json({
+                    status: 1,
+                    message: 'IP address not whitelisted',
+                    errorCode: 4032
+                });
+            }
+        }
 
         // Attach user to request
         req.user = user;
@@ -148,17 +170,13 @@ const logApiResponse = (req, res, next) => {
 };
 
 /**
- * Get rate limit info for user
+ * Get rate limit info for a user tier.
+ * @param {number} userType  1=user, 2=agent, 3=vendor
  */
-const getRateLimitInfo = (accountType) => {
-    const limits = {
-        user: 60,
-        agent: 120,
-        vendor: 300
-    };
-
+const getRateLimitInfo = (userType) => {
+    const limits = { 1: 60, 2: 120, 3: 300 };
     return {
-        limit: limits[accountType] || 60,
+        limit:  limits[userType] || 60,
         window: 60 // seconds
     };
 };

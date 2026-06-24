@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ufriends Developer API — Documentation</title>
+<meta name="description" content="Official Ufriends API documentation for third-party vendors. Buy airtime, data, cable TV, electricity, exam pins, and run NIN/BVN verifications programmatically." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #0d0f14;
+    --bg2:       #13161e;
+    --bg3:       #1a1e2a;
+    --border:    #232839;
+    --accent:    #6c63ff;
+    --accent2:   #7c3aed;
+    --green:     #10b981;
+    --red:       #ef4444;
+    --yellow:    #f59e0b;
+    --blue:      #3b82f6;
+    --text:      #e2e8f0;
+    --muted:     #64748b;
+    --code-bg:   #0a0c12;
+    --sidebar-w: 260px;
+  }
+
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; font-size: 15px; line-height: 1.7; display: flex; min-height: 100vh; }
+
+  /* ── Sidebar ── */
+  aside {
+    width: var(--sidebar-w);
+    min-height: 100vh;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    overflow-y: auto;
+    padding: 0 0 40px;
+    z-index: 100;
+  }
+
+  .sidebar-logo {
+    padding: 24px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-logo .logo-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .sidebar-logo .logo-text { font-size: 15px; font-weight: 600; line-height: 1.2; }
+  .sidebar-logo .logo-text span { display: block; font-size: 11px; color: var(--muted); font-weight: 400; }
+
+  .sidebar-section { padding: 20px 16px 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+
+  .sidebar-link {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px; margin: 1px 8px;
+    border-radius: 8px; color: var(--muted);
+    text-decoration: none; font-size: 13.5px; font-weight: 450;
+    transition: all .15s;
+  }
+  .sidebar-link:hover { background: var(--bg3); color: var(--text); }
+  .sidebar-link.active { background: rgba(108,99,255,.15); color: var(--accent); }
+  .sidebar-link .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .sidebar-link.active .dot { background: var(--accent); }
+
+  .version-badge {
+    display: inline-flex; align-items: center;
+    background: rgba(108,99,255,.15); color: var(--accent);
+    font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-left: auto;
+  }
+
+  /* ── Main ── */
+  main { margin-left: var(--sidebar-w); flex: 1; max-width: 980px; padding: 0 40px 80px; }
+
+  /* ── Section ── */
+  .section { padding-top: 72px; border-bottom: 1px solid var(--border); padding-bottom: 56px; }
+  .section:last-child { border-bottom: none; }
+
+  .section-tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--accent); margin-bottom: 12px;
+  }
+  .section-tag::before { content: ''; display: block; width: 16px; height: 2px; background: var(--accent); border-radius: 2px; }
+
+  h1 { font-size: 36px; font-weight: 700; line-height: 1.2; margin-bottom: 16px; letter-spacing: -.5px; }
+  h2 { font-size: 24px; font-weight: 600; margin-bottom: 12px; letter-spacing: -.3px; }
+  h3 { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
+  p  { color: #94a3b8; margin-bottom: 16px; }
+
+  /* ── Endpoint card ── */
+  .endpoint {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    margin-bottom: 28px;
+    overflow: hidden;
+  }
+  .endpoint-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    user-select: none;
+  }
+  .endpoint-header:hover { background: var(--bg3); }
+
+  .method {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 6px; flex-shrink: 0;
+  }
+  .GET    { background: rgba(16,185,129,.15); color: var(--green); }
+  .POST   { background: rgba(108,99,255,.15); color: var(--accent); }
+  .DELETE { background: rgba(239,68,68,.15);  color: var(--red);   }
+
+  .path {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px; color: var(--text); font-weight: 500;
+  }
+  .path .param { color: var(--yellow); }
+  .endpoint-desc { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .chevron { margin-left: 8px; color: var(--muted); transition: transform .2s; }
+  .endpoint.open .chevron { transform: rotate(180deg); }
+
+  .endpoint-body { padding: 20px; display: none; }
+  .endpoint.open .endpoint-body { display: block; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 13.5px; }
+  th { text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .8px; font-weight: 600; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  td:first-child { font-family: 'JetBrains Mono', monospace; color: var(--yellow); font-size: 12.5px; white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+  .required { color: var(--red); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .optional { color: var(--muted); font-size: 10px; font-weight: 600; text-transform: uppercase; }
+
+  /* ── Code blocks ── */
+  .code-block {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden; margin-bottom: 16px;
+  }
+  .code-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--muted);
+  }
+  .code-lang { display: flex; align-items: center; gap: 6px; }
+  .code-lang .lang-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .lang-json   { background: #f59e0b; }
+  .lang-bash   { background: #10b981; }
+  .lang-js     { background: #facc15; }
+  .lang-php    { background: #818cf8; }
+
+  .copy-btn {
+    background: none; border: 1px solid var(--border); color: var(--muted);
+    font-size: 11px; padding: 3px 10px; border-radius: 6px; cursor: pointer; font-family: inherit;
+    transition: all .15s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  pre {
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px; line-height: 1.7; overflow-x: auto;
+    color: #c9d1d9;
+  }
+
+  /* syntax highlight helpers */
+  .k { color: #ff79c6; } /* keyword */
+  .s { color: #f1fa8c; } /* string */
+  .n { color: #8be9fd; } /* number */
+  .c { color: #6272a4; font-style: italic; } /* comment */
+  .p { color: #bd93f9; } /* property key */
+  .o { color: #ff5555; } /* operator/bool */
+  .g { color: #50fa7b; } /* green (success) */
+  .r { color: #ff5555; } /* red (error) */
+
+  /* ── Alert boxes ── */
+  .alert {
+    display: flex; gap: 12px; align-items: flex-start;
+    padding: 14px 16px; border-radius: 10px;
+    margin-bottom: 16px; font-size: 13.5px;
+  }
+  .alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .alert.info    { background: rgba(59,130,246,.1);  border-left: 3px solid var(--blue);   }
+  .alert.warning { background: rgba(245,158,11,.1);  border-left: 3px solid var(--yellow); }
+  .alert.success { background: rgba(16,185,129,.1);  border-left: 3px solid var(--green);  }
+  .alert.danger  { background: rgba(239,68,68,.1);   border-left: 3px solid var(--red);    }
+
+  /* ── Response codes ── */
+  .status { display: inline-flex; align-items: center; gap: 4px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 6px; }
+  .s200 { background: rgba(16,185,129,.15); color: var(--green); }
+  .s400 { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .s401 { background: rgba(239,68,68,.15);  color: var(--red); }
+  .s403 { background: rgba(239,68,68,.15);  color: var(--red); }
+  .s429 { background: rgba(245,158,11,.15); color: var(--yellow); }
+  .s500 { background: rgba(239,68,68,.15);  color: var(--red); }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 4px; margin-bottom: 0; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+  .tab-btn {
+    background: none; border: none; color: var(--muted);
+    padding: 8px 14px; font-family: inherit; font-size: 13px; cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    transition: all .15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* ── Event badges ── */
+  .event-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+  .event-badge {
+    background: var(--bg3); border: 1px solid var(--border);
+    color: var(--text); font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* ── Error table ── */
+  .error-code { font-family: 'JetBrains Mono', monospace; font-size: 12.5px; color: var(--yellow); font-weight: 600; }
+
+  /* ── Hero ── */
+  .hero-badge { display: inline-flex; align-items: center; gap: 6px; background: rgba(108,99,255,.1); border: 1px solid rgba(108,99,255,.3); color: var(--accent); font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-bottom: 20px; }
+  .hero-badge::before { content: '●'; font-size: 8px; color: var(--green); }
+
+  .base-url-box {
+    display: inline-flex; align-items: center; gap: 10px;
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 18px; margin-bottom: 24px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13.5px;
+  }
+  .base-url-box .label { color: var(--muted); font-size: 11px; font-weight: 600; text-transform: uppercase; }
+  .base-url-box .url { color: var(--green); }
+
+  /* ── Divider ── */
+  .sub-divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  @media (max-width: 768px) {
+    aside { width: 100%; min-height: auto; position: relative; }
+    main  { margin-left: 0; padding: 0 16px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ████████ SIDEBAR ████████ -->
+<aside>
+  <div class="sidebar-logo">
+    <div class="logo-icon">U</div>
+    <div class="logo-text">Ufriends API <span>Developer Documentation</span></div>
+  </div>
+
+  <div class="sidebar-section">Getting Started</div>
+  <a href="#overview"        class="sidebar-link active"><span class="dot"></span> Overview</a>
+  <a href="#authentication"  class="sidebar-link"><span class="dot"></span> Authentication</a>
+  <a href="#errors"          class="sidebar-link"><span class="dot"></span> Errors &amp; Codes</a>
+  <a href="#rate-limits"     class="sidebar-link"><span class="dot"></span> Rate Limits</a>
+
+  <div class="sidebar-section">Endpoints</div>
+  <a href="#services"        class="sidebar-link"><span class="dot"></span> Services</a>
+  <a href="#wallet"          class="sidebar-link"><span class="dot"></span> Wallet</a>
+  <a href="#identity"        class="sidebar-link"><span class="dot"></span> Identity (NIN/BVN)</a>
+  <a href="#webhooks"        class="sidebar-link"><span class="dot"></span> Webhooks</a>
+
+  <div class="sidebar-section">Reference</div>
+  <a href="#webhook-events"  class="sidebar-link"><span class="dot"></span> Webhook Events</a>
+  <a href="#code-samples"    class="sidebar-link"><span class="dot"></span> Code Samples</a>
+</aside>
+
+<!-- ████████ MAIN ████████ -->
+<main>
+
+<!-- ══════════════════════════════════════════════════════ OVERVIEW -->
+<section class="section" id="overview">
+  <div class="section-tag">Introduction</div>
+  <h1>Ufriends Developer API</h1>
+  <div class="hero-badge">v1.0.0 &nbsp;·&nbsp; Live</div>
+
+  <p>The Ufriends API lets your application purchase airtime, data bundles, cable TV subscriptions, electricity units, exam pins, and generate NIN/BVN identity slips — all from a single REST interface.</p>
+
+  <div class="base-url-box">
+    <span class="label">Base URL</span>
+    <span class="url">https://ufriends.com.ng/api/v1</span>
+  </div>
+
+  <div class="alert info">
+    <span class="alert-icon">🔑</span>
+    <div><strong>Vendor Access Only.</strong> The external API is available exclusively to Vendor accounts. <a href="https://ufriends.com.ng/upgrade" style="color:var(--accent);">Upgrade your account →</a></div>
+  </div>
+
+  <h3>Quick-start checklist</h3>
+  <table>
+    <tr><td>1. Register / log in</td><td>Create your Ufriends account and upgrade to Vendor.</td></tr>
+    <tr><td>2. Get your API Key</td><td><code>GET /api/auth/api-key</code> (JWT-authenticated)</td></tr>
+    <tr><td>3. Fund your wallet</td><td>Deposit funds — purchases are deducted from your wallet.</td></tr>
+    <tr><td>4. Make your first call</td><td>See the <a href="#services" style="color:var(--accent)">Services</a> section below.</td></tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ AUTHENTICATION -->
+<section class="section" id="authentication">
+  <div class="section-tag">Auth</div>
+  <h2>Authentication</h2>
+  <p>All <code>/api/v1/*</code> requests must include your API key as a Bearer token in the <code>Authorization</code> header.</p>
+
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-lang"><span class="lang-dot lang-bash"></span> HTTP Header</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+    <pre>Authorization: Bearer YOUR_API_KEY</pre>
+  </div>
+
+  <h3 style="margin-top:24px;">Getting Your API Key</h3>
+  <p>Log in with JWT first, then call:</p>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+    <pre><span class="c"># Step 1 — Login (get JWT)</span>
+curl -X POST https://ufriends.com.ng/api/auth/access \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"yourpassword"}'
+
+<span class="c"># Step 2 — Get API Key (use JWT from step 1)</span>
+curl https://ufriends.com.ng/api/auth/api-key \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"</pre>
+  </div>
+
+  <div class="alert warning">
+    <span class="alert-icon">⚠️</span>
+    <div>Never expose your API key client-side (browsers, mobile apps). Store it in environment variables on your server.</div>
+  </div>
+
+  <h3 style="margin-top:24px;">Rotating Your API Key</h3>
+  <p>Immediately invalidates the old key and issues a new one — no PIN required.</p>
+  <div class="code-block">
+    <div class="code-header">
+      <div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div>
+      <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+    </div>
+    <pre>curl -X POST https://ufriends.com.ng/api/auth/api-key/regenerate \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ ERRORS -->
+<section class="section" id="errors">
+  <div class="section-tag">Reference</div>
+  <h2>Errors &amp; Status Codes</h2>
+  <p>All error responses follow a consistent shape:</p>
+
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON Error Response</div></div>
+    <pre>{
+  <span class="p">"status"</span>:    <span class="n">1</span>,
+  <span class="p">"message"</span>:   <span class="s">"Insufficient wallet balance. Required: ₦500.00, Available: ₦120.00"</span>,
+  <span class="p">"errorCode"</span>: <span class="n">4400</span>   <span class="c">// optional — see table below</span>
+}</pre>
+  </div>
+
+  <table>
+    <thead><tr><th>HTTP Status</th><th>errorCode</th><th>Meaning</th></tr></thead>
+    <tr><td><span class="status s200">200 OK</span></td><td>—</td><td>Request succeeded. <code>success: true</code></td></tr>
+    <tr><td><span class="status s400">400</span></td><td>—</td><td>Bad request — validation error or business rule failure</td></tr>
+    <tr><td><span class="status s401">401</span></td><td>4001</td><td>Missing or invalid API key</td></tr>
+    <tr><td><span class="status s403">403</span></td><td>4003</td><td>Account suspended</td></tr>
+    <tr><td><span class="status s403">403</span></td><td>4031</td><td>Account is not a Vendor — API access denied</td></tr>
+    <tr><td><span class="status s429">429</span></td><td>4029</td><td>Rate limit exceeded — see <code>retryAfter</code> seconds</td></tr>
+    <tr><td><span class="status s500">500</span></td><td>5000</td><td>Internal server error — contact support</td></tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ RATE LIMITS -->
+<section class="section" id="rate-limits">
+  <div class="section-tag">Reference</div>
+  <h2>Rate Limits</h2>
+  <p>Vendor accounts may make up to <strong>300 requests per minute</strong>. When exceeded, the API returns a <code>429</code> response with a <code>retryAfter</code> field (seconds until reset).</p>
+
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> 429 Response</div></div>
+    <pre>{
+  <span class="p">"status"</span>:     <span class="n">1</span>,
+  <span class="p">"message"</span>:    <span class="s">"Rate limit exceeded"</span>,
+  <span class="p">"errorCode"</span>:  <span class="n">4029</span>,
+  <span class="p">"retryAfter"</span>: <span class="n">12</span>   <span class="c">// wait 12 seconds</span>
+}</pre>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ SERVICES -->
+<section class="section" id="services">
+  <div class="section-tag">Endpoints</div>
+  <h2>Services</h2>
+  <p>Core VTU transactions — airtime, data, cable TV, electricity, and exam pins.</p>
+
+  <!-- LIST PLANS -->
+  <div class="endpoint" id="ep-list-plans">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/services/<span class="param">:type</span></span>
+      <span class="endpoint-desc">List available plans</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <p>Returns all active service plans for the given type, with prices adjusted to your vendor tier.</p>
+
+      <h3>Path Parameters</h3>
+      <table>
+        <thead><tr><th>Parameter</th><th>Type</th><th>Values</th></tr></thead>
+        <tr><td>type</td><td>string</td><td><code>airtime</code> · <code>data</code> · <code>cable</code> · <code>electricity</code> · <code>exam</code></td></tr>
+      </table>
+
+      <h3>Request</h3>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl https://ufriends.com.ng/api/v1/services/data \
+  -H "Authorization: Bearer YOUR_API_KEY"</pre>
+      </div>
+
+      <h3>Response</h3>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>: <span class="o">true</span>,
+  <span class="p">"services"</span>: [
+    {
+      <span class="p">"id"</span>:         <span class="n">42</span>,
+      <span class="p">"name"</span>:       <span class="s">"MTN 1GB (SME)"</span>,
+      <span class="p">"type"</span>:       <span class="s">"data"</span>,
+      <span class="p">"provider"</span>:   <span class="s">"MTN"</span>,
+      <span class="p">"code"</span>:       <span class="s">"SME1GB"</span>,
+      <span class="p">"price"</span>:      <span class="n">290</span>,           <span class="c">// your vendor price in Naira</span>
+      <span class="p">"active"</span>:     <span class="o">true</span>
+    }
+  ]
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERIFY -->
+  <div class="endpoint" id="ep-verify">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/services/verify</span>
+      <span class="endpoint-desc">Verify IUC or electricity meter</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <p>Validates a cable TV IUC number or electricity meter before purchasing. Always verify before charging your customers.</p>
+
+      <h3>Request Body</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tr><td>type</td><td><span class="required">required</span></td><td><code>"cable"</code> or <code>"electricity"</code></td></tr>
+        <tr><td>provider</td><td><span class="required">required</span></td><td>e.g. <code>"dstv"</code>, <code>"gotv"</code>, <code>"eko"</code>, <code>"ikeja"</code></td></tr>
+        <tr><td>number</td><td><span class="required">required</span></td><td>IUC or meter number</td></tr>
+        <tr><td>meterType</td><td><span class="optional">optional</span></td><td><code>"prepaid"</code> (default) or <code>"postpaid"</code> — electricity only</td></tr>
+      </table>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this, 'verify-cable')">Cable TV</button>
+        <button class="tab-btn" onclick="switchTab(this, 'verify-elec')">Electricity</button>
+      </div>
+      <div id="verify-cable" class="tab-pane active">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"type"</span>:     <span class="s">"cable"</span>,
+    <span class="p">"provider"</span>: <span class="s">"dstv"</span>,
+    <span class="p">"number"</span>:   <span class="s">"1234567890"</span>
+  }'</pre>
+        </div>
+      </div>
+      <div id="verify-elec" class="tab-pane">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/verify \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"type"</span>:      <span class="s">"electricity"</span>,
+    <span class="p">"provider"</span>:  <span class="s">"eko"</span>,
+    <span class="p">"number"</span>:    <span class="s">"45012345678"</span>,
+    <span class="p">"meterType"</span>: <span class="s">"prepaid"</span>
+  }'</pre>
+        </div>
+      </div>
+
+      <h3>Response</h3>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>:       <span class="o">true</span>,
+  <span class="p">"valid"</span>:         <span class="o">true</span>,
+  <span class="p">"customerName"</span>:  <span class="s">"JOHN DOE"</span>,
+  <span class="p">"address"</span>:       <span class="s">"12 Abc Street, Lagos"</span>,  <span class="c">// electricity only</span>
+  <span class="p">"accessToken"</span>:   <span class="s">"eyJ..."</span>               <span class="c">// pass this to /purchase</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- PURCHASE -->
+  <div class="endpoint open" id="ep-purchase">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/services/purchase</span>
+      <span class="endpoint-desc">Purchase a service</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <p>Deducts from your wallet and delivers the service to the recipient. No transaction PIN required.</p>
+
+      <div class="alert warning">
+        <span class="alert-icon">⚠️</span>
+        <div>For Cable TV and Electricity, always call <code>/verify</code> first and pass the returned <code>accessToken</code> here.</div>
+      </div>
+
+      <h3>Request Body</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tr><td>serviceId</td><td><span class="required">required</span></td><td>The <code>id</code> from <code>GET /services/:type</code></td></tr>
+        <tr><td>recipient</td><td><span class="required">required</span></td><td>Phone number / meter / IUC depending on service type</td></tr>
+        <tr><td>amount</td><td><span class="required">required</span></td><td>Face value in Naira — for airtime &amp; electricity</td></tr>
+        <tr><td>networkType</td><td><span class="optional">optional</span></td><td>Airtime only — <code>"VTU"</code> (default), <code>"Share"</code>, <code>"Momo"</code></td></tr>
+        <tr><td>iucNumber</td><td><span class="optional">optional</span></td><td>Required for Cable TV</td></tr>
+        <tr><td>meterNumber</td><td><span class="optional">optional</span></td><td>Required for Electricity</td></tr>
+        <tr><td>meterType</td><td><span class="optional">optional</span></td><td>Electricity — <code>"prepaid"</code> (default) or <code>"postpaid"</code></td></tr>
+        <tr><td>accessToken</td><td><span class="optional">optional</span></td><td>Token from <code>/verify</code> — required for Cable &amp; Electricity</td></tr>
+        <tr><td>quantity</td><td><span class="optional">optional</span></td><td>Exam pins only — number of pins (1–5)</td></tr>
+      </table>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this, 'buy-airtime')">Airtime</button>
+        <button class="tab-btn" onclick="switchTab(this, 'buy-data')">Data</button>
+        <button class="tab-btn" onclick="switchTab(this, 'buy-cable')">Cable TV</button>
+        <button class="tab-btn" onclick="switchTab(this, 'buy-elec')">Electricity</button>
+        <button class="tab-btn" onclick="switchTab(this, 'buy-exam')">Exam Pin</button>
+      </div>
+
+      <div id="buy-airtime" class="tab-pane active">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/purchase \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"serviceId"</span>:   <span class="n">10</span>,
+    <span class="p">"recipient"</span>:   <span class="s">"08012345678"</span>,
+    <span class="p">"amount"</span>:      <span class="n">500</span>,
+    <span class="p">"networkType"</span>: <span class="s">"VTU"</span>
+  }'</pre>
+        </div>
+      </div>
+      <div id="buy-data" class="tab-pane">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/purchase \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"serviceId"</span>: <span class="n">42</span>,
+    <span class="p">"recipient"</span>: <span class="s">"08012345678"</span>,
+    <span class="p">"amount"</span>:    <span class="n">1000</span>
+  }'</pre>
+        </div>
+      </div>
+      <div id="buy-cable" class="tab-pane">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/purchase \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"serviceId"</span>:   <span class="n">55</span>,
+    <span class="p">"recipient"</span>:   <span class="s">"08012345678"</span>,
+    <span class="p">"amount"</span>:      <span class="n">4900</span>,
+    <span class="p">"iucNumber"</span>:   <span class="s">"1234567890"</span>,
+    <span class="p">"accessToken"</span>: <span class="s">"eyJ..."</span>
+  }'</pre>
+        </div>
+      </div>
+      <div id="buy-elec" class="tab-pane">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/purchase \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"serviceId"</span>:    <span class="n">70</span>,
+    <span class="p">"recipient"</span>:    <span class="s">"08012345678"</span>,
+    <span class="p">"amount"</span>:       <span class="n">5000</span>,
+    <span class="p">"meterNumber"</span>:  <span class="s">"45012345678"</span>,
+    <span class="p">"meterType"</span>:    <span class="s">"prepaid"</span>,
+    <span class="p">"accessToken"</span>:  <span class="s">"eyJ..."</span>
+  }'</pre>
+        </div>
+      </div>
+      <div id="buy-exam" class="tab-pane">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/services/purchase \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"serviceId"</span>: <span class="n">90</span>,
+    <span class="p">"recipient"</span>: <span class="s">"08012345678"</span>,
+    <span class="p">"amount"</span>:    <span class="n">1000</span>,
+    <span class="p">"quantity"</span>:  <span class="n">2</span>
+  }'</pre>
+        </div>
+      </div>
+
+      <h3 style="margin-top:16px;">Response</h3>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200 Success</div></div>
+        <pre>{
+  <span class="p">"success"</span>:      <span class="o">true</span>,
+  <span class="p">"reference"</span>:    <span class="s">"3f4a1b2c-..."</span>,
+  <span class="p">"serviceName"</span>:  <span class="s">"MTN 1GB (SME)"</span>,
+  <span class="p">"amount"</span>:       <span class="n">290</span>,
+  <span class="p">"newBalance"</span>:   <span class="n">9710</span>,
+  <span class="p">"status"</span>:       <span class="s">"success"</span>,
+  <span class="p">"token"</span>:        <span class="s">"3948-2910-..."</span>,  <span class="c">// electricity token (when applicable)</span>
+  <span class="p">"pin"</span>:          <span class="s">"1234567890"</span>      <span class="c">// exam pin (when applicable)</span>
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ WALLET -->
+<section class="section" id="wallet">
+  <div class="section-tag">Endpoints</div>
+  <h2>Wallet</h2>
+  <p>Query your wallet balance and transaction history.</p>
+
+  <!-- BALANCE -->
+  <div class="endpoint" id="ep-balance">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/wallet/balance</span>
+      <span class="endpoint-desc">Get wallet balance</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl https://ufriends.com.ng/api/v1/wallet/balance \
+  -H "Authorization: Bearer YOUR_API_KEY"</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>:   <span class="o">true</span>,
+  <span class="p">"wallet"</span>:    <span class="n">9710.00</span>,
+  <span class="p">"refWallet"</span>: <span class="n">250.00</span>,
+  <span class="p">"total"</span>:     <span class="n">9960.00</span>,
+  <span class="p">"virtualAccount"</span>: {
+    <span class="p">"bankName"</span>:      <span class="s">"Palmpay"</span>,
+    <span class="p">"accountNumber"</span>: <span class="s">"8101234567"</span>,
+    <span class="p">"accountName"</span>:   <span class="s">"JOHN DOE"</span>
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTIONS -->
+  <div class="endpoint" id="ep-txns">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/wallet/transactions</span>
+      <span class="endpoint-desc">List transactions</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <h3>Query Parameters</h3>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Description</th></tr></thead>
+        <tr><td>limit</td><td>50</td><td>Max records per page (capped at 100)</td></tr>
+        <tr><td>offset</td><td>0</td><td>Pagination offset</td></tr>
+        <tr><td>type</td><td>—</td><td>Filter by service type e.g. <code>airtime</code></td></tr>
+        <tr><td>status</td><td>—</td><td><code>0</code>=success · <code>1</code>=failed · <code>2</code>=pending</td></tr>
+        <tr><td>startDate</td><td>—</td><td>ISO date string e.g. <code>2025-01-01</code></td></tr>
+        <tr><td>endDate</td><td>—</td><td>ISO date string e.g. <code>2025-01-31</code></td></tr>
+        <tr><td>search</td><td>—</td><td>Search in reference, service name, or description</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl "https://ufriends.com.ng/api/v1/wallet/transactions?limit=20&type=airtime&status=0" \
+  -H "Authorization: Bearer YOUR_API_KEY"</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>: <span class="o">true</span>,
+  <span class="p">"transactions"</span>: [
+    {
+      <span class="p">"reference"</span>:   <span class="s">"3f4a1b2c-..."</span>,
+      <span class="p">"serviceName"</span>: <span class="s">"MTN Airtime"</span>,
+      <span class="p">"amount"</span>:      <span class="n">-500</span>,
+      <span class="p">"status"</span>:      <span class="n">0</span>,
+      <span class="p">"oldBalance"</span>:  <span class="n">10000</span>,
+      <span class="p">"newBalance"</span>:  <span class="n">9500</span>,
+      <span class="p">"date"</span>:        <span class="s">"2025-06-24T12:00:00Z"</span>
+    }
+  ],
+  <span class="p">"pagination"</span>: { <span class="p">"total"</span>: <span class="n">142</span>, <span class="p">"limit"</span>: <span class="n">20</span>, <span class="p">"offset"</span>: <span class="n">0</span> }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- SINGLE TXN -->
+  <div class="endpoint" id="ep-single-txn">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/wallet/transactions/<span class="param">:reference</span></span>
+      <span class="endpoint-desc">Get single transaction</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl https://ufriends.com.ng/api/v1/wallet/transactions/3f4a1b2c-a1b2-c3d4-e5f6-... \
+  -H "Authorization: Bearer YOUR_API_KEY"</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ IDENTITY -->
+<section class="section" id="identity">
+  <div class="section-tag">Endpoints</div>
+  <h2>Identity — NIN &amp; BVN Slips</h2>
+  <p>Generate verified NIN and BVN slips with PDF download links. Funds are automatically refunded if verification fails.</p>
+
+  <!-- PRICING -->
+  <div class="endpoint" id="ep-id-pricing">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/identity/pricing</span>
+      <span class="endpoint-desc">Get NIN &amp; BVN pricing</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl https://ufriends.com.ng/api/v1/identity/pricing \
+  -H "Authorization: Bearer YOUR_API_KEY"</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>: <span class="o">true</span>,
+  <span class="p">"pricing"</span>: {
+    <span class="p">"bvn"</span>: { <span class="p">"slipType"</span>: <span class="s">"regular"</span>, <span class="p">"price"</span>: <span class="n">150</span>, <span class="p">"available"</span>: <span class="o">true</span> },
+    <span class="p">"nin"</span>: {
+      <span class="p">"regular"</span>:  { <span class="p">"price"</span>: <span class="n">100</span>, <span class="p">"available"</span>: <span class="o">true</span>  },
+      <span class="p">"standard"</span>: { <span class="p">"price"</span>: <span class="n">200</span>, <span class="p">"available"</span>: <span class="o">true</span>  },
+      <span class="p">"premium"</span>:  { <span class="p">"price"</span>: <span class="n">350</span>, <span class="p">"available"</span>: <span class="o">true</span>  }
+    }
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- BVN -->
+  <div class="endpoint" id="ep-bvn">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/identity/bvn</span>
+      <span class="endpoint-desc">Generate BVN slip</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tr><td>bvn</td><td><span class="required">required</span></td><td>11-digit BVN number</td></tr>
+        <tr><td>slipType</td><td><span class="optional">optional</span></td><td><code>"regular"</code> (default)</td></tr>
+      </table>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl -X POST https://ufriends.com.ng/api/v1/identity/bvn \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ <span class="p">"bvn"</span>: <span class="s">"12345678901"</span> }'</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>:    <span class="o">true</span>,
+  <span class="p">"reference"</span>:  <span class="s">"BVN-API-4A3B2C1D..."</span>,
+  <span class="p">"newBalance"</span>: <span class="n">9560</span>,
+  <span class="p">"report"</span>: {
+    <span class="p">"firstName"</span>:  <span class="s">"JOHN"</span>,
+    <span class="p">"lastName"</span>:   <span class="s">"DOE"</span>,
+    <span class="p">"phone"</span>:      <span class="s">"0801*****78"</span>,
+    <span class="p">"pdfUrl"</span>:     <span class="s">"https://ufriends.com.ng/api/reports/bvn/..."</span>
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- NIN -->
+  <div class="endpoint" id="ep-nin">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/identity/nin</span>
+      <span class="endpoint-desc">Generate NIN slip</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <h3>Request Body</h3>
+      <table>
+        <thead><tr><th>Field</th><th>Required</th><th>Description</th></tr></thead>
+        <tr><td>nin</td><td><span class="optional">conditional</span></td><td>11-digit NIN — required when <code>lookupMethod</code> is <code>"nin"</code></td></tr>
+        <tr><td>phone</td><td><span class="optional">conditional</span></td><td>Phone number — required when <code>lookupMethod</code> is <code>"phone"</code></td></tr>
+        <tr><td>lookupMethod</td><td><span class="optional">optional</span></td><td><code>"nin"</code> (default) or <code>"phone"</code></td></tr>
+        <tr><td>slipType</td><td><span class="optional">optional</span></td><td><code>"regular"</code> (default) · <code>"standard"</code> · <code>"premium"</code></td></tr>
+      </table>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab(this, 'nin-by-nin')">By NIN Number</button>
+        <button class="tab-btn" onclick="switchTab(this, 'nin-by-phone')">By Phone Number</button>
+      </div>
+      <div id="nin-by-nin" class="tab-pane active">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/identity/nin \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"nin"</span>:      <span class="s">"12345678901"</span>,
+    <span class="p">"slipType"</span>: <span class="s">"regular"</span>
+  }'</pre>
+        </div>
+      </div>
+      <div id="nin-by-phone" class="tab-pane">
+        <div class="code-block">
+          <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+          <pre>curl -X POST https://ufriends.com.ng/api/v1/identity/nin \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    <span class="p">"phone"</span>:        <span class="s">"08012345678"</span>,
+    <span class="p">"lookupMethod"</span>: <span class="s">"phone"</span>,
+    <span class="p">"slipType"</span>:     <span class="s">"standard"</span>
+  }'</pre>
+        </div>
+      </div>
+
+      <div class="code-block" style="margin-top:16px;">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>:    <span class="o">true</span>,
+  <span class="p">"reference"</span>:  <span class="s">"NIN-API-5C4D3E2F..."</span>,
+  <span class="p">"newBalance"</span>: <span class="n">9460</span>,
+  <span class="p">"report"</span>: {
+    <span class="p">"firstName"</span>:  <span class="s">"JANE"</span>,
+    <span class="p">"lastName"</span>:   <span class="s">"DOE"</span>,
+    <span class="p">"gender"</span>:     <span class="s">"Female"</span>,
+    <span class="p">"dob"</span>:        <span class="s">"1990-05-15"</span>,
+    <span class="p">"pdfUrl"</span>:     <span class="s">"https://ufriends.com.ng/api/reports/nin/..."</span>
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ WEBHOOKS -->
+<section class="section" id="webhooks">
+  <div class="section-tag">Endpoints</div>
+  <h2>Webhooks</h2>
+  <p>Register an HTTPS URL to receive real-time push notifications whenever a transaction occurs. Payloads are signed with HMAC-SHA256 so you can verify they came from Ufriends.</p>
+
+  <div class="alert info">
+    <span class="alert-icon">ℹ️</span>
+    <div>Your webhook URL must be publicly accessible via <strong>HTTPS</strong>. Private/local URLs are blocked for security.</div>
+  </div>
+
+  <!-- CONFIGURE -->
+  <div class="endpoint" id="ep-wh-configure">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/webhook/configure</span>
+      <span class="endpoint-desc">Set webhook URL</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl -X POST https://ufriends.com.ng/api/v1/webhook/configure \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ <span class="p">"webhookUrl"</span>: <span class="s">"https://yourdomain.com/ufriends-webhook"</span> }'</pre>
+      </div>
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> JSON · 200</div></div>
+        <pre>{
+  <span class="p">"success"</span>:   <span class="o">true</span>,
+  <span class="p">"message"</span>:   <span class="s">"Webhook configured successfully"</span>,
+  <span class="p">"secretKey"</span>: <span class="s">"a1b2c3d4e5f6..."</span>   <span class="c">// Save this! Used to verify signatures.</span>
+}</pre>
+      </div>
+      <div class="alert warning">
+        <span class="alert-icon">⚠️</span>
+        <div>Save <code>secretKey</code> immediately — it will not be shown again. Use it to verify all incoming webhook payloads.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TEST -->
+  <div class="endpoint" id="ep-wh-test">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method POST">POST</span>
+      <span class="path">/api/v1/webhook/test</span>
+      <span class="endpoint-desc">Send a test event</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <div class="code-block">
+        <div class="code-header"><div class="code-lang"><span class="lang-dot lang-bash"></span> cURL</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+        <pre>curl -X POST https://ufriends.com.ng/api/v1/webhook/test \
+  -H "Authorization: Bearer YOUR_API_KEY"</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- OTHER WEBHOOK ENDPOINTS -->
+  <div class="endpoint" id="ep-wh-others">
+    <div class="endpoint-header" onclick="toggleEndpoint(this)">
+      <span class="method GET">GET</span>
+      <span class="path">/api/v1/webhook/config &nbsp;·&nbsp; /logs &nbsp;·&nbsp; <span class="method POST" style="display:inline;padding:2px 6px;">POST</span> /regenerate-secret</span>
+      <svg class="chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </div>
+    <div class="endpoint-body">
+      <table>
+        <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+        <tr><td><span class="method GET" style="display:inline-block">GET</span></td><td>/api/v1/webhook/config</td><td>View current webhook URL &amp; secret</td></tr>
+        <tr><td><span class="method GET" style="display:inline-block">GET</span></td><td>/api/v1/webhook/logs</td><td>View last N delivery attempts (default 20)</td></tr>
+        <tr><td><span class="method POST" style="display:inline-block">POST</span></td><td>/api/v1/webhook/regenerate-secret</td><td>Rotate signing secret (old secret invalidated immediately)</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SIGNATURE VERIFICATION -->
+  <h3 style="margin-top:28px;">Verifying Signatures</h3>
+  <p>Every webhook request includes an <code>X-Ufriends-Signature</code> header. Always verify it before processing the payload.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this, 'sig-node')">Node.js</button>
+    <button class="tab-btn" onclick="switchTab(this, 'sig-php')">PHP</button>
+  </div>
+  <div id="sig-node" class="tab-pane active">
+    <div class="code-block">
+      <div class="code-header"><div class="code-lang"><span class="lang-dot lang-js"></span> Node.js (Express)</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="k">const</span> crypto = <span class="k">require</span>(<span class="s">'crypto'</span>);
+
+app.post(<span class="s">'/ufriends-webhook'</span>, express.json(), (req, res) => {
+  <span class="k">const</span> signature = req.headers[<span class="s">'x-ufriends-signature'</span>];
+  <span class="k">const</span> expected  = crypto
+    .createHmac(<span class="s">'sha256'</span>, process.env.UFRIENDS_WEBHOOK_SECRET)
+    .update(JSON.stringify(req.body))
+    .digest(<span class="s">'hex'</span>);
+
+  <span class="k">if</span> (signature !== expected) {
+    <span class="k">return</span> res.status(<span class="n">401</span>).send(<span class="s">'Invalid signature'</span>);
+  }
+
+  <span class="k">const</span> { event, data } = req.body;
+
+  <span class="k">switch</span> (event) {
+    <span class="k">case</span> <span class="s">'transaction.success'</span>:
+      <span class="c">// fulfil order, notify customer ...</span>
+      <span class="k">break</span>;
+    <span class="k">case</span> <span class="s">'transaction.failed'</span>:
+      <span class="c">// alert customer, log issue ...</span>
+      <span class="k">break</span>;
+  }
+
+  res.sendStatus(<span class="n">200</span>); <span class="c">// Always respond 200 quickly</span>
+});</pre>
+    </div>
+  </div>
+  <div id="sig-php" class="tab-pane">
+    <div class="code-block">
+      <div class="code-header"><div class="code-lang"><span class="lang-dot lang-php"></span> PHP</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="k">&lt;?php</span>
+<span class="k">$secret</span>    = getenv(<span class="s">'UFRIENDS_WEBHOOK_SECRET'</span>);
+<span class="k">$body</span>      = file_get_contents(<span class="s">'php://input'</span>);
+<span class="k">$signature</span> = $_SERVER[<span class="s">'HTTP_X_UFRIENDS_SIGNATURE'</span>] ?? <span class="s">''</span>;
+<span class="k">$expected</span>  = hash_hmac(<span class="s">'sha256'</span>, <span class="k">$body</span>, <span class="k">$secret</span>);
+
+<span class="k">if</span> (!hash_equals(<span class="k">$expected</span>, <span class="k">$signature</span>)) {
+  http_response_code(<span class="n">401</span>);
+  exit(<span class="s">'Invalid signature'</span>);
+}
+
+<span class="k">$payload</span> = json_decode(<span class="k">$body</span>, <span class="o">true</span>);
+<span class="k">$event</span>   = <span class="k">$payload</span>[<span class="s">'event'</span>];
+
+<span class="c">// handle $event ...</span>
+http_response_code(<span class="n">200</span>);</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ WEBHOOK EVENTS -->
+<section class="section" id="webhook-events">
+  <div class="section-tag">Reference</div>
+  <h2>Webhook Events</h2>
+  <p>All events share the same envelope structure:</p>
+  <div class="code-block">
+    <div class="code-header"><div class="code-lang"><span class="lang-dot lang-json"></span> Event Envelope</div></div>
+    <pre>{
+  <span class="p">"event"</span>:     <span class="s">"transaction.success"</span>,
+  <span class="p">"timestamp"</span>: <span class="s">"2025-06-24T12:00:00Z"</span>,
+  <span class="p">"data"</span>:      { <span class="c">/* event-specific payload */</span> }
+}</pre>
+  </div>
+
+  <div class="event-list">
+    <span class="event-badge">transaction.success</span>
+    <span class="event-badge">transaction.failed</span>
+    <span class="event-badge">identity.bvn.success</span>
+    <span class="event-badge">identity.bvn.failed</span>
+    <span class="event-badge">identity.nin.success</span>
+    <span class="event-badge">identity.nin.failed</span>
+  </div>
+
+  <table>
+    <thead><tr><th>Event</th><th>Fired When</th><th>Key Data Fields</th></tr></thead>
+    <tr><td>transaction.success</td><td>Service purchase succeeds</td><td><code>reference</code>, <code>serviceName</code>, <code>amount</code>, <code>recipient</code>, <code>newBalance</code>, <code>status</code></td></tr>
+    <tr><td>transaction.failed</td><td>Service purchase fails (refund issued)</td><td><code>reference</code>, <code>serviceName</code>, <code>amount</code>, <code>recipient</code>, <code>reason</code></td></tr>
+    <tr><td>identity.bvn.success</td><td>BVN slip generated</td><td><code>reference</code>, <code>slipType</code>, <code>pdfUrl</code>, <code>newBalance</code></td></tr>
+    <tr><td>identity.bvn.failed</td><td>BVN lookup fails (refund issued)</td><td><code>reference</code>, <code>reason</code></td></tr>
+    <tr><td>identity.nin.success</td><td>NIN slip generated</td><td><code>reference</code>, <code>slipType</code>, <code>lookupMethod</code>, <code>pdfUrl</code>, <code>newBalance</code></td></tr>
+    <tr><td>identity.nin.failed</td><td>NIN lookup fails (refund issued)</td><td><code>reference</code>, <code>reason</code></td></tr>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ CODE SAMPLES -->
+<section class="section" id="code-samples">
+  <div class="section-tag">Reference</div>
+  <h2>Code Samples</h2>
+  <p>Full integration examples in Node.js and PHP.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab(this, 'sample-node')">Node.js</button>
+    <button class="tab-btn" onclick="switchTab(this, 'sample-php')">PHP</button>
+  </div>
+
+  <div id="sample-node" class="tab-pane active">
+    <div class="code-block">
+      <div class="code-header"><div class="code-lang"><span class="lang-dot lang-js"></span> Node.js — Full Integration</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="k">const</span> API_KEY  = process.env.UFRIENDS_API_KEY;
+<span class="k">const</span> BASE_URL = <span class="s">'https://ufriends.com.ng/api/v1'</span>;
+
+<span class="k">async function</span> ufriends(method, path, body) {
+  <span class="k">const</span> res = <span class="k">await</span> fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: {
+      <span class="s">'Authorization'</span>:  `Bearer ${API_KEY}`,
+      <span class="s">'Content-Type'</span>:   <span class="s">'application/json'</span>
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  <span class="k">return</span> res.json();
+}
+
+<span class="c">// 1. Check balance</span>
+<span class="k">const</span> bal = <span class="k">await</span> ufriends(<span class="s">'GET'</span>, <span class="s">'/wallet/balance'</span>);
+console.log(<span class="s">'Balance:'</span>, bal.wallet);
+
+<span class="c">// 2. List MTN data plans</span>
+<span class="k">const</span> plans = <span class="k">await</span> ufriends(<span class="s">'GET'</span>, <span class="s">'/services/data'</span>);
+<span class="k">const</span> mtn1gb = plans.services.find(s => s.name.includes(<span class="s">'MTN 1GB'</span>));
+
+<span class="c">// 3. Buy data</span>
+<span class="k">const</span> result = <span class="k">await</span> ufriends(<span class="s">'POST'</span>, <span class="s">'/services/purchase'</span>, {
+  serviceId: mtn1gb.id,
+  recipient: <span class="s">'08012345678'</span>,
+  amount:    mtn1gb.price
+});
+console.log(result.success ? <span class="s">'✅ Delivered!'</span> : <span class="r">'❌ Failed: '</span> + result.message);
+
+<span class="c">// 4. Generate NIN slip</span>
+<span class="k">const</span> nin = <span class="k">await</span> ufriends(<span class="s">'POST'</span>, <span class="s">'/identity/nin'</span>, {
+  nin:      <span class="s">'12345678901'</span>,
+  slipType: <span class="s">'regular'</span>
+});
+console.log(<span class="s">'NIN PDF:'</span>, nin.report?.pdfUrl);</pre>
+    </div>
+  </div>
+
+  <div id="sample-php" class="tab-pane">
+    <div class="code-block">
+      <div class="code-header"><div class="code-lang"><span class="lang-dot lang-php"></span> PHP — Full Integration</div><button class="copy-btn" onclick="copyCode(this)">Copy</button></div>
+      <pre><span class="k">&lt;?php</span>
+<span class="k">define</span>(<span class="s">'UFRIENDS_KEY'</span>, getenv(<span class="s">'UFRIENDS_API_KEY'</span>));
+<span class="k">define</span>(<span class="s">'UFRIENDS_URL'</span>, <span class="s">'https://ufriends.com.ng/api/v1'</span>);
+
+<span class="k">function</span> ufriends(<span class="k">$method</span>, <span class="k">$path</span>, <span class="k">$body</span> = null) {
+  <span class="k">$ch</span> = curl_init(UFRIENDS_URL . <span class="k">$path</span>);
+  curl_setopt_array(<span class="k">$ch</span>, [
+    CURLOPT_RETURNTRANSFER => <span class="o">true</span>,
+    CURLOPT_CUSTOMREQUEST  => <span class="k">$method</span>,
+    CURLOPT_HTTPHEADER     => [
+      <span class="s">'Authorization: Bearer '</span> . UFRIENDS_KEY,
+      <span class="s">'Content-Type: application/json'</span>
+    ],
+    CURLOPT_POSTFIELDS     => <span class="k">$body</span> ? json_encode(<span class="k">$body</span>) : null
+  ]);
+  <span class="k">$response</span> = curl_exec(<span class="k">$ch</span>);
+  curl_close(<span class="k">$ch</span>);
+  <span class="k">return</span> json_decode(<span class="k">$response</span>, <span class="o">true</span>);
+}
+
+<span class="c">// Check balance</span>
+<span class="k">$bal</span> = ufriends(<span class="s">'GET'</span>, <span class="s">'/wallet/balance'</span>);
+echo <span class="s">'Balance: ₦'</span> . <span class="k">$bal</span>[<span class="s">'wallet'</span>];
+
+<span class="c">// Buy airtime</span>
+<span class="k">$result</span> = ufriends(<span class="s">'POST'</span>, <span class="s">'/services/purchase'</span>, [
+  <span class="s">'serviceId'</span> => <span class="n">10</span>,
+  <span class="s">'recipient'</span> => <span class="s">'08012345678'</span>,
+  <span class="s">'amount'</span>    => <span class="n">500</span>
+]);
+echo <span class="k">$result</span>[<span class="s">'success'</span>] ? <span class="s">'Delivered!'</span> : <span class="k">$result</span>[<span class="s">'message'</span>];
+
+<span class="c">// BVN verification</span>
+<span class="k">$bvn</span> = ufriends(<span class="s">'POST'</span>, <span class="s">'/identity/bvn'</span>, [<span class="s">'bvn'</span> => <span class="s">'12345678901'</span>]);
+echo <span class="k">$bvn</span>[<span class="s">'report'</span>][<span class="s">'pdfUrl'</span>];</pre>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  // Toggle endpoint open/close
+  function toggleEndpoint(header) {
+    header.parentElement.classList.toggle('open');
+  }
+
+  // Tab switching (scoped to nearest .tabs sibling)
+  function switchTab(btn, targetId) {
+    const tabGroup = btn.closest('.tabs');
+    // Deactivate all buttons in this group
+    tabGroup.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Find panes that are siblings of the tabs element
+    let el = tabGroup.nextElementSibling;
+    while (el && el.classList.contains('tab-pane')) {
+      el.classList.remove('active');
+      el = el.nextElementSibling;
+    }
+    const target = document.getElementById(targetId);
+    if (target) target.classList.add('active');
+  }
+
+  // Copy code
+  function copyCode(btn) {
+    const pre = btn.closest('.code-block').querySelector('pre');
+    const text = pre.innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓ Copied';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 1800);
+    });
+  }
+
+  // Sidebar active link on scroll
+  const sections = document.querySelectorAll('.section');
+  const links    = document.querySelectorAll('.sidebar-link');
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar-link[href="#${entry.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px' });
+
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

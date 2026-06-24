@@ -86,6 +86,10 @@ app.use(cors({
     origin: (origin, callback) => {
         // Allow server-to-server or same-origin requests (no Origin header)
         if (!origin) return callback(null, true);
+        // Allow any origin for /api/v1 (API-key authenticated — no session cookies)
+        // This is detected via the request's path set in a pre-middleware flag,
+        // but since we can't read req here, we use a permissive rule for v1 via
+        // a separate CORS middleware mounted on the v1 router instead.
         if (allowedOrigins.has(origin)) return callback(null, true);
         callback(new Error('CORS policy: origin not allowed'));
     },
@@ -93,6 +97,17 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type']
 }));
+
+// [SEC-OPEN] /api/v1 is API-key-only (stateless, no cookies).
+// Allow any origin so browser-based third-party SDKs can call it.
+app.use('/api/v1', (req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type');
+    res.header('Access-Control-Max-Age', '86400');
+    if (req.method === 'OPTIONS') return res.sendStatus(204);
+    next();
+});
 
 // [SEC-MED-04] Raw body preservation for webhook signature verification
 app.use('/api/webhooks', express.raw({ type: 'application/json' }));
@@ -223,6 +238,9 @@ app.use('/api/ai-chat', require('./routes/aiChat')); // AI Consultant Chat
 app.use('/api/waitlist', require('./routes/waitlist')); // App waitlist
 app.use('/api/contact', require('./routes/contact')); // Public contact form
 app.use('/api/reseller', require('./routes/reseller')); // Reseller & Software Dev
+
+// ── External Developer API v1 (API-key authenticated, no transaction PIN) ─────
+app.use('/api/v1', require('./routes/v1/index')); // v1 namespace for third-party integrations
 
 app.get('/api', (req, res) => {
     res.json({ message: 'Ufriends 2.0 API is running' });

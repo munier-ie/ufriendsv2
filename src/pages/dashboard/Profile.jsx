@@ -35,6 +35,10 @@ export default function Profile() {
     const [showApiKey, setShowApiKey] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
+    
+    // API Whitelist state
+    const [apiIpsForm, setApiIpsForm] = useState('');
+    const [savingIps, setSavingIps] = useState(false);
 
     // Password form state
     const [passwordForm, setPasswordForm] = useState({
@@ -79,6 +83,7 @@ export default function Profile() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setProfileData(response.data);
+            setApiIpsForm(response.data.apiIps || '');
         } catch (error) {
             console.error('Failed to fetch profile:', error);
         } finally {
@@ -244,6 +249,22 @@ export default function Profile() {
             setProfileData(prev => ({ ...prev, apiKey: response.data.apiKey }));
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to generate API Key');
+        }
+    };
+
+    const handleSaveApiIps = async () => {
+        setSavingIps(true);
+        try {
+            const token = localStorage.getItem('token');
+            await axios.post('/api/auth/api-ips', { ips: apiIpsForm }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success('API Whitelist updated successfully!');
+            fetchProfileData();
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to update API Whitelist');
+        } finally {
+            setSavingIps(false);
         }
     };
 
@@ -785,6 +806,30 @@ export default function Profile() {
                                     </button>
                                 </div>
                             </div>
+                            
+                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
+                                <p className="text-sm font-medium text-gray-700 mb-2">IP Whitelist</p>
+                                <p className="text-xs text-gray-500 mb-3">
+                                    Restrict API key usage to specific IP addresses. Separate multiple IPs with commas. Leave blank to allow any IP.
+                                </p>
+                                <div className="flex space-x-2">
+                                    <input
+                                        type="text"
+                                        placeholder="e.g. 192.168.1.1, 10.0.0.1"
+                                        value={apiIpsForm}
+                                        onChange={(e) => setApiIpsForm(e.target.value)}
+                                        className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-mono"
+                                    />
+                                    <button
+                                        onClick={handleSaveApiIps}
+                                        disabled={savingIps}
+                                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                    >
+                                        {savingIps ? 'Saving...' : 'Save IPs'}
+                                    </button>
+                                </div>
+                            </div>
+
                             <div className="grid grid-cols-2 gap-4">
                                 <Link
                                     to="/dashboard/api-docs"

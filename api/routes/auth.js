@@ -491,6 +491,7 @@ router.get('/profile', authenticateUser, async (req, res) => {
                 kycStatus: true,
                 pinEnabled: true,
                 apiKey: true,
+                apiIps: true,
                 referralCode: true,
                 twoFaEnabled: true,
                 twoFaMethod: true
@@ -521,6 +522,7 @@ router.get('/profile', authenticateUser, async (req, res) => {
             kycStatus: user.kycStatus || false,
             pinEnabled: user.pinEnabled || false,
             apiKey: user.type === 3 ? user.apiKey : null,
+            apiIps: user.type === 3 ? user.apiIps : null,
             referralCode: user.referralCode,
             twoFaEnabled: user.twoFaEnabled || false,
             twoFaMethod: user.twoFaMethod || 'totp',
@@ -902,33 +904,83 @@ router.post('/reset-password', async (req, res) => {
 });
 
 // Generate / Regenerate API Key
-router.post('/generate-api-key', authenticateUser, async (req, res) => {
+// ─── API Key Management ───────────────────────────────────────────────────────
+
+/**
+ * GET /api/auth/api-key
+ * Returns the current API key for the authenticated user.
+ * Vendors always see it; agents and regular users also see it (they can use the API too).
+ */
+router.get('/api-key', authenticateUser, async (req, res) => {
     try {
-        // Re-check user to ensure they are a vendor (type === 3)
         const user = await prisma.user.findUnique({
-            where: { id: req.user.id }
+            where:  { id: req.user.id },
+            select: { apiKey: true, apiIps: true, type: true }
         });
 
+        if (!user) return res.status(404).json({ error: 'User not found' });
+
+        res.json({
+            apiKey:      user.apiKey,
+            apiIps:      user.apiIps || '',
+            accountType: { 1: 'user', 2: 'agent', 3: 'vendor' }[user.type] || 'user',
+            note:        user.type === 3
+                ? 'Keep this key secret. Use it as: Authorization: Bearer <apiKey>'
+                : 'Upgrade to a Vendor account for higher rate limits and full API access.'
+        });
+    } catch (error) {
+        console.error('Get API key error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+/**
+ * POST /api/auth/api-key/regenerate
+ * Regenerates the API key for the authenticated user.
+ * Does NOT require a transaction PIN (the JWT session is sufficient authorisation).
+ * Old key is immediately invalidated.
+ */
+router.post('/api-key/regenerate', authenticateUser, async (req, res) => {
+    try {
+        const newApiKey = crypto.randomBytes(32).toString('hex');
+
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data:  { apiKey: newApiKey }
+        });
+
+        res.json({
+            success: true,
+            message: 'API Key regenerated. Your old key is now invalid.',
+            apiKey:  newApiKey
+        });
+    } catch (error) {
+        console.error('API Key regenerate error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+/**
+ * POST /api/auth/generate-api-key  (legacy – kept for backwards compatibility)
+ * Vendors only. Requires transaction PIN.
+ * New integrations should use POST /api/auth/api-key/regenerate instead.
+ */
+router.post('/generate-api-key', authenticateUser, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
         if (!user || user.type !== 3) {
-            return res.status(403).json({ error: 'Only vendors can generate API keys.' });
+            return res.status(403).json({ error: 'Only vendors can use this endpoint. Use /api/auth/api-key/regenerate instead.' });
         }
 
         const { pin } = req.body;
         if (!pin) return res.status(400).json({ error: 'Transaction PIN required' });
 
-        const bcrypt = require('bcrypt');
-        const validPin = await bcrypt.compare(pin, user.transactionPin);
-        if (!validPin) {
-            return res.status(400).json({ error: 'Incorrect PIN' });
-        }
+        const bcryptLib = require('bcrypt');
+        const validPin  = await bcryptLib.compare(pin, user.transactionPin);
+        if (!validPin) return res.status(400).json({ error: 'Incorrect PIN' });
 
-        const crypto = require('crypto');
         const newApiKey = crypto.randomBytes(32).toString('hex');
-
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { apiKey: newApiKey }
-        });
+        await prisma.user.update({ where: { id: user.id }, data: { apiKey: newApiKey } });
 
         res.json({ message: 'API Key generated successfully', apiKey: newApiKey });
     } catch (error) {
@@ -937,4 +989,32 @@ router.post('/generate-api-key', authenticateUser, async (req, res) => {
     }
 });
 
+/**
+ * POST /api/auth/api-ips
+ * Updates the allowed IP addresses for the authenticated user's API Key.
+ */
+router.post('/api-ips', authenticateUser, async (req, res) => {
+    try {
+        const { ips } = req.body;
+        
+        // Basic validation for comma-separated IPs or empty string
+        const safeIps = ips ? ips.trim().replace(/\\s+/g, '') : '';
+        
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { apiIps: safeIps || null }
+        });
+
+        res.json({
+            success: true,
+            message: 'API Whitelist updated successfully.',
+            apiIps: safeIps
+        });
+    } catch (error) {
+        console.error('API IP Update Error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 module.exports = router;
+

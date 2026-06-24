@@ -4,6 +4,7 @@ const multer = require('multer');
 const csvParser = require('csv-parser');
 const prisma = require('../../prisma/client');
 const { verifyToken } = require('../middleware/auth');
+const { vendAirtime, vendData, vendCable, vendElectricity } = require('../services/vend.service');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -262,22 +263,26 @@ async function processBulkJob(jobId, userId, rows) {
             const row = rows[i];
 
             try {
-                // Attempt transaction (simplified - would call actual service routes)
-                const result = await processBulkTransaction(userId, row);
+                // Call real vend-wired processor
+                const result = await processBulkTransaction(userId, user, row);
 
                 results.push({
                     ...row,
-                    status: 'success',
+                    status:    'success',
                     reference: result.reference,
-                    message: result.message
+                    message:   result.message,
+                    token:     result.token || '',
+                    pin:       result.pin   || ''
                 });
                 successful++;
 
             } catch (error) {
                 results.push({
                     ...row,
-                    status: 'failed',
-                    message: error.message
+                    status:  'failed',
+                    message: error.message,
+                    token:   '',
+                    pin:     ''
                 });
                 failed++;
             }
@@ -320,85 +325,157 @@ async function processBulkJob(jobId, userId, rows) {
     }
 }
 
-// Helper: Process single bulk transaction
-async function processBulkTransaction(userId, row) {
-    const amount = parseFloat(row.amount);
+// Helper: Process single bulk transaction (fully wired to vend.service)
+async function processBulkTransaction(userId, user, row) {
+    const serviceType = row.service.toLowerCase();
+    const amount      = parseFloat(row.amount);
 
-    // Lookup service to get cost price
-    let costPrice = amount; // Default to no profit if service not found
-    let serviceName = `Bulk ${row.service}`;
-
-    try {
-        const service = await prisma.service.findFirst({
-            where: {
-                type: row.service.toLowerCase(),
-                OR: [
-                    { serviceId: row.variation_code },
-                    { variation_code: row.variation_code }
-                ]
-            }
-        });
-
-        if (service) {
-            serviceName = service.name;
-            if (service.apiPrice) {
-                costPrice = service.apiPrice;
-            }
+    // 1. Find the matching service by variation_code / code
+    const service = await prisma.service.findFirst({
+        where: {
+            type:   serviceType,
+            active: true,
+            OR: [
+                { code:            row.variation_code },
+                { apiPlanId:       row.variation_code },
+                { providerPlanId:  row.variation_code }
+            ]
         }
-    } catch (e) {
-        console.error('Service lookup failed in bulk processing:', e);
+    });
+
+    if (!service) {
+        throw new Error(`Service not found for type=${serviceType} variation_code=${row.variation_code}`);
+    }
+
+    // 2. Determine tiered price
+    let userPrice = service.price;
+    if (user.type === 2 && service.agentPrice)  userPrice = service.agentPrice;
+    if (user.type === 3 && service.vendorPrice) userPrice = service.vendorPrice;
+
+    // 3. Compute charge
+    let finalAmount;
+    if (serviceType === 'airtime') {
+        const settingsService = require('../services/settings.service');
+        const globalDiscounts = await settingsService.getSetting('airtimeDiscount', {});
+        const network         = service.provider.toLowerCase();
+        const discount        = globalDiscounts[network];
+        finalAmount = discount !== undefined
+            ? amount * ((100 - discount) / 100)
+            : amount * (userPrice / 100);
+    } else if (serviceType === 'electricity') {
+        finalAmount = amount + userPrice;
+    } else {
+        finalAmount = userPrice * (parseInt(row.quantity) || 1);
+    }
+
+    // 4. Profit
+    let profit = 0;
+    if (serviceType === 'airtime') {
+        profit = finalAmount - amount * ((service.apiPrice || userPrice) / 100);
+    } else if (serviceType === 'electricity') {
+        profit = userPrice - (service.apiPrice || 0);
+    } else {
+        profit = service.apiPrice ? finalAmount - service.apiPrice * (parseInt(row.quantity) || 1) : 0;
     }
 
     const reference = `BULK-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-    const result = await prisma.$transaction(async (tx) => {
-        const currentUser = await tx.user.findUnique({
-            where: { id: userId },
+    // 5. Atomic debit + transaction record
+    const txResult = await prisma.$transaction(async (tx) => {
+        const freshUser = await tx.user.findUnique({
+            where:  { id: userId },
             select: { wallet: true }
         });
 
-        if (currentUser.wallet < amount) {
-            throw new Error('Insufficient balance');
-        }
+        if (freshUser.wallet < finalAmount) throw new Error('Insufficient balance');
 
-        const newBalance = currentUser.wallet - amount;
+        const newBalance = freshUser.wallet - finalAmount;
 
-        // Deduct balance
         await tx.user.update({
             where: { id: userId },
-            data: { wallet: newBalance }
+            data:  { wallet: newBalance }
         });
 
-        // Create transaction record
-        await tx.transaction.create({
+        const transaction = await tx.transaction.create({
             data: {
                 userId,
                 reference,
-                serviceName: serviceName,
-                type: row.service.toLowerCase(),
-                amount: -amount,
-                status: 0,
-                description: `Bulk ${row.service} purchase for ${row.phone}`,
-                oldBalance: currentUser.wallet,
-                newBalance: newBalance,
-                profit: amount - costPrice
+                serviceName: service.name,
+                type:        serviceType,
+                amount:      -finalAmount,
+                status:      0, // Pending — will be updated by vend.service
+                description: `[Bulk] ${service.name} for ${row.phone}`,
+                oldBalance:  freshUser.wallet,
+                newBalance,
+                profit
             }
         });
 
-        return {
-            reference,
-            message: `${row.service} purchase successful`
-        };
+        return { transaction, oldBalance: freshUser.wallet };
     });
 
-    return result;
+    // 6. Call real vend service
+    let vendResult;
+    switch (serviceType) {
+        case 'airtime':
+            vendResult = await vendAirtime(
+                { ...txResult.transaction, faceValue: amount },
+                service,
+                row.phone,
+                service.provider,
+                row.network_type || 'VTU'
+            );
+            break;
+        case 'data':
+            vendResult = await vendData(txResult.transaction, service, row.phone, service.provider);
+            break;
+        case 'cable':
+            vendResult = await vendCable(
+                txResult.transaction,
+                service,
+                row.iuc_number || row.phone,
+                row.phone,
+                row.subscription_type || 'change',
+                null
+            );
+            break;
+        case 'electricity':
+            vendResult = await vendElectricity(
+                txResult.transaction,
+                service,
+                row.meter_number || row.phone,
+                row.phone,
+                amount,
+                row.meter_type || 'prepaid',
+                null
+            );
+            break;
+        default:
+            vendResult = { status: 'success', message: 'Processed' };
+    }
+
+    if (vendResult.status === 'failed') {
+        // vend.service.js already refunded the wallet — propagate failure
+        throw new Error(vendResult.message || 'Vend failed');
+    }
+
+    return {
+        reference,
+        message: `${service.name} purchase successful`,
+        token:   vendResult.token || null,
+        pin:     vendResult.pin   || null
+    };
 }
 
 // Helper: Generate results CSV
 function generateResultsCSV(results) {
-    const headers = ['service', 'phone', 'amount', 'variation_code', 'status', 'reference', 'message'];
+    const headers = ['service', 'phone', 'amount', 'variation_code', 'status', 'reference', 'message', 'token', 'pin'];
     const rows = results.map(r => {
-        return headers.map(h => r[h] || '').join(',');
+        return headers.map(h => {
+            const val = r[h] || '';
+            // Escape commas and quotes for CSV safety
+            return `"${String(val).replace(/"/g, '""')}"`;
+        }).join(',');
     });
 
     return [headers.join(','), ...rows].join('\n');
