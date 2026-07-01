@@ -491,6 +491,7 @@ router.get('/profile', authenticateUser, async (req, res) => {
                 kycStatus: true,
                 pinEnabled: true,
                 apiKey: true,
+                testApiKey: true,
                 apiIps: true,
                 referralCode: true,
                 twoFaEnabled: true,
@@ -522,6 +523,7 @@ router.get('/profile', authenticateUser, async (req, res) => {
             kycStatus: user.kycStatus || false,
             pinEnabled: user.pinEnabled || false,
             apiKey: user.type === 3 ? user.apiKey : null,
+            testApiKey: user.type === 3 ? user.testApiKey : null,
             apiIps: user.type === 3 ? user.apiIps : null,
             referralCode: user.referralCode,
             twoFaEnabled: user.twoFaEnabled || false,
@@ -915,13 +917,14 @@ router.get('/api-key', authenticateUser, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({
             where:  { id: req.user.id },
-            select: { apiKey: true, apiIps: true, type: true }
+            select: { apiKey: true, testApiKey: true, apiIps: true, type: true }
         });
 
         if (!user) return res.status(404).json({ error: 'User not found' });
 
         res.json({
             apiKey:      user.apiKey,
+            testApiKey:  user.testApiKey,
             apiIps:      user.apiIps || '',
             accountType: { 1: 'user', 2: 'agent', 3: 'vendor' }[user.type] || 'user',
             note:        user.type === 3
@@ -942,17 +945,19 @@ router.get('/api-key', authenticateUser, async (req, res) => {
  */
 router.post('/api-key/regenerate', authenticateUser, async (req, res) => {
     try {
-        const newApiKey = crypto.randomBytes(32).toString('hex');
+        const newApiKey = 'sk_live_' + crypto.randomBytes(24).toString('hex');
+        const newTestApiKey = 'sk_test_' + crypto.randomBytes(24).toString('hex');
 
         await prisma.user.update({
             where: { id: req.user.id },
-            data:  { apiKey: newApiKey }
+            data:  { apiKey: newApiKey, testApiKey: newTestApiKey }
         });
 
         res.json({
             success: true,
-            message: 'API Key regenerated. Your old key is now invalid.',
-            apiKey:  newApiKey
+            message: 'API Keys regenerated. Your old keys are now invalid.',
+            apiKey:  newApiKey,
+            testApiKey: newTestApiKey
         });
     } catch (error) {
         console.error('API Key regenerate error:', error);
@@ -979,10 +984,11 @@ router.post('/generate-api-key', authenticateUser, async (req, res) => {
         const validPin  = await bcryptLib.compare(pin, user.transactionPin);
         if (!validPin) return res.status(400).json({ error: 'Incorrect PIN' });
 
-        const newApiKey = crypto.randomBytes(32).toString('hex');
-        await prisma.user.update({ where: { id: user.id }, data: { apiKey: newApiKey } });
+        const newApiKey = 'sk_live_' + crypto.randomBytes(24).toString('hex');
+        const newTestApiKey = 'sk_test_' + crypto.randomBytes(24).toString('hex');
+        await prisma.user.update({ where: { id: user.id }, data: { apiKey: newApiKey, testApiKey: newTestApiKey } });
 
-        res.json({ message: 'API Key generated successfully', apiKey: newApiKey });
+        res.json({ message: 'API Keys generated successfully', apiKey: newApiKey, testApiKey: newTestApiKey });
     } catch (error) {
         console.error('API Key generation error:', error);
         res.status(500).json({ error: 'Internal server error' });

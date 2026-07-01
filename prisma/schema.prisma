@@ -17,6 +17,7 @@ model User {
   state                String?
   type                 Int                    @default(1)
   apiKey               String?                @unique @default(uuid())
+  testApiKey           String?                @unique
   apiIps               String?
   referral             String?
   referralCode         String                 @unique

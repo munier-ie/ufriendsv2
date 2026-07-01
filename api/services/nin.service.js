@@ -1,4 +1,5 @@
 const prisma = require('../../prisma/client');
+const crypto = require('crypto');
 const axios = require('axios');
 const puppeteer = require('puppeteer');
 const fs = require('fs').promises;
@@ -351,26 +352,25 @@ async function generateNinSlipHtml(reportData, slipType) {
  */
 function loadImageAsBase64(imagePath) {
   try {
-    let validFile = '';
-    switch(imagePath) {
-      case 'id-header-nimc-slip.jpg': validFile = 'id-header-nimc-slip.jpg'; break;
-      case 'cloud-icon.jpg': validFile = 'cloud-icon.jpg'; break;
-      case 'internet-icon.jpeg': validFile = 'internet-icon.jpeg'; break;
-      case 'call-icon.png': validFile = 'call-icon.png'; break;
-      case 'save-icon.png': validFile = 'save-icon.png'; break;
-      case 'coat-of-arm.png': validFile = 'coat-of-arm.png'; break;
-      case 'id-back-solo.jpg': validFile = 'id-back-solo.jpg'; break;
-      case 'id-bkg-solo.jpg': validFile = 'id-bkg-solo.jpg'; break;
-      case 'id-header-premium.png': validFile = 'id-header-premium.png'; break;
-      case 'id-back-premium.jpg': validFile = 'id-back-premium.jpg'; break;
-      case 'id-bkg-premium.png': validFile = 'id-bkg-premium.png'; break;
-      case 'nimc.png': validFile = 'nimc.png'; break;
-      default: return '';
-    }
-    const fullPath = path.join(__dirname, '../slip-assets', validFile);
+    const slipAssetsDir = path.normalize(path.join(__dirname, '../slip-assets'));
+    let fullPath = '';
+    if (imagePath === 'id-header-nimc-slip.jpg') fullPath = path.join(slipAssetsDir, 'id-header-nimc-slip.jpg');
+    else if (imagePath === 'cloud-icon.jpg') fullPath = path.join(slipAssetsDir, 'cloud-icon.jpg');
+    else if (imagePath === 'internet-icon.jpeg') fullPath = path.join(slipAssetsDir, 'internet-icon.jpeg');
+    else if (imagePath === 'call-icon.png') fullPath = path.join(slipAssetsDir, 'call-icon.png');
+    else if (imagePath === 'save-icon.png') fullPath = path.join(slipAssetsDir, 'save-icon.png');
+    else if (imagePath === 'coat-of-arm.png') fullPath = path.join(slipAssetsDir, 'coat-of-arm.png');
+    else if (imagePath === 'id-back-solo.jpg') fullPath = path.join(slipAssetsDir, 'id-back-solo.jpg');
+    else if (imagePath === 'id-bkg-solo.jpg') fullPath = path.join(slipAssetsDir, 'id-bkg-solo.jpg');
+    else if (imagePath === 'id-header-premium.png') fullPath = path.join(slipAssetsDir, 'id-header-premium.png');
+    else if (imagePath === 'id-back-premium.jpg') fullPath = path.join(slipAssetsDir, 'id-back-premium.jpg');
+    else if (imagePath === 'id-bkg-premium.png') fullPath = path.join(slipAssetsDir, 'id-bkg-premium.png');
+    else if (imagePath === 'nimc.png') fullPath = path.join(slipAssetsDir, 'nimc.png');
+    else return '';
+
     if (fsSync.existsSync(fullPath)) {
       const data = fsSync.readFileSync(fullPath);
-      const ext = path.extname(validFile).toLowerCase().replace('.', '');
+      const ext = path.extname(fullPath).toLowerCase().replace('.', '');
       const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'png' ? 'image/png' : 'image/jpeg';
       return `data:${mimeType};base64,${data.toString('base64')}`;
     }
@@ -449,7 +449,7 @@ function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
         <td class="border-left-none border-top-none border-bottom-none">${surname}</td>
         <td rowspan="2" class="border-none"><b>Address:</b> <br> ${residenceAddress}</td>
         <td rowspan="4" class="border-left-none border-bottom-none border-top-none">
-          ${photoSrc ? `<img src="${photoSrc}" height="150" width="120" class="rounded">` : '<div style="width:120px;height:150px;background:#eee;display:inline-block;"></div>'}
+          ${photoSrc ? '<img src="' + photoSrc + '" height="150" width="120" class="rounded">' : '<div style="width:120px;height:150px;background:#eee;display:inline-block;"></div>'}
         </td>
       </tr>
       <tr>
@@ -481,16 +481,16 @@ function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
           <table border="0" style="width: 100%;">
             <tr>
               <td class="text-center" style="width: 20%; padding: 0px;">
-                ${cloudIcon ? `<img src="${cloudIcon}" height="40" width="40">` : ''}<br> helpdesk@nimc.gov.ng
+                ${cloudIcon ? '<img src="' + cloudIcon + '" height="40" width="40">' : ''}<br> helpdesk@nimc.gov.ng
               </td>
               <td class="text-center" style="width: 20%; padding: 0px;">
-                ${internetIcon ? `<img src="${internetIcon}" height="40" width="40">` : ''}<br> www.nimc.gov.ng
+                ${internetIcon ? '<img src="' + internetIcon + '" height="40" width="40">' : ''}<br> www.nimc.gov.ng
               </td>
               <td class="text-center" style="width: 20%; padding: 0px;">
-                ${callIcon ? `<img src="${callIcon}" height="40" width="40">` : ''}<br> 0700-CALL-NIMC
+                ${callIcon ? '<img src="' + callIcon + '" height="40" width="40">' : ''}<br> 0700-CALL-NIMC
               </td>
               <td class="text-center" nowrap style="padding: 0px;">
-                ${saveIcon ? `<img src="${saveIcon}" height="30" width="30">` : ''}<br>
+                ${saveIcon ? '<img src="' + saveIcon + '" height="30" width="30">' : ''}<br>
                 <b style="font-size: 12px;">National Identity Management Commission</b>
                 <p style="font-size: 8px;"> 11 Sokode Crescent, Off Dalaba Street Zone 5, Wuse 900248, Abuja Nigeria </p>
               </td>
@@ -594,7 +594,7 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
           <table border="0" style="width: 320px; background: none; position: relative;">
             <tr>
               <td colspan="2" class="text-right p-0 px-1 pr-5">
-                ${coatOfArm ? `<img src="${coatOfArm}" width="60" height="50">` : ''}
+                ${coatOfArm ? '<img src="' + coatOfArm + '" width="60" height="50">' : ''}
               </td>
               <td class="text-center text-black">
                 <h6 class="mb-0 pt-2" style="font-weight: bold; font-family: Helvetica, sans-serif; color: rgb(34,34,34);"> NGA </h6>
@@ -603,7 +603,7 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
             </tr>
             <tr>
               <td rowspan="3" class="p-0 pr-2">
-                ${photoSrc ? `<img src="${photoSrc}" width="75" height="100">` : '<div style="width:75px;height:100px;background:#ccc;display:inline-block;"></div>'}
+                ${photoSrc ? '<img src="' + photoSrc + '" width="75" height="100">' : '<div style="width:75px;height:100px;background:#ccc;display:inline-block;"></div>'}
               </td>
               <td rowspan="3" class="txt-info p-0" nowrap style="width: 160px !important;">
                 <div class="d-flex flex-column">
@@ -639,7 +639,7 @@ function generateStandardSlipHtml(reportData, ninFormatted, fullName, qrCodeData
         </td>
         <td style="width: 10px;"></td>
         <td>
-          ${idBackSolo ? `<img src="${idBackSolo}" width="310" height="192">` : ''}
+          ${idBackSolo ? '<img src="' + idBackSolo + '" width="310" height="192">' : ''}
         </td>
       </tr>
     </table>
@@ -735,7 +735,7 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
           <table border="0" style="width: 320px; background: none;">
             <tr>
               <td colspan="2" class="text-left p-0 px-1 pt-3 pl-4">
-                ${premiumHeader ? `<img src="${premiumHeader}" width="220" height="27" class="mb-1">` : ''}
+                ${premiumHeader ? '<img src="' + premiumHeader + '" width="220" height="27" class="mb-1">' : ''}
               </td>
               <td rowspan="3" class="p-0 pr-2 pt-3">
                 ${safeQrCode ? safeHTML`<img src="${safeQrCode}" width="101" height="101" style="width: 100px; height: 100px;">` : ''}
@@ -744,7 +744,7 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
             </tr>
             <tr>
               <td rowspan="3" class="p-0 pr-2">
-                ${photoSrc ? `<img src="${photoSrc}" width="90" height="120" class="mb-3 rounded">` : '<div style="width:90px;height:120px;background:#555;display:inline-block;border-radius:4px;"></div>'}
+                ${photoSrc ? '<img src="' + photoSrc + '" width="90" height="120" class="mb-3 rounded">' : '<div style="width:90px;height:120px;background:#555;display:inline-block;border-radius:4px;"></div>'}
               </td>
               <td class="txt-info p-0" nowrap style="width: 160px !important; color: #000;">
                 <span class="info-title">SURNAME/NOM</span><br>
@@ -780,7 +780,7 @@ function generatePremiumSlipHtml(reportData, ninFormatted, fullName, qrCodeDataU
         </td>
         <td style="width: 10px;"></td>
         <td class="id-bkg-premium" style="background: none;">
-          ${idBackPremium ? `<img src="${idBackPremium}" width="330" height="190">` : ''}
+          ${idBackPremium ? '<img src="' + idBackPremium + '" width="330" height="190">' : ''}
         </td>
       </tr>
     </table>
@@ -1010,12 +1010,12 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
 <body>
   <div class="wrapper">
     <!-- Master Background Template -->
-    ${templateBase64 ? `<img src="${templateBase64}" class="bg-template">` : ''}
+    ${templateBase64 ? '<img src="' + templateBase64 + '" class="bg-template">' : ''}
     
     <div class="content-layer">
       
       <!-- Mini ID Card Overlays -->
-      ${photoSrc ? `<img src="${photoSrc}" class="m-photo">` : `<div class="m-photo"></div>`}
+      ${photoSrc ? '<img src="' + photoSrc + '" class="m-photo">' : '<div class="m-photo"></div>'}
       <div class="m-txt-surname">${surname}</div>
       <div class="m-txt-given">${firstName} ${middleName}</div>
       <div class="m-txt-dob">${dob}</div>
@@ -1048,16 +1048,13 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
  */
 async function generateNinPdf(reportData, slipType) {
   try {
-    let safeSlipType = '';
-    switch(slipType) {
-        case 'regular': safeSlipType = 'regular'; break;
-        case 'standard': safeSlipType = 'standard'; break;
-        case 'premium': safeSlipType = 'premium'; break;
-        case 'vnin': safeSlipType = 'vnin'; break;
-        default: throw new Error('Invalid slip type');
-    }
-
-    const uploadsDir = path.join(__dirname, '../../uploads/slips/nin', safeSlipType);
+    const baseUploadsDir = path.normalize(path.join(__dirname, '../../uploads/slips/nin'));
+    let uploadsDir = '';
+    if (slipType === 'regular') uploadsDir = path.join(baseUploadsDir, 'regular');
+    else if (slipType === 'standard') uploadsDir = path.join(baseUploadsDir, 'standard');
+    else if (slipType === 'premium') uploadsDir = path.join(baseUploadsDir, 'premium');
+    else if (slipType === 'vnin') uploadsDir = path.join(baseUploadsDir, 'vnin');
+    else throw new Error('Invalid slip type');
     
     await fs.mkdir(uploadsDir, { recursive: true });
 
@@ -1065,8 +1062,7 @@ async function generateNinPdf(reportData, slipType) {
     const html = await generateNinSlipHtml(reportData, slipType);
 
     // Generate PDF filename
-    const safeTransactionRef = String(reportData.transactionRef || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '');
-    const pdfFilename = `${safeTransactionRef}.pdf`;
+    const pdfFilename = `${crypto.randomUUID()}.pdf`;
     const pdfPath = path.join(uploadsDir, pdfFilename);
 
     const chromePath = getChromePath();

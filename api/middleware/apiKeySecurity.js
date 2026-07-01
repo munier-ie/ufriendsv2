@@ -44,9 +44,14 @@ const apiKeyAuth = async (req, res, next) => {
 
         const apiKey = authHeader.substring(7);
 
-        // Find user by API key
+        // Find user by live API key or test API key
         const user = await prisma.user.findFirst({
-            where: { apiKey }
+            where: {
+                OR: [
+                    { apiKey: apiKey },
+                    { testApiKey: apiKey }
+                ]
+            }
         });
 
         if (!user) {
@@ -57,6 +62,9 @@ const apiKeyAuth = async (req, res, next) => {
                 errorCode: 4002
             });
         }
+        
+        // Determine if this is a sandbox request
+        req.isTest = (apiKey === user.testApiKey);
 
         // Check if account is blocked (mirrors authenticateUser middleware: regStatus===1 means blocked)
         if (user.regStatus === 1) {

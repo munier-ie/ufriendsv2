@@ -105,7 +105,7 @@ router.post('/bvn', apiKeyAuth, async (req, res) => {
         const { bvn, slipType } = validation.data;
 
         // Sandbox / Test Mode Interception
-        if (req.query.test === 'true') {
+        if (req.isTest) {
             const dummyReference = `TEST-BVN-${crypto.randomUUID()}`;
             sendWebhookNotification(req.user.id, 'identity.bvn.success', {
                 reference: dummyReference,
@@ -289,7 +289,7 @@ router.post('/nin', apiKeyAuth, async (req, res) => {
         }
 
         // Sandbox / Test Mode Interception
-        if (req.query.test === 'true') {
+        if (req.isTest) {
             const dummyReference = `TEST-NIN-${crypto.randomUUID()}`;
             sendWebhookNotification(req.user.id, 'identity.nin.success', {
                 reference: dummyReference,

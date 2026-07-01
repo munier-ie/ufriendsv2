@@ -161,7 +161,7 @@ router.post('/verify', apiKeyAuth, async (req, res) => {
         const { type, provider, number, meterType } = validation.data;
         
         // Sandbox / Test Mode Interception
-        if (req.query.test === 'true') {
+        if (req.isTest) {
             return res.json({
                 success: true,
                 valid: true,
@@ -216,7 +216,7 @@ router.post('/purchase', apiKeyAuth, async (req, res) => {
         }
 
         // Sandbox / Test Mode Interception
-        if (req.query.test === 'true') {
+        if (req.isTest) {
             const dummyReference = `TEST-TXN-${crypto.randomUUID()}`;
             const dummyAmount = amount || service.price || 100;
             

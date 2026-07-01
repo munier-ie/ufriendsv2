@@ -24,7 +24,13 @@ import {
 const ApiDocs = () => {
     const [activeSection, setActiveSection] = useState('getting-started');
     const [copiedCode, setCopiedCode] = useState('');
-    const [isSandboxMode, setIsSandboxMode] = useState(false);
+    const [isSandboxMode, setIsSandboxMode] = useState(() => {
+        return localStorage.getItem('isSandboxMode') === 'true';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('isSandboxMode', isSandboxMode);
+    }, [isSandboxMode]);
 
     // Copy code snippet to clipboard
     const copyToClipboard = (code, id) => {
@@ -84,7 +90,7 @@ const ApiDocs = () => {
             endpoints: [
                 {
                     method: 'POST',
-                    path: `/api/v1/services/verify${isSandboxMode ? '?test=true' : ''}`,
+                    path: '/api/v1/services/verify',
                     description: 'Verify Cable TV IUC or Electricity Meter before purchase.',
                     requestBody: {
                         type: "cable",
@@ -107,7 +113,7 @@ const ApiDocs = () => {
             endpoints: [
                 {
                     method: 'POST',
-                    path: `/api/v1/services/purchase${isSandboxMode ? '?test=true' : ''}`,
+                    path: '/api/v1/services/purchase',
                     description: 'Purchase any service (Airtime, Data, Cable, Power, Exam). No PIN required.',
                     requestBody: {
                         serviceId: 10,
@@ -137,7 +143,7 @@ const ApiDocs = () => {
             endpoints: [
                 {
                     method: 'POST',
-                    path: `/api/v1/identity/bvn${isSandboxMode ? '?test=true' : ''}`,
+                    path: '/api/v1/identity/bvn',
                     description: 'Generate a verified BVN slip (auto-refunds on failure).',
                     requestBody: {
                         bvn: "12345678901",
@@ -163,7 +169,7 @@ const ApiDocs = () => {
             endpoints: [
                 {
                     method: 'POST',
-                    path: `/api/v1/identity/nin${isSandboxMode ? '?test=true' : ''}`,
+                    path: '/api/v1/identity/nin',
                     description: 'Generate a verified NIN slip by NIN number or phone number.',
                     requestBody: {
                         nin: "12345678901",
@@ -283,7 +289,7 @@ curl ${API_BASE_URL}/api/v1/wallet/balance \\
             case 'sandbox':
                 return <SandboxSection />;
             case 'authentication':
-                return <AuthenticationSection codeExamples={codeExamples} copyToClipboard={copyToClipboard} copiedCode={copiedCode} />;
+                return <AuthenticationSection isSandboxMode={isSandboxMode} codeExamples={codeExamples} copyToClipboard={copyToClipboard} copiedCode={copiedCode} />;
             case 'services':
                 return <EndpointsSection title="Services API" endpoints={servicesEndpoints} copyToClipboard={copyToClipboard} copiedCode={copiedCode} icon={<Code className="text-blue-600" />} />;
             case 'identity':
@@ -499,11 +505,11 @@ const SandboxSection = () => (
                 <Zap size={18} /> How to Use Sandbox Mode
             </h4>
             <p className="text-purple-800 text-sm mb-3">
-                To enable sandbox mode for a request, simply append <code>?test=true</code> to the endpoint URL. 
-                When this flag is present, the API will bypass the upstream provider and return an immediate mock success payload.
+                Ufriends uses dedicated API keys for Sandbox mode. To simulate a transaction, simply use your <strong>Test API Key</strong> 
+                (which starts with <code>sk_test_</code>) in the Authorization header instead of your Live key.
             </p>
             <code className="block bg-white p-3 rounded-lg border border-purple-100 text-sm font-mono text-gray-800">
-                POST https://ufriends.com.ng/api/v1/services/purchase?test=true
+                Authorization: Bearer sk_test_...
             </code>
         </div>
 
@@ -511,19 +517,19 @@ const SandboxSection = () => (
             <h3 className="text-xl font-semibold text-gray-800 mb-4">Supported Endpoints</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="border border-gray-200 p-4 rounded-xl">
-                    <code className="text-sm font-mono text-blue-600 font-bold block mb-1">/services/purchase?test=true</code>
+                    <code className="text-sm font-mono text-blue-600 font-bold block mb-1">/services/purchase</code>
                     <p className="text-gray-500 text-xs">Simulates a successful Airtime, Data, Cable, or Electricity purchase. Webhook event <code>transaction.success</code> will be fired with <code>isTest: true</code>.</p>
                 </div>
                 <div className="border border-gray-200 p-4 rounded-xl">
-                    <code className="text-sm font-mono text-indigo-600 font-bold block mb-1">/services/verify?test=true</code>
+                    <code className="text-sm font-mono text-indigo-600 font-bold block mb-1">/services/verify</code>
                     <p className="text-gray-500 text-xs">Simulates a successful IUC/Meter verification, returning a mock customer name.</p>
                 </div>
                 <div className="border border-gray-200 p-4 rounded-xl">
-                    <code className="text-sm font-mono text-purple-600 font-bold block mb-1">/identity/bvn?test=true</code>
+                    <code className="text-sm font-mono text-purple-600 font-bold block mb-1">/identity/bvn</code>
                     <p className="text-gray-500 text-xs">Simulates BVN slip generation. Returns a mock PDF URL and fires <code>identity.bvn.success</code>.</p>
                 </div>
                 <div className="border border-gray-200 p-4 rounded-xl">
-                    <code className="text-sm font-mono text-green-600 font-bold block mb-1">/identity/nin?test=true</code>
+                    <code className="text-sm font-mono text-green-600 font-bold block mb-1">/identity/nin</code>
                     <p className="text-gray-500 text-xs">Simulates NIN slip generation. Returns a mock PDF URL and fires <code>identity.nin.success</code>.</p>
                 </div>
             </div>
@@ -542,7 +548,7 @@ const SandboxSection = () => (
 );
 
 // Authentication Section
-const AuthenticationSection = ({ codeExamples, copyToClipboard, copiedCode }) => {
+const AuthenticationSection = ({ isSandboxMode, codeExamples, copyToClipboard, copiedCode }) => {
     const [selectedLang, setSelectedLang] = useState('javascript');
 
     return (
@@ -557,7 +563,7 @@ const AuthenticationSection = ({ codeExamples, copyToClipboard, copiedCode }) =>
             <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">HTTP Header</h3>
                 <code className="block text-gray-800 font-mono text-sm bg-white border p-3 rounded-lg">
-                    Authorization: Bearer YOUR_API_KEY
+                    Authorization: Bearer {isSandboxMode ? 'sk_test_...' : 'YOUR_API_KEY'}
                 </code>
             </div>
 
@@ -771,6 +777,8 @@ app.post('/webhook', express.json(), (req, res) => {
                     </pre>
                 </div>
             </div>
+
+
 
             <div className="space-y-4 mt-6">
                 <h3 className="text-lg font-semibold text-gray-800">Signature Verification (Node.js)</h3>

@@ -33,6 +33,7 @@ export default function Profile() {
     const [profileData, setProfileData] = useState(null);
     const [openSection, setOpenSection] = useState(null);
     const [showApiKey, setShowApiKey] = useState(false);
+    const [showTestApiKey, setShowTestApiKey] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     
@@ -242,13 +243,17 @@ export default function Profile() {
     const handleGenerateApiKey = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('/api/auth/generate-api-key', {}, {
+            const response = await axios.post('/api/auth/api-key/regenerate', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('API Key generated successfully!');
-            setProfileData(prev => ({ ...prev, apiKey: response.data.apiKey }));
+            toast.success('API Keys generated successfully!');
+            setProfileData(prev => ({ 
+                ...prev, 
+                apiKey: response.data.apiKey,
+                testApiKey: response.data.testApiKey 
+            }));
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to generate API Key');
+            toast.error(error.response?.data?.error || 'Failed to generate API Keys');
         }
     };
 
@@ -775,13 +780,24 @@ export default function Profile() {
                         <div className="space-y-4">
                             <div className="bg-purple-50 rounded-xl p-4">
                                 <div className="flex justify-between items-center mb-2">
-                                    <p className="text-sm text-purple-600">Your API Key</p>
-                                    {!profileData?.apiKey && (
+                                    <p className="text-sm text-purple-600">Live API Key</p>
+                                    {(!profileData?.apiKey || !profileData?.testApiKey) ? (
                                         <button
                                             onClick={handleGenerateApiKey}
                                             className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition"
                                         >
-                                            Generate Key
+                                            Generate Keys
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={() => {
+                                                if (window.confirm("Are you sure you want to regenerate your API keys? Your old keys will instantly stop working.")) {
+                                                    handleGenerateApiKey();
+                                                }
+                                            }}
+                                            className="text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition"
+                                        >
+                                            Regenerate Keys
                                         </button>
                                     )}
                                 </div>
@@ -800,6 +816,32 @@ export default function Profile() {
                                     </button>
                                     <button
                                         onClick={() => copyToClipboard(profileData?.apiKey || '')}
+                                        className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+                                    >
+                                        <Copy size={20} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="bg-purple-50 rounded-xl p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                    <p className="text-sm text-purple-600">Test API Key (Sandbox)</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type={showTestApiKey ? 'text' : 'password'}
+                                        readOnly
+                                        value={profileData?.testApiKey || 'Not generated'}
+                                        className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-mono"
+                                    />
+                                    <button
+                                        onClick={() => setShowTestApiKey(!showTestApiKey)}
+                                        className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                    >
+                                        {showTestApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                    <button
+                                        onClick={() => copyToClipboard(profileData?.testApiKey || '')}
                                         className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
                                     >
                                         <Copy size={20} />
