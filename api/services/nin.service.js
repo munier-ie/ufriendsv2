@@ -1134,10 +1134,8 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
       };
     }
 
-    // 2. Extract actual NIN from result (especially important for phone lookup)
-    const actualNin = lookupMethod === 'phone' 
-      ? (verificationResult.data.nin || verificationResult.data.number || ninNumber)
-      : ninNumber;
+    // 2. Extract actual NIN from result (especially important for phone lookup and vNIN)
+    const actualNin = verificationResult.data.nin || verificationResult.data.number || ninNumber;
 
     // 3. Store report in database
     const report = await storeNinReport(userId, transactionRef, actualNin, slipType, verificationResult.data);
