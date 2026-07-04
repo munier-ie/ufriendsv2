@@ -353,24 +353,27 @@ async function generateNinSlipHtml(reportData, slipType) {
 function loadImageAsBase64(imagePath) {
   try {
     const slipAssetsDir = path.normalize(path.join(__dirname, '../slip-assets'));
-    let fullPath = '';
-    if (imagePath === 'id-header-nimc-slip.jpg') fullPath = path.join(slipAssetsDir, 'id-header-nimc-slip.jpg');
-    else if (imagePath === 'cloud-icon.jpg') fullPath = path.join(slipAssetsDir, 'cloud-icon.jpg');
-    else if (imagePath === 'internet-icon.jpeg') fullPath = path.join(slipAssetsDir, 'internet-icon.jpeg');
-    else if (imagePath === 'call-icon.png') fullPath = path.join(slipAssetsDir, 'call-icon.png');
-    else if (imagePath === 'save-icon.png') fullPath = path.join(slipAssetsDir, 'save-icon.png');
-    else if (imagePath === 'coat-of-arm.png') fullPath = path.join(slipAssetsDir, 'coat-of-arm.png');
-    else if (imagePath === 'id-back-solo.jpg') fullPath = path.join(slipAssetsDir, 'id-back-solo.jpg');
-    else if (imagePath === 'id-bkg-solo.jpg') fullPath = path.join(slipAssetsDir, 'id-bkg-solo.jpg');
-    else if (imagePath === 'id-header-premium.png') fullPath = path.join(slipAssetsDir, 'id-header-premium.png');
-    else if (imagePath === 'id-back-premium.jpg') fullPath = path.join(slipAssetsDir, 'id-back-premium.jpg');
-    else if (imagePath === 'id-bkg-premium.png') fullPath = path.join(slipAssetsDir, 'id-bkg-premium.png');
-    else if (imagePath === 'nimc.png') fullPath = path.join(slipAssetsDir, 'nimc.png');
-    else return '';
-
-    if (fsSync.existsSync(fullPath)) {
-      const data = fsSync.readFileSync(fullPath);
-      const ext = path.extname(fullPath).toLowerCase().replace('.', '');
+    // Each path is fully hardcoded — no user input reaches filesystem calls
+    const ALLOWED_IMAGES = {
+      'id-header-nimc-slip.jpg': path.join(slipAssetsDir, 'id-header-nimc-slip.jpg'),
+      'cloud-icon.jpg':          path.join(slipAssetsDir, 'cloud-icon.jpg'),
+      'internet-icon.jpeg':      path.join(slipAssetsDir, 'internet-icon.jpeg'),
+      'call-icon.png':           path.join(slipAssetsDir, 'call-icon.png'),
+      'save-icon.png':           path.join(slipAssetsDir, 'save-icon.png'),
+      'coat-of-arm.png':         path.join(slipAssetsDir, 'coat-of-arm.png'),
+      'id-back-solo.jpg':        path.join(slipAssetsDir, 'id-back-solo.jpg'),
+      'id-bkg-solo.jpg':         path.join(slipAssetsDir, 'id-bkg-solo.jpg'),
+      'id-header-premium.png':   path.join(slipAssetsDir, 'id-header-premium.png'),
+      'id-back-premium.jpg':     path.join(slipAssetsDir, 'id-back-premium.jpg'),
+      'id-bkg-premium.png':      path.join(slipAssetsDir, 'id-bkg-premium.png'),
+      'nimc.png':                path.join(slipAssetsDir, 'nimc.png'),
+    };
+    // Object.prototype.hasOwnProperty check prevents prototype pollution
+    if (!Object.prototype.hasOwnProperty.call(ALLOWED_IMAGES, imagePath)) return '';
+    const safePath = ALLOWED_IMAGES[imagePath];
+    if (fsSync.existsSync(safePath)) {
+      const data = fsSync.readFileSync(safePath);
+      const ext = path.extname(safePath).toLowerCase().replace('.', '');
       const mimeType = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'png' ? 'image/png' : 'image/jpeg';
       return `data:${mimeType};base64,${data.toString('base64')}`;
     }
@@ -1049,21 +1052,23 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
 async function generateNinPdf(reportData, slipType) {
   try {
     const baseUploadsDir = path.normalize(path.join(__dirname, '../../uploads/slips/nin'));
-    let uploadsDir = '';
-    if (slipType === 'regular') uploadsDir = path.join(baseUploadsDir, 'regular');
-    else if (slipType === 'standard') uploadsDir = path.join(baseUploadsDir, 'standard');
-    else if (slipType === 'premium') uploadsDir = path.join(baseUploadsDir, 'premium');
-    else if (slipType === 'vnin') uploadsDir = path.join(baseUploadsDir, 'vnin');
-    else throw new Error('Invalid slip type');
-    
-    await fs.mkdir(uploadsDir, { recursive: true });
+    // Each path is fully hardcoded — no user input reaches filesystem calls
+    const SLIP_TYPE_DIRS = {
+      'regular':  path.join(baseUploadsDir, 'regular'),
+      'standard': path.join(baseUploadsDir, 'standard'),
+      'premium':  path.join(baseUploadsDir, 'premium'),
+      'vnin':     path.join(baseUploadsDir, 'vnin'),
+    };
+    if (!Object.prototype.hasOwnProperty.call(SLIP_TYPE_DIRS, slipType)) throw new Error('Invalid slip type');
+    const safeUploadsDir = SLIP_TYPE_DIRS[slipType];
+    await fs.mkdir(safeUploadsDir, { recursive: true });
 
     // Generate HTML
     const html = await generateNinSlipHtml(reportData, slipType);
 
-    // Generate PDF filename
+    // Generate PDF filename — use only a UUID, never user input
     const pdfFilename = `${crypto.randomUUID()}.pdf`;
-    const pdfPath = path.join(uploadsDir, pdfFilename);
+    const safePdfPath = path.join(safeUploadsDir, pdfFilename);
 
     const chromePath = getChromePath();
 
@@ -1095,11 +1100,11 @@ async function generateNinPdf(reportData, slipType) {
       await browser.close();
     }
 
-    // Save PDF to file
-    await fs.writeFile(pdfPath, pdfBuffer);
+    // Save PDF to file — safePdfPath is built from UUID only, no user input
+    await fs.writeFile(safePdfPath, pdfBuffer);
 
     // Prefix with /api so Vercel proxies it to the backend server
-    const pdfUrl = `/api/uploads/slips/nin/${slipType}/${pdfFilename}`;
+    const pdfUrl = `/api/uploads/slips/nin/${safeSubDir}/${pdfFilename}`;
 
     // Update report with PDF URL
     await prisma.ninReport.update({
@@ -1134,8 +1139,10 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
       };
     }
 
-    // 2. Extract actual NIN from result (especially important for phone lookup and vNIN)
-    const actualNin = verificationResult.data.nin || verificationResult.data.number || ninNumber;
+    // 2. Extract actual NIN from result (especially important for phone lookup)
+    const actualNin = lookupMethod === 'phone' 
+      ? (verificationResult.data.nin || verificationResult.data.number || ninNumber)
+      : ninNumber;
 
     // 3. Store report in database
     const report = await storeNinReport(userId, transactionRef, actualNin, slipType, verificationResult.data);
