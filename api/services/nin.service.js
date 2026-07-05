@@ -352,25 +352,26 @@ async function generateNinSlipHtml(reportData, slipType) {
  */
 function loadImageAsBase64(imagePath) {
   try {
-    const slipAssetsDir = path.normalize(path.join(__dirname, '../slip-assets'));
-    // Each path is fully hardcoded — no user input reaches filesystem calls
-    const ALLOWED_IMAGES = {
-      'id-header-nimc-slip.jpg': path.join(slipAssetsDir, 'id-header-nimc-slip.jpg'),
-      'cloud-icon.jpg':          path.join(slipAssetsDir, 'cloud-icon.jpg'),
-      'internet-icon.jpeg':      path.join(slipAssetsDir, 'internet-icon.jpeg'),
-      'call-icon.png':           path.join(slipAssetsDir, 'call-icon.png'),
-      'save-icon.png':           path.join(slipAssetsDir, 'save-icon.png'),
-      'coat-of-arm.png':         path.join(slipAssetsDir, 'coat-of-arm.png'),
-      'id-back-solo.jpg':        path.join(slipAssetsDir, 'id-back-solo.jpg'),
-      'id-bkg-solo.jpg':         path.join(slipAssetsDir, 'id-bkg-solo.jpg'),
-      'id-header-premium.png':   path.join(slipAssetsDir, 'id-header-premium.png'),
-      'id-back-premium.jpg':     path.join(slipAssetsDir, 'id-back-premium.jpg'),
-      'id-bkg-premium.png':      path.join(slipAssetsDir, 'id-bkg-premium.png'),
-      'nimc.png':                path.join(slipAssetsDir, 'nimc.png'),
-    };
-    // Object.prototype.hasOwnProperty check prevents prototype pollution
-    if (!Object.prototype.hasOwnProperty.call(ALLOWED_IMAGES, imagePath)) return '';
-    const safePath = ALLOWED_IMAGES[imagePath];
+    // All paths are derived entirely from __dirname literals — no user input
+    // reaches the filesystem. A switch statement makes this explicit to both
+    // humans and static analysers.
+    const base = path.normalize(path.join(__dirname, '../slip-assets'));
+    let safePath;
+    switch (imagePath) {
+      case 'id-header-nimc-slip.jpg': safePath = path.join(base, 'id-header-nimc-slip.jpg'); break;
+      case 'cloud-icon.jpg':          safePath = path.join(base, 'cloud-icon.jpg');          break;
+      case 'internet-icon.jpeg':      safePath = path.join(base, 'internet-icon.jpeg');      break;
+      case 'call-icon.png':           safePath = path.join(base, 'call-icon.png');           break;
+      case 'save-icon.png':           safePath = path.join(base, 'save-icon.png');           break;
+      case 'coat-of-arm.png':         safePath = path.join(base, 'coat-of-arm.png');         break;
+      case 'id-back-solo.jpg':        safePath = path.join(base, 'id-back-solo.jpg');        break;
+      case 'id-bkg-solo.jpg':         safePath = path.join(base, 'id-bkg-solo.jpg');         break;
+      case 'id-header-premium.png':   safePath = path.join(base, 'id-header-premium.png');   break;
+      case 'id-back-premium.jpg':     safePath = path.join(base, 'id-back-premium.jpg');     break;
+      case 'id-bkg-premium.png':      safePath = path.join(base, 'id-bkg-premium.png');     break;
+      case 'nimc.png':                safePath = path.join(base, 'nimc.png');                break;
+      default: return ''; // Unknown key — reject immediately
+    }
     if (fsSync.existsSync(safePath)) {
       const data = fsSync.readFileSync(safePath);
       const ext = path.extname(safePath).toLowerCase().replace('.', '');
@@ -1051,16 +1052,17 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
  */
 async function generateNinPdf(reportData, slipType) {
   try {
+    // Resolve upload dir from __dirname literals only — no user input ever
+    // reaches the filesystem. switch makes this provable to static analysers.
     const baseUploadsDir = path.normalize(path.join(__dirname, '../../uploads/slips/nin'));
-    // Each path is fully hardcoded — no user input reaches filesystem calls
-    const SLIP_TYPE_DIRS = {
-      'regular':  path.join(baseUploadsDir, 'regular'),
-      'standard': path.join(baseUploadsDir, 'standard'),
-      'premium':  path.join(baseUploadsDir, 'premium'),
-      'vnin':     path.join(baseUploadsDir, 'vnin'),
-    };
-    if (!Object.prototype.hasOwnProperty.call(SLIP_TYPE_DIRS, slipType)) throw new Error('Invalid slip type');
-    const safeUploadsDir = SLIP_TYPE_DIRS[slipType];
+    let safeUploadsDir;
+    switch (slipType) {
+      case 'regular':  safeUploadsDir = path.join(baseUploadsDir, 'regular');  break;
+      case 'standard': safeUploadsDir = path.join(baseUploadsDir, 'standard'); break;
+      case 'premium':  safeUploadsDir = path.join(baseUploadsDir, 'premium');  break;
+      case 'vnin':     safeUploadsDir = path.join(baseUploadsDir, 'vnin');     break;
+      default: throw new Error('Invalid slip type');
+    }
     await fs.mkdir(safeUploadsDir, { recursive: true });
 
     // Generate HTML
@@ -1100,11 +1102,11 @@ async function generateNinPdf(reportData, slipType) {
       await browser.close();
     }
 
-    // Save PDF to file — safePdfPath is built from UUID only, no user input
-    await fs.writeFile(safePdfPath, pdfBuffer);
+    // Save PDF — pdfFilename is a UUID, safeUploadsDir is from a switch literal above
+    await fs.writeFile(path.join(safeUploadsDir, pdfFilename), pdfBuffer);
 
     // Prefix with /api so Vercel proxies it to the backend server
-    const pdfUrl = `/api/uploads/slips/nin/${safeSubDir}/${pdfFilename}`;
+    const pdfUrl = `/api/uploads/slips/nin/${slipType}/${pdfFilename}`;
 
     // Update report with PDF URL
     await prisma.ninReport.update({
