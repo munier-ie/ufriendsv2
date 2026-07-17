@@ -16,7 +16,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           # Port: 22 (Default)
           script: |
-            cd /var/www/ufriendsv2
+            cd ufriendsv2
             # Stash any local uncommitted changes on the server to prevent merge/pull conflicts
             git stash
             git pull origin main
