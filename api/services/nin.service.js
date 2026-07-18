@@ -385,6 +385,29 @@ function loadImageAsBase64(imagePath) {
 }
 
 /**
+ * Load font as base64 data URL
+ */
+function loadFontAsBase64(fontName) {
+  try {
+    const base = path.normalize(path.join(__dirname, '../slip-assets/fonts'));
+    let safePath;
+    switch (fontName) {
+      case 'roboto-latin-400-normal.woff2': safePath = path.join(base, 'roboto-latin-400-normal.woff2'); break;
+      case 'roboto-latin-700-normal.woff2': safePath = path.join(base, 'roboto-latin-700-normal.woff2'); break;
+      case 'roboto-latin-900-normal.woff2': safePath = path.join(base, 'roboto-latin-900-normal.woff2'); break;
+      default: return '';
+    }
+    if (fsSync.existsSync(safePath)) {
+      const data = fsSync.readFileSync(safePath);
+      return `data:font/woff2;charset=utf-8;base64,${data.toString('base64')}`;
+    }
+  } catch (e) {
+    console.error('Failed to load font:', fontName, e.message);
+  }
+  return '';
+}
+
+/**
  * Generate Regular NIN Slip HTML (Exact V3 NIMC Table Style)
  */
 function generateRegularSlipHtml(reportData, ninFormatted, fullName) {
@@ -875,7 +898,24 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
   <meta charset="UTF-8">
   <title>VNIN Verification Report</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap');
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 400;
+      src: url('${escapeHtml(loadFontAsBase64('roboto-latin-400-normal.woff2'))}') format('woff2');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 700;
+      src: url('${escapeHtml(loadFontAsBase64('roboto-latin-700-normal.woff2'))}') format('woff2');
+    }
+    @font-face {
+      font-family: 'Roboto';
+      font-style: normal;
+      font-weight: 900;
+      src: url('${escapeHtml(loadFontAsBase64('roboto-latin-900-normal.woff2'))}') format('woff2');
+    }
     
     @page { size: A4; margin: 0; }
     body { 
