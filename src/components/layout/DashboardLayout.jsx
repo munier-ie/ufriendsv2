@@ -1,5 +1,5 @@
 /* eslint-disable */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PageMeta from '../seo/PageMeta';
@@ -39,6 +39,7 @@ import Globe from 'lucide-react/dist/esm/icons/globe';
 import ArrowRightLeft from 'lucide-react/dist/esm/icons/arrow-right-left';
 import Smile from 'lucide-react/dist/esm/icons/smile';
 import FileEdit from 'lucide-react/dist/esm/icons/file-edit';
+import Search from 'lucide-react/dist/esm/icons/search';
 import Menu from 'lucide-react/dist/esm/icons/menu';
 import X from 'lucide-react/dist/esm/icons/x';
 import Code from 'lucide-react/dist/esm/icons/code';
@@ -66,6 +67,8 @@ export default function DashboardLayout() {
         'Overview': true
     });
 
+    const hasInitializedRef = useRef(false);
+
     useEffect(() => {
         const adminToken = localStorage.getItem('adminToken');
         const token = localStorage.getItem('token');
@@ -78,8 +81,11 @@ export default function DashboardLayout() {
             if (adminUser) setUser(JSON.parse(adminUser));
             fetchAdminProfile();
         } else if (token) {
-            // Regular users: also open Services & Utilities by default
-            setExpandedCategories(prev => ({ ...prev, 'Services & Utilities': true }));
+            if (!hasInitializedRef.current) {
+                // Regular users: also open Services by default on first load
+                setExpandedCategories(prev => ({ ...prev, 'Services': true }));
+                hasInitializedRef.current = true;
+            }
             const storedUser = localStorage.getItem('user');
             if (storedUser) setUser(JSON.parse(storedUser));
             fetchProfile();
@@ -183,7 +189,13 @@ export default function DashboardLayout() {
         return () => clearTimeout(timer);
     }, [location.pathname, location.search]);
 
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) => {
+        if (path.includes('?')) {
+            const [pathname, search] = path.split('?');
+            return location.pathname === pathname && location.search.includes(search);
+        }
+        return location.pathname === path;
+    };
 
     // Categorized configuration for regular users
     const userCategoriesConfig = [
@@ -196,27 +208,36 @@ export default function DashboardLayout() {
             ]
         },
         {
-            title: 'Services & Utilities',
+            title: 'Services',
             items: [
-                { icon: Grid3X3, label: 'Services', path: '/dashboard/services' },
                 { icon: Wifi, label: 'Data', path: '/dashboard/services?type=data' },
                 { icon: PhoneCall, label: 'Airtime', path: '/dashboard/services?type=airtime' },
-                { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
-                { icon: Tag, label: 'Data PINs', path: '/dashboard/data-pins' },
-                { icon: Printer, label: 'Recharge Cards', path: '/dashboard/recharge-cards' },
-                { icon: ArrowRightLeft, label: 'Airtime2cash', path: '/dashboard/airtime2cash' },
+                { icon: FileEdit, label: 'BVN Modification', path: '/dashboard/manual-services?tab=BVN_MODIFICATION' },
+                { icon: Search, label: 'BVN Retrieval', path: '/dashboard/manual-services?tab=BVN_RETRIEVAL' },
+                { icon: FileEdit, label: 'NIN Modification', path: '/dashboard/manual-services?tab=NIN_MODIFICATION' },
+                { icon: Send, label: 'VNIN -> NIBS', path: '/dashboard/manual-services?tab=VNIN_NIBSS' },
+                { icon: ArrowRightLeft, label: 'Airtime2Cash', path: '/dashboard/airtime2cash' },
                 { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
-                { icon: Landmark, label: 'Gov Services', path: '/dashboard/gov-services' },
-                { icon: ShoppingBag, label: 'Exam PINs', path: '/dashboard/exam-pins' },
+                { icon: Landmark, label: 'Govt Services', path: '/dashboard/gov-services' },
+                { icon: ShoppingBag, label: 'Exam Pins', path: '/dashboard/exam-pins' },
+                { icon: Tag, label: 'Data Pins', path: '/dashboard/data-pins' },
+                { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
             ]
         },
         {
-            title: 'Financial Services',
+            title: 'Printing Services',
             items: [
-                { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
-                { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
+                { icon: Printer, label: 'NIN Slip', path: '/dashboard/gov-services?tab=nin' },
+                { icon: Printer, label: 'BVN Slip', path: '/dashboard/gov-services?tab=bvn' },
+            ]
+        },
+        {
+            title: 'Finance Section',
+            items: [
                 { icon: Wallet, label: 'Transactions', path: '/dashboard/transactions' },
                 { icon: Banknote, label: 'Pricing', path: '/dashboard/pricing' },
+                { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
+                { icon: Bank, label: 'Virtual Account', path: '/dashboard/virtual-accounts' },
             ]
         },
         {
@@ -271,6 +292,7 @@ export default function DashboardLayout() {
             items: [
                 { icon: Bank, label: 'API Providers', path: '/admin/dashboard/providers', moduleId: 'providers' },
                 { icon: Wallet, label: 'API Wallets', path: '/admin/dashboard/api-wallets', moduleId: 'api-wallets' },
+                { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments', moduleId: 'settings' },
                 { icon: Bot, label: 'Smart Bot Discovery', path: '/admin/dashboard/bot-plans', moduleId: 'services' },
                 { icon: ArrowRightLeft, label: 'Routing Switches', path: '/admin/dashboard/settings/routing', moduleId: 'settings' },
             ]
@@ -307,7 +329,6 @@ export default function DashboardLayout() {
             title: 'System Settings',
             items: [
                 { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings', moduleId: 'settings' },
-                { icon: Bank, label: 'Payment Gateways', path: '/admin/dashboard/settings/payments', moduleId: 'settings' },
                 { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks', moduleId: 'settings' },
                 { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist', moduleId: 'settings' },
                 { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades', moduleId: 'settings' },
@@ -321,7 +342,18 @@ export default function DashboardLayout() {
         setExpandedCategories(prev => {
             const nextState = { ...prev };
             const current = Reflect.get(prev, title);
-            Reflect.set(nextState, title, !current);
+            const willOpen = !current;
+            
+            if (willOpen && title !== 'Overview') {
+                // Close all other categories except 'Overview' and the clicked title
+                Object.keys(nextState).forEach(key => {
+                    if (key !== 'Overview' && key !== title) {
+                        nextState[key] = false;
+                    }
+                });
+            }
+            
+            nextState[title] = willOpen;
             return nextState;
         });
     };
@@ -371,10 +403,17 @@ export default function DashboardLayout() {
             cat.items.some(item => isActive(item.path))
         );
         if (activeCat) {
-            setExpandedCategories(prev => ({
-                ...prev,
-                [activeCat.title]: true
-            }));
+            setExpandedCategories(prev => {
+                const nextState = { ...prev, [activeCat.title]: true };
+                if (activeCat.title !== 'Overview') {
+                    Object.keys(nextState).forEach(key => {
+                        if (key !== 'Overview' && key !== activeCat.title) {
+                            nextState[key] = false;
+                        }
+                    });
+                }
+                return nextState;
+            });
         }
     }, [location.pathname, user]);
 

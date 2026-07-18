@@ -319,6 +319,15 @@ export default function ManualServices() {
     const activeTabs = activeGroup === 'bvn' ? bvnTabs : ninTabs;
 
     useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab) {
+            setActiveSub(tab);
+            const group = ['NIN_MODIFICATION', 'NIN_VALIDATION'].includes(tab) ? 'nin' : 'bvn';
+            setActiveGroup(group);
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
         fetchSettings();
         fetchHistory();
     }, []);

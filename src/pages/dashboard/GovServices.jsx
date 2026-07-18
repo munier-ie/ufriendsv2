@@ -119,6 +119,14 @@ export default function GovServices() {
     }, []);
 
     useEffect(() => {
+        const tab = searchParams.get('tab');
+        if (tab) {
+            setActiveTab(tab);
+            setSlipPreview(null);
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
         if (activeTab === 'bvn') {
             fetchBvnPricing();
             fetchBvnHistory();
