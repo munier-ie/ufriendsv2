@@ -389,3 +389,161 @@ class _SlipSamplePreviewDialogState extends State<SlipSamplePreviewDialog>
     );
   }
 }
+
+class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
+  final List<Widget>? actions;
+
+  const PremiumAppBar({
+    super.key,
+    required this.title,
+    this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      centerTitle: true,
+      title: Text(
+        title,
+        style: TextStyle(
+          color: context.textPrimary,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.secondaryColor, size: 20),
+        onPressed: () => Navigator.maybePop(context),
+      ),
+      actions: actions,
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class PremiumTextField extends StatelessWidget {
+  final String label;
+  final String? hintText;
+  final TextInputType? keyboardType;
+  final ValueChanged<String>? onChanged;
+  final TextEditingController? controller;
+
+  const PremiumTextField({
+    super.key,
+    required this.label,
+    this.hintText,
+    this.keyboardType,
+    this.onChanged,
+    this.controller,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: context.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: keyboardType,
+          onChanged: onChanged,
+          style: TextStyle(color: context.textPrimary, fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hintText,
+            hintStyle: TextStyle(color: context.textHint),
+            filled: true,
+            fillColor: context.inputFillColor,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: context.borderColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: context.borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class PremiumButton extends StatelessWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+
+  const PremiumButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.isLoading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: (onPressed == null || isLoading) ? null : AppTheme.primaryGradient,
+        color: (onPressed == null || isLoading) ? Colors.grey.shade400 : null,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: (onPressed == null || isLoading)
+            ? []
+            : [
+                BoxShadow(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 5),
+                ),
+              ],
+      ),
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+        ),
+        onPressed: isLoading ? null : onPressed,
+        child: isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
+}

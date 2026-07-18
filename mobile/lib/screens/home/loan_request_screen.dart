@@ -19,39 +19,44 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
     setState(() => _formData[key] = value);
   }
 
-  void _submit() {
+  void _submit() async {
     if (_formData['accountNumber'] == null || _formData['accountNumber'].toString().length < 10) return _showError('Please enter a valid 10-digit account number');
     if (_formData['contactDetails'] == null || _formData['contactDetails'].toString().isEmpty) return _showError('Please enter contact details');
     if (_formData['amountNeeded'] == null || _formData['amountNeeded'].toString().isEmpty) return _showError('Please enter loan amount');
     if (_formData['repaymentSchedule'] == null) return _showError('Please select repayment schedule');
     if (_formData['duration'] == null) return _showError('Please select loan duration');
 
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PinScreen(
-          onPinEntered: (pin) async {
+          onVerify: (pin) async {
             setState(() => _submitting = true);
-            final res = await ApiService.submitManualService(
-              serviceType: 'LOAN_REQUEST',
-              subType: '',
-              details: _formData,
-              pin: pin,
-            );
-            setState(() => _submitting = false);
-            if (!mounted) return;
-            if (res['success'] == true) {
-              Navigator.pop(context); // close screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Loan Request submitted successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+            try {
+              return await ApiService.submitManualService(
+                serviceType: 'LOAN_REQUEST',
+                subType: '',
+                details: _formData,
+                pin: pin,
               );
-            } else {
-              _showError(res['error'] ?? 'Failed to submit request');
+            } finally {
+              if (mounted) setState(() => _submitting = false);
             }
           },
         ),
       ),
     );
+
+    if (result != null && mounted) {
+      if (result['success'] == true) {
+        Navigator.pop(context); // close screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Loan Request submitted successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+        );
+      } else {
+        _showError(result['error'] ?? 'Failed to submit request');
+      }
+    }
   }
 
   void _showError(String message) {
@@ -61,7 +66,7 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.scaffoldBackground,
+      backgroundColor: context.scaffoldBg,
       appBar: const PremiumAppBar(title: 'Loan Request'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

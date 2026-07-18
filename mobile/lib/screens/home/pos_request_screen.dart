@@ -14,7 +14,7 @@ class PosRequestScreen extends StatefulWidget {
 
 class _PosRequestScreenState extends State<PosRequestScreen> {
   final ImagePicker _picker = ImagePicker();
-  Map<String, dynamic> _formData = {};
+  final Map<String, dynamic> _formData = {};
   bool _uploading = false;
   bool _submitting = false;
   Map<String, dynamic>? _settings;
@@ -82,38 +82,43 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
     }
   }
 
-  void _submit() {
+  void _submit() async {
     // Form validation
     if (_formData['provider'] == null) return _showError('Please select a provider');
     if (_formData['subType'] == null) return _showError('Please select a payment option');
     if (_formData['posType'] == null) return _showError('Please select a POS type');
 
-    Navigator.push(
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PinScreen(
-          onPinEntered: (pin) async {
+          onVerify: (pin) async {
             setState(() => _submitting = true);
-            final res = await ApiService.submitManualService(
-              serviceType: 'POS_REQUEST',
-              subType: _formData['subType'],
-              details: _formData,
-              pin: pin,
-            );
-            setState(() => _submitting = false);
-            if (!mounted) return;
-            if (res['success'] == true) {
-              Navigator.pop(context); // close screen
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('POS Request submitted successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+            try {
+              return await ApiService.submitManualService(
+                serviceType: 'POS_REQUEST',
+                subType: _formData['subType'],
+                details: _formData,
+                pin: pin,
               );
-            } else {
-              _showError(res['error'] ?? 'Failed to submit request');
+            } finally {
+              if (mounted) setState(() => _submitting = false);
             }
           },
         ),
       ),
     );
+
+    if (result != null && mounted) {
+      if (result['success'] == true) {
+        Navigator.pop(context); // close screen
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('POS Request submitted successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
+        );
+      } else {
+        _showError(result['error'] ?? 'Failed to submit request');
+      }
+    }
   }
 
   void _showError(String message) {
@@ -128,7 +133,7 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
     final bool noAccountFlow = !isMoniepoint || (isMoniepoint && _formData['hasAccount'] == 'no');
 
     return Scaffold(
-      backgroundColor: context.scaffoldBackground,
+      backgroundColor: context.scaffoldBg,
       appBar: const PremiumAppBar(title: 'POS Request'),
       body: _loadingSettings
           ? const Center(child: CircularProgressIndicator())
@@ -362,7 +367,7 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
                 children: [
                   ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                    child: Image.asset(pos['img'], height: 80, width: double.infinity, fit: BoxFit.cover, errorBuilder: (_, __, ___) => Container(height: 80, color: Colors.grey.shade200, child: const Icon(Icons.point_of_sale))),
+                    child: Image.asset(pos['img'], height: 80, width: double.infinity, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => Container(height: 80, color: Colors.grey.shade200, child: const Icon(Icons.point_of_sale))),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8),
