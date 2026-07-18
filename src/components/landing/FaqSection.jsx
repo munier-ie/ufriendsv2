@@ -1,7 +1,10 @@
 import React from 'react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, MessageCircle, Mail, Phone } from 'lucide-react';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
+import Mail from 'lucide-react/dist/esm/icons/mail';
+import Phone from 'lucide-react/dist/esm/icons/phone';
 import { useLandingContent } from '../../contexts/LandingContentContext';
 
 function FaqItem({ faq, index }) {

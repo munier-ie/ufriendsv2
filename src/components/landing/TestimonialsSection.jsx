@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Star, Quote } from 'lucide-react';
+import Star from 'lucide-react/dist/esm/icons/star';
+import Quote from 'lucide-react/dist/esm/icons/quote';
 import { useLandingContent } from '../../contexts/LandingContentContext';
 
 const GRADIENTS = [

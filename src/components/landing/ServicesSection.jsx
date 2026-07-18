@@ -1,10 +1,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import {
-  Smartphone, Wifi, Receipt, UserCheck, Award,
-  Building2, GraduationCap, Banknote, ShieldCheck, BookOpen, Code, ArrowRight,
-} from 'lucide-react';
+import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
+import Wifi from 'lucide-react/dist/esm/icons/wifi';
+import Receipt from 'lucide-react/dist/esm/icons/receipt';
+import UserCheck from 'lucide-react/dist/esm/icons/user-check';
+import Award from 'lucide-react/dist/esm/icons/award';
+import Building2 from 'lucide-react/dist/esm/icons/building-2';
+import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
+import Banknote from 'lucide-react/dist/esm/icons/banknote';
+import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import Code from 'lucide-react/dist/esm/icons/code';
+import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
 import { useLandingContent } from '../../contexts/LandingContentContext';
 
 const ICON_MAP = {

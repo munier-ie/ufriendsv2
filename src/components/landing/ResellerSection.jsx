@@ -1,7 +1,15 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Globe, Smartphone, ArrowRight, Zap, ShieldCheck, TrendingUp, Apple, Wifi, Layers } from 'lucide-react';
+import Globe from 'lucide-react/dist/esm/icons/globe';
+import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
+import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
+import Zap from 'lucide-react/dist/esm/icons/zap';
+import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
+import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
+import Apple from 'lucide-react/dist/esm/icons/apple';
+import Wifi from 'lucide-react/dist/esm/icons/wifi';
+import Layers from 'lucide-react/dist/esm/icons/layers';
 
 export default function ResellerSection() {
   return (

@@ -3,11 +3,20 @@ import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../ui/Logo';
-import {
-  Menu, X, ChevronDown,
-  Smartphone, Wifi, Receipt, UserCheck, Award,
-  Building2, GraduationCap, Banknote, ShieldCheck, BookOpen, Code
-} from 'lucide-react';
+import Menu from 'lucide-react/dist/esm/icons/menu';
+import X from 'lucide-react/dist/esm/icons/x';
+import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
+import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
+import Wifi from 'lucide-react/dist/esm/icons/wifi';
+import Receipt from 'lucide-react/dist/esm/icons/receipt';
+import UserCheck from 'lucide-react/dist/esm/icons/user-check';
+import Award from 'lucide-react/dist/esm/icons/award';
+import Building2 from 'lucide-react/dist/esm/icons/building-2';
+import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
+import Banknote from 'lucide-react/dist/esm/icons/banknote';
+import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
+import BookOpen from 'lucide-react/dist/esm/icons/book-open';
+import Code from 'lucide-react/dist/esm/icons/code';
 
 const services = [
   { icon: Smartphone, title: 'Airtime', description: 'Buy airtime for all networks' },
