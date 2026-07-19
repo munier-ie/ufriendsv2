@@ -38,13 +38,7 @@ export default defineConfig({
                         if (id.includes('lucide-react') || id.includes('lucide')) {
                             return 'vendor-lucide';
                         }
-                        if (id.includes('react-dom')) {
-                            return 'vendor-react-dom';
-                        }
-                        if (id.includes('react-router-dom') || id.includes('@remix-run') || id.includes('react-router')) {
-                            return 'vendor-router';
-                        }
-                        if (id.includes('react') || id.includes('scheduler')) {
+                        if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom') || id.includes('@remix-run') || id.includes('scheduler')) {
                             return 'vendor-react';
                         }
                         if (id.includes('recharts') || id.includes('d3')) {
