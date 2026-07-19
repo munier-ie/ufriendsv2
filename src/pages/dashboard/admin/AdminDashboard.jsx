@@ -83,7 +83,12 @@ export default function AdminDashboard() {
                 </div>
                 
                 <div className="mt-auto">
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-700 tracking-tight leading-tight mb-2 break-all overflow-hidden">{value}</h3>
+                    <h3 
+                        className="text-xl sm:text-2xl lg:text-xl xl:text-2xl font-bold text-gray-700 tracking-tight leading-tight mb-2 break-words"
+                        title={String(value)}
+                    >
+                        {value}
+                    </h3>
                     {subtext && (
                         <p className="text-xs text-gray-400 font-medium flex items-center opacity-70">
                             <span className={`w-1.5 h-1.5 rounded-full mr-2 ${bgColor.replace('bg-', 'bg-').replace('50', '400')}`}></span>
@@ -139,7 +144,7 @@ export default function AdminDashboard() {
                     </div>
                     <h2 className="text-lg font-bold text-gray-800 tracking-tight">Financial Overview</h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
                     <StatCard
                         icon={Shield}
                         label="User Assets"
@@ -187,7 +192,7 @@ export default function AdminDashboard() {
                     </div>
                     <h2 className="text-lg font-bold text-gray-800 tracking-tight">Growth & Adoption</h2>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 gap-6">
                     <StatCard
                         icon={Users}
                         label="Total Subscribers"
@@ -251,7 +256,7 @@ export default function AdminDashboard() {
                                         )}
                                     </div>
                                     <div className="mt-4">
-                                        <h3 className={`text-xl sm:text-2xl font-bold tracking-tight leading-tight break-all ${wallet.balance < wallet.lowBalanceAlert ? 'text-red-500' : 'text-gray-800'}`}>
+                                        <h3 className={`text-xl sm:text-2xl font-bold tracking-tight leading-tight break-words ${wallet.balance < wallet.lowBalanceAlert ? 'text-red-500' : 'text-gray-800'}`}>
                                             ₦{wallet.balance.toLocaleString()}
                                         </h3>
                                         <div className="mt-5 w-full bg-gray-50 h-1 rounded-full overflow-hidden">
