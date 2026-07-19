@@ -120,6 +120,18 @@ model AdminUser {
   contactMessage          ContactMessage[]
   transactionStatusUpdate TransactionStatusUpdate[]
   user_actions            UserAction[]
+  loginSessions           AdminLogin[]
+}
+
+// [SEC-HIGH-09] DB-backed admin session — mirrors UserLogin for single-device enforcement
+model AdminLogin {
+  id        Int      @id @default(autoincrement())
+  adminId   Int
+  token     String   @unique
+  createdAt DateTime @default(now())
+  admin     AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
 }
 
 model PaymentGateway {

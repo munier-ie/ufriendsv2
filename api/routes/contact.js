@@ -32,6 +32,15 @@ router.post('/', async (req, res) => {
 
     const { name, email, phone, subject, message } = validation.data;
 
+    // [SEC-HIGH-08] Sanitize user inputs before interpolating into HTML emails
+    const escapeHtml = (str) => String(str).replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const safeName    = escapeHtml(name);
+    const safeEmail   = escapeHtml(email);
+    const safePhone   = phone ? escapeHtml(phone) : '';
+    const safeSubject = escapeHtml(subject);
+    const safeMessage = escapeHtml(message);
+
     try {
         // 1. Save to DB
         await prisma.contactMessage.create({
@@ -39,7 +48,7 @@ router.post('/', async (req, res) => {
         });
 
         // 2. Notify admin via email (fire-and-forget, doesn't block response)
-        const phoneRow = phone ? `<tr><td style="padding:8px 12px;color:#666;border-bottom:1px solid #eee;">Phone</td><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee;text-align:right;">${phone}</td></tr>` : '';
+        const phoneRow = safePhone ? `<tr><td style="padding:8px 12px;color:#666;border-bottom:1px solid #eee;">Phone</td><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee;text-align:right;">${safePhone}</td></tr>` : '';
         const adminHtml = `
             <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;">
                 <div style="background:linear-gradient(135deg,#004687,#1e90ff);padding:28px 32px;">
@@ -47,13 +56,13 @@ router.post('/', async (req, res) => {
                 </div>
                 <div style="padding:28px 32px;">
                     <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
-                        <tr><td style="padding:8px 12px;color:#666;border-bottom:1px solid #eee;">Name</td><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee;text-align:right;">${name}</td></tr>
-                        <tr><td style="padding:8px 12px;color:#666;border-bottom:1px solid #eee;">Email</td><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee;text-align:right;"><a href="mailto:${email}">${email}</a></td></tr>
+                        <tr><td style="padding:8px 12px;color:#666;border-bottom:1px solid #eee;">Name</td><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee;text-align:right;">${safeName}</td></tr>
+                        <tr><td style="padding:8px 12px;color:#666;border-bottom:1px solid #eee;">Email</td><td style="padding:8px 12px;font-weight:600;border-bottom:1px solid #eee;text-align:right;"><a href="mailto:${safeEmail}">${safeEmail}</a></td></tr>
                         ${phoneRow}
-                        <tr><td style="padding:8px 12px;color:#666;">Subject</td><td style="padding:8px 12px;font-weight:600;text-align:right;">${subject}</td></tr>
+                        <tr><td style="padding:8px 12px;color:#666;">Subject</td><td style="padding:8px 12px;font-weight:600;text-align:right;">${safeSubject}</td></tr>
                     </table>
                     <div style="background:#f8fafc;border-left:4px solid #1e90ff;border-radius:4px;padding:16px 20px;">
-                        <p style="margin:0;color:#333;font-size:15px;line-height:1.7;white-space:pre-wrap;">${message}</p>
+                        <p style="margin:0;color:#333;font-size:15px;line-height:1.7;white-space:pre-wrap;">${safeMessage}</p>
                     </div>
                     <div style="margin-top:24px;text-align:center;">
                         <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/contact"
@@ -70,7 +79,7 @@ router.post('/', async (req, res) => {
 
         sendEmail(
             process.env.ADMIN_EMAIL,
-            `[Contact Form] ${subject} — from ${name}`,
+            `[Contact Form] ${safeSubject} — from ${safeName}`,
             adminHtml
         );
 
@@ -81,11 +90,11 @@ router.post('/', async (req, res) => {
                     <h2 style="color:#fff;margin:0;font-size:20px;">We got your message ✅</h2>
                 </div>
                 <div style="padding:28px 32px;">
-                    <p style="color:#333;font-size:16px;">Hi <strong>${name}</strong>,</p>
+                    <p style="color:#333;font-size:16px;">Hi <strong>${safeName}</strong>,</p>
                     <p style="color:#555;line-height:1.7;">Thank you for reaching out to Ufriends IT. We've received your message and our support team will get back to you within <strong>24 hours</strong>.</p>
                     <div style="background:#f0f7ff;border:1px dashed #1e90ff;border-radius:8px;padding:16px 20px;margin:24px 0;">
                         <p style="margin:0 0 6px 0;font-size:13px;color:#666;text-transform:uppercase;letter-spacing:.5px;">Your message</p>
-                        <p style="margin:0;color:#333;font-size:15px;line-height:1.7;white-space:pre-wrap;">${message}</p>
+                        <p style="margin:0;color:#333;font-size:15px;line-height:1.7;white-space:pre-wrap;">${safeMessage}</p>
                     </div>
                     <p style="color:#555;line-height:1.7;">If your matter is urgent, you can also reach us directly via WhatsApp for a faster response.</p>
                     <p style="color:#555;margin-top:24px;">Best regards,<br><strong>The Ufriends IT Support Team</strong></p>

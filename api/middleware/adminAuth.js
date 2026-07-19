@@ -28,6 +28,12 @@ async function adminAuth(req, res, next) {
             return res.status(404).json({ success: false, error: 'Admin not found' });
         }
 
+        // [SEC-HIGH-09] DB-backed session validation — ensures logout/forced invalidation works
+        const activeSession = await prisma.adminLogin.findUnique({ where: { token } });
+        if (!activeSession) {
+            return res.status(401).json({ success: false, error: 'Session expired. Please log in again.' });
+        }
+
         // [SEC-HIGH-01] Check token issue time against last logic update
         // If the admin's record was updated after the token was issued, invalidate it.
         // This ensures blocked admins, password changes, or role changes instantly revoke existing JWTs.

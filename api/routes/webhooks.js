@@ -277,7 +277,7 @@ router.post('/paymentpoint', async (req, res) => {
     } catch (error) {
         console.error('[Webhook Debug] PaymentPoint webhook error:', error);
         sendAdminAlert('PaymentPoint Webhook Failed', error.message).catch(e => console.error(e));
-        res.status(500).json({ error: 'Webhook processing failed', detail: String(error) });
+        res.status(500).json({ error: 'Webhook processing failed' });
     }
 });
 

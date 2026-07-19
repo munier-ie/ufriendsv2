@@ -178,6 +178,10 @@ router.post('/access', async (req, res) => {
             { expiresIn: '24h' }
         );
 
+        // [SEC-HIGH-09] Single device admin login — invalidate all previous sessions
+        await prisma.adminLogin.deleteMany({ where: { adminId: admin.id } });
+        await prisma.adminLogin.create({ data: { adminId: admin.id, token } });
+
         console.log('[admin-access] ✓ JWT signed, responding', Date.now() - t0, 'ms');
         clearTimeout(timeout);
         res.json({
@@ -243,6 +247,10 @@ router.post('/verify-2fa', async (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
+
+        // [SEC-HIGH-09] Single device admin login — invalidate all previous sessions
+        await prisma.adminLogin.deleteMany({ where: { adminId: admin.id } });
+        await prisma.adminLogin.create({ data: { adminId: admin.id, token } });
 
         res.json({
             success: true,
@@ -493,6 +501,20 @@ router.post('/enable-email-2fa', adminAuthMiddleware, async (req, res) => {
 
         res.json({ success: true, message: 'Email 2FA enabled successfully' });
     } catch (error) {
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// [SEC-HIGH-09] Admin Logout — explicitly invalidate session in DB
+router.post('/logout', adminAuthMiddleware, async (req, res) => {
+    try {
+        const token = req.headers.authorization?.replace(/^bearer\s+/i, '').trim();
+        if (token) {
+            await prisma.adminLogin.deleteMany({ where: { token } });
+        }
+        res.json({ success: true, message: 'Logged out successfully' });
+    } catch (error) {
+        console.error('Admin logout error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });

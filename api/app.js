@@ -274,4 +274,11 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
+// [SEC-MED-16] Global error handler — prevents stack trace leakage
+app.use((err, req, res, next) => {
+    console.error('[Global Error Handler]', err.stack || err);
+    if (res.headersSent) return next(err);
+    res.status(err.status || 500).json({ error: 'Internal server error' });
+});
+
 module.exports = app;

@@ -40,7 +40,10 @@ const registerSchema = z.object({
     lastName: z.string().trim().min(2),
     email: z.string().trim().email().toLowerCase(),
     phone: z.string().trim().min(10),
-    password: z.string().min(6),
+    password: z.string().min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .regex(/[0-9]/, 'Password must contain at least one number')
+        .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
     pin: z.string().length(4),
     state: z.string().trim().optional().nullable(),
     referral: z.string().trim().optional().nullable(),
@@ -157,7 +160,7 @@ router.post('/register', async (req, res) => {
         res.status(201).json({ message: 'User created successfully', userId: user.id });
     } catch (error) {
         console.error('Registration Error:', error);
-        res.status(500).json({ error: 'Internal server error', details: error.message });
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
@@ -832,8 +835,8 @@ router.post('/reset-password-otp', async (req, res) => {
             return res.status(400).json({ error: 'Email, OTP, and new password are required' });
         }
 
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, number, and special character' });
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -874,8 +877,8 @@ router.post('/reset-password', async (req, res) => {
             return res.status(400).json({ error: 'Invalid request parameters' });
         }
         
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'Password must be at least 6 characters' });
+        if (newPassword.length < 8) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
         }
 
         const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
