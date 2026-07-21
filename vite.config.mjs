@@ -35,23 +35,8 @@ export default defineConfig({
             output: {
                 manualChunks(id) {
                     if (id.includes('node_modules')) {
-                        if (id.includes('lucide-react') || id.includes('lucide')) {
-                            return 'vendor-lucide';
-                        }
-                        if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom') || id.includes('@remix-run') || id.includes('scheduler')) {
-                            return 'vendor-react';
-                        }
-                        if (id.includes('recharts') || id.includes('d3')) {
-                            return 'vendor-charts';
-                        }
-                        if (id.includes('framer-motion')) {
-                            return 'vendor-framer';
-                        }
-                        if (id.includes('axios')) {
-                            return 'vendor-axios';
-                        }
-                        if (id.includes('sonner') || id.includes('react-helmet')) {
-                            return 'vendor-ui';
+                        if (id.includes('recharts') || id.includes('d3') || id.includes('pptxgenjs') || id.includes('canvas-confetti')) {
+                            return 'vendor-heavy';
                         }
                         return 'vendor';
                     }

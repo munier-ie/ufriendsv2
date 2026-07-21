@@ -1,14 +1,9 @@
+import { ShieldCheck, Fingerprint, UserCheck, CheckCircle, AlertCircle, Landmark as Bank, Copy } from 'lucide-react';
 /* eslint-disable i18next/no-literal-string */
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import Fingerprint from 'lucide-react/dist/esm/icons/fingerprint';
-import UserCheck from 'lucide-react/dist/esm/icons/user-check';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Bank from 'lucide-react/dist/esm/icons/landmark';
-import Copy from 'lucide-react/dist/esm/icons/copy';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 

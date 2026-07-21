@@ -1,30 +1,9 @@
+import { User, Mail, Phone, MapPin, CreditCard, Shield, Award, Users, Lock, Key, Smartphone, Code, MessageCircle, LogOut, ChevronDown, ChevronRight, Copy, Eye, EyeOff, Check, X, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import User from 'lucide-react/dist/esm/icons/user';
-import Mail from 'lucide-react/dist/esm/icons/mail';
-import Phone from 'lucide-react/dist/esm/icons/phone';
-import MapPin from 'lucide-react/dist/esm/icons/map-pin';
-import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
-import Shield from 'lucide-react/dist/esm/icons/shield';
-import Award from 'lucide-react/dist/esm/icons/award';
-import Users from 'lucide-react/dist/esm/icons/users';
-import Lock from 'lucide-react/dist/esm/icons/lock';
-import Key from 'lucide-react/dist/esm/icons/key';
-import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
-import Code from 'lucide-react/dist/esm/icons/code';
-import MessageCircle from 'lucide-react/dist/esm/icons/message-circle';
-import LogOut from 'lucide-react/dist/esm/icons/log-out';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
-import Check from 'lucide-react/dist/esm/icons/check';
-import X from 'lucide-react/dist/esm/icons/x';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -36,7 +15,7 @@ export default function Profile() {
     const [showTestApiKey, setShowTestApiKey] = useState(false);
     const [copied, setCopied] = useState(false);
     const [showLogoutModal, setShowLogoutModal] = useState(false);
-    
+
     // API Whitelist state
     const [apiIpsForm, setApiIpsForm] = useState('');
     const [savingIps, setSavingIps] = useState(false);
@@ -848,7 +827,7 @@ export default function Profile() {
                                     </button>
                                 </div>
                             </div>
-                            
+
                             <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
                                 <p className="text-sm font-medium text-gray-700 mb-2">IP Whitelist</p>
                                 <p className="text-xs text-gray-500 mb-3">

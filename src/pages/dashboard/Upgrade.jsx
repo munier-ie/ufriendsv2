@@ -1,10 +1,8 @@
+import { Crown, Check, AlertCircle, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import Crown from 'lucide-react/dist/esm/icons/crown';
-import Check from 'lucide-react/dist/esm/icons/check';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
+
 import Button from '../../components/ui/Button';
 
 export default function Upgrade() {

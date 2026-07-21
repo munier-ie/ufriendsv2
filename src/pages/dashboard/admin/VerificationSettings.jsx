@@ -1,13 +1,8 @@
+import { Loader2, CheckCircle, XCircle, Save, Link, Eye, EyeOff } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Save from 'lucide-react/dist/esm/icons/save';
-import Link from 'lucide-react/dist/esm/icons/link';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 

@@ -1,11 +1,5 @@
+import { Landmark, FileText, Zap, Wallet, Repeat, CreditCard, Briefcase } from 'lucide-react';
 import React from 'react';
-import Landmark from 'lucide-react/dist/esm/icons/landmark';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Wallet from 'lucide-react/dist/esm/icons/wallet';
-import Repeat from 'lucide-react/dist/esm/icons/repeat';
-import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
-import Briefcase from 'lucide-react/dist/esm/icons/briefcase';
 
 /**
  * ServiceIcon Component

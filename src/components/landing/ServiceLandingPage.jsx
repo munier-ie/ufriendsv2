@@ -1,10 +1,7 @@
+import { ArrowRight, LogIn, CheckCircle2, ChevronDown, ChevronUp } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import LogIn from 'lucide-react/dist/esm/icons/log-in';
-import CheckCircle2 from 'lucide-react/dist/esm/icons/check-circle-2';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ChevronUp from 'lucide-react/dist/esm/icons/chevron-up';
+
 import PageMeta from '../seo/PageMeta';
 import LandingNavbar from './LandingNavbar';
 import LandingFooter from './LandingFooter';

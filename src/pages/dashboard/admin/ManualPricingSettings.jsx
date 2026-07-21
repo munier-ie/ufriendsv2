@@ -1,10 +1,8 @@
+import { Loader2, CheckCircle, Save, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import Save from 'lucide-react/dist/esm/icons/save';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 

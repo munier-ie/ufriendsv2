@@ -58,12 +58,28 @@ export function isCacheable(url) {
  */
 export function getCache(key) {
     const entry = _cache.get(key);
-    if (!entry) return null;
-    if (Date.now() > entry.expiresAt) {
-        _cache.delete(key);
-        return null;
+    if (entry) {
+        if (Date.now() > entry.expiresAt) {
+            _cache.delete(key);
+            try { sessionStorage.removeItem('api_cache_' + key); } catch (_) {}
+            return null;
+        }
+        return entry.data;
     }
-    return entry.data;
+    // Check sessionStorage fallback
+    try {
+        const raw = sessionStorage.getItem('api_cache_' + key);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Date.now() <= parsed.expiresAt) {
+                _cache.set(key, parsed); // populate in-memory cache
+                return parsed.data;
+            } else {
+                sessionStorage.removeItem('api_cache_' + key);
+            }
+        }
+    } catch (_) {}
+    return null;
 }
 
 /**
@@ -72,10 +88,12 @@ export function getCache(key) {
  * @param {any} data
  */
 export function setCache(key, data) {
-    _cache.set(key, {
-        data,
-        expiresAt: Date.now() + TTL_MS,
-    });
+    const expiresAt = Date.now() + TTL_MS;
+    const payload = { data, expiresAt };
+    _cache.set(key, payload);
+    try {
+        sessionStorage.setItem('api_cache_' + key, JSON.stringify(payload));
+    } catch (_) {}
 }
 
 /**
@@ -88,13 +106,31 @@ export function bustCache(prefix) {
     for (const key of _cache.keys()) {
         if (key.startsWith(prefix)) {
             _cache.delete(key);
+            try { sessionStorage.removeItem('api_cache_' + key); } catch (_) {}
             count++;
         }
     }
+    // Clear sessionStorage keys matching prefix
+    try {
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+            const k = sessionStorage.key(i);
+            if (k && k.startsWith('api_cache_' + prefix)) {
+                sessionStorage.removeItem(k);
+            }
+        }
+    } catch (_) {}
     return count;
 }
 
 /** Wipe the entire local cache. */
 export function clearAllCache() {
     _cache.clear();
+    try {
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+            const k = sessionStorage.key(i);
+            if (k && k.startsWith('api_cache_')) {
+                sessionStorage.removeItem(k);
+            }
+        }
+    } catch (_) {}
 }

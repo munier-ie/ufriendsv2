@@ -1,12 +1,8 @@
+import { Loader2, Trash2, Plus, Edit, Shield, UserCheck } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Edit from 'lucide-react/dist/esm/icons/edit';
-import Shield from 'lucide-react/dist/esm/icons/shield';
-import UserCheck from 'lucide-react/dist/esm/icons/user-check';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
@@ -104,7 +100,7 @@ export default function SystemUsers() {
 
     const openEditModal = (user) => {
         setEditingUser(user);
-        
+
         let initialPerms = {};
         if (typeof user.permissions === 'string') {
             try { initialPerms = JSON.parse(user.permissions); } catch(e){}

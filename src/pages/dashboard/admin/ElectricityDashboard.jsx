@@ -1,12 +1,8 @@
+import { Loader2, Plus, Pencil as Edit, Trash2, Zap, X } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Edit from 'lucide-react/dist/esm/icons/pencil';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import X from 'lucide-react/dist/esm/icons/x';
+
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 

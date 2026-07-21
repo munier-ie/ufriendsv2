@@ -1,21 +1,10 @@
+import { Landmark, FileText, Briefcase, CheckCircle, AlertCircle, Loader2, Download, Eye, X, Hash, Upload, Clock, Phone } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'sonner';
-import Landmark from 'lucide-react/dist/esm/icons/landmark';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Briefcase from 'lucide-react/dist/esm/icons/briefcase';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Download from 'lucide-react/dist/esm/icons/download';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import X from 'lucide-react/dist/esm/icons/x';
-import Hash from 'lucide-react/dist/esm/icons/hash';
-import Upload from 'lucide-react/dist/esm/icons/upload';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import Phone from 'lucide-react/dist/esm/icons/phone';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 
@@ -362,7 +351,7 @@ export default function GovServices() {
             }
         } catch (error) {
             const errorMsg = error.response?.data?.error || 'Request failed';
-            
+
             if (errorMsg.toLowerCase().includes('pin')) {
                 toast.error('Incorrect PIN entered');
                 setShowPinModal(false);

@@ -62,6 +62,31 @@ async function getBvnPricing(userType, slipType = 'regular') {
  */
 async function verifyBvn(bvnNumber) {
   try {
+    const cleanBvn = String(bvnNumber || '').trim();
+    if (cleanBvn) {
+      const existing = await prisma.bvnReport.findFirst({
+        where: {
+          bvnNumber: cleanBvn,
+          status: 'verified',
+          rawResponse: { not: null }
+        },
+        orderBy: { id: 'desc' }
+      });
+      if (existing && existing.rawResponse) {
+        try {
+          const cachedData = JSON.parse(existing.rawResponse);
+          console.log(`[verifyBvn] DB Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
+          return {
+            success: true,
+            data: cachedData,
+            cached: true
+          };
+        } catch (e) {
+          console.warn(`[verifyBvn] Could not parse rawResponse for report ${existing.id}`);
+        }
+      }
+    }
+
     const settings = await getVerificationSettings();
 
     // Check if service is active and configured

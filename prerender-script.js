@@ -1,7 +1,13 @@
-const puppeteer = require('puppeteer');
-const express = require('express');
 const fs = require('fs');
 const path = require('path');
+
+let puppeteer, express;
+try {
+    puppeteer = require('puppeteer');
+    express = require('express');
+} catch (e) {
+    // Dependencies unavailable in build container
+}
 
 const PUBLIC_ROUTES = [
     '/',
@@ -18,7 +24,6 @@ const PUBLIC_ROUTES = [
     '/pay-electricity-bill-nigeria',
     '/subscribe-cable-tv-nigeria',
     '/buy-exam-pins-nigeria',
-    '/cac-registration-nigeria',
     '/cac-registration-nigeria',
     '/blog'
 ];
@@ -38,6 +43,12 @@ if (fs.existsSync(blogContentDir)) {
 async function prerender() {
     console.log('Starting prerender script...');
     const distDir = path.join(__dirname, 'dist');
+    
+    if (!puppeteer || !express) {
+        console.warn('Puppeteer or Express not available in environment. Running static route fallback generator...');
+        fallbackStaticPrerender(distDir, PUBLIC_ROUTES);
+        return;
+    }
     
     // Start static server
     const app = express();
@@ -99,13 +110,37 @@ async function prerender() {
             }
             
             await browser.close();
-            console.log('Prerendering complete!');
+            console.log('Puppeteer prerendering complete!');
         } catch (error) {
-            console.error('Prerender error:', error);
+            console.warn('Puppeteer launch failed or unavailable in build environment. Falling back to static route generator...');
+            fallbackStaticPrerender(distDir, PUBLIC_ROUTES);
         } finally {
             server.close();
         }
     });
+}
+
+function fallbackStaticPrerender(distDir, routes) {
+    const baseIndexPath = path.join(distDir, 'index.html');
+    if (!fs.existsSync(baseIndexPath)) {
+        console.error('base index.html does not exist in dist/');
+        return;
+    }
+    const templateHtml = fs.readFileSync(baseIndexPath, 'utf8');
+
+    for (const route of routes) {
+        if (route === '/') continue;
+        const routeDir = path.join(distDir, route.substring(1));
+        if (!fs.existsSync(routeDir)) {
+            fs.mkdirSync(routeDir, { recursive: true });
+        }
+        const savePath = path.join(routeDir, 'index.html');
+        if (!fs.existsSync(savePath)) {
+            fs.writeFileSync(savePath, templateHtml);
+            console.log(`Fallback static route created: ${savePath}`);
+        }
+    }
+    console.log('Static route fallback complete!');
 }
 
 prerender();

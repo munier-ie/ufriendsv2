@@ -1,16 +1,8 @@
+import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint, Shield, Star, Smartphone, Apple } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Play from 'lucide-react/dist/esm/icons/play';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Wifi from 'lucide-react/dist/esm/icons/wifi';
-import Tv from 'lucide-react/dist/esm/icons/tv';
-import Fingerprint from 'lucide-react/dist/esm/icons/fingerprint';
-import Shield from 'lucide-react/dist/esm/icons/shield';
-import Star from 'lucide-react/dist/esm/icons/star';
-import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
-import Apple from 'lucide-react/dist/esm/icons/apple';
+
 import Logo from '../ui/Logo';
 import { useLandingContent } from '../../contexts/LandingContentContext';
 import DownloadModal from '../ui/DownloadModal';

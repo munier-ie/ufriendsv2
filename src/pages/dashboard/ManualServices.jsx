@@ -1,21 +1,10 @@
+import { ShieldCheck, FileEdit, Search, Send, Smartphone, CheckCircle, AlertCircle, Loader2, Clock, Download, Eye, Hash, ExternalLink } from 'lucide-react';
 /* eslint-disable react/no-unescaped-entities, security/detect-object-injection, i18next/no-literal-string, react/jsx-no-literals */
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import FileEdit from 'lucide-react/dist/esm/icons/file-edit';
-import Search from 'lucide-react/dist/esm/icons/search';
-import Send from 'lucide-react/dist/esm/icons/send';
-import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import Download from 'lucide-react/dist/esm/icons/download';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import Hash from 'lucide-react/dist/esm/icons/hash';
-import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
@@ -278,7 +267,6 @@ function ModificationForm({ subType, data, onChange, activeSub, uploading, onUpl
     );
 }
 
-
 // Forms are defined below.
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -472,7 +460,7 @@ export default function ManualServices() {
             fetchHistory();
         } catch (err) {
             const errMsg = err.response?.data?.error || 'Submission failed';
-            
+
             if (errMsg.toLowerCase().includes('pin')) {
                 toast.error('Incorrect PIN entered');
                 setShowPinModal(false);
@@ -729,7 +717,7 @@ export default function ManualServices() {
                             <li>If there is a delay, issue, or network failure from NIMC, I agree to wait patiently until NIMC resolves the issue. I understand that submitting during such periods may result in failure, and I should not send new requests until the issue is fixed.</li>
                         </ul>
                     </div>
-                    
+
                     <p className="text-center font-semibold text-gray-800 mb-6 font-medium">
                         I agree to the terms above and authorize this platform to proceed with my NIN modification.
                     </p>

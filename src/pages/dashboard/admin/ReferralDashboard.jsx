@@ -1,10 +1,6 @@
+import { Loader2, Users, Trophy, Banknote, Search } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Users from 'lucide-react/dist/esm/icons/users';
-import Trophy from 'lucide-react/dist/esm/icons/trophy';
-import Banknote from 'lucide-react/dist/esm/icons/banknote';
-import Search from 'lucide-react/dist/esm/icons/search';
 
 export default function ReferralDashboard() {
     const [referrers, setReferrers] = useState([]);

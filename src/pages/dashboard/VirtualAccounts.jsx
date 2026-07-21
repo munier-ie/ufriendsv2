@@ -1,12 +1,8 @@
+import { Landmark as Bank, Copy, CheckCircle, AlertCircle, CreditCard, Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import Bank from 'lucide-react/dist/esm/icons/landmark';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
+
 import Button from '../../components/ui/Button';
 
 export default function VirtualAccounts() {

@@ -1,8 +1,7 @@
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import ArrowLeft from 'lucide-react/dist/esm/icons/arrow-left';
 
 export default function NotFound() {
     return (

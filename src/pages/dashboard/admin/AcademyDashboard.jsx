@@ -1,19 +1,7 @@
+import { GraduationCap, Plus, Edit, Trash2, X, Upload, AlertCircle, CheckCircle, ToggleLeft, ToggleRight, Users, Search, Lock } from 'lucide-react';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Edit from 'lucide-react/dist/esm/icons/edit';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import X from 'lucide-react/dist/esm/icons/x';
-import Upload from 'lucide-react/dist/esm/icons/upload';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import ToggleLeft from 'lucide-react/dist/esm/icons/toggle-left';
-import ToggleRight from 'lucide-react/dist/esm/icons/toggle-right';
-import Users from 'lucide-react/dist/esm/icons/users';
-import Search from 'lucide-react/dist/esm/icons/search';
-import Lock from 'lucide-react/dist/esm/icons/lock';
 
 const TYPE_OPTIONS = [
     { value: 'video', label: '📹 Video' },

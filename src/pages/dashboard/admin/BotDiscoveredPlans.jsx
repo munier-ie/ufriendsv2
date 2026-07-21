@@ -1,15 +1,7 @@
+import { Loader2, CheckCircle, AlertCircle, Server, Zap, ShieldAlert, Tv, GraduationCap, Database, Trash2 } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Server from 'lucide-react/dist/esm/icons/server';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import ShieldAlert from 'lucide-react/dist/esm/icons/shield-alert';
-import Tv from 'lucide-react/dist/esm/icons/tv';
-import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
-import Database from 'lucide-react/dist/esm/icons/database';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+
 import Button from '../../../components/ui/Button';
 
 const TYPE_CONFIG = {

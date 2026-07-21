@@ -1,9 +1,8 @@
+import { Loader2, MessageSquare, Settings } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
-import Settings from 'lucide-react/dist/esm/icons/settings';
+
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 

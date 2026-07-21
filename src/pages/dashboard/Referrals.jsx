@@ -1,15 +1,9 @@
+import { Users, Wallet, Copy, ArrowRight, Loader2, CheckCheck, ChevronDown, FileText } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'sonner';
-import Users from 'lucide-react/dist/esm/icons/users';
-import Wallet from 'lucide-react/dist/esm/icons/wallet';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCheck from 'lucide-react/dist/esm/icons/check-check';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
+
 import Button from '../../components/ui/Button';
 
 export default function Referrals() {
@@ -181,7 +175,7 @@ export default function Referrals() {
                             </button>
                         </div>
                     </div>
-                    
+
                     <div>
                         <h3 className="text-lg font-bold text-gray-900 mb-4">Your Referral Code</h3>
                         <div className="flex items-center space-x-2">

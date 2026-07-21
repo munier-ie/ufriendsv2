@@ -1,11 +1,7 @@
+import { Send, User, Bot, Loader2, MessageSquare, X } from 'lucide-react';
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import Send from 'lucide-react/dist/esm/icons/send';
-import User from 'lucide-react/dist/esm/icons/user';
-import Bot from 'lucide-react/dist/esm/icons/bot';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
-import X from 'lucide-react/dist/esm/icons/x';
+
 import Button from '../ui/Button';
 
 export default function ChatConsultant({ isOpen, onClose, whatsappNumber }) {

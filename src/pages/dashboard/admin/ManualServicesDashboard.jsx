@@ -1,16 +1,9 @@
+import { Loader2, CheckCircle, XCircle, Clock, Settings, Eye, X, Upload, ExternalLink } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import Settings from 'lucide-react/dist/esm/icons/settings';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import X from 'lucide-react/dist/esm/icons/x';
-import Upload from 'lucide-react/dist/esm/icons/upload';
-import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
+
 import Button from '../../../components/ui/Button';
 
 const STATUS_LABELS = {

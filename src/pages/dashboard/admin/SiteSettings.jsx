@@ -1,20 +1,14 @@
+import { Loader2, Save, Palette, Percent, Image, Eye, EyeOff } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Save from 'lucide-react/dist/esm/icons/save';
-import Palette from 'lucide-react/dist/esm/icons/palette';
-import Percent from 'lucide-react/dist/esm/icons/percent';
-import Image from 'lucide-react/dist/esm/icons/image';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
 
 export default function SiteSettings() {
     const [settings, setSettings] = useState(null);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showWhatsappApiKey, setShowWhatsappApiKey] = useState(false);
-    
+
     useEffect(() => {
         fetchSettings();
     }, []);
@@ -75,8 +69,6 @@ export default function SiteSettings() {
                 </h1>
                 <p className="text-gray-600 mt-2">Configure global platform settings and appearance</p>
             </div>
-
-
 
             {/* Settings Sections */}
             <div className="space-y-6">

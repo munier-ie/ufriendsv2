@@ -1,15 +1,7 @@
+import { Globe, Smartphone, ArrowRight, Zap, ShieldCheck, TrendingUp, Apple, Wifi, Layers } from 'lucide-react';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import Globe from 'lucide-react/dist/esm/icons/globe';
-import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
-import Apple from 'lucide-react/dist/esm/icons/apple';
-import Wifi from 'lucide-react/dist/esm/icons/wifi';
-import Layers from 'lucide-react/dist/esm/icons/layers';
 
 export default function ResellerSection() {
   return (
@@ -90,7 +82,7 @@ export default function ResellerSection() {
             className="relative h-[500px] flex items-center justify-center lg:justify-end"
           >
             {/* ─── Premium 3D Layered Mockup ─── */}
-            
+
             {/* Laptop Mockup (Main Backdrop) */}
             <div className="absolute w-[440px] h-[280px] bg-slate-900 rounded-2xl border-[6px] border-slate-800 shadow-2xl rotate-[-2deg] z-0 overflow-hidden group">
                 <div className="w-full h-full bg-white p-3 flex flex-col gap-3">

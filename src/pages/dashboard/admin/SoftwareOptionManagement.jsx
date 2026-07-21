@@ -1,13 +1,8 @@
+import { Plus, Trash2, Save, Phone, Terminal, Globe, Loader2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import Save from 'lucide-react/dist/esm/icons/save';
-import Phone from 'lucide-react/dist/esm/icons/phone';
-import Terminal from 'lucide-react/dist/esm/icons/terminal';
-import Globe from 'lucide-react/dist/esm/icons/globe';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
+
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 

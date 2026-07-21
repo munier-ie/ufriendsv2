@@ -1,9 +1,7 @@
+import { Shield, Zap, Clock, Headphones } from 'lucide-react';
 import React from 'react';
 import { motion } from 'framer-motion';
-import Shield from 'lucide-react/dist/esm/icons/shield';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import Headphones from 'lucide-react/dist/esm/icons/headphones';
+
 import { useLandingContent } from '../../contexts/LandingContentContext';
 
 const ICONS = [Shield, Zap, Clock, Headphones];

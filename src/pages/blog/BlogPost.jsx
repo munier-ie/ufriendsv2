@@ -7,6 +7,8 @@ import LandingFooter from '../../components/landing/LandingFooter';
 import { BLOG_POSTS } from './BlogIndex';
 
 // ─── Dynamic Article Renderer ──────────────────────────────────────────────────
+const blogModules = import.meta.glob('./content/*.json');
+
 function DynamicArticle({ slug }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -18,17 +20,27 @@ function DynamicArticle({ slug }) {
 
     useEffect(() => {
         setLoading(true);
-        // Vite dynamic import relative to this file
-        import(`./content/${slug}.json`)
-            .then((module) => {
-                setData(module.default || module);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Failed to load article content:", err);
-                setError(true);
-                setLoading(false);
-            });
+        setError(false);
+
+        const targetKey = `./content/${slug}.json`;
+        const entry = blogModules[targetKey] || Object.entries(blogModules).find(([k]) => k.toLowerCase() === targetKey.toLowerCase())?.[1];
+
+        if (entry) {
+            entry()
+                .then((module) => {
+                    setData(module.default || module);
+                    setLoading(false);
+                })
+                .catch((err) => {
+                    console.error("Failed to load article content:", err);
+                    setError(true);
+                    setLoading(false);
+                });
+        } else {
+            console.error("Article content module not found for slug:", slug);
+            setError(true);
+            setLoading(false);
+        }
     }, [slug]);
 
     useEffect(() => {

@@ -1,12 +1,10 @@
+import { MessageSquare, History, CheckCircle, AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
-import History from 'lucide-react/dist/esm/icons/history';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
 
 export default function BulkSMS() {
     const [formData, setFormData] = useState({

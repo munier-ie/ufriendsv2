@@ -1,14 +1,10 @@
+import { Landmark, CreditCard, Banknote, Loader2, CheckCircle, Clock } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
-import Landmark from 'lucide-react/dist/esm/icons/landmark';
-import CreditCard from 'lucide-react/dist/esm/icons/credit-card';
-import Banknote from 'lucide-react/dist/esm/icons/banknote';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import Clock from 'lucide-react/dist/esm/icons/clock';
+
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
@@ -16,9 +12,9 @@ import Input from '../../components/ui/Input';
 
 const PinModal = ({ isOpen, onClose, onSubmit, amount, serviceName, submitting }) => {
     const [pin, setPin] = useState('');
-    
+
     if (!isOpen) return null;
-    
+
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <motion.div 
@@ -38,7 +34,7 @@ const PinModal = ({ isOpen, onClose, onSubmit, amount, serviceName, submitting }
                         You are about to pay <span className="font-bold text-gray-900">₦{(amount || 0).toLocaleString()}</span> for {serviceName}.
                     </p>
                 </div>
-                
+
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Enter Transaction PIN</label>
@@ -51,7 +47,7 @@ const PinModal = ({ isOpen, onClose, onSubmit, amount, serviceName, submitting }
                             placeholder="••••"
                         />
                     </div>
-                    
+
                     <div className="flex gap-3 pt-2">
                         <Button 
                             variant="outline" 
@@ -245,7 +241,7 @@ function LoanRequestForm({ data, onChange }) {
             <Input label="Account Number" inputMode="numeric" placeholder="Enter bank account number" value={data.accountNumber || ''} onChange={e => onChange('accountNumber', e.target.value.replace(/\D/g, ''))} maxLength={10} required />
             <Input label="Contact Details (Phone / Email)" placeholder="Enter phone or email" value={data.contactDetails || ''} onChange={e => onChange('contactDetails', e.target.value)} required />
             <Input label="Amount Needed (₦)" inputMode="numeric" placeholder="Enter amount" value={data.amountNeeded || ''} onChange={e => onChange('amountNeeded', e.target.value.replace(/\D/g, ''))} required />
-            
+
             <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700">Loan Repayment Schedule</label>
                 <select className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white transition-all" value={data.repaymentSchedule || ''} onChange={e => onChange('repaymentSchedule', e.target.value)} required>
@@ -254,7 +250,7 @@ function LoanRequestForm({ data, onChange }) {
                     <option value="Monthly">Monthly</option>
                 </select>
             </div>
-            
+
             <div className="space-y-1">
                 <label className="block text-sm font-medium text-gray-700">Duration</label>
                 <select className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white transition-all" value={data.duration || ''} onChange={e => onChange('duration', e.target.value)} required>
@@ -274,17 +270,17 @@ export default function BankingFinance() {
     const { globalSettings } = useOutletContext();
     const [searchParams] = useSearchParams();
     const initialTab = searchParams.get('tab') || 'POS_REQUEST';
-    
+
     const [activeTab, setActiveTab] = useState(initialTab);
     const [formData, setFormData] = useState({});
     const [prices, setPrices] = useState({});
     const [uploading, setUploading] = useState(false);
     const [loading, setLoading] = useState(false);
-    
+
     // History Modal
     const [history, setHistory] = useState([]);
     const [showHistory, setShowHistory] = useState(false);
-    
+
     // PIN Modal
     const [showPinModal, setShowPinModal] = useState(false);
 
@@ -336,14 +332,14 @@ export default function BankingFinance() {
             const token = localStorage.getItem('token');
             const reader = new FormData();
             reader.append('file', file);
-            
+
             const res = await axios.post('/api/manual-services/upload-id', reader, {
                 headers: { 
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            
+
             updateFormData(fieldName, res.data.fileUrl);
             toast.success('File uploaded successfully');
         } catch (error) {
@@ -366,7 +362,7 @@ export default function BankingFinance() {
 
     const handleSubmitClick = (e) => {
         e.preventDefault();
-        
+
         // Validation for POS Request
         if (activeTab === 'POS_REQUEST') {
             if (!formData.provider) return toast.error('Select POS provider');
@@ -376,7 +372,7 @@ export default function BankingFinance() {
                 return toast.error('Please upload proof of business for fee waiver');
             }
         }
-        
+
         // Validation for Loan Request
         if (activeTab === 'LOAN_REQUEST') {
             if (!formData.accountNumber) return toast.error('Account number is required');
@@ -396,7 +392,7 @@ export default function BankingFinance() {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            
+
             const res = await axios.post('/api/manual-services/submit', {
                 serviceType: activeTab,
                 subType: formData.subType || 'STANDARD',
@@ -473,7 +469,7 @@ export default function BankingFinance() {
                         <span className="font-medium">{tab.label}</span>
                     </button>
                 ))}
-                
+
                 <button
                     onClick={() => setShowHistory(true)}
                     className="flex items-center space-x-2 px-6 py-3 border-b-2 whitespace-nowrap transition-all border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50 ml-auto"
@@ -507,7 +503,7 @@ export default function BankingFinance() {
                             </motion.div>
                         )}
                     </AnimatePresence>
-                    
+
                     <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
                         <div className="text-gray-500 text-sm">
                             Service Fee:{' '}
@@ -525,7 +521,7 @@ export default function BankingFinance() {
                     </div>
                 </form>
             </div>
-            
+
             {/* History Modal */}
             <AnimatePresence>
                 {showHistory && (
@@ -546,7 +542,7 @@ export default function BankingFinance() {
                                     <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                 </button>
                             </div>
-                            
+
                             <div className="flex-1 overflow-y-auto p-4">
                                 {history.length === 0 ? (
                                     <div className="text-center py-12 text-gray-500">

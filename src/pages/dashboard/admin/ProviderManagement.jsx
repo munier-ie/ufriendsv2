@@ -1,14 +1,9 @@
+import { Plus, Edit3, Loader2, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Edit3 from 'lucide-react/dist/esm/icons/edit-3';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 

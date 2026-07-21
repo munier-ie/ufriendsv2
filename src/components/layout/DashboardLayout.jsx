@@ -1,53 +1,9 @@
+import { LayoutDashboard, User, Wallet, ShieldCheck, DollarSign, Grid3x3 as Grid3X3, LogOut, Landmark as Bank, Landmark, Signal, Smartphone, Ban, PhoneCall, FileText, Crown, Users, ShoppingBag, Bell, Send, Wifi, GraduationCap, Megaphone, BarChart2 as BarChart, Tv, Zap, MessageSquare, Banknote, Tag, Book, Activity, Upload, Calculator as CalculatorIcon, Globe, ArrowRightLeft, Smile, FileEdit, Search, Menu, X, Code, Bot, HelpCircle, Printer, ChevronDown, ChevronRight } from 'lucide-react';
 /* eslint-disable */
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PageMeta from '../seo/PageMeta';
-import LayoutDashboard from 'lucide-react/dist/esm/icons/layout-dashboard';
-import User from 'lucide-react/dist/esm/icons/user';
-import Wallet from 'lucide-react/dist/esm/icons/wallet';
-import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import DollarSign from 'lucide-react/dist/esm/icons/dollar-sign';
-import Grid3X3 from 'lucide-react/dist/esm/icons/grid-3x3';
-import LogOut from 'lucide-react/dist/esm/icons/log-out';
-import Bank from 'lucide-react/dist/esm/icons/landmark'; // Alias for Bank usages
-import Landmark from 'lucide-react/dist/esm/icons/landmark'; // For Landmark usages
-import Signal from 'lucide-react/dist/esm/icons/signal';
-import Smartphone from "lucide-react/dist/esm/icons/smartphone";
-import Ban from 'lucide-react/dist/esm/icons/ban';
-import PhoneCall from 'lucide-react/dist/esm/icons/phone-call';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Crown from 'lucide-react/dist/esm/icons/crown';
-import Users from 'lucide-react/dist/esm/icons/users';
-import ShoppingBag from 'lucide-react/dist/esm/icons/shopping-bag';
-import Bell from 'lucide-react/dist/esm/icons/bell';
-import Send from 'lucide-react/dist/esm/icons/send';
-import Wifi from 'lucide-react/dist/esm/icons/wifi';
-import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
-import Megaphone from 'lucide-react/dist/esm/icons/megaphone';
-import BarChart from 'lucide-react/dist/esm/icons/bar-chart-2';
-import Tv from 'lucide-react/dist/esm/icons/tv';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
-import Banknote from 'lucide-react/dist/esm/icons/banknote';
-import Tag from 'lucide-react/dist/esm/icons/tag';
-import Book from 'lucide-react/dist/esm/icons/book';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import Upload from 'lucide-react/dist/esm/icons/upload';
-import CalculatorIcon from 'lucide-react/dist/esm/icons/calculator';
-import Globe from 'lucide-react/dist/esm/icons/globe';
-import ArrowRightLeft from 'lucide-react/dist/esm/icons/arrow-right-left';
-import Smile from 'lucide-react/dist/esm/icons/smile';
-import FileEdit from 'lucide-react/dist/esm/icons/file-edit';
-import Search from 'lucide-react/dist/esm/icons/search';
-import Menu from 'lucide-react/dist/esm/icons/menu';
-import X from 'lucide-react/dist/esm/icons/x';
-import Code from 'lucide-react/dist/esm/icons/code';
-import Bot from 'lucide-react/dist/esm/icons/bot';
-import HelpCircle from 'lucide-react/dist/esm/icons/help-circle';
-import Printer from 'lucide-react/dist/esm/icons/printer';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
-import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
 
 import Logo from '../ui/Logo';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -343,7 +299,7 @@ export default function DashboardLayout() {
             const nextState = { ...prev };
             const current = Reflect.get(prev, title);
             const willOpen = !current;
-            
+
             if (willOpen && title !== 'Overview') {
                 // Close all other categories except 'Overview' and the clicked title
                 Object.keys(nextState).forEach(key => {
@@ -352,7 +308,7 @@ export default function DashboardLayout() {
                     }
                 });
             }
-            
+
             nextState[title] = willOpen;
             return nextState;
         });
@@ -462,7 +418,7 @@ export default function DashboardLayout() {
                                     <span>{category.title}</span>
                                     {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                 </button>
-                                
+
                                 <AnimatePresence initial={false}>
                                     {isExpanded && (
                                         <motion.div
@@ -567,7 +523,7 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                 <div className="p-3 sm:p-6 max-w-7xl mx-auto">
                     <Outlet context={{ globalSettings, isChatOpen, setIsChatOpen }} />
                 </div>
-                
+
                 {/* Floating WhatsApp Group Icon */}
                 {globalSettings?.whatsappGroupLink && !isAdmin && (
                     <motion.div

@@ -1,11 +1,7 @@
+import { X, Mail, CheckCircle2, Apple, AlertCircle, Loader2 } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import X from 'lucide-react/dist/esm/icons/x';
-import Mail from 'lucide-react/dist/esm/icons/mail';
-import CheckCircle2 from 'lucide-react/dist/esm/icons/check-circle-2';
-import Apple from 'lucide-react/dist/esm/icons/apple';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
+
 import confetti from 'canvas-confetti';
 
 export default function DownloadModal({ isOpen, onClose }) {
@@ -57,7 +53,7 @@ export default function DownloadModal({ isOpen, onClose }) {
           onClick={onClose}
           className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
         />
-        
+
         <motion.div 
           initial={{ opacity: 0, scale: 0.9, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}

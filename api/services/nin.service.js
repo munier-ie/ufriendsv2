@@ -113,6 +113,31 @@ async function getNinPricing(slipType, userType) {
  */
 async function verifyNin(ninNumber) {
   try {
+    const cleanNin = String(ninNumber || '').trim();
+    if (cleanNin) {
+      const existing = await prisma.ninReport.findFirst({
+        where: {
+          ninNumber: cleanNin,
+          status: 'verified',
+          rawResponse: { not: null }
+        },
+        orderBy: { id: 'desc' }
+      });
+      if (existing && existing.rawResponse) {
+        try {
+          const cachedData = JSON.parse(existing.rawResponse);
+          console.log(`[verifyNin] DB Cache HIT for NIN ${cleanNin}. Bypassing Prembly API call.`);
+          return {
+            success: true,
+            data: cachedData,
+            cached: true
+          };
+        } catch (e) {
+          console.warn(`[verifyNin] Could not parse rawResponse for report ${existing.id}`);
+        }
+      }
+    }
+
     const settings = await getVerificationSettings();
 
     // Check if service is active and configured
@@ -196,6 +221,34 @@ async function verifyNin(ninNumber) {
  */
 async function verifyNinByPhone(phoneNumber) {
   try {
+    const cleanPhone = String(phoneNumber || '').trim();
+    if (cleanPhone) {
+      const existing = await prisma.ninReport.findFirst({
+        where: {
+          status: 'verified',
+          rawResponse: { not: null },
+          OR: [
+            { ninNumber: cleanPhone },
+            { trackingId: cleanPhone }
+          ]
+        },
+        orderBy: { id: 'desc' }
+      });
+      if (existing && existing.rawResponse) {
+        try {
+          const cachedData = JSON.parse(existing.rawResponse);
+          console.log(`[verifyNinByPhone] DB Cache HIT for phone ${cleanPhone}. Bypassing Prembly API call.`);
+          return {
+            success: true,
+            data: cachedData,
+            cached: true
+          };
+        } catch (e) {
+          console.warn(`[verifyNinByPhone] Could not parse rawResponse for report ${existing.id}`);
+        }
+      }
+    }
+
     const settings = await getVerificationSettings();
 
     if (!settings.ninActive) {

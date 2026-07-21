@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { isCacheable, getCache, setCache } from './lib/apiCache';
@@ -72,11 +72,12 @@ axios.interceptors.response.use(
     (error) => Promise.reject(error)
 );
 
+import LandingPage from './pages/LandingPage';
+
 // ─── Shared Layout (lazy — only loaded when user visits /dashboard or /admin) ─
 const DashboardLayout = React.lazy(() => import('./components/layout/DashboardLayout'));
 
 // ─── Public Pages (lazy-loaded) ─────────────────────────────────────────────
-const LandingPage       = React.lazy(() => import('./pages/LandingPage'));
 const Login             = React.lazy(() => import('./pages/Login'));
 const Register          = React.lazy(() => import('./pages/Register'));
 const AdminLogin        = React.lazy(() => import('./pages/AdminLogin'));
@@ -162,10 +163,41 @@ const SeoPageDynamic = React.lazy(() => import('./pages/seo/SeoPageDynamic'));
 const BlogIndex      = React.lazy(() => import('./pages/blog/BlogIndex'));
 const BlogPost       = React.lazy(() => import('./pages/blog/BlogPost'));
 
+const PageLoader = () => (
+    <div className="initial-loader-wrapper" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', backgroundColor: '#f3fcfd', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+      <div className="spinner" style={{ width: '48px', height: '48px', border: '4px solid rgba(30, 144, 255, 0.2)', borderTopColor: '#004687', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></div>
+      <div className="loading-phrases" style={{ position: 'relative', height: '24px', width: '100%', marginTop: '20px', overflow: 'hidden' }}>
+        <div className="phrase" style={{ position: 'absolute', top: 0, left: 0, width: '100%', textAlign: 'center', color: '#004687', fontWeight: 600, fontSize: '15px', letterSpacing: '0.5px', opacity: 0, animation: 'cycle-phrases 8s infinite', animationDelay: '0s' }}>Securing your connection...</div>
+        <div className="phrase" style={{ position: 'absolute', top: 0, left: 0, width: '100%', textAlign: 'center', color: '#004687', fontWeight: 600, fontSize: '15px', letterSpacing: '0.5px', opacity: 0, animation: 'cycle-phrases 8s infinite', animationDelay: '2s' }}>Fetching the best data deals...</div>
+        <div className="phrase" style={{ position: 'absolute', top: 0, left: 0, width: '100%', textAlign: 'center', color: '#004687', fontWeight: 600, fontSize: '15px', letterSpacing: '0.5px', opacity: 0, animation: 'cycle-phrases 8s infinite', animationDelay: '4s' }}>Preparing your dashboard...</div>
+        <div className="phrase" style={{ position: 'absolute', top: 0, left: 0, width: '100%', textAlign: 'center', color: '#004687', fontWeight: 600, fontSize: '15px', letterSpacing: '0.5px', opacity: 0, animation: 'cycle-phrases 8s infinite', animationDelay: '6s' }}>Almost ready...</div>
+      </div>
+    </div>
+);
+
 export default function App() {
+    useEffect(() => {
+        // Smart Prefetching: Download heavy routes in the background after initial render
+        const prefetchRoutes = () => {
+            setTimeout(() => {
+                import('./pages/dashboard/Home').catch(()=>{});
+                import('./pages/dashboard/admin/AdminDashboard').catch(()=>{});
+                import('./components/layout/DashboardLayout').catch(()=>{});
+                import('./pages/LandingPage').catch(()=>{});
+                import('./pages/Login').catch(()=>{});
+            }, 2000);
+        };
+        
+        if (window.requestIdleCallback) {
+            window.requestIdleCallback(prefetchRoutes);
+        } else {
+            prefetchRoutes();
+        }
+    }, []);
+
     return (
         <Router>
-            <Suspense fallback={null}>
+            <Suspense fallback={<PageLoader />}>
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/login" element={<Login />} />

@@ -1,11 +1,8 @@
+import { Loader2, CheckCircle, XCircle, Settings, Search } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Settings from 'lucide-react/dist/esm/icons/settings';
-import Search from 'lucide-react/dist/esm/icons/search';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 

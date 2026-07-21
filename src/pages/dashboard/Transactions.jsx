@@ -1,23 +1,12 @@
+import { Search, Filter, ArrowRight, Copy, CheckCircle, XCircle, AlertCircle, Loader2, ChevronLeft, ChevronRight, Calendar, X, FileText, Download } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Search from 'lucide-react/dist/esm/icons/search';
-import Filter from 'lucide-react/dist/esm/icons/filter';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import ChevronLeft from 'lucide-react/dist/esm/icons/chevron-left';
-import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
-import Calendar from 'lucide-react/dist/esm/icons/calendar';
-import X from 'lucide-react/dist/esm/icons/x';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Receipt from '../../components/dashboard/Receipt';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Download from 'lucide-react/dist/esm/icons/download';
+
 import ServiceIcon from '../../components/dashboard/ServiceIcon';
 
 export default function Transactions() {

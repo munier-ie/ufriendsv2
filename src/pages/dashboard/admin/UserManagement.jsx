@@ -1,19 +1,10 @@
+import { Search, MoreVertical, Wallet, Ban, CheckCircle, Loader2, X, User, FileText, History, Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Search from 'lucide-react/dist/esm/icons/search';
-import MoreVertical from 'lucide-react/dist/esm/icons/more-vertical';
-import Wallet from 'lucide-react/dist/esm/icons/wallet';
-import Ban from 'lucide-react/dist/esm/icons/ban';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import X from 'lucide-react/dist/esm/icons/x';
-import User from 'lucide-react/dist/esm/icons/user';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import History from 'lucide-react/dist/esm/icons/history';
-import Plus from 'lucide-react/dist/esm/icons/plus';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
@@ -304,7 +295,7 @@ export default function UserManagement() {
                         </table>
                     </div>
                 )}
-                
+
                 {/* Pagination Controls */}
                 {!loading && totalUsers > 0 && (
                     <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">

@@ -1,11 +1,8 @@
+import { Loader2, Save, Crown, Plus, Trash2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Save from 'lucide-react/dist/esm/icons/save';
-import Crown from 'lucide-react/dist/esm/icons/crown';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 

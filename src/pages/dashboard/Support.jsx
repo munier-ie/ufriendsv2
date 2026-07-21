@@ -1,12 +1,9 @@
+import { Loader2, MessageSquare, Plus, CheckCheck, Clock } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import MessageSquare from 'lucide-react/dist/esm/icons/message-square';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import CheckCheck from 'lucide-react/dist/esm/icons/check-check';
-import Clock from 'lucide-react/dist/esm/icons/clock';
+
 import Button from '../../components/ui/Button';
 import Input from '../../components/ui/Input';
 
@@ -14,7 +11,7 @@ export default function Support() {
         const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [sending, setSending] = useState(false);
-    
+
     // Form state
     const [subject, setSubject] = useState('');
     const [messageContent, setMessageContent] = useState('');
@@ -42,7 +39,7 @@ export default function Support() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!subject.trim() || !messageContent.trim()) return;
-        
+
         setSending(true);
         try {
             const token = localStorage.getItem('token');
@@ -52,7 +49,7 @@ export default function Support() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            
+
             // Add new message to the top of the list
             setMessages([res.data.data, ...messages]);
             setIsModalOpen(false);
@@ -81,13 +78,11 @@ export default function Support() {
                 </Button>
             </div>
 
-
-
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-4 border-b border-gray-100 bg-gray-50">
                     <h2 className="font-semibold text-gray-700">Your Support History</h2>
                 </div>
-                
+
                 {loading ? (
                     <div className="flex justify-center items-center p-12">
                         <Loader2 className="animate-spin text-primary w-8 h-8" />
@@ -116,9 +111,9 @@ export default function Support() {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <p className="text-gray-600 text-sm whitespace-pre-wrap mt-2">{msg.message}</p>
-                                
+
                                 {msg.status === 2 && msg.reply && (
                                     <div className="mt-4 bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg">
                                         <div className="flex items-center mb-1">
@@ -162,7 +157,7 @@ export default function Support() {
                                     <span className="text-2xl">&times;</span>
                                 </button>
                             </div>
-                            
+
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <Input
                                     label="Subject"
@@ -172,7 +167,7 @@ export default function Support() {
                                     required
                                     disabled={sending}
                                 />
-                                
+
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
                                     <textarea
@@ -184,7 +179,7 @@ export default function Support() {
                                         disabled={sending}
                                     />
                                 </div>
-                                
+
                                 <div className="pt-4 flex justify-end space-x-3">
                                     <Button 
                                         type="button" 

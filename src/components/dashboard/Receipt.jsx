@@ -1,8 +1,7 @@
+import { Printer, Download, X } from 'lucide-react';
 import React, { useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Printer from 'lucide-react/dist/esm/icons/printer';
-import Download from 'lucide-react/dist/esm/icons/download';
-import X from 'lucide-react/dist/esm/icons/x';
+
 import Logo from '../ui/Logo';
 import Button from '../ui/Button';
 

@@ -1,10 +1,8 @@
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
 
 const ResellerCallback = () => {
     const [searchParams] = useSearchParams();
@@ -15,7 +13,7 @@ const ResellerCallback = () => {
 
     useEffect(() => {
         const reference = searchParams.get('reference') || searchParams.get('trsRef');
-        
+
         if (!reference) {
             setStatus('error');
             setError('No transaction reference found');
@@ -28,11 +26,11 @@ const ResellerCallback = () => {
         const verifyPayment = async () => {
             try {
                 const response = await axios.get(`/api/reseller/verify/${reference}`);
-                
+
                 if (response.data.success) {
                     setStatus('success');
                     toast.success('Payment verified successfully!');
-                    
+
                     // Redirect to status page after 3 seconds
                     setTimeout(() => {
                         navigate(`/reseller/status/${reference}`);

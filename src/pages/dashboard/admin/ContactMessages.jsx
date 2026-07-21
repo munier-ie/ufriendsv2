@@ -1,11 +1,8 @@
+import { Loader2, Mail, Send, Trash2, CheckCheck } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Mail from 'lucide-react/dist/esm/icons/mail';
-import Send from 'lucide-react/dist/esm/icons/send';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import CheckCheck from 'lucide-react/dist/esm/icons/check-check';
+
 import Button from '../../../components/ui/Button';
 
 export default function ContactMessages() {

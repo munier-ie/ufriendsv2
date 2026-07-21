@@ -1,28 +1,16 @@
+import { Phone, Wifi, Tv, Zap, Hash, GraduationCap, CheckCircle, AlertCircle, Loader2, UserPlus, Clock, ArrowRight, Copy, XCircle, FileText } from 'lucide-react';
 import React, { useState, useEffect, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import { toast } from 'sonner';
-import Phone from 'lucide-react/dist/esm/icons/phone';
-import Wifi from 'lucide-react/dist/esm/icons/wifi';
-import Tv from 'lucide-react/dist/esm/icons/tv';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Hash from 'lucide-react/dist/esm/icons/hash';
-import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import UserPlus from 'lucide-react/dist/esm/icons/user-plus';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import NetworkStatus from '../../components/dashboard/NetworkStatus';
 import BeneficiaryModal from '../../components/dashboard/BeneficiaryModal';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
+
 import Receipt from '../../components/dashboard/Receipt';
 
 // Logos (using placeholders for now, can be replaced with real assets)
@@ -277,7 +265,7 @@ export default function Services() {
             fetchRecentTransactions(activeTab);
         } catch (error) {
             const errorMsg = error.response?.data?.error || 'Transaction failed';
-            
+
             if (errorMsg.toLowerCase().includes('pin')) {
                 toast.error('Incorrect PIN entered');
                 setShowPinModal(false);
@@ -353,7 +341,7 @@ export default function Services() {
         if (activeTab === 'data' && formData.dataType) {
             const type = formData.dataType.toUpperCase();
             const nameUpper = s.name.toUpperCase();
-            
+
             if (type === 'CORPORATE') {
                 if (!nameUpper.includes('CORPORATE') && !nameUpper.includes('C.G')) return false;
             } else if (type === 'GIFTING') {
@@ -738,7 +726,6 @@ export default function Services() {
                             </div>
                         </div>
                     </div>
-
 
                     <div className="pt-4">
                         <Button

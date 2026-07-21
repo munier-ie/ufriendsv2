@@ -1,9 +1,8 @@
+import { Loader2, Signal, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Signal from 'lucide-react/dist/esm/icons/signal';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
+
 import Switch from '../../../components/ui/Switch'; // Assuming Switch component exists or I'll implement inline if not
 
 export default function NetworkSettings() {

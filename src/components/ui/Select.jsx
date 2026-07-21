@@ -1,6 +1,6 @@
+import { ChevronDown } from 'lucide-react';
 import React, { forwardRef, useId } from 'react';
 import { cn } from '../../lib/utils';
-import ChevronDown from 'lucide-react/dist/esm/icons/chevron-down';
 
 /**
  * Select component with label and error states

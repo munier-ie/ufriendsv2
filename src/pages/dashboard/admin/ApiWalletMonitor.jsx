@@ -1,15 +1,7 @@
+import { Loader2, RefreshCw, AlertTriangle, CheckCircle, XCircle, MinusCircle, Wallet, Edit3, Save, X } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import MinusCircle from 'lucide-react/dist/esm/icons/minus-circle';
-import Wallet from 'lucide-react/dist/esm/icons/wallet';
-import Edit3 from 'lucide-react/dist/esm/icons/edit-3';
-import Save from 'lucide-react/dist/esm/icons/save';
-import X from 'lucide-react/dist/esm/icons/x';
+
 import Button from '../../../components/ui/Button';
 
 const STATUS_CONFIG = {

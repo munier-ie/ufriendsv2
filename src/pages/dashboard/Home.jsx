@@ -1,31 +1,9 @@
+import { Wallet, User, ArrowUpRight, ArrowDownRight, Clock, Eye, EyeOff, Plus, History, Activity, X, Tag, Send, Bell, Landmark, FileText, Zap, Copy, CheckCircle, FileEdit, FileCheck, FileCode, ShieldCheck, GraduationCap } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import Wallet from 'lucide-react/dist/esm/icons/wallet';
-import User from 'lucide-react/dist/esm/icons/user';
-import ArrowUpRight from 'lucide-react/dist/esm/icons/arrow-up-right';
-import ArrowDownRight from 'lucide-react/dist/esm/icons/arrow-down-right';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import EyeOff from 'lucide-react/dist/esm/icons/eye-off';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import History from 'lucide-react/dist/esm/icons/history';
-import Activity from 'lucide-react/dist/esm/icons/activity';
-import X from 'lucide-react/dist/esm/icons/x';
-import Tag from 'lucide-react/dist/esm/icons/tag';
-import Send from 'lucide-react/dist/esm/icons/send';
-import Bell from 'lucide-react/dist/esm/icons/bell';
-import Landmark from 'lucide-react/dist/esm/icons/landmark';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Zap from 'lucide-react/dist/esm/icons/zap';
-import Copy from 'lucide-react/dist/esm/icons/copy';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import FileEdit from 'lucide-react/dist/esm/icons/file-edit';
-import FileCheck from 'lucide-react/dist/esm/icons/file-check';
-import FileCode from 'lucide-react/dist/esm/icons/file-code';
-import ShieldCheck from 'lucide-react/dist/esm/icons/shield-check';
-import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
+
 import ServiceIcon from '../../components/dashboard/ServiceIcon';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -377,63 +355,63 @@ export default function DashboardHome() {
 
                     <Link to="/dashboard/services?type=exam" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/exam-pin.jpg" alt="Exam Pin" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/exam-pin.jpg" alt="Exam Pin" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Exam Pin</span>
                     </Link>
 
                     <Link to="/dashboard/airtime-cash" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/airtime-to-cash.jpg" alt="Air Swap" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/airtime-to-cash.jpg" alt="Air Swap" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Air Swap</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/coat-of-arm.png" alt="Gov Services" className="w-full h-full object-contain p-2" />
+                            <img src="/assets/nin/coat-of-arm.webp" alt="Gov Services" loading="lazy" decoding="async" className="w-full h-full object-contain p-2" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">Gov Services</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services?tab=bvn" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/bvn-slip.jpg" alt="BVN Slip" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/bvn-slip.jpg" alt="BVN Slip" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">BVN Slip</span>
                     </Link>
 
                     <Link to="/dashboard/gov-services?tab=nin" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/ninIcon.png" alt="NIN Slip" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/ninIcon.webp" alt="NIN Slip" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">NIN Slip</span>
                     </Link>
 
                     <Link to="/dashboard/manual-services?tab=BVN_ANDROID" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/1777058348703(1).png" alt="BVN Android Licence" className="w-full h-full object-cover" />
+                            <img src="/assets/1777058348703(1).webp" alt="BVN Android Licence" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">BVN Android Licence</span>
                     </Link>
 
                     <Link to="/dashboard/manual-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/bvn-services.jpg" alt="BVN Services" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/bvn-services.jpg" alt="BVN Services" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">BVN Services</span>
                     </Link>
 
                     <Link to="/dashboard/manual-services" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/nimc-services.jpg" alt="NIN Services" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/nimc-services.jpg" alt="NIN Services" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">NIN Services</span>
                     </Link>
 
                     <Link to="/dashboard/banking-finance" className="flex flex-col items-center group">
                         <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white flex items-center justify-center mb-2 group-hover:scale-110 transition-transform shadow-lg overflow-hidden border border-gray-100">
-                            <img src="/assets/nin/pos.jpg" alt="POS & Loan" className="w-full h-full object-cover" />
+                            <img src="/assets/nin/pos.jpg" alt="POS & Loan" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         </div>
                         <span className="text-[10px] sm:text-xs font-medium text-gray-700 text-center leading-tight">POS & Loan</span>
                     </Link>

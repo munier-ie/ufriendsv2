@@ -1,14 +1,12 @@
+import { Wifi, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import Wifi from 'lucide-react/dist/esm/icons/wifi';
+
 import Select from '../../components/ui/Select';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
 
 export default function SmileData() {
     const [formData, setFormData] = useState({
@@ -18,7 +16,7 @@ export default function SmileData() {
         amount: ''
     });
     const [submitting, setSubmitting] = useState(false);
-    
+
     // Mock Plans - In real app, fetch from API
     const smilePlans = [
         { id: '1', name: '500MB SmileVoice', price: 500 },

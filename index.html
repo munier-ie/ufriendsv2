@@ -35,11 +35,76 @@
   <meta name="twitter:image" content="https://ufriends.com.ng/assets/og-image.png" />
 
   <!-- ═══ Performance Hints ═══ -->
+  <link rel="preconnect" href="https://api.ufriends.com.ng" crossorigin />
   <link rel="dns-prefetch" href="https://api.ufriends.com.ng" />
+  <link rel="preload" href="/fonts/poppins-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/fonts/poppins-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin />
+
+  <style>
+    body { margin: 0; background-color: #f3fcfd; }
+    .initial-loader-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      width: 100vw;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(30, 144, 255, 0.2);
+      border-top-color: #004687;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .loading-phrases {
+      position: relative;
+      height: 24px;
+      width: 100%;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    .phrase {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: #004687;
+      font-weight: 600;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      animation: cycle-phrases 8s infinite;
+    }
+    .phrase:nth-child(1) { animation-delay: 0s; }
+    .phrase:nth-child(2) { animation-delay: 2s; }
+    .phrase:nth-child(3) { animation-delay: 4s; }
+    .phrase:nth-child(4) { animation-delay: 6s; }
+    @keyframes cycle-phrases {
+      0%, 20% { opacity: 1; transform: translateY(0); }
+      25%, 100% { opacity: 0; transform: translateY(-10px); }
+    }
+  </style>
 </head>
 
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div class="initial-loader-wrapper">
+      <div class="spinner"></div>
+      <div class="loading-phrases">
+        <div class="phrase">Securing your connection...</div>
+        <div class="phrase">Fetching the best data deals...</div>
+        <div class="phrase">Preparing your dashboard...</div>
+        <div class="phrase">Almost ready...</div>
+      </div>
+    </div>
+  </div>
   <script type="module" src="/src/main.jsx"></script>
 </body>
 

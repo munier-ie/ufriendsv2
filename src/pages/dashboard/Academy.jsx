@@ -1,23 +1,7 @@
+import { GraduationCap, BookOpen, Play, FileText, Image, Radio, Lock, Unlock, X, Eye, AlertCircle, CheckCircle, ExternalLink, ChevronRight, Search } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import GraduationCap from 'lucide-react/dist/esm/icons/graduation-cap';
-import BookOpen from 'lucide-react/dist/esm/icons/book-open';
-import Play from 'lucide-react/dist/esm/icons/play';
-import FileText from 'lucide-react/dist/esm/icons/file-text';
-import Image from 'lucide-react/dist/esm/icons/image';
-import Radio from 'lucide-react/dist/esm/icons/radio';
-import Lock from 'lucide-react/dist/esm/icons/lock';
-import Unlock from 'lucide-react/dist/esm/icons/unlock';
-import X from 'lucide-react/dist/esm/icons/x';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import AlertCircle from 'lucide-react/dist/esm/icons/alert-circle';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import ExternalLink from 'lucide-react/dist/esm/icons/external-link';
-import ChevronRight from 'lucide-react/dist/esm/icons/chevron-right';
-import Search from 'lucide-react/dist/esm/icons/search';
-
-// ─── Constants ───────────────────────────────────────────────────────────────
 
 const TYPE_ICON = {
     video: Play,

@@ -1,8 +1,7 @@
+import { Loader2, Landmark, Search } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Landmark from 'lucide-react/dist/esm/icons/landmark';
-import Search from 'lucide-react/dist/esm/icons/search';
+
 import Input from '../../../components/ui/Input';
 
 export default function VirtualAccountManagement() {

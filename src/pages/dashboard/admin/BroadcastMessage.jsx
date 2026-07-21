@@ -1,9 +1,8 @@
+import { Loader2, Send, Megaphone } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Send from 'lucide-react/dist/esm/icons/send';
-import Megaphone from 'lucide-react/dist/esm/icons/megaphone';
+
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 

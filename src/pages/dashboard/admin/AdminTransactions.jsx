@@ -1,13 +1,8 @@
+import { Search, Loader2, Eye, X, AlertTriangle, CheckCircle, RefreshCcw } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Search from 'lucide-react/dist/esm/icons/search';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Eye from 'lucide-react/dist/esm/icons/eye';
-import X from 'lucide-react/dist/esm/icons/x';
-import AlertTriangle from 'lucide-react/dist/esm/icons/alert-triangle';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import RefreshCcw from 'lucide-react/dist/esm/icons/refresh-ccw';
+
 import Button from '../../../components/ui/Button';
 
 export default function AdminTransactions() {

@@ -281,46 +281,80 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
 
         // Referral bonus will be credited upon admin approval
 
-        // 8. For BVN_RETRIEVAL — auto-attempt Prembly
+        // 8. For BVN_RETRIEVAL — auto-attempt DB cache first, then Prembly
         if (serviceType === 'BVN_RETRIEVAL') {
             try {
-                const verSettings = await prisma.verificationSettings.findFirst();
-                if (verSettings?.apiKey && details?.phoneNumber) {
-                    const premblyRes = await axios.post(
-                        'https://api.prembly.com/identitypass/verification/bvn_with_phone',
-                        { phone_number: details.phoneNumber },
-                        {
-                            headers: {
-                                'x-api-key': verSettings.apiKey,
-                                ...(verSettings.appId ? { 'app-id': verSettings.appId } : {}),
-                                'Content-Type': 'application/json',
-                                'accept': 'application/json'
-                            },
-                            timeout: 15000
-                        }
-                    );
-                    // If Prembly succeeds, auto-complete the request
-                    if (premblyRes.data?.status === true || premblyRes.data?.response_code === '00') {
-                        const bvnData = premblyRes.data?.data ?? premblyRes.data;
-                        const bvn = bvnData?.bvn || bvnData?.bvnNumber || '';
-                        if (bvn) {
-                            await prisma.manualServiceRequest.update({
-                                where: { id: result.id },
-                                data: {
-                                    status: 1,
-                                    adminNote: `Auto-completed via Prembly. BVN: ${bvn}`,
-                                    proofUrl: null,
-                                    processedAt: new Date()
-                                }
-                            });
+                if (details?.phoneNumber) {
+                    const cleanPhone = String(details.phoneNumber).trim();
+                    // First check DB for existing BVN report matching this phone number
+                    const existingBvnReport = await prisma.bvnReport.findFirst({
+                        where: {
+                            phoneNumber: cleanPhone,
+                            status: 'verified',
+                            bvnNumber: { not: '' }
+                        },
+                        orderBy: { id: 'desc' }
+                    });
 
-                            return res.json({
-                                success: true,
-                                message: 'BVN retrieved successfully.',
-                                bvn,
-                                requestId: result.id,
-                                transRef
-                            });
+                    if (existingBvnReport && existingBvnReport.bvnNumber) {
+                        console.log(`[BVN RETRIEVAL] DB Cache HIT for phone ${cleanPhone}. Auto-completing from DB.`);
+                        await prisma.manualServiceRequest.update({
+                            where: { id: result.id },
+                            data: {
+                                status: 1,
+                                adminNote: `Auto-completed from DB Cache. BVN: ${existingBvnReport.bvnNumber}`,
+                                proofUrl: null,
+                                processedAt: new Date()
+                            }
+                        });
+
+                        return res.json({
+                            success: true,
+                            message: 'BVN retrieved successfully.',
+                            bvn: existingBvnReport.bvnNumber,
+                            requestId: result.id,
+                            transRef
+                        });
+                    }
+
+                    const verSettings = await prisma.verificationSettings.findFirst();
+                    if (verSettings?.apiKey) {
+                        const premblyRes = await axios.post(
+                            'https://api.prembly.com/identitypass/verification/bvn_with_phone',
+                            { phone_number: cleanPhone },
+                            {
+                                headers: {
+                                    'x-api-key': verSettings.apiKey,
+                                    ...(verSettings.appId ? { 'app-id': verSettings.appId } : {}),
+                                    'Content-Type': 'application/json',
+                                    'accept': 'application/json'
+                                },
+                                timeout: 15000
+                            }
+                        );
+                        // If Prembly succeeds, auto-complete the request
+                        if (premblyRes.data?.status === true || premblyRes.data?.response_code === '00') {
+                            const bvnData = premblyRes.data?.data ?? premblyRes.data;
+                            const bvn = bvnData?.bvn || bvnData?.bvnNumber || '';
+                            if (bvn) {
+                                await prisma.manualServiceRequest.update({
+                                    where: { id: result.id },
+                                    data: {
+                                        status: 1,
+                                        adminNote: `Auto-completed via Prembly. BVN: ${bvn}`,
+                                        proofUrl: null,
+                                        processedAt: new Date()
+                                    }
+                                });
+
+                                return res.json({
+                                    success: true,
+                                    message: 'BVN retrieved successfully.',
+                                    bvn,
+                                    requestId: result.id,
+                                    transRef
+                                });
+                            }
                         }
                     }
                 }

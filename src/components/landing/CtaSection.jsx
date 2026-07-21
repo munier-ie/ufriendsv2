@@ -1,8 +1,8 @@
+import { ArrowRight, CheckCircle } from 'lucide-react';
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import ArrowRight from 'lucide-react/dist/esm/icons/arrow-right';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
+
 import { useLandingContent } from '../../contexts/LandingContentContext';
 
 export default function CtaSection() {

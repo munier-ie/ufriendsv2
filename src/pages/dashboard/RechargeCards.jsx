@@ -1,8 +1,9 @@
+import { Printer } from 'lucide-react';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
 import { motion } from 'framer-motion';
-import Printer from 'lucide-react/dist/esm/icons/printer';
+
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 

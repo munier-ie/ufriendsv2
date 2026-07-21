@@ -1,13 +1,8 @@
+import { Loader2, CheckCircle, XCircle, Settings, Clock, Search, PhoneCall } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import CheckCircle from 'lucide-react/dist/esm/icons/check-circle';
-import XCircle from 'lucide-react/dist/esm/icons/x-circle';
-import Settings from 'lucide-react/dist/esm/icons/settings';
-import Clock from 'lucide-react/dist/esm/icons/clock';
-import Search from 'lucide-react/dist/esm/icons/search';
-import PhoneCall from 'lucide-react/dist/esm/icons/phone-call';
+
 import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 

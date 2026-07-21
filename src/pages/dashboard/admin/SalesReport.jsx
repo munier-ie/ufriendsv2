@@ -1,10 +1,7 @@
+import { Loader2, BarChart2 as BarChart, TrendingUp, Download, Calendar } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import BarChart from 'lucide-react/dist/esm/icons/bar-chart-2';
-import TrendingUp from 'lucide-react/dist/esm/icons/trending-up';
-import Download from 'lucide-react/dist/esm/icons/download';
-import Calendar from 'lucide-react/dist/esm/icons/calendar';
+
 import Button from '../../../components/ui/Button';
 
 // Simple bar chart visualization using HTML/CSS since we might not have recharts installed

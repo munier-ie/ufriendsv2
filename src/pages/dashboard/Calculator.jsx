@@ -1,6 +1,5 @@
+import { Calculator as CalculatorIcon, Delete } from 'lucide-react';
 import React, { useState } from 'react';
-import CalculatorIcon from 'lucide-react/dist/esm/icons/calculator';
-import Delete from 'lucide-react/dist/esm/icons/delete';
 
 export default function Calculator() {
     const [display, setDisplay] = useState('0');

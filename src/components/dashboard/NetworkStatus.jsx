@@ -1,6 +1,6 @@
+import { RefreshCw } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import RefreshCw from 'lucide-react/dist/esm/icons/refresh-cw';
 
 export default function NetworkStatus({ type = 'airtime' }) {
     const [refreshing, setRefreshing] = useState(false);

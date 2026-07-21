@@ -1,12 +1,8 @@
+import { X, Search, Plus, Trash2, Loader2, User } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import X from 'lucide-react/dist/esm/icons/x';
-import Search from 'lucide-react/dist/esm/icons/search';
-import Plus from 'lucide-react/dist/esm/icons/plus';
-import Trash2 from 'lucide-react/dist/esm/icons/trash-2';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import User from 'lucide-react/dist/esm/icons/user';
+
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 

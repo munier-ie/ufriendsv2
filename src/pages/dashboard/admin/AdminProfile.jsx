@@ -1,15 +1,8 @@
+import { Loader2, Shield, Key, Lock, Smartphone, History, User, LogOut, Mail } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import axios from 'axios';
-import Loader2 from 'lucide-react/dist/esm/icons/loader-2';
-import Shield from 'lucide-react/dist/esm/icons/shield';
-import Key from 'lucide-react/dist/esm/icons/key';
-import Lock from 'lucide-react/dist/esm/icons/lock';
-import Smartphone from 'lucide-react/dist/esm/icons/smartphone';
-import History from 'lucide-react/dist/esm/icons/history';
-import User from 'lucide-react/dist/esm/icons/user';
-import LogOut from 'lucide-react/dist/esm/icons/log-out';
-import Mail from 'lucide-react/dist/esm/icons/mail';
+
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 import { useNavigate } from 'react-router-dom';

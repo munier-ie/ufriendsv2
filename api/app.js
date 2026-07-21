@@ -36,9 +36,10 @@ const adminRoutes = require('./routes/admin');
 const adminAuthRoutes = require('./routes/adminAuth');
 const kycRoutes = require('./routes/kyc'); // Import KYC routes
 
-const path = require('path');
+const compression = require('compression');
 
 const app = express();
+app.use(compression());
 
 // Configure helmet to allow PDFs to render inside iframes
 app.use(helmet({
