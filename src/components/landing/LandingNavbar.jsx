@@ -6,17 +6,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../ui/Logo';
 
 const services = [
-  { icon: Smartphone, title: 'Airtime', description: 'Buy airtime for all networks' },
-  { icon: Wifi, title: 'Data', description: 'Purchase data bundles' },
-  { icon: Receipt, title: 'Bills', description: 'Pay utility bills' },
-  { icon: UserCheck, title: 'BVN Services', description: 'BVN verification services' },
-  { icon: Award, title: 'NIN Services', description: 'National ID services' },
-  { icon: Building2, title: 'CAC Registration', description: 'Business registration' },
-  { icon: GraduationCap, title: 'Education', description: 'Educational services' },
-  { icon: Banknote, title: 'Agency Banking', description: 'POS and banking services' },
-  { icon: ShieldCheck, title: 'Verification', description: 'Identity verification' },
-  { icon: BookOpen, title: 'Training', description: 'Professional training' },
-  { icon: Code, title: 'Software Dev', description: 'Custom software solutions' },
+  { icon: UserCheck, title: 'BVN Modification', description: 'Correct name, DOB & phone', link: '/bvn-modification-nigeria' },
+  { icon: ShieldCheck, title: 'BVN Retrieval & License', description: 'Retrieve BVN & search API', link: '/bvn-modification-nigeria' },
+  { icon: Award, title: 'NIN Modification', description: 'NIMC demographic updates', link: '/nin-modification-nigeria' },
+  { icon: Award, title: 'NIN Validation & Slips', description: 'Print regular & premium slips', link: '/print-nin-slip-nigeria' },
+  { icon: Wifi, title: 'Cheap Data', description: 'MTN, Airtel, Glo & 9mobile', link: '/buy-data-nigeria' },
+  { icon: Smartphone, title: 'Airtime Top-up', description: 'Instant network recharge', link: '/buy-airtime-nigeria' },
+  { icon: Building2, title: 'CAC Registration', description: 'Business & company reg', link: '/cac-registration-nigeria' },
+  { icon: Receipt, title: 'Bills & Utilities', description: 'Electricity & Cable TV', link: '/pay-electricity-bill-nigeria' },
+  { icon: GraduationCap, title: 'Exam PINs', description: 'WAEC, NECO, JAMB PINs', link: '/buy-exam-pins-nigeria' },
 ];
 
 export default function LandingNavbar() {
@@ -84,7 +82,7 @@ export default function LandingNavbar() {
                       return (
                         <Link
                           key={service.title}
-                          to="/login"
+                          to={service.link}
                           onClick={() => setServicesOpen(false)}
                           className="flex items-start space-x-3 p-3 rounded-xl hover:bg-blue-50 transition-colors group"
                         >
@@ -109,12 +107,12 @@ export default function LandingNavbar() {
             <Link to="/contact" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
               Contact
             </Link>
+            <Link to="/blog" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm font-semibold">
+              Blog
+            </Link>
             <Link to="/reseller" className="text-primary font-bold text-sm bg-primary/10 px-3 py-1 rounded-lg">
               Reseller
             </Link>
-            <a href="#faq" className="text-gray-600 hover:text-primary transition-colors font-medium text-sm">
-              FAQ
-            </a>
           </div>
 
           {/* Auth Buttons */}
@@ -168,12 +166,13 @@ export default function LandingNavbar() {
               <Link to="/" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">Home</Link>
               <Link to="/about" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">About Us</Link>
               <Link to="/contact" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors font-medium">Contact Us</Link>
+              <Link to="/blog" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-primary font-bold hover:bg-primary/5 rounded-xl transition-colors">Blog & Guides</Link>
               <Link to="/reseller" onClick={() => setMobileOpen(false)} className="block px-4 py-2 text-primary font-bold hover:bg-primary/5 rounded-xl transition-colors">Become a Reseller</Link>
               <div className="px-4 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Services</div>
               {services.map((s) => {
                 const Icon = s.icon;
                 return (
-                  <Link key={s.title} to="/login" onClick={() => setMobileOpen(false)} className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors">
+                  <Link key={s.title} to={s.link} onClick={() => setMobileOpen(false)} className="flex items-center space-x-3 px-4 py-2 text-gray-700 hover:text-primary hover:bg-blue-50 rounded-xl transition-colors">
                     <Icon className="w-4 h-4 text-primary" />
                     <span className="font-medium text-sm">{s.title}</span>
                   </Link>

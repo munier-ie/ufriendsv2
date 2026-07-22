@@ -10,23 +10,22 @@ export const DEFAULT_LANDING_CONTENT = {
     primaryBtn: "Get Started Free",
     secondaryBtn: "Learn More",
     stats: [
-      { value: "50K+", label: "Active Users" },
-      { value: "₦2B+", label: "Processed" },
-      { value: "99.9%", label: "Uptime" },
+      { value: "10K+", label: "Active Users" },
+      { value: "₦500k+", label: "Processed" },
+      { value: "93.9%", label: "Uptime" },
     ],
   },
   services: [
-    { title: "Airtime", description: "Buy airtime for all networks instantly with competitive rates.", features: ["All Networks", "Instant Delivery", "Best Rates"], color: "blue", active: true },
-    { title: "Data", description: "Purchase internet data bundles across all major network providers.", features: ["All Networks", "Various Plans", "Auto Renewal"], color: "cyan", active: true },
-    { title: "Bills Payment", description: "Pay electricity, cable TV, water, and utility bills in one place.", features: ["Electricity", "Cable TV", "Water Bills"], color: "orange", active: true },
-    { title: "BVN Services", description: "Complete BVN verification and linked banking services securely.", features: ["BVN Verification", "Bank Linking", "Secure Process"], color: "green", active: true },
-    { title: "NIN Services", description: "National Identity Number services including verification and slip printing.", features: ["NIN Verification", "Slip Printing", "Fast Processing"], color: "purple", active: true },
-    { title: "CAC Registration", description: "Business registration with CAC made simple and efficient.", features: ["Business Reg", "Name Search", "Documentation"], color: "indigo", active: true },
-    { title: "Education", description: "Result checking, school fees, and exam pin purchases all in one.", features: ["Result Checking", "School Fees", "Exam Pins"], color: "rose", active: true },
-    { title: "Agency Banking", description: "Request POS terminals and become a marketer earning commissions.", features: ["POS Request", "Marketer Program", "Commission Earnings"], color: "yellow", active: true },
-    { title: "Verification", description: "Identity and document verification services for individuals and businesses.", features: ["ID Verification", "Document Check", "Background Check"], color: "teal", active: true },
-    { title: "Training", description: "Professional training programs in fintech, digital skills, and business.", features: ["Digital Skills", "Fintech Training", "Certification"], color: "sky", active: true },
-    { title: "Software Dev", description: "Custom software solutions, mobile apps, and web development services.", features: ["Mobile Apps", "Web Development", "Custom Solutions"], color: "fuchsia", active: true },
+    { title: "BVN Modification", description: "Lawful & official correction of BVN errors (name, date of birth, phone number, gender).", features: ["Name & DOB Correction", "Phone Linkage", "Lawful Online Process"], color: "green", link: "/bvn-modification-nigeria", active: true },
+    { title: "BVN Retrieval", description: "Instant BVN retrieval using your registered phone number or NIN details.", features: ["Retrieve via Phone Number", "Instant Retrieval", "Download PDF Slip"], color: "emerald", link: "/bvn-modification-nigeria", active: true },
+    { title: "NIN Modification", description: "Official NIMC-authorized demographic details correction (name change, DOB, address).", features: ["Name Change", "DOB Update", "NIMC Authorized"], color: "purple", link: "/nin-modification-nigeria", active: true },
+    { title: "NIN Validation", description: "Instant NIN status validation and print Regular, Standard, Premium & VNIN slips.", features: ["NIN Validation Check", "Premium & VNIN Slips", "QR Verified PDF"], color: "indigo", link: "/print-nin-slip-nigeria", active: true },
+    { title: "BVN License & API", description: "Official BVN Verification License & Search API for agents and financial services.", features: ["BVN Verification License", "Agent Search API", "Developer Webhooks"], color: "teal", link: "/bvn-modification-nigeria", active: true },
+    { title: "Cheap Data Bundles", description: "Wholesale data pricing for MTN, Airtel, Glo & 9mobile with instant automated delivery.", features: ["Wholesale Prices", "MTN, Airtel, Glo, 9mobile", "Instant Delivery"], color: "cyan", link: "/buy-data-nigeria", active: true },
+    { title: "Airtime Top-up", description: "Discounted instant airtime recharge across all Nigerian networks.", features: ["All GSM Networks", "Instant Recharge", "Cashback Rewards"], color: "blue", link: "/buy-airtime-nigeria", active: true },
+    { title: "CAC Registration", description: "Lawful Business Name and Company (LTD) registration directly with CAC Nigeria.", features: ["Business Name Reg", "Company (LTD) Reg", "Approved Documents"], color: "rose", link: "/cac-registration-nigeria", active: true },
+    { title: "Bills & Utilities", description: "Pay electricity bills (IKEDC, EKEDC, IBEDC) and renew Cable TV (DSTV, GOTV) instantly.", features: ["Electricity Tokens", "Cable TV Renewal", "Instant Receipts"], color: "orange", link: "/pay-electricity-bill-nigeria", active: true },
+    { title: "Exam PINs", description: "Instant generation of official WAEC, NECO, and JAMB result checking PINs.", features: ["WAEC Result Checker", "NECO Token", "JAMB Direct PIN"], color: "yellow", link: "/buy-exam-pins-nigeria", active: true },
   ],
   benefits: {
     sectionBadge: "Why UFriends IT",
@@ -53,9 +52,9 @@ export const DEFAULT_LANDING_CONTENT = {
       { name: "Chinedu Okafor", role: "Tech Entrepreneur", initials: "CO", content: "The BVN and NIN services made setting up my startup so much easier. UFriends IT's platform is intuitive, secure, and efficient." },
     ],
     stats: [
-      { value: "50K+", label: "Happy Customers" },
-      { value: "₦2B+", label: "Processed Safely" },
-      { value: "99.9%", label: "Uptime Record" },
+      { value: "10K+", label: "Happy Customers" },
+      { value: "₦500k+", label: "Processed Safely" },
+      { value: "93.9%", label: "Uptime Record" },
     ],
   },
   faq: {
@@ -72,7 +71,7 @@ export const DEFAULT_LANDING_CONTENT = {
     ],
     support: {
       email: "support@ufriendsit.com",
-      phone: "+234 800 000 0000",
+      phone: "+234 81 6969 6095",
       hours: "24/7",
     },
   },
@@ -101,7 +100,7 @@ export const DEFAULT_LANDING_CONTENT = {
   },
 };
 
-const STORAGE_KEY = 'uf_landing_content_v2';
+const STORAGE_KEY = 'uf_landing_content_v3';
 
 export function loadLandingContent() {
   try {

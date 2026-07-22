@@ -11,10 +11,16 @@ export default function LandingFooter() {
   return (
     <footer className="bg-gray-900 text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-          <div className="md:col-span-2">
-            <div className="flex items-center space-x-2 mb-4"><Logo className="w-8 h-8" /><span className="font-bold text-xl">{nav.brandName}</span></div>
-            <p className="text-gray-400 mb-6 max-w-sm text-sm leading-relaxed">{f.description}</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
+          {/* Brand Column */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center space-x-2 mb-4">
+              <Logo className="w-8 h-8" />
+              <span className="font-bold text-xl">{nav.brandName}</span>
+            </div>
+            <p className="text-gray-400 mb-6 text-sm leading-relaxed max-w-sm">
+              {f.description}
+            </p>
             <div className="flex space-x-3">
               {f.social.facebook && (
                 <a
@@ -70,27 +76,45 @@ export default function LandingFooter() {
               )}
             </div>
           </div>
+
+          {/* Quick Links */}
           <div>
             <h3 className="font-semibold text-white mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              {[{ l: 'Services', h: '/#services' }, { l: 'About Us', h: '/about' }, { l: 'Contact Us', h: '/contact' }, { l: 'FAQ', h: '/#faq' }].map(({ l, h }) => (
-                <li key={l}><a href={h} className="text-sm text-gray-400 hover:text-primary transition-colors">{l}</a></li>
-              ))}
-              <li><Link to="/register" className="text-sm text-gray-400 hover:text-primary transition-colors">Sign Up</Link></li>
-              <li><Link to="/login" className="text-sm text-gray-400 hover:text-primary transition-colors">Login</Link></li>
+              <li><Link to="/" className="text-sm text-gray-400 hover:text-primary transition-colors">Home</Link></li>
+              <li><a href="/#services" className="text-sm text-gray-400 hover:text-primary transition-colors">Services</a></li>
+              <li><Link to="/about" className="text-sm text-gray-400 hover:text-primary transition-colors">About Us</Link></li>
+              <li><Link to="/contact" className="text-sm text-gray-400 hover:text-primary transition-colors">Contact Us</Link></li>
+              <li><Link to="/contact" className="text-sm text-gray-400 hover:text-primary transition-colors">Support</Link></li>
+              <li><Link to="/reseller" className="text-sm text-gray-400 hover:text-primary transition-colors">Become a Reseller</Link></li>
             </ul>
           </div>
+
+          {/* Identity & VTU Services */}
           <div>
-            <h3 className="font-semibold text-white mb-4">Legal</h3>
+            <h3 className="font-semibold text-white mb-4">Identity & Services</h3>
             <ul className="space-y-2">
+              <li><Link to="/bvn-modification-nigeria" className="text-sm text-gray-400 hover:text-primary transition-colors">BVN Modification</Link></li>
+              <li><Link to="/bvn-modification-nigeria" className="text-sm text-gray-400 hover:text-primary transition-colors">BVN Retrieval</Link></li>
+              <li><Link to="/nin-modification-nigeria" className="text-sm text-gray-400 hover:text-primary transition-colors">NIN Modification</Link></li>
+              <li><Link to="/print-nin-slip-nigeria" className="text-sm text-gray-400 hover:text-primary transition-colors">NIN Validation & Slips</Link></li>
+              <li><Link to="/bvn-modification-nigeria" className="text-sm text-gray-400 hover:text-primary transition-colors">BVN License & API</Link></li>
+              <li><Link to="/buy-data-nigeria" className="text-sm text-gray-400 hover:text-primary transition-colors">Cheap Data Bundles</Link></li>
+            </ul>
+          </div>
+
+          {/* Blog & Legal */}
+          <div>
+            <h3 className="font-semibold text-white mb-4">Blog & Legal</h3>
+            <ul className="space-y-2">
+              <li><Link to="/blog" className="text-sm text-primary font-semibold hover:underline transition-colors">UFriends IT Blog</Link></li>
+              <li><Link to="/blog" className="text-sm text-gray-400 hover:text-primary transition-colors">Identity Guides & Articles</Link></li>
               <li><Link to="/privacy" className="text-sm text-gray-400 hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link to="/terms" className="text-sm text-gray-400 hover:text-primary transition-colors">Terms of Service</Link></li>
-              <li><Link to="/reseller" className="text-sm text-gray-400 hover:text-primary transition-colors">Become a Reseller</Link></li>
-              <li><a href="/#faq" className="text-sm text-gray-400 hover:text-primary transition-colors">Contact Us</a></li>
-              <li><a href="/#faq" className="text-sm text-gray-400 hover:text-primary transition-colors">Support</a></li>
             </ul>
           </div>
         </div>
+
         <div className="border-t border-white/10 mt-10 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-gray-500 text-sm">© {new Date().getFullYear()} {f.copyright}</p>
           <p className="text-gray-500 text-sm">{f.tagline}</p>

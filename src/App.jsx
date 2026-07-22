@@ -173,6 +173,8 @@ const PageLoader = () => (
     </div>
 );
 
+import ScrollToTop from './components/ScrollToTop';
+
 export default function App() {
     useEffect(() => {
         // Smart Prefetching: Download heavy routes in the background after initial render
@@ -195,6 +197,7 @@ export default function App() {
 
     return (
         <Router>
+            <ScrollToTop />
             <Suspense fallback={<PageLoader />}>
                 <Routes>
                     {/* Public Routes */}
