@@ -18,7 +18,8 @@ sync_v2.txt
 
 ## Build artifacts
 dist/
-blog/
+/blog/
+!src/pages/blog/
 
 ## Mobile
 mobile/node_modules/
