@@ -73,9 +73,7 @@ axios.interceptors.response.use(
 );
 
 import LandingPage from './pages/LandingPage';
-
-// ─── Shared Layout (lazy — only loaded when user visits /dashboard or /admin) ─
-const DashboardLayout = React.lazy(() => import('./components/layout/DashboardLayout'));
+import DashboardLayout from './components/layout/DashboardLayout';
 
 // ─── Public Pages (lazy-loaded) ─────────────────────────────────────────────
 const Login             = React.lazy(() => import('./pages/Login'));

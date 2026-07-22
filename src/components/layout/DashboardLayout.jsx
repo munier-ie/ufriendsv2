@@ -1,6 +1,6 @@
 import { LayoutDashboard, User, Wallet, ShieldCheck, DollarSign, Grid3x3 as Grid3X3, LogOut, Landmark as Bank, Landmark, Signal, Smartphone, Ban, PhoneCall, FileText, Crown, Users, ShoppingBag, Bell, Send, Wifi, GraduationCap, Megaphone, BarChart2 as BarChart, Tv, Zap, MessageSquare, Banknote, Tag, Book, Activity, Upload, Calculator as CalculatorIcon, Globe, ArrowRightLeft, Smile, FileEdit, Search, Menu, X, Code, Bot, HelpCircle, Printer, ChevronDown, ChevronRight } from 'lucide-react';
 /* eslint-disable */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PageMeta from '../seo/PageMeta';
@@ -520,7 +520,13 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                 <main id="main-content" className="flex-1 overflow-auto">
 
                 <div className="p-3 sm:p-6 max-w-7xl mx-auto">
-                    <Outlet context={{ globalSettings, isChatOpen, setIsChatOpen }} />
+                    <Suspense fallback={
+                        <div className="flex items-center justify-center min-h-[300px]">
+                            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                        </div>
+                    }>
+                        <Outlet context={{ globalSettings, isChatOpen, setIsChatOpen }} />
+                    </Suspense>
                 </div>
 
                 {/* Floating WhatsApp Group Icon */}
