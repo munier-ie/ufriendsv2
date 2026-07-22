@@ -757,7 +757,7 @@ export default function ManualServices() {
 
             {/* Group Toggle */}
             <div className="flex gap-2 p-1 bg-gray-100 rounded-2xl w-fit flex-wrap">
-                {[{ id: 'bvn', label: 'BVN Services' }, { id: 'nin', label: 'NIN Services' }, { id: 'business', label: 'Business & Loans' }].map(g => (
+                {[{ id: 'bvn', label: 'BVN Services' }, { id: 'nin', label: 'NIN Services' }].map(g => (
                     <button
                         key={g.id}
                         onClick={() => switchGroup(g.id)}

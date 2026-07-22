@@ -49,7 +49,7 @@ export default function DashboardLayout() {
         } else {
             navigate('/login');
         }
-    }, [location.pathname]);
+    }, []);
 
     const fetchGlobalSettings = async () => {
         try {
@@ -171,10 +171,9 @@ export default function DashboardLayout() {
                 { icon: FileEdit, label: 'BVN Modification', path: '/dashboard/manual-services?tab=BVN_MODIFICATION' },
                 { icon: Search, label: 'BVN Retrieval', path: '/dashboard/manual-services?tab=BVN_RETRIEVAL' },
                 { icon: FileEdit, label: 'NIN Modification', path: '/dashboard/manual-services?tab=NIN_MODIFICATION' },
+                { icon: ShieldCheck, label: 'NIN Validation', path: '/dashboard/manual-services?tab=NIN_VALIDATION' },
                 { icon: Send, label: 'VNIN -> NIBS', path: '/dashboard/manual-services?tab=VNIN_NIBSS' },
                 { icon: ArrowRightLeft, label: 'Airtime2Cash', path: '/dashboard/airtime2cash' },
-                { icon: FileEdit, label: 'Manual Services', path: '/dashboard/manual-services' },
-                { icon: Landmark, label: 'Govt Services', path: '/dashboard/gov-services' },
                 { icon: ShoppingBag, label: 'Exam Pins', path: '/dashboard/exam-pins' },
                 { icon: Tag, label: 'Data Pins', path: '/dashboard/data-pins' },
                 { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },

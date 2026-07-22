@@ -6,6 +6,7 @@ prisma/
 
 # Ignore migration and test scripts
 scripts/
+!scripts/build-blog-json.js
 test/
 
 # Ignore local uploads

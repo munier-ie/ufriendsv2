@@ -5,7 +5,7 @@
   "main": "api/index.js",
   "scripts": {
     "dev": "vite --host",
-    "build:blog": "node scripts/build-blog-json.js",
+    "build:blog": "node build-blog-json.js",
     "build": "npm run build:blog && vite build && node prerender-script.js",
     "build:backend": "npx prisma generate && npx prisma db push",
     "preview": "vite preview",
