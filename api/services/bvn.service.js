@@ -62,41 +62,61 @@ async function getBvnPricing(userType, slipType = 'regular') {
  */
 async function findCachedBvnReport(searchVal) {
   if (!searchVal) return null;
-  const cleanVal = String(searchVal).trim();
+  const rawStr = String(searchVal).trim();
+  const cleanVal = rawStr.replace(/[\s\-]/g, '');
   if (!cleanVal || cleanVal.length < 5) return null;
 
   try {
-    // 1. Direct field search across all users
+    // 1. Search bvnReport table by bvnNumber, phoneNumber, or nin across all users (NO status filter)
     let report = await prisma.bvnReport.findFirst({
       where: {
-        status: 'verified',
         rawResponse: { not: null },
         OR: [
           { bvnNumber: cleanVal },
+          { bvnNumber: rawStr },
           { phoneNumber: cleanVal },
-          { nin: cleanVal }
+          { phoneNumber: rawStr },
+          { nin: cleanVal },
+          { nin: rawStr }
         ]
       },
       orderBy: { id: 'desc' }
     });
 
-    if (report && report.rawResponse) {
+    if (report && report.rawResponse && report.rawResponse.length > 10) {
       return report;
     }
 
-    // 2. Search rawResponse string for embedded search value
+    // 2. Search rawResponse JSON string for cleanVal or rawStr
     report = await prisma.bvnReport.findFirst({
       where: {
-        status: 'verified',
-        rawResponse: {
-          contains: cleanVal
-        }
+        OR: [
+          { rawResponse: { contains: cleanVal } },
+          { rawResponse: { contains: rawStr } }
+        ]
       },
       orderBy: { id: 'desc' }
     });
 
-    if (report && report.rawResponse) {
+    if (report && report.rawResponse && report.rawResponse.length > 10) {
       return report;
+    }
+
+    // 3. Search ninReport table if BVN was returned in a NIN lookup
+    let ninMatch = await prisma.ninReport.findFirst({
+      where: {
+        rawResponse: { not: null },
+        rawResponse: { contains: cleanVal }
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    if (ninMatch && ninMatch.rawResponse && ninMatch.rawResponse.length > 10) {
+      return {
+        id: ninMatch.id,
+        rawResponse: ninMatch.rawResponse,
+        bvnNumber: cleanVal
+      };
     }
 
   } catch (err) {

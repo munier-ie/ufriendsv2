@@ -113,40 +113,63 @@ async function getNinPricing(slipType, userType) {
  */
 async function findCachedNinReport(searchVal) {
   if (!searchVal) return null;
-  const cleanVal = String(searchVal).trim();
+  const rawStr = String(searchVal).trim();
+  const cleanVal = rawStr.replace(/[\s\-]/g, '');
   if (!cleanVal || cleanVal.length < 5) return null;
 
   try {
-    // 1. Direct field search across all users
+    // 1. Search ninReport table by ninNumber or trackingId across all users (NO status filter)
     let report = await prisma.ninReport.findFirst({
       where: {
-        status: 'verified',
         rawResponse: { not: null },
         OR: [
           { ninNumber: cleanVal },
-          { trackingId: cleanVal }
+          { ninNumber: rawStr },
+          { trackingId: cleanVal },
+          { trackingId: rawStr }
         ]
       },
       orderBy: { id: 'desc' }
     });
 
-    if (report && report.rawResponse) {
+    if (report && report.rawResponse && report.rawResponse.length > 10) {
       return report;
     }
 
-    // 2. Search rawResponse string for embedded search value
+    // 2. Search rawResponse JSON string for cleanVal or rawStr
     report = await prisma.ninReport.findFirst({
       where: {
-        status: 'verified',
-        rawResponse: {
-          contains: cleanVal
-        }
+        OR: [
+          { rawResponse: { contains: cleanVal } },
+          { rawResponse: { contains: rawStr } }
+        ]
       },
       orderBy: { id: 'desc' }
     });
 
-    if (report && report.rawResponse) {
+    if (report && report.rawResponse && report.rawResponse.length > 10) {
       return report;
+    }
+
+    // 3. Search bvnReport table if NIN was captured during BVN lookup
+    let bvnMatch = await prisma.bvnReport.findFirst({
+      where: {
+        rawResponse: { not: null },
+        OR: [
+          { nin: cleanVal },
+          { nin: rawStr },
+          { rawResponse: { contains: cleanVal } }
+        ]
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    if (bvnMatch && bvnMatch.rawResponse && bvnMatch.rawResponse.length > 10) {
+      return {
+        id: bvnMatch.id,
+        rawResponse: bvnMatch.rawResponse,
+        ninNumber: cleanVal
+      };
     }
 
   } catch (err) {
