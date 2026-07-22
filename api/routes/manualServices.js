@@ -10,6 +10,7 @@ const path = require('path');
 const fs = require('fs');
 const { creditReferralBonus } = require('../services/referral.service');
 const whatsappService = require('../services/whatsapp.service');
+const bvnService = require('../services/bvn.service');
 
 // ID Upload directory
 // Uses the local uploads/manual-ids folder on both dev and production server.
@@ -281,28 +282,28 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
 
         // Referral bonus will be credited upon admin approval
 
-        // 8. For BVN_RETRIEVAL — auto-attempt DB cache first, then Prembly
+        // 8. For BVN_RETRIEVAL — auto-attempt DB cache first across all users, then Prembly
         if (serviceType === 'BVN_RETRIEVAL') {
             try {
                 if (details?.phoneNumber) {
                     const cleanPhone = String(details.phoneNumber).trim();
-                    // First check DB for existing BVN report matching this phone number
-                    const existingBvnReport = await prisma.bvnReport.findFirst({
-                        where: {
-                            phoneNumber: cleanPhone,
-                            status: 'verified',
-                            bvnNumber: { not: '' }
-                        },
-                        orderBy: { id: 'desc' }
-                    });
+                    // Global 2-tier check for existing BVN report matching this phone number across all users
+                    const existingBvnReport = await bvnService.findCachedBvnReport(cleanPhone);
+                    let retrievedBvn = existingBvnReport?.bvnNumber;
+                    if (!retrievedBvn && existingBvnReport?.rawResponse) {
+                        try {
+                            const parsed = JSON.parse(existingBvnReport.rawResponse);
+                            retrievedBvn = parsed.bvn || parsed.bvnNumber || parsed.number || '';
+                        } catch (e) {}
+                    }
 
-                    if (existingBvnReport && existingBvnReport.bvnNumber) {
-                        console.log(`[BVN RETRIEVAL] DB Cache HIT for phone ${cleanPhone}. Auto-completing from DB.`);
+                    if (retrievedBvn) {
+                        console.log(`[BVN RETRIEVAL] GLOBAL DB Cache HIT for phone ${cleanPhone}. Auto-completing from DB.`);
                         await prisma.manualServiceRequest.update({
                             where: { id: result.id },
                             data: {
                                 status: 1,
-                                adminNote: `Auto-completed from DB Cache. BVN: ${existingBvnReport.bvnNumber}`,
+                                adminNote: `Auto-completed from DB Cache. BVN: ${retrievedBvn}`,
                                 proofUrl: null,
                                 processedAt: new Date()
                             }
@@ -311,7 +312,7 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
                         return res.json({
                             success: true,
                             message: 'BVN retrieved successfully.',
-                            bvn: existingBvnReport.bvnNumber,
+                            bvn: retrievedBvn,
                             requestId: result.id,
                             transRef
                         });

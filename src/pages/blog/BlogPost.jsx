@@ -6,8 +6,7 @@ import LandingNavbar from '../../components/landing/LandingNavbar';
 import LandingFooter from '../../components/landing/LandingFooter';
 import { BLOG_POSTS } from './BlogIndex';
 
-// ─── Dynamic Article Renderer ──────────────────────────────────────────────────
-const blogModules = import.meta.glob('./content/*.json');
+import allBlogPosts from './content/all-posts.json';
 
 function DynamicArticle({ slug }) {
     const [data, setData] = useState(null);
@@ -22,25 +21,35 @@ function DynamicArticle({ slug }) {
         setLoading(true);
         setError(false);
 
-        const targetKey = `./content/${slug}.json`;
-        const entry = blogModules[targetKey] || Object.entries(blogModules).find(([k]) => k.toLowerCase() === targetKey.toLowerCase())?.[1];
+        // 1. Synchronous lookup from bundled all-posts.json
+        const article = allBlogPosts[slug] || Object.entries(allBlogPosts).find(([k]) => k.toLowerCase() === slug.toLowerCase())?.[1];
 
-        if (entry) {
-            entry()
-                .then((module) => {
-                    setData(module.default || module);
-                    setLoading(false);
-                })
-                .catch((err) => {
-                    console.error("Failed to load article content:", err);
-                    setError(true);
-                    setLoading(false);
-                });
-        } else {
-            console.error("Article content module not found for slug:", slug);
-            setError(true);
+        if (article) {
+            setData(article);
             setLoading(false);
+            return;
         }
+
+        // 2. Fallback: HTTP fetch from /blog-posts.json
+        fetch('/blog-posts.json')
+            .then((res) => {
+                if (!res.ok) throw new Error('Failed to fetch public blog database');
+                return res.json();
+            })
+            .then((db) => {
+                const fetched = db[slug] || Object.entries(db).find(([k]) => k.toLowerCase() === slug.toLowerCase())?.[1];
+                if (fetched) {
+                    setData(fetched);
+                } else {
+                    setError(true);
+                }
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("Failed to load article content:", err);
+                setError(true);
+                setLoading(false);
+            });
     }, [slug]);
 
     useEffect(() => {

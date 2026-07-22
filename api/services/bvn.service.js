@@ -58,32 +58,72 @@ async function getBvnPricing(userType, slipType = 'regular') {
 }
 
 /**
+ * Global helper to find cached BVN report by BVN number, phone number, NIN, or JSON contents
+ */
+async function findCachedBvnReport(searchVal) {
+  if (!searchVal) return null;
+  const cleanVal = String(searchVal).trim();
+  if (!cleanVal || cleanVal.length < 5) return null;
+
+  try {
+    // 1. Direct field search across all users
+    let report = await prisma.bvnReport.findFirst({
+      where: {
+        status: 'verified',
+        rawResponse: { not: null },
+        OR: [
+          { bvnNumber: cleanVal },
+          { phoneNumber: cleanVal },
+          { nin: cleanVal }
+        ]
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    if (report && report.rawResponse) {
+      return report;
+    }
+
+    // 2. Search rawResponse string for embedded search value
+    report = await prisma.bvnReport.findFirst({
+      where: {
+        status: 'verified',
+        rawResponse: {
+          contains: cleanVal
+        }
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    if (report && report.rawResponse) {
+      return report;
+    }
+
+  } catch (err) {
+    console.error('[findCachedBvnReport] Search error:', err.message);
+  }
+
+  return null;
+}
+
+/**
  * Verify BVN using Prembly API
  */
 async function verifyBvn(bvnNumber) {
   try {
     const cleanBvn = String(bvnNumber || '').trim();
-    if (cleanBvn) {
-      const existing = await prisma.bvnReport.findFirst({
-        where: {
-          bvnNumber: cleanBvn,
-          status: 'verified',
-          rawResponse: { not: null }
-        },
-        orderBy: { id: 'desc' }
-      });
-      if (existing && existing.rawResponse) {
-        try {
-          const cachedData = JSON.parse(existing.rawResponse);
-          console.log(`[verifyBvn] DB Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
-          return {
-            success: true,
-            data: cachedData,
-            cached: true
-          };
-        } catch (e) {
-          console.warn(`[verifyBvn] Could not parse rawResponse for report ${existing.id}`);
-        }
+    const existing = await findCachedBvnReport(cleanBvn);
+    if (existing && existing.rawResponse) {
+      try {
+        const cachedData = JSON.parse(existing.rawResponse);
+        console.log(`[verifyBvn] GLOBAL DB Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
+        return {
+          success: true,
+          data: cachedData,
+          cached: true
+        };
+      } catch (e) {
+        console.warn(`[verifyBvn] Could not parse rawResponse for report ${existing.id}`);
       }
     }
 
@@ -612,6 +652,7 @@ async function processBvnVerification(userId, bvnNumber, transactionRef, userTyp
 module.exports = {
   getVerificationSettings,
   getBvnPricing,
+  findCachedBvnReport,
   verifyBvn,
   storeBvnReport,
   generateBvnSlipHtml,

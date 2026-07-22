@@ -109,32 +109,71 @@ async function getNinPricing(slipType, userType) {
 }
 
 /**
+ * Global helper to find cached NIN report by NIN number, phone number, trackingId, or JSON contents
+ */
+async function findCachedNinReport(searchVal) {
+  if (!searchVal) return null;
+  const cleanVal = String(searchVal).trim();
+  if (!cleanVal || cleanVal.length < 5) return null;
+
+  try {
+    // 1. Direct field search across all users
+    let report = await prisma.ninReport.findFirst({
+      where: {
+        status: 'verified',
+        rawResponse: { not: null },
+        OR: [
+          { ninNumber: cleanVal },
+          { trackingId: cleanVal }
+        ]
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    if (report && report.rawResponse) {
+      return report;
+    }
+
+    // 2. Search rawResponse string for embedded search value
+    report = await prisma.ninReport.findFirst({
+      where: {
+        status: 'verified',
+        rawResponse: {
+          contains: cleanVal
+        }
+      },
+      orderBy: { id: 'desc' }
+    });
+
+    if (report && report.rawResponse) {
+      return report;
+    }
+
+  } catch (err) {
+    console.error('[findCachedNinReport] Search error:', err.message);
+  }
+
+  return null;
+}
+
+/**
  * Verify NIN using Prembly API
  */
 async function verifyNin(ninNumber) {
   try {
     const cleanNin = String(ninNumber || '').trim();
-    if (cleanNin) {
-      const existing = await prisma.ninReport.findFirst({
-        where: {
-          ninNumber: cleanNin,
-          status: 'verified',
-          rawResponse: { not: null }
-        },
-        orderBy: { id: 'desc' }
-      });
-      if (existing && existing.rawResponse) {
-        try {
-          const cachedData = JSON.parse(existing.rawResponse);
-          console.log(`[verifyNin] DB Cache HIT for NIN ${cleanNin}. Bypassing Prembly API call.`);
-          return {
-            success: true,
-            data: cachedData,
-            cached: true
-          };
-        } catch (e) {
-          console.warn(`[verifyNin] Could not parse rawResponse for report ${existing.id}`);
-        }
+    const existing = await findCachedNinReport(cleanNin);
+    if (existing && existing.rawResponse) {
+      try {
+        const cachedData = JSON.parse(existing.rawResponse);
+        console.log(`[verifyNin] GLOBAL DB Cache HIT for NIN ${cleanNin}. Bypassing Prembly API call.`);
+        return {
+          success: true,
+          data: cachedData,
+          cached: true
+        };
+      } catch (e) {
+        console.warn(`[verifyNin] Could not parse rawResponse for report ${existing.id}`);
       }
     }
 
@@ -222,30 +261,18 @@ async function verifyNin(ninNumber) {
 async function verifyNinByPhone(phoneNumber) {
   try {
     const cleanPhone = String(phoneNumber || '').trim();
-    if (cleanPhone) {
-      const existing = await prisma.ninReport.findFirst({
-        where: {
-          status: 'verified',
-          rawResponse: { not: null },
-          OR: [
-            { ninNumber: cleanPhone },
-            { trackingId: cleanPhone }
-          ]
-        },
-        orderBy: { id: 'desc' }
-      });
-      if (existing && existing.rawResponse) {
-        try {
-          const cachedData = JSON.parse(existing.rawResponse);
-          console.log(`[verifyNinByPhone] DB Cache HIT for phone ${cleanPhone}. Bypassing Prembly API call.`);
-          return {
-            success: true,
-            data: cachedData,
-            cached: true
-          };
-        } catch (e) {
-          console.warn(`[verifyNinByPhone] Could not parse rawResponse for report ${existing.id}`);
-        }
+    const existing = await findCachedNinReport(cleanPhone);
+    if (existing && existing.rawResponse) {
+      try {
+        const cachedData = JSON.parse(existing.rawResponse);
+        console.log(`[verifyNinByPhone] GLOBAL DB Cache HIT for phone ${cleanPhone}. Bypassing Prembly API call.`);
+        return {
+          success: true,
+          data: cachedData,
+          cached: true
+        };
+      } catch (e) {
+        console.warn(`[verifyNinByPhone] Could not parse rawResponse for report ${existing.id}`);
       }
     }
 
@@ -1266,6 +1293,7 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
 module.exports = {
   getVerificationSettings,
   getNinPricing,
+  findCachedNinReport,
   verifyNin,
   verifyNinByPhone,
   storeNinReport,

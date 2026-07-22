@@ -128,6 +128,14 @@ function fallbackStaticPrerender(distDir, routes) {
     }
     const templateHtml = fs.readFileSync(baseIndexPath, 'utf8');
 
+    let blogDb = {};
+    const allPostsPath = path.join(__dirname, 'src/pages/blog/content/all-posts.json');
+    if (fs.existsSync(allPostsPath)) {
+        try {
+            blogDb = JSON.parse(fs.readFileSync(allPostsPath, 'utf8'));
+        } catch (e) {}
+    }
+
     for (const route of routes) {
         if (route === '/') continue;
         const routeDir = path.join(distDir, route.substring(1));
@@ -135,10 +143,22 @@ function fallbackStaticPrerender(distDir, routes) {
             fs.mkdirSync(routeDir, { recursive: true });
         }
         const savePath = path.join(routeDir, 'index.html');
-        if (!fs.existsSync(savePath)) {
-            fs.writeFileSync(savePath, templateHtml);
-            console.log(`Fallback static route created: ${savePath}`);
+        let html = templateHtml;
+
+        if (route.startsWith('/blog/')) {
+            const slug = route.replace('/blog/', '');
+            const post = blogDb[slug];
+            if (post) {
+                const title = `${post.title} | Ufriends IT`;
+                const desc = post.excerpt || '';
+                html = html
+                    .replace(/<title>.*?<\/title>/, `<title>${title}</title>`)
+                    .replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${desc}" />`);
+            }
         }
+
+        fs.writeFileSync(savePath, html);
+        console.log(`Fallback static route created: ${savePath}`);
     }
     console.log('Static route fallback complete!');
 }
