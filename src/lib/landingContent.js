@@ -16,7 +16,7 @@ export const DEFAULT_LANDING_CONTENT = {
     ],
   },
   services: [
-    { title: "BVN Modification", description: "Lawful & official correction of BVN errors (name, date of birth, phone number, gender).", features: ["Name & DOB Correction", "Phone Linkage", "Lawful Online Process"], color: "green", link: "/bvn-modification-nigeria", active: true },
+    { title: "BVN Modification", description: "Lawful & official correction of BVN errors (name, date of birth, phone number, gender).", features: ["Name, phone number and DOB correction", "100% smooth online process", "Request resolved in less than 7 days", "Quick turnarounds & support"], color: "green", link: "/bvn-modification-nigeria", active: true },
     { title: "BVN Retrieval", description: "Instant BVN retrieval using your registered phone number or NIN details.", features: ["Retrieve via Phone Number", "Instant Retrieval", "Download PDF Slip"], color: "emerald", link: "/bvn-modification-nigeria", active: true },
     { title: "NIN Modification", description: "Official NIMC-authorized demographic details correction (name change, DOB, address).", features: ["Name Change", "DOB Update", "NIMC Authorized"], color: "purple", link: "/nin-modification-nigeria", active: true },
     { title: "NIN Validation", description: "Instant NIN status validation and print Regular, Standard, Premium & VNIN slips.", features: ["NIN Validation Check", "Premium & VNIN Slips", "QR Verified PDF"], color: "indigo", link: "/print-nin-slip-nigeria", active: true },
@@ -100,7 +100,7 @@ export const DEFAULT_LANDING_CONTENT = {
   },
 };
 
-const STORAGE_KEY = 'uf_landing_content_v3';
+const STORAGE_KEY = 'uf_landing_content_v4';
 
 export function loadLandingContent() {
   try {
