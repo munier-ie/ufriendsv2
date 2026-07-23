@@ -80,15 +80,25 @@
       font-size: 15px;
       letter-spacing: 0.5px;
       opacity: 0;
-      animation: cycle-phrases 8s infinite;
     }
-    .phrase:nth-child(1) { animation-delay: 0s; }
-    .phrase:nth-child(2) { animation-delay: 2s; }
-    .phrase:nth-child(3) { animation-delay: 4s; }
-    .phrase:nth-child(4) { animation-delay: 6s; }
-    @keyframes cycle-phrases {
-      0%, 20% { opacity: 1; transform: translateY(0); }
-      25%, 100% { opacity: 0; transform: translateY(-10px); }
+    .phrase:nth-child(1) { animation: cycle-step 2s forwards 0s; }
+    .phrase:nth-child(2) { animation: cycle-step 2s forwards 2s; }
+    .phrase:nth-child(3) { animation: cycle-step 2s forwards 4s; }
+    .phrase:nth-child(4) { animation: cycle-step 2s forwards 6s; }
+    .phrase:nth-child(5) { animation: cycle-step 2s forwards 8s; }
+    .phrase:nth-child(6) { animation: cycle-step 2s forwards 10s; }
+    .phrase:nth-child(7) { animation: cycle-step 2s forwards 12s; }
+    .phrase:nth-child(8) { animation: phrase-stay-final 0.5s forwards 14s; }
+
+    @keyframes cycle-step {
+      0% { opacity: 0; transform: translateY(10px); }
+      15%, 85% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+
+    @keyframes phrase-stay-final {
+      0% { opacity: 0; transform: translateY(10px); }
+      100% { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
@@ -98,10 +108,14 @@
     <div class="initial-loader-wrapper">
       <div class="spinner"></div>
       <div class="loading-phrases">
-        <div class="phrase">Securing your connection...</div>
-        <div class="phrase">Fetching the best data deals...</div>
-        <div class="phrase">Preparing your dashboard...</div>
+        <div class="phrase">Connecting to UFriends IT...</div>
+        <div class="phrase">Fetching best data deals...</div>
+        <div class="phrase">Loading BVN & NIN services...</div>
+        <div class="phrase">Preparing NIN & BVN slips...</div>
+        <div class="phrase">Setting up bill payments & business registration...</div>
+        <div class="phrase">Loading WAEC, NECO & JAMB PINs...</div>
         <div class="phrase">Almost ready...</div>
+        <div class="phrase">Welcome to UFriends IT!</div>
       </div>
     </div>
   </div>
