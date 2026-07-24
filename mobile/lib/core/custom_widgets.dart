@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -393,37 +394,140 @@ class _SlipSamplePreviewDialogState extends State<SlipSamplePreviewDialog>
 class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
+  final VoidCallback? onBackPressed;
 
   const PremiumAppBar({
     super.key,
     required this.title,
     this.actions,
+    this.onBackPressed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return AppBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      centerTitle: true,
-      title: Text(
-        title,
-        style: TextStyle(
-          color: context.textPrimary,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
+    return SafeArea(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        height: 56,
+        decoration: BoxDecoration(
+          color: context.glassBg,
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: context.glassBorder.withValues(alpha: 0.6), width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: context.isDark 
+                  ? Colors.black.withValues(alpha: 0.5) 
+                  : Colors.black.withValues(alpha: 0.12),
+              blurRadius: 20,
+              spreadRadius: 1,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E90FF), size: 20),
+                  onPressed: onBackPressed ?? () => Navigator.maybePop(context),
+                ),
+                Expanded(
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+                if (actions != null && actions!.isNotEmpty)
+                  Row(mainAxisSize: MainAxisSize.min, children: actions!)
+                else
+                  const SizedBox(width: 48),
+              ],
+            ),
+          ),
         ),
       ),
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.secondaryColor, size: 20),
-        onPressed: () => Navigator.maybePop(context),
-      ),
-      actions: actions,
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize => const Size.fromHeight(72);
+}
+
+class FloatingScreenHeader extends StatelessWidget {
+  final String title;
+  final VoidCallback? onBackPressed;
+  final List<Widget>? actions;
+
+  const FloatingScreenHeader({
+    super.key,
+    required this.title,
+    this.onBackPressed,
+    this.actions,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      height: 56,
+      decoration: BoxDecoration(
+        color: context.glassBg,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(color: context.glassBorder.withValues(alpha: 0.6), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: context.isDark
+                ? Colors.black.withValues(alpha: 0.5)
+                : Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Color(0xFF1E90FF), size: 20),
+                onPressed: onBackPressed ?? () => Navigator.maybePop(context),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: context.textPrimary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              if (actions != null && actions!.isNotEmpty)
+                Row(mainAxisSize: MainAxisSize.min, children: actions!)
+              else
+                const SizedBox(width: 48),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class PremiumTextField extends StatelessWidget {

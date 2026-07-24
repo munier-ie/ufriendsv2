@@ -20,7 +20,15 @@ import 'bvn_services_screen.dart';
 
 class ServicesScreen extends StatefulWidget {
   final Future<void> Function() onRefresh;
-  const ServicesScreen({super.key, required this.onRefresh});
+  final double topPadding;
+  final double bottomPadding;
+
+  const ServicesScreen({
+    super.key,
+    required this.onRefresh,
+    this.topPadding = 24.0,
+    this.bottomPadding = 24.0,
+  });
 
   @override
   State<ServicesScreen> createState() => _ServicesScreenState();
@@ -125,16 +133,16 @@ class _ServicesScreenState extends State<ServicesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: RefreshIndicator(
-        onRefresh: widget.onRefresh,
-        color: AppTheme.primaryColor,
-        child: CustomScrollView(
-          slivers: [
+    return RefreshIndicator(
+      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+      edgeOffset: widget.topPadding,
+      onRefresh: widget.onRefresh,
+      color: AppTheme.primaryColor,
+      child: CustomScrollView(
+        slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 10),
+              padding: EdgeInsets.fromLTRB(24, widget.topPadding, 24, 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -196,9 +204,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
               ),
             ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 140)),
+          SliverPadding(padding: EdgeInsets.only(bottom: widget.bottomPadding)),
         ],
-        ),
       ),
     );
   }

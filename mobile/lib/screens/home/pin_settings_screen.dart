@@ -170,41 +170,15 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
       child: Scaffold(
         backgroundColor: context.cardColor,
         body: SafeArea(
-          child: Column(
-            children: [
-              // Custom Floating TopBar
-              Container(
-                margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                height: 56,
-                decoration: BoxDecoration(
-                  color: context.cardColor,
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: context.borderColor, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 68),
+                child: Column(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back, color: Color(0xFF1E90FF)),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'PIN Settings',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.textPrimary),
-                    ),
-                    const Spacer(),
-                  ],
-                ),
-              ),
-              
-              Expanded(
+                    Expanded(
                 child: _isLoading
                     ? ListView(
                         padding: const EdgeInsets.all(24.0),
@@ -415,9 +389,22 @@ class _PinSettingsScreenState extends State<PinSettingsScreen> {
                         ),
                       ),
               ),
-            ],
-          ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'PIN Settings',
+                onBackPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
         ),
+      ),
       ),
     );
   }

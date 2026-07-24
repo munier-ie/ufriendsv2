@@ -65,6 +65,21 @@ void main() async {
   );
 }
 
+class UfriendsScrollBehavior extends ScrollBehavior {
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+  }
+
+  @override
+  Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
+    return StretchingOverscrollIndicator(
+      axisDirection: details.direction,
+      child: child,
+    );
+  }
+}
+
 class UfriendsApp extends StatelessWidget {
   const UfriendsApp({super.key});
 
@@ -76,6 +91,7 @@ class UfriendsApp extends StatelessWidget {
           title: 'Ufriends',
           navigatorKey: navigatorKey,
           debugShowCheckedModeBanner: false,
+          scrollBehavior: UfriendsScrollBehavior(),
           theme: themeState.themeData,
           home: const SplashScreen(),
         );

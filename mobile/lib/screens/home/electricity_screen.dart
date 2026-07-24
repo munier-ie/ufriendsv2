@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
@@ -327,46 +326,15 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
     return Scaffold(
       backgroundColor: context.cardColor,
       body: SafeArea(
-        child: Column(
+        bottom: false,
+        child: Stack(
           children: [
-            Container(
-              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              height: 56,
-              decoration: BoxDecoration(
-                color: context.glassBg,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: context.glassBorder, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.glassShadow,
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Electricity',
-                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const Spacer(),
-                      const SizedBox(width: 48),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 68),
+                child: Column(
+                  children: [
+                    Expanded(
               child: _isLoadingServices 
               ? const Center(child: CircularProgressIndicator()) 
               : SingleChildScrollView(
@@ -629,6 +597,19 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                     const SizedBox(height: 24),
                   ],
                 ),
+              ),
+            ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'Electricity',
+                onBackPressed: () => Navigator.pop(context),
               ),
             ),
           ],

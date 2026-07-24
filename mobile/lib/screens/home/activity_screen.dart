@@ -13,7 +13,15 @@ import 'dart:typed_data';
 
 class ActivityScreen extends StatefulWidget {
   final Future<void> Function() onRefresh;
-  const ActivityScreen({super.key, required this.onRefresh});
+  final double topPadding;
+  final double bottomPadding;
+
+  const ActivityScreen({
+    super.key,
+    required this.onRefresh,
+    this.topPadding = 16.0,
+    this.bottomPadding = 16.0,
+  });
 
   @override
   State<ActivityScreen> createState() => _ActivityScreenState();
@@ -368,25 +376,25 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await _fetchTransactions();
-          await widget.onRefresh();
-        },
-        color: AppTheme.primaryColor,
-        child: CustomScrollView(
-          slivers: [
-            SliverPadding(
-              padding: EdgeInsets.fromLTRB(16, MediaQuery.of(context).size.height * 0.05 + 16, 16, 8),
-              sliver: const SliverToBoxAdapter(
-                child: Text(
-                  'Transaction History',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
+    return RefreshIndicator(
+      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+      edgeOffset: widget.topPadding,
+      onRefresh: () async {
+        await _fetchTransactions();
+        await widget.onRefresh();
+      },
+      color: AppTheme.primaryColor,
+      child: CustomScrollView(
+        slivers: [
+          SliverPadding(
+            padding: EdgeInsets.fromLTRB(16, widget.topPadding, 16, 8),
+            sliver: const SliverToBoxAdapter(
+              child: Text(
+                'Transaction History',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
+          ),
             SliverToBoxAdapter(
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -444,11 +452,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   childCount: _filteredTransactions.length,
                 ),
               ),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            SliverPadding(padding: EdgeInsets.only(bottom: widget.bottomPadding)),
           ],
         ),
-      ),
-    );
+      );
   }
 
   Widget _buildTransactionItem(Map<String, dynamic> tx) {

@@ -3,7 +3,6 @@ import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
-import 'dart:ui';
 
 class RechargeCardsScreen extends StatefulWidget {
   const RechargeCardsScreen({super.key});
@@ -123,48 +122,13 @@ class _RechargeCardsScreenState extends State<RechargeCardsScreen> {
     return Scaffold(
       backgroundColor: context.cardColor,
       body: SafeArea(
-        child: Column(
+        bottom: false,
+        child: Stack(
           children: [
-            // Custom Floating TopBar
-            Container(
-              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              height: 56,
-              decoration: BoxDecoration(
-                color: context.glassBg,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: context.glassBorder, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.glassShadow,
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'Recharge Cards',
-                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const Spacer(),
-                      const SizedBox(width: 48), // To balance the back button
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Expanded(
-              child: SingleChildScrollView(
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 68),
+                child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
                 child: Form(
                   key: _formKey,
@@ -410,6 +374,16 @@ class _RechargeCardsScreenState extends State<RechargeCardsScreen> {
                     ],
                   ),
                 ),
+              ),
+            ),
+          ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'Recharge Cards',
+                onBackPressed: () => Navigator.pop(context),
               ),
             ),
           ],

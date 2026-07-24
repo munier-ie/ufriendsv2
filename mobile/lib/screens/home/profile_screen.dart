@@ -17,8 +17,16 @@ import '../auth/login_screen.dart';
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
   final Future<void> Function() onRefresh;
+  final double topPadding;
+  final double bottomPadding;
 
-  const ProfileScreen({super.key, this.userProfile, required this.onRefresh});
+  const ProfileScreen({
+    super.key,
+    this.userProfile,
+    required this.onRefresh,
+    this.topPadding = 16.0,
+    this.bottomPadding = 16.0,
+  });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -340,13 +348,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: RefreshIndicator(
-        onRefresh: widget.onRefresh,
-        color: AppTheme.primaryColor,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
+    return RefreshIndicator(
+      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+      edgeOffset: widget.topPadding,
+      onRefresh: widget.onRefresh,
+      color: AppTheme.primaryColor,
+      child: ListView(
+        padding: EdgeInsets.only(
+          top: widget.topPadding,
+          bottom: widget.bottomPadding,
+          left: 16,
+          right: 16,
+        ),
         children: [
           _buildHeader(),
           const SizedBox(height: 24),
@@ -357,9 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _buildSecuritySection(),
           const SizedBox(height: 24),
           _buildLogoutSection(),
-          const SizedBox(height: 100),
         ],
-        ),
       ),
     );
   }

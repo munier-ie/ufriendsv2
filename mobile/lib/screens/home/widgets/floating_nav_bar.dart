@@ -14,19 +14,17 @@ class FloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Add safe area bottom padding so it respects iPhone home indicator
-    final bottomPadding = MediaQuery.of(context).padding.bottom;
-    
     return Container(
-      margin: EdgeInsets.fromLTRB(12, 0, 12, 12 + bottomPadding), 
-      height: 76,
+      height: 66,
       decoration: BoxDecoration(
         color: context.glassBg,
-        borderRadius: BorderRadius.circular(38),
-        border: Border.all(color: context.glassBorder, width: 1.5),
+        borderRadius: BorderRadius.circular(32),
+        border: Border.all(color: context.glassBorder.withValues(alpha: 0.6), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: context.glassShadow,
+            color: context.isDark 
+                ? Colors.black.withValues(alpha: 0.5) 
+                : Colors.black.withValues(alpha: 0.15),
             blurRadius: 25,
             spreadRadius: 2,
             offset: const Offset(0, 8),
@@ -34,9 +32,9 @@ class FloatingNavBar extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(38),
+        borderRadius: BorderRadius.circular(32),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [

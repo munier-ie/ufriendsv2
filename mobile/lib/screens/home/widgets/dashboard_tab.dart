@@ -23,12 +23,16 @@ class DashboardTab extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
   final List<dynamic> recentTransactions;
   final ValueChanged<int> onTabSelected;
+  final double topPadding;
+  final double bottomPadding;
 
   const DashboardTab({
     super.key,
     required this.userProfile,
     required this.recentTransactions,
     required this.onTabSelected,
+    this.topPadding = 16.0,
+    this.bottomPadding = 16.0,
   });
 
   @override
@@ -37,7 +41,7 @@ class DashboardTab extends StatefulWidget {
 
 class _DashboardTabState extends State<DashboardTab> {
   bool _showBalance = false;
-  bool _showAllQuickServices = false;
+  bool _showAllQuickServices = true;
   bool _showManualServices = false;
   bool _showPrintingServices = false;
   bool _showGovtServices = false;
@@ -48,7 +52,12 @@ class _DashboardTabState extends State<DashboardTab> {
   @override
   Widget build(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16.0),
+      padding: EdgeInsets.only(
+        top: widget.topPadding,
+        bottom: widget.bottomPadding,
+        left: 16.0,
+        right: 16.0,
+      ),
       children: [
         _buildWalletCard(),
         const SpendingChart(),
@@ -56,7 +65,7 @@ class _DashboardTabState extends State<DashboardTab> {
         _buildQuickServices(),
         const SizedBox(height: 12),
         _buildExpandableSection(
-          title: 'Manual Services',
+          title: 'NIN & BVN services',
           isExpanded: _showManualServices,
           onToggle: () => setState(() => _showManualServices = !_showManualServices),
           crossAxisCount: 3,
@@ -83,6 +92,20 @@ class _DashboardTabState extends State<DashboardTab> {
         ),
         const SizedBox(height: 12),
         _buildExpandableSection(
+          title: 'NIN & BVN slip',
+          isExpanded: _showPrintingServices,
+          onToggle: () => setState(() => _showPrintingServices = !_showPrintingServices),
+          children: [
+            _serviceItem(Icons.print_rounded, 'Print NIN', Colors.teal, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinSlipScreen()));
+            }),
+            _serviceItem(Icons.print_rounded, 'Print BVN', Colors.indigo, onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
+            }),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _buildExpandableSection(
           title: 'Business & Loans',
           isExpanded: _showBusinessServices,
           onToggle: () => setState(() => _showBusinessServices = !_showBusinessServices),
@@ -92,20 +115,6 @@ class _DashboardTabState extends State<DashboardTab> {
             }),
             _serviceItem(Icons.money_rounded, 'Loan Request', Colors.blue, onTap: () {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const LoanRequestScreen()));
-            }),
-          ],
-        ),
-        const SizedBox(height: 12),
-        _buildExpandableSection(
-          title: 'Printing Services',
-          isExpanded: _showPrintingServices,
-          onToggle: () => setState(() => _showPrintingServices = !_showPrintingServices),
-          children: [
-            _serviceItem(Icons.print_rounded, 'Print NIN', Colors.teal, onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinSlipScreen()));
-            }),
-            _serviceItem(Icons.print_rounded, 'Print BVN', Colors.indigo, onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
             }),
           ],
         ),

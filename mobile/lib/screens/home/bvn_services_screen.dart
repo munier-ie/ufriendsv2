@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/app_theme.dart';
@@ -205,87 +204,66 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
     return Scaffold(
       backgroundColor: context.cardColor,
       body: SafeArea(
-        child: Column(
+        bottom: false,
+        child: Stack(
           children: [
-            // Custom Floating TopBar
-            Container(
-              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              height: 56,
-              decoration: BoxDecoration(
-                color: context.glassBg,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: context.glassBorder, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.glassShadow,
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 68),
+                child: Column(
+                children: [
+                  // Tab Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Container(
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: context.dividerColor,
+                        borderRadius: BorderRadius.circular(23),
+                      ),
+                      child: TabBar(
+                        controller: _tabController,
+                        indicatorSize: TabBarIndicatorSize.tab,
+                        indicator: BoxDecoration(
+                          color: AppTheme.secondaryColor,
+                          borderRadius: BorderRadius.circular(23),
+                        ),
+                        labelColor: Colors.white,
+                        unselectedLabelColor: context.textSecondary,
+                        tabs: const [
+                          Tab(text: 'Services'),
+                          Tab(text: 'History'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: _loadingSettings
+                        ? const Center(child: CircularProgressIndicator())
+                        : TabBarView(
+                            controller: _tabController,
+                            children: [
+                              _buildServicesTab(),
+                              _buildHistoryTab(),
+                            ],
+                          ),
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const Spacer(),
-                      Text(
-                        'BVN Services',
-                        style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                      const Spacer(),
-                      const SizedBox(width: 48), // To balance the back button
-                    ],
-                  ),
-                ),
-              ),
             ),
-            const SizedBox(height: 16),
-            // Tab Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                height: 46,
-                decoration: BoxDecoration(
-                  color: context.dividerColor,
-                  borderRadius: BorderRadius.circular(23),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicator: BoxDecoration(
-                    color: AppTheme.secondaryColor,
-                    borderRadius: BorderRadius.circular(23),
-                  ),
-                  labelColor: Colors.white,
-                  unselectedLabelColor: Colors.black54,
-                  labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-                  tabs: const [
-                    Tab(text: 'Services'),
-                    Tab(text: 'History'),
-                  ],
-                ),
-              ),
+          ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: FloatingScreenHeader(
+              title: 'BVN Services',
+              onBackPressed: () => Navigator.pop(context),
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: _loadingSettings
-                  ? const Center(child: CircularProgressIndicator())
-                  : TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildServicesTab(),
-                        _buildHistoryTab(),
-                      ],
-                    ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
       ),
     );
   }
@@ -754,6 +732,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
     }
 
     return RefreshIndicator(
+      triggerMode: RefreshIndicatorTriggerMode.anywhere,
       onRefresh: _fetchHistory,
       child: ListView.separated(
         padding: const EdgeInsets.all(24),

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
@@ -126,94 +125,60 @@ class _TwoFaScreenState extends State<TwoFaScreen> {
     return Scaffold(
       backgroundColor: context.cardColor,
       body: SafeArea(
-        child: Column(
+        bottom: false,
+        child: Stack(
           children: [
-            if (_setupData == null)
-              Container(
-                margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                height: 56,
-                decoration: BoxDecoration(
-                  color: context.glassBg,
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: context.glassBorder, width: 1.5),
-                  boxShadow: [
-                    BoxShadow(
-                    color: context.glassShadow, blurRadius: 15, offset: const Offset(0, 4)),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                        const Spacer(),
-                        Text(
-                          'Two-Factor Auth',
-                          style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
-                        ),
-                        const Spacer(),
-                        const SizedBox(width: 48),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF003B73), size: 24),
-                    onPressed: () {
-                      setState(() => _setupData = null); // Go back to choice
-                    },
-                  ),
-                ),
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 68),
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: _setupData != null 
+                          ? _buildSetupSection()
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  _twoFaEnabled ? Icons.security : Icons.shield_outlined,
+                                  size: 80,
+                                  color: _twoFaEnabled ? Colors.green : Colors.grey,
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  _twoFaEnabled ? '2FA is Enabled' : '2FA is Disabled',
+                                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  _twoFaEnabled 
+                                      ? 'Your account is currently protected with two-factor authentication.' 
+                                      : 'Enable two-factor authentication to add an extra layer of security to your account.',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                                const SizedBox(height: 32),
+                                
+                                if (_twoFaEnabled)
+                                  _buildDisableSection()
+                                else
+                                  _buildChoiceSection(),
+                              ],
+                            ),
+                      ),
               ),
-            
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(24),
-                      child: _setupData != null 
-                        ? _buildSetupSection()
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Icon(
-                                _twoFaEnabled ? Icons.security : Icons.shield_outlined,
-                                size: 80,
-                                color: _twoFaEnabled ? Colors.green : Colors.grey,
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                _twoFaEnabled ? '2FA is Enabled' : '2FA is Disabled',
-                                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                _twoFaEnabled 
-                                    ? 'Your account is currently protected with two-factor authentication.' 
-                                    : 'Enable two-factor authentication to add an extra layer of security to your account.',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 32),
-                              
-                              if (_twoFaEnabled)
-                                _buildDisableSection()
-                              else
-                                _buildChoiceSection(),
-                            ],
-                          ),
-                    ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: _setupData != null ? 'Setup 2FA' : 'Two-Factor Auth',
+                onBackPressed: _setupData != null 
+                    ? () => setState(() => _setupData = null)
+                    : () => Navigator.pop(context),
+              ),
             ),
           ],
         ),

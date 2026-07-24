@@ -106,19 +106,27 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     if (_userProfile == null) {
       setState(() => _isLoading = true);
     }
-    final profileRes = await ApiService.getProfile();
-    final transRes = await ApiService.getTransactions(limit: 100);
-    final settingsRes = await ApiService.fetchPublicSettings();
-    final notificationsRes = await ApiService.getNotifications();
+    
+    final results = await Future.wait([
+      ApiService.getProfile(),
+      ApiService.getTransactions(limit: 100),
+      ApiService.fetchPublicSettings(),
+      ApiService.getNotifications(),
+    ]);
+
+    final profileRes = results[0];
+    final transRes = results[1];
+    final settingsRes = results[2];
+    final notificationsRes = results[3];
 
     if (mounted) {
       setState(() {
-        if (profileRes['success']) _userProfile = profileRes['user'];
-        if (transRes['success']) _recentTransactions = transRes['transactions'];
-        if (settingsRes['success']) {
+        if (profileRes['success'] == true) _userProfile = profileRes['user'];
+        if (transRes['success'] == true) _recentTransactions = transRes['transactions'];
+        if (settingsRes['success'] == true) {
           _whatsappGroupLink = settingsRes['settings']?['whatsappGroupLink'];
         }
-        if (notificationsRes['success']) {
+        if (notificationsRes['success'] == true) {
           _notifications = notificationsRes['notifications'] ?? [];
         }
         _isLoading = false;
@@ -171,6 +179,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final double bottomSafeArea = MediaQuery.of(context).padding.bottom;
+    final double topContentPadding = 72;
+    final double bottomContentPadding = bottomSafeArea + 84;
+
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
@@ -184,128 +196,149 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-      value: (context.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
-        statusBarColor: Colors.transparent,
-      ),
-      child: Scaffold(
-        backgroundColor: context.scaffoldBg,
-        drawer: HomeDrawer(
-          userProfile: _userProfile,
-          onTabSelected: _onTabSelected,
-          onLogout: _handleLogout,
+        value: (context.isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark).copyWith(
+          statusBarColor: Colors.transparent,
         ),
-        body: SafeArea(
-          child: Stack(
-            children: [
-              Column(
-                children: [
-                  // Custom Floating TopBar
-                  Container(
-                    margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: context.glassBg,
-                      borderRadius: BorderRadius.circular(28),
-                      border: Border.all(color: context.glassBorder, width: 1.5),
-                      boxShadow: [
-                        BoxShadow(
-                          color: context.glassShadow,
-                          blurRadius: 15,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                        child: Row(
+        child: Scaffold(
+          backgroundColor: context.scaffoldBg,
+          resizeToAvoidBottomInset: false,
+          drawer: HomeDrawer(
+            userProfile: _userProfile,
+            onTabSelected: _onTabSelected,
+            onLogout: _handleLogout,
+          ),
+          body: SafeArea(
+            bottom: false,
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _isLoading 
+                      ? ListView(
+                          padding: EdgeInsets.only(
+                            top: topContentPadding,
+                            bottom: bottomContentPadding,
+                            left: 16.0,
+                            right: 16.0,
+                          ),
                           children: [
-                            const SizedBox(width: 8),
-                            Builder(
-                              builder: (context) => IconButton(
-                                icon: const Icon(Icons.menu_rounded, color: AppTheme.secondaryColor),
-                                onPressed: () => Scaffold.of(context).openDrawer(),
-                              ),
+                            const Skeleton(height: 150),
+                            const SizedBox(height: 16),
+                            const Skeleton(height: 180),
+                            const SizedBox(height: 16),
+                            const Skeleton(height: 100),
+                            const SizedBox(height: 16),
+                            const SkeletonListTile(),
+                            const SkeletonListTile(),
+                          ],
+                        )
+                      : _buildBody(topContentPadding, bottomContentPadding),
+                ),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    child: Container(
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: context.glassBg,
+                        borderRadius: BorderRadius.circular(28),
+                        border: Border.all(color: context.glassBorder.withValues(alpha: 0.6), width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: context.isDark 
+                            ? Colors.black.withValues(alpha: 0.5) 
+                            : Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 20,
+                        spreadRadius: 1,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Row(
+                        children: [
+                          const SizedBox(width: 8),
+                          Builder(
+                            builder: (context) => IconButton(
+                              icon: const Icon(Icons.menu_rounded, color: AppTheme.secondaryColor),
+                              onPressed: () => Scaffold.of(context).openDrawer(),
                             ),
-                            const Spacer(),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const AppLogo(size: 24),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Ufriends IT',
-                                  style: TextStyle(
-                                    color: context.textPrimary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
+                          ),
+                          const Spacer(),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const AppLogo(size: 24),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Ufriends IT',
+                                style: TextStyle(
+                                  color: context.textPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
-                              ],
-                            ),
-                            const Spacer(),
-                            Builder(
-                              builder: (context) {
-                                int unreadCount = _notifications.where((n) => n['isRead'] != true).length;
-                                return Stack(
-                                  alignment: Alignment.center,
-                                  children: [
-                                    IconButton(
-                                      onPressed: () {
-                                        setState(() => _isLoadingNotifications = true);
-                                        _showNotificationsBottomSheet(context);
-                                      },
-                                      icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.secondaryColor),
-                                    ),
-                                    if (unreadCount > 0)
-                                      Positioned(
-                                        right: 8,
-                                        top: 8,
-                                        child: Container(
-                                          padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(
-                                            color: Colors.red,
-                                            shape: BoxShape.circle,
-                                          ),
-                                          child: Text(
-                                            unreadCount > 9 ? '9+' : unreadCount.toString(),
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                              ),
+                            ],
+                          ),
+                          const Spacer(),
+                          Builder(
+                            builder: (context) {
+                              int unreadCount = _notifications.where((n) => n['isRead'] != true).length;
+                              return Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  IconButton(
+                                    onPressed: () {
+                                      setState(() => _isLoadingNotifications = true);
+                                      _showNotificationsBottomSheet(context);
+                                    },
+                                    icon: const Icon(Icons.notifications_none_rounded, color: AppTheme.secondaryColor),
+                                  ),
+                                  if (unreadCount > 0)
+                                    Positioned(
+                                      right: 8,
+                                      top: 8,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Text(
+                                          unreadCount > 9 ? '9+' : unreadCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
-                                  ],
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                        ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                       ),
                     ),
                   ),
-                  Expanded(
-                    child: _isLoading 
-                        ? ListView(
-                            padding: const EdgeInsets.all(16.0),
-                            children: [
-                              const Skeleton(height: 150),
-                              const SizedBox(height: 16),
-                              const Skeleton(height: 180),
-                              const SizedBox(height: 16),
-                              const Skeleton(height: 100),
-                              const SizedBox(height: 16),
-                              const SkeletonListTile(),
-                              const SkeletonListTile(),
-                            ],
-                          )
-                        : _buildBody(),
-                  ),
-                ],
+                ),
+              ),
+            ),
+              Positioned(
+                bottom: bottomSafeArea + 2,
+                left: MediaQuery.of(context).size.width * 0.025,
+                right: MediaQuery.of(context).size.width * 0.025,
+                child: FloatingNavBar(
+                  currentIndex: _currentIndex,
+                  onTabSelected: _onTabSelected,
+                ),
               ),
               Positioned(
                 left: _xPosition == -1.0 ? MediaQuery.of(context).size.width - 76 : _xPosition,
@@ -346,48 +379,59 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
             ],
           ),
         ),
-        bottomNavigationBar: FloatingNavBar(
-          currentIndex: _currentIndex,
-          onTabSelected: _onTabSelected,
         ),
-        extendBody: true, // Important for the floating navbar effect
-      ),
       ),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(double topPadding, double bottomPadding) {
     switch (_currentIndex) {
       case 0: return RefreshIndicator(
+        triggerMode: RefreshIndicatorTriggerMode.anywhere,
+        edgeOffset: topPadding,
         onRefresh: _fetchDashboardData,
         color: AppTheme.primaryColor,
         child: DashboardTab(
           userProfile: _userProfile,
           recentTransactions: _recentTransactions,
           onTabSelected: _onTabSelected,
+          topPadding: topPadding,
+          bottomPadding: bottomPadding,
         ),
       );
       case 1: return WalletScreen(
         userProfile: _userProfile, 
         onRefresh: _fetchDashboardData,
+        topPadding: topPadding,
+        bottomPadding: bottomPadding,
       );
       case 2: return ServicesScreen(
         onRefresh: _fetchDashboardData,
+        topPadding: topPadding,
+        bottomPadding: bottomPadding,
       );
       case 3: return ActivityScreen(
         onRefresh: _fetchDashboardData,
+        topPadding: topPadding,
+        bottomPadding: bottomPadding,
       );
       case 4: return ProfileScreen(
         userProfile: _userProfile,
         onRefresh: _fetchDashboardData,
+        topPadding: topPadding,
+        bottomPadding: bottomPadding,
       );
       default: return RefreshIndicator(
+        triggerMode: RefreshIndicatorTriggerMode.anywhere,
+        edgeOffset: topPadding,
         onRefresh: _fetchDashboardData,
         color: AppTheme.primaryColor,
         child: DashboardTab(
           userProfile: _userProfile,
           recentTransactions: _recentTransactions,
           onTabSelected: _onTabSelected,
+          topPadding: topPadding,
+          bottomPadding: bottomPadding,
         ),
       );
     }

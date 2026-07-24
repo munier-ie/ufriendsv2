@@ -9,8 +9,16 @@ import 'kyc_screen.dart';
 class WalletScreen extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
   final Function() onRefresh;
+  final double topPadding;
+  final double bottomPadding;
 
-  const WalletScreen({super.key, this.userProfile, required this.onRefresh});
+  const WalletScreen({
+    super.key,
+    this.userProfile,
+    required this.onRefresh,
+    this.topPadding = 16.0,
+    this.bottomPadding = 16.0,
+  });
 
   @override
   State<WalletScreen> createState() => _WalletScreenState();
@@ -61,19 +69,25 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
+      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+      edgeOffset: widget.topPadding,
       onRefresh: () async {
         await _fetchAccounts();
         await widget.onRefresh();
       },
       child: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.only(
+          top: widget.topPadding,
+          bottom: widget.bottomPadding,
+          left: 16,
+          right: 16,
+        ),
         children: [
           _buildBalanceCard(),
           const SizedBox(height: 24),
           _buildVirtualAccountsSection(),
           const SizedBox(height: 24),
           _buildFundingInfo(),
-          const SizedBox(height: 100),
         ],
       ),
     );

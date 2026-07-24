@@ -1,8 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/skeleton_loader.dart';
 import '../../core/app_theme.dart';
+import '../../core/custom_widgets.dart';
 
 class PinScreen extends StatefulWidget {
   final String title;
@@ -62,47 +62,15 @@ class _PinScreenState extends State<PinScreen> {
       child: Scaffold(
         backgroundColor: context.cardColor,
         body: SafeArea(
-          child: Column(
+        bottom: false,
+        child: Stack(
           children: [
-            // Custom Floating TopBar
-            Container(
-              margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-              height: 56,
-              decoration: BoxDecoration(
-                color: context.glassBg,
-                borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: context.glassBorder, width: 1.5),
-                boxShadow: [
-                  BoxShadow(
-                    color: context.glassShadow,
-                    blurRadius: 15,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(28),
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.title,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: context.textPrimary),
-                      ),
-                      const Spacer(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            
-            const Spacer(flex: 1),
+            Positioned.fill(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 68),
+                child: Column(
+                  children: [
+                    const Spacer(flex: 1),
             
             if (_isLoading) ...[
               const Expanded(
@@ -197,6 +165,19 @@ class _PinScreenState extends State<PinScreen> {
                 ),
               ),
             ],
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'Processing transaction...',
+                onBackPressed: () => Navigator.pop(context),
+              ),
+            ),
           ],
         ),
       ),

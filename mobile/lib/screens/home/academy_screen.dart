@@ -367,6 +367,7 @@ class _AcademyScreenState extends State<AcademyScreen> {
                 : filtered.isEmpty
                     ? const Center(child: Text('No content found', style: TextStyle(color: Colors.grey)))
                     : RefreshIndicator(
+                        triggerMode: RefreshIndicatorTriggerMode.anywhere,
                         onRefresh: _loadData,
                         child: GridView.builder(
                           padding: const EdgeInsets.all(16),
