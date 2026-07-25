@@ -23,9 +23,8 @@ dist/
 
 ## Mobile
 mobile/node_modules/
-mobile/android/
-mobile/ios/
 mobile/.expo/
+
 
 ## APK Storage
 api/apk/download/
