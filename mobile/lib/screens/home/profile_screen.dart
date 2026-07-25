@@ -354,6 +354,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       onRefresh: widget.onRefresh,
       color: AppTheme.primaryColor,
       child: ListView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         padding: EdgeInsets.only(
           top: widget.topPadding,
           bottom: widget.bottomPadding,

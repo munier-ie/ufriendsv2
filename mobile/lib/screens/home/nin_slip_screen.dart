@@ -5,6 +5,8 @@ import '../../core/api_service.dart';
 import 'pin_screen.dart';
 import 'slip_preview_screen.dart';
 
+import '../../core/connectivity_service.dart';
+
 class NinSlipScreen extends StatefulWidget {
   const NinSlipScreen({super.key});
 
@@ -162,6 +164,8 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
   }
 
   void _onSubmit() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     final value = _controller.text.trim();
     if (_lookupMethod == 'nin' && value.length != 11) {
       AppToast.show(context, message: 'NIN must be exactly 11 digits', type: ToastType.warning);
@@ -231,28 +235,30 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    Text(
-                      'NIN Slip Service',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryColor,
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.fromLTRB(24.0, 76.0, 24.0, 24.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - 100),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                      Text(
+                        'Verify your NIN and generate a downloadable identity slip instantly.',
+                        style: TextStyle(color: context.textSecondary, fontSize: 14),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Verify your NIN and generate a downloadable identity slip instantly.',
-                      style: TextStyle(color: context.textSecondary, fontSize: 16),
-                    ),
-                    const SizedBox(height: 40),
+                      const SizedBox(height: 20),
 
                     // ── Lookup Method
                     _sectionLabel('Lookup Method'),
@@ -348,13 +354,16 @@ class _NinSlipScreenState extends State<NinSlipScreen> {
                       onPressed: _loading ? () {} : _onSubmit,
                       loading: _loading,
                     ),
-                    const SizedBox(height: 40),
                   ],
                 ),
               ),
             ),
-          ),
-          Positioned(
+          );
+        },
+      ),
+    ),
+  ),
+  Positioned(
             top: 0,
             left: 0,
             right: 0,

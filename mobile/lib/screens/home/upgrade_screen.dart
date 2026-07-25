@@ -117,16 +117,35 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.cardColor,
-      appBar: AppBar(
-        title: Text('Upgrade Account', style: TextStyle(fontWeight: FontWeight.bold)),
-        backgroundColor: context.cardColor,
-        elevation: 0,
-        foregroundColor: context.textPrimary,
-        centerTitle: true,
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                      edgeOffset: 76,
+                      onRefresh: () async {
+                        await _loadData();
+                      },
+                      color: AppTheme.primaryColor,
+                      child: _buildBody(),
+                    ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'Upgrade Account',
+                onBackPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _buildBody(),
     );
   }
 
@@ -134,7 +153,8 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
     final balance = _user != null ? double.tryParse(_user!['balance']?.toString() ?? '0') ?? 0 : 0.0;
     
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.fromLTRB(24, 76, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [

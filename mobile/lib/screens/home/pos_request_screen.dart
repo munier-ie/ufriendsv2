@@ -5,6 +5,8 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 
+import '../../core/connectivity_service.dart';
+
 class PosRequestScreen extends StatefulWidget {
   const PosRequestScreen({super.key});
 
@@ -82,7 +84,9 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
     }
   }
 
-  void _submit() async {
+  Future<void> _submit() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     // Form validation
     if (_formData['provider'] == null) return _showError('Please select a provider');
     if (_formData['subType'] == null) return _showError('Please select a payment option');
@@ -134,124 +138,150 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
 
     return Scaffold(
       backgroundColor: context.scaffoldBg,
-      appBar: const PremiumAppBar(title: 'POS Request'),
-      body: _loadingSettings
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeaderCard(),
-                  const SizedBox(height: 20),
-                  _buildDropdown('POS Provider', 'provider', [
-                    {'value': 'moniepoint', 'label': 'Moniepoint'},
-                    {'value': 'opay', 'label': 'Opay'},
-                    {'value': 'other', 'label': 'Other'},
-                  ]),
-                  if (isMoniepoint) ...[
-                    const SizedBox(height: 16),
-                    _buildDropdown('Do you have a Moniepoint account?', 'hasAccount', [
-                      {'value': 'yes', 'label': 'Yes'},
-                      {'value': 'no', 'label': 'No'},
-                    ]),
-                  ],
-                  if (isMoniepoint && hasAccount) ...[
-                    const SizedBox(height: 16),
-                    _buildDropdown('Which Tier is your account?', 'tier', [
-                      {'value': '1', 'label': 'Tier 1'},
-                      {'value': '2', 'label': 'Tier 2'},
-                      {'value': '3', 'label': 'Tier 3'},
-                    ]),
-                  ],
-                  if (noAccountFlow || (isMoniepoint && hasAccount && ['1', '2', '3'].contains(tier))) ...[
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: context.cardColor,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: context.dividerColor),
-                      ),
-                      child: Column(
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: _loadingSettings
+                  ? const Center(child: CircularProgressIndicator())
+                  : RefreshIndicator(
+                      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                      edgeOffset: 76,
+                      onRefresh: () async {
+                        await _fetchSettings();
+                      },
+                      color: AppTheme.primaryColor,
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        padding: const EdgeInsets.fromLTRB(16.0, 76.0, 16.0, 16.0),
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (noAccountFlow || ['1', '2', '3'].contains(tier))
-                            PremiumTextField(
-                              label: 'BVN or NIN used for account',
-                              hintText: 'Enter 11-digit BVN/NIN',
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) => _updateField('bvnNin', v),
+                            _buildHeaderCard(),
+                            const SizedBox(height: 20),
+                            _buildDropdown('POS Provider', 'provider', [
+                              {'value': 'moniepoint', 'label': 'Moniepoint'},
+                              {'value': 'opay', 'label': 'Opay'},
+                              {'value': 'other', 'label': 'Other'},
+                            ]),
+                            if (isMoniepoint) ...[
+                              const SizedBox(height: 16),
+                              _buildDropdown('Do you have a Moniepoint account?', 'hasAccount', [
+                                {'value': 'yes', 'label': 'Yes'},
+                                {'value': 'no', 'label': 'No'},
+                              ]),
+                            ],
+                            if (isMoniepoint && hasAccount) ...[
+                              const SizedBox(height: 16),
+                              _buildDropdown('Which Tier is your account?', 'tier', [
+                                {'value': '1', 'label': 'Tier 1'},
+                                {'value': '2', 'label': 'Tier 2'},
+                                {'value': '3', 'label': 'Tier 3'},
+                              ]),
+                            ],
+                            if (noAccountFlow || (isMoniepoint && hasAccount && ['1', '2', '3'].contains(tier))) ...[
+                              const SizedBox(height: 20),
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: context.cardColor,
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: context.dividerColor),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (noAccountFlow || ['1', '2', '3'].contains(tier))
+                                      PremiumTextField(
+                                        label: 'BVN or NIN used for account',
+                                        hintText: 'Enter 11-digit BVN/NIN',
+                                        keyboardType: TextInputType.number,
+                                        onChanged: (v) => _updateField('bvnNin', v),
+                                      ),
+                                    if (noAccountFlow || tier == '1') ...[
+                                      const SizedBox(height: 12),
+                                      PremiumTextField(
+                                        label: 'Phone Number',
+                                        hintText: '080...',
+                                        keyboardType: TextInputType.phone,
+                                        onChanged: (v) => _updateField('phone', v),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      PremiumTextField(
+                                        label: 'Email Address',
+                                        hintText: 'example@mail.com',
+                                        keyboardType: TextInputType.emailAddress,
+                                        onChanged: (v) => _updateField('email', v),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      const Text('Next of Kin Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      const SizedBox(height: 12),
+                                      PremiumTextField(label: 'Name', hintText: 'Next of Kin Name', onChanged: (v) => _updateField('nokName', v)),
+                                      const SizedBox(height: 12),
+                                      PremiumTextField(label: 'Phone', hintText: 'Next of Kin Phone', keyboardType: TextInputType.phone, onChanged: (v) => _updateField('nokPhone', v)),
+                                      const SizedBox(height: 12),
+                                      PremiumTextField(label: 'Email', hintText: 'Next of Kin Email', keyboardType: TextInputType.emailAddress, onChanged: (v) => _updateField('nokEmail', v)),
+                                      const SizedBox(height: 12),
+                                      PremiumTextField(label: 'Address', hintText: 'Next of Kin Address', onChanged: (v) => _updateField('nokAddress', v)),
+                                    ],
+                                    if (noAccountFlow || ['1', '2'].contains(tier)) ...[
+                                      const SizedBox(height: 16),
+                                      PremiumTextField(label: 'Residential Address', hintText: 'Your Address', onChanged: (v) => _updateField('address', v)),
+                                      const SizedBox(height: 12),
+                                      _buildUploadButton('proofOfAddressUrl', 'Upload Proof of Address'),
+                                    ],
+                                    if (noAccountFlow) ...[
+                                      const SizedBox(height: 16),
+                                      PremiumTextField(label: 'Business Address', hintText: 'Your Business Address', onChanged: (v) => _updateField('businessAddress', v)),
+                                      const SizedBox(height: 12),
+                                      _buildCategoryDropdown(),
+                                      const SizedBox(height: 12),
+                                      _buildUploadButton('userPictureUrl', 'Upload Your Picture'),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                            if (_formData['provider'] != null) ...[
+                              const SizedBox(height: 20),
+                              const Text('Select POS Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                              const SizedBox(height: 12),
+                              _buildPosTypeSelector(),
+                              const SizedBox(height: 20),
+                              _buildDropdown('Payment Option', 'subType', [
+                                {'value': 'PAY_MONEY', 'label': 'Pay POS Fee'},
+                                {'value': 'FEE_WAIVER', 'label': 'Fee Waiver (0 NGN)'},
+                              ]),
+                              if (_formData['subType'] == 'FEE_WAIVER') ...[
+                                const SizedBox(height: 16),
+                                _buildUploadButton('proofOfBusinessUrl', 'Upload Proof of Business (Shop Photo/Cert)'),
+                              ],
+                            ],
+                            const SizedBox(height: 32),
+                            PremiumButton(
+                              text: 'Submit POS Request',
+                              onPressed: _submitting ? null : _submit,
+                              isLoading: _submitting,
                             ),
-                          if (noAccountFlow || tier == '1') ...[
-                            const SizedBox(height: 12),
-                            PremiumTextField(
-                              label: 'Phone Number',
-                              hintText: '080...',
-                              keyboardType: TextInputType.phone,
-                              onChanged: (v) => _updateField('phone', v),
-                            ),
-                            const SizedBox(height: 12),
-                            PremiumTextField(
-                              label: 'Email Address',
-                              hintText: 'example@mail.com',
-                              keyboardType: TextInputType.emailAddress,
-                              onChanged: (v) => _updateField('email', v),
-                            ),
-                            const SizedBox(height: 16),
-                            const Text('Next of Kin Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            const SizedBox(height: 12),
-                            PremiumTextField(label: 'Name', hintText: 'Next of Kin Name', onChanged: (v) => _updateField('nokName', v)),
-                            const SizedBox(height: 12),
-                            PremiumTextField(label: 'Phone', hintText: 'Next of Kin Phone', keyboardType: TextInputType.phone, onChanged: (v) => _updateField('nokPhone', v)),
-                            const SizedBox(height: 12),
-                            PremiumTextField(label: 'Email', hintText: 'Next of Kin Email', keyboardType: TextInputType.emailAddress, onChanged: (v) => _updateField('nokEmail', v)),
-                            const SizedBox(height: 12),
-                            PremiumTextField(label: 'Address', hintText: 'Next of Kin Address', onChanged: (v) => _updateField('nokAddress', v)),
+                            const SizedBox(height: 32),
                           ],
-                          if (noAccountFlow || ['1', '2'].contains(tier)) ...[
-                            const SizedBox(height: 16),
-                            PremiumTextField(label: 'Residential Address', hintText: 'Your Address', onChanged: (v) => _updateField('address', v)),
-                            const SizedBox(height: 12),
-                            _buildUploadButton('proofOfAddressUrl', 'Upload Proof of Address'),
-                          ],
-                          if (noAccountFlow) ...[
-                            const SizedBox(height: 16),
-                            PremiumTextField(label: 'Business Address', hintText: 'Your Business Address', onChanged: (v) => _updateField('businessAddress', v)),
-                            const SizedBox(height: 12),
-                            _buildCategoryDropdown(),
-                            const SizedBox(height: 12),
-                            _buildUploadButton('userPictureUrl', 'Upload Your Picture'),
-                          ],
-                        ],
+                        ),
                       ),
                     ),
-                  ],
-                  if (_formData['provider'] != null) ...[
-                    const SizedBox(height: 20),
-                    const Text('Select POS Type', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    const SizedBox(height: 12),
-                    _buildPosTypeSelector(),
-                    const SizedBox(height: 20),
-                    _buildDropdown('Payment Option', 'subType', [
-                      {'value': 'PAY_MONEY', 'label': 'Pay POS Fee'},
-                      {'value': 'FEE_WAIVER', 'label': 'Fee Waiver (0 NGN)'},
-                    ]),
-                    if (_formData['subType'] == 'FEE_WAIVER') ...[
-                      const SizedBox(height: 16),
-                      _buildUploadButton('proofOfBusinessUrl', 'Upload Proof of Business (Shop Photo/Cert)'),
-                    ],
-                  ],
-                  const SizedBox(height: 32),
-                  PremiumButton(
-                    text: 'Submit POS Request',
-                    onPressed: _submitting ? null : _submit,
-                    isLoading: _submitting,
-                  ),
-                  const SizedBox(height: 32),
-                ],
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'POS Request',
+                onBackPressed: () => Navigator.pop(context),
               ),
             ),
+          ],
+        ),
+      ),
     );
   }
 

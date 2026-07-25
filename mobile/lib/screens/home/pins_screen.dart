@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../core/app_theme.dart';
+import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 
@@ -88,34 +90,61 @@ class _PinsScreenState extends State<PinsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Buy Pins')),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _services.isEmpty
-              ? const Center(child: Text('No services available'))
-              : ListView(
-                  padding: const EdgeInsets.all(16.0),
-                  children: [
-                    DropdownButtonFormField<dynamic>(
-                      initialValue: _selectedService,
-                      items: _services.map((s) => DropdownMenuItem(value: s, child: Text('${s['name']} - ₦${s['price']}' ))).toList(),
-                      onChanged: (val) => setState(() => _selectedService = val),
-                      decoration: const InputDecoration(labelText: 'Select Pin Plan'),
-                    ),
-                    if (_selectedService != null && _selectedService['type'] == 'recharge_card') ...[
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _businessNameController,
-                        decoration: const InputDecoration(labelText: 'Business Name (optional)'),
-                      ),
-                    ],
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _purchaseLoading || _selectedService == null ? null : _handlePurchase,
-                      child: _purchaseLoading ? const CircularProgressIndicator() : const Text('Purchase'),
-                    ),
-                  ],
-                ),
+      backgroundColor: context.scaffoldBg,
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _services.isEmpty
+                      ? const Center(child: Text('No services available'))
+                      : RefreshIndicator(
+                          triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                          edgeOffset: 76,
+                          onRefresh: () async {
+                            _fetchServices();
+                          },
+                          color: AppTheme.primaryColor,
+                          child: ListView(
+                            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                            padding: const EdgeInsets.fromLTRB(16.0, 76.0, 16.0, 16.0),
+                            children: [
+                              DropdownButtonFormField<dynamic>(
+                                initialValue: _selectedService,
+                                items: _services.map((s) => DropdownMenuItem(value: s, child: Text('${s['name']} - ₦${s['price']}' ))).toList(),
+                                onChanged: (val) => setState(() => _selectedService = val),
+                                decoration: const InputDecoration(labelText: 'Select Pin Plan'),
+                              ),
+                              if (_selectedService != null && _selectedService['type'] == 'recharge_card') ...[
+                                const SizedBox(height: 10),
+                                TextFormField(
+                                  controller: _businessNameController,
+                                  decoration: const InputDecoration(labelText: 'Business Name (optional)'),
+                                ),
+                              ],
+                              const SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: _purchaseLoading || _selectedService == null ? null : _handlePurchase,
+                                child: _purchaseLoading ? const CircularProgressIndicator() : const Text('Purchase'),
+                              ),
+                            ],
+                          ),
+                        ),
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: FloatingScreenHeader(
+                title: 'Buy Pins',
+                onBackPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

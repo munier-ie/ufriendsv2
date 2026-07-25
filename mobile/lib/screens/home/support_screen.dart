@@ -154,25 +154,31 @@ class _SupportScreenState extends State<SupportScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : _messages.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.support_agent, size: 80, color: Colors.grey.shade300),
-                              const SizedBox(height: 16),
-                              const Text('No support requests yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                              const SizedBox(height: 8),
-                              const Text('Need help? Create a new request and\nour team will assist you.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
-                            ],
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.all(20),
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _messages.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.support_agent, size: 80, color: Colors.grey.shade300),
+                            const SizedBox(height: 16),
+                            const Text('No support requests yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            const Text('Need help? Create a new request and\nour team will assist you.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                      )
+                    : RefreshIndicator(
+                        triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                        edgeOffset: 76,
+                        onRefresh: () async {
+                          _fetchMessages();
+                        },
+                        color: AppTheme.primaryColor,
+                        child: ListView.separated(
+                          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                          padding: const EdgeInsets.fromLTRB(20.0, 76.0, 20.0, 20.0),
                           itemCount: _messages.length,
                           separatorBuilder: (context, index) => const SizedBox(height: 16),
                           itemBuilder: (context, index) {
@@ -269,8 +275,8 @@ class _SupportScreenState extends State<SupportScreen> {
                             );
                           },
                         ),
+                      ),
             ),
-          ),
             Positioned(
               top: 0,
               left: 0,

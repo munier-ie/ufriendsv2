@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'http_client.dart' as http;
 import 'constants.dart';
 import 'auth_service.dart';
+import 'api_cache.dart';
 import '../main.dart';
 import '../screens/auth/login_screen.dart';
 import 'package:flutter/material.dart';
@@ -218,6 +219,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getProfile() async {
+    const cacheKey = 'profile';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'user': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -232,6 +239,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlProfile);
         return {'success': true, 'user': data};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch profile'};
@@ -241,6 +249,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getTransactions({int limit = 50, String? type}) async {
+    final cacheKey = 'transactions_${limit}_${type ?? 'all'}';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'transactions': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       String url = '${AppConstants.baseUrl}/wallet/transactions?limit=$limit';
@@ -259,6 +273,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data['transactions'], ttl: ApiCache.ttlTransactions);
         return {'success': true, 'transactions': data['transactions']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch transactions'};
@@ -291,6 +306,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getBeneficiaries() async {
+    const cacheKey = 'beneficiaries';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'beneficiaries': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -305,6 +326,7 @@ class ApiService {
       }
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlBeneficiaries);
         return {'success': true, 'beneficiaries': data};
       }
       return {'success': false, 'error': 'Failed to fetch beneficiaries'};
@@ -314,6 +336,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getWalletStats() async {
+    const cacheKey = 'wallet_stats';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'stats': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -328,6 +356,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlWalletStats);
         return {'success': true, 'stats': data};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch stats'};
@@ -337,6 +366,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getChartData(String period) async {
+    final cacheKey = 'chart_$period';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'chartData': cached['chartData'], 'daysCount': cached['daysCount']};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -351,6 +386,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, {'chartData': data['chartData'], 'daysCount': data['daysCount']}, ttl: ApiCache.ttlWalletStats);
         return {'success': true, 'chartData': data['chartData'], 'daysCount': data['daysCount']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch chart data'};
@@ -359,19 +395,15 @@ class ApiService {
     }
   }
 
-  static final Map<String, dynamic> _cache = {};
-  static final Map<String, DateTime> _cacheTime = {};
-
   static void clearCache() {
-    _cache.clear();
-    _cacheTime.clear();
+    ApiCache.clearAll();
   }
 
   static Future<Map<String, dynamic>> getServices(String type) async {
     final cacheKey = 'services_$type';
-    if (_cache.containsKey(cacheKey) && 
-        _cacheTime[cacheKey]!.isAfter(DateTime.now().subtract(const Duration(minutes: 5)))) {
-      return {'success': true, 'services': _cache[cacheKey]};
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'services': cached};
     }
 
     try {
@@ -388,8 +420,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
-        _cache[cacheKey] = data['services'];
-        _cacheTime[cacheKey] = DateTime.now();
+        ApiCache.set(cacheKey, data['services'], ttl: ApiCache.ttlServices);
         return {'success': true, 'services': data['services']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch services'};
@@ -399,6 +430,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getVirtualAccounts() async {
+    const cacheKey = 'virtual_accounts';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'accounts': cached['accounts'], 'kycStatus': cached['kycStatus']};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -413,6 +450,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, {'accounts': data['accounts'], 'kycStatus': data['kycStatus']}, ttl: ApiCache.ttlVirtualAccounts);
         return {
           'success': true, 
           'accounts': data['accounts'],
@@ -440,6 +478,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200 && data['success'] == true) {
+        ApiCache.bust('virtual_accounts');
         return {'success': true, 'account': data['account']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to create account'};
@@ -520,6 +559,8 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'wallet_stats']);
+        ApiCache.bustPrefix('transactions');
         return {'success': true, 'data': data};
       }
       return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
@@ -574,6 +615,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.bust('profile');
         return {'success': true, 'message': data['message']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to reset PIN'};
@@ -604,6 +646,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.bust('profile');
         return {'success': true, 'message': data['message']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to update PIN'};
@@ -613,6 +656,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getNotifications() async {
+    const cacheKey = 'notifications';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'notifications': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -627,6 +676,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data['notifications'], ttl: ApiCache.ttlNotifications);
         return {'success': true, 'notifications': data['notifications']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch notifications'};
@@ -650,6 +700,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.bust('notifications');
         return {'success': true, 'message': data['message']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to mark notifications as read'};
@@ -673,6 +724,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.bust('notifications');
         return {'success': true, 'message': data['message']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to delete notification'};
@@ -801,6 +853,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getPinsServices() async {
+    const cacheKey = 'pins_services';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'services': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -815,6 +873,7 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlServices);
         return {'success': true, 'services': data};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch pins services'};
@@ -851,6 +910,8 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'wallet_stats']);
+        ApiCache.bustPrefix('transactions');
         return {'success': true, 'data': data};
       }
       return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
@@ -887,6 +948,8 @@ class ApiService {
         return {'success': false, 'error': 'Session expired. Please log in again.'};
       }
       if (response.statusCode == 200 || response.statusCode == 201) {
+        ApiCache.bustKeys(['profile', 'wallet_stats']);
+        ApiCache.bustPrefix('transactions');
         return {'success': true, 'pins': data['pins']};
       }
       return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
@@ -898,6 +961,12 @@ class ApiService {
   // ─── Government / Professional Services ─────────────────────────────────────
 
   static Future<Map<String, dynamic>> getBvnPricing() async {
+    const cacheKey = 'bvn_pricing';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -906,7 +975,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlGovPricing);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch BVN pricing'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -914,6 +986,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> getNinPricing() async {
+    const cacheKey = 'nin_pricing';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -922,7 +1000,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlGovPricing);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch NIN pricing'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -947,6 +1028,8 @@ class ApiService {
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile']);
+        ApiCache.bustPrefix('transactions');
         return {'success': true, 'report': data['report'], 'message': data['message']};
       }
       return {'success': false, 'error': data['error'] ?? 'Request failed'};
@@ -955,6 +1038,12 @@ class ApiService {
     }
   }
   static Future<Map<String, dynamic>> fetchCacPricing() async {
+    const cacheKey = 'cac_pricing';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -963,7 +1052,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlGovPricing);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch CAC pricing'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -971,6 +1063,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> fetchCacHistory() async {
+    const cacheKey = 'cac_history';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -979,7 +1077,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data['registrations']};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data['registrations'], ttl: ApiCache.ttlServices);
+        return {'success': true, 'data': data['registrations']};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch CAC history'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1018,6 +1119,8 @@ class ApiService {
       
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'cac_history']);
+        ApiCache.bustPrefix('transactions');
         return {'success': true, 'message': data['message']};
       }
       return {'success': false, 'error': data['error'] ?? 'Registration failed'};
@@ -1029,6 +1132,12 @@ class ApiService {
   // ── Manual Services (NIN/BVN Professional Services) ──
 
   static Future<Map<String, dynamic>> fetchManualServicePricing() async {
+    const cacheKey = 'manual_pricing';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1037,7 +1146,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlGovPricing);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch pricing'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1045,6 +1157,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> fetchManualServiceHistory() async {
+    const cacheKey = 'manual_history';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1053,7 +1171,11 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data['requests'] ?? []};
+      if (response.statusCode == 200) {
+        final list = data['requests'] ?? [];
+        ApiCache.set(cacheKey, list, ttl: ApiCache.ttlServices);
+        return {'success': true, 'data': list};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch history'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1084,6 +1206,8 @@ class ApiService {
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'manual_history']);
+        ApiCache.bustPrefix('transactions');
         return {'success': true, 'message': data['message'] ?? 'Request submitted', 'bvn': data['bvn']};
       }
       return {'success': false, 'error': data['error'] ?? 'Submission failed'};
@@ -1119,6 +1243,12 @@ class ApiService {
   // ── Academy ──
 
   static Future<Map<String, dynamic>> fetchAcademyContent() async {
+    const cacheKey = 'academy';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1127,7 +1257,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlAcademy);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to load academy content'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1163,7 +1296,11 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'academy']);
+        ApiCache.bustPrefix('transactions');
+        return {'success': true, 'message': data['message']};
+      }
       return {'success': false, 'error': data['error'] ?? 'Purchase failed'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1173,6 +1310,12 @@ class ApiService {
   // ── Account Upgrade ──
 
   static Future<Map<String, dynamic>> fetchUpgradePlans() async {
+    const cacheKey = 'upgrade_plans';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1181,7 +1324,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlUpgradePlans);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch upgrade plans'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1201,7 +1347,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'upgrade_plans']);
+        return {'success': true, 'message': data['message']};
+      }
       return {'success': false, 'error': data['error'] ?? 'Upgrade failed'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1211,6 +1360,12 @@ class ApiService {
   // ── Support ──
 
   static Future<Map<String, dynamic>> getSupportMessages() async {
+    const cacheKey = 'support_messages';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'messages': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1219,7 +1374,11 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'messages': data['messages'] ?? []};
+      if (response.statusCode == 200) {
+        final list = data['messages'] ?? [];
+        ApiCache.set(cacheKey, list, ttl: ApiCache.ttlSupport);
+        return {'success': true, 'messages': list};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch messages'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1239,7 +1398,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200 || response.statusCode == 201) return {'success': true, 'data': data['data']};
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        ApiCache.bust('support_messages');
+        return {'success': true, 'data': data['data']};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to send message'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1249,6 +1411,12 @@ class ApiService {
   // ── Pricing ──
 
   static Future<Map<String, dynamic>> getPricingServices() async {
+    const cacheKey = 'pricing_services';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'services': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1257,7 +1425,11 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'services': data['services'] ?? []};
+      if (response.statusCode == 200) {
+        final list = data['services'] ?? [];
+        ApiCache.set(cacheKey, list, ttl: ApiCache.ttlServices);
+        return {'success': true, 'services': list};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch services'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1267,6 +1439,12 @@ class ApiService {
   // ── Referrals ──
 
   static Future<Map<String, dynamic>> getReferralStats() async {
+    const cacheKey = 'referral_stats';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'data': cached};
+    }
+
     try {
       final token = await AuthService.getToken();
       final response = await http.get(
@@ -1275,7 +1453,10 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'data': data};
+      if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data, ttl: ApiCache.ttlReferrals);
+        return {'success': true, 'data': data};
+      }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch stats'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1301,7 +1482,11 @@ class ApiService {
       );
       if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
       final data = jsonDecode(response.body);
-      if (response.statusCode == 200) return {'success': true, 'message': data['message']};
+      if (response.statusCode == 200) {
+        ApiCache.bustKeys(['profile', 'referral_stats']);
+        ApiCache.bustPrefix('transactions');
+        return {'success': true, 'message': data['message']};
+      }
       return {'success': false, 'error': data['error'] ?? 'Withdrawal failed'};
     } catch (e) {
       return {'success': false, 'error': 'Network error'};
@@ -1423,6 +1608,12 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> fetchPublicSettings() async {
+    const cacheKey = 'public_settings';
+    final cached = ApiCache.get(cacheKey);
+    if (cached != null) {
+      return {'success': true, 'settings': cached};
+    }
+
     try {
       final response = await http.get(
         Uri.parse('${AppConstants.baseUrl}/admin/config/public-settings'),
@@ -1430,6 +1621,7 @@ class ApiService {
       );
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
+        ApiCache.set(cacheKey, data['settings'], ttl: ApiCache.ttlPublicSettings);
         return {'success': true, 'settings': data['settings']};
       }
       return {'success': false, 'error': data['error'] ?? 'Failed to fetch settings'};

@@ -76,6 +76,7 @@ class _WalletScreenState extends State<WalletScreen> {
         await widget.onRefresh();
       },
       child: ListView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         padding: EdgeInsets.only(
           top: widget.topPadding,
           bottom: widget.bottomPadding,

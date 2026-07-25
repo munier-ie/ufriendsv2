@@ -28,6 +28,14 @@ axios.interceptors.response.use(
     }
 );
 
+// ─── Offline Interceptor ──────────────────────────────────────────────────────
+axios.interceptors.request.use((config) => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+        return Promise.reject(new Error('No Internet: Please check your connection'));
+    }
+    return config;
+});
+
 // ─── Frontend GET Cache Interceptors ─────────────────────────────────────────
 // REQUEST: If the URL is whitelisted and we have a fresh cached entry,
 //          swap the adapter so Axios returns the cached data immediately
@@ -178,6 +186,7 @@ const PageLoader = () => (
 );
 
 import ScrollToTop from './components/ScrollToTop';
+import OfflineBanner from './components/OfflineBanner';
 
 export default function App() {
     useEffect(() => {
@@ -201,6 +210,7 @@ export default function App() {
 
     return (
         <Router>
+            <OfflineBanner />
             <ScrollToTop />
             <Suspense fallback={<PageLoader />}>
                 <Routes>

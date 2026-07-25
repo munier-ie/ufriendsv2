@@ -106,23 +106,25 @@ class _KycScreenState extends State<KycScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.surfaceColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'KYC Verification',
-          style: TextStyle(color: AppTheme.secondaryColor, fontWeight: FontWeight.bold),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.secondaryColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
           children: [
+            Positioned.fill(
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(24.0, 76.0, 24.0, 24.0),
+                  child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
             // Centered shield icon with dodger blue background circle
             Container(
               width: 90,
@@ -256,6 +258,20 @@ class _KycScreenState extends State<KycScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+    ),
+    Positioned(
+    top: 0,
+    left: 0,
+    right: 0,
+    child: FloatingScreenHeader(
+      title: 'KYC Verification',
+      onBackPressed: () => Navigator.pop(context),
+    ),
+  ),
+],
+),
+),
+);
+}
 }

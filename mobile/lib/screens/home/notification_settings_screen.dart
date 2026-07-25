@@ -70,21 +70,23 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.scaffoldBg,
-      appBar: AppBar(
-        backgroundColor: context.cardColor,
-        elevation: 0,
-        title: Text(
-          'Notification Settings',
-          style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: AppTheme.secondaryColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: ListView(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(20.0, 76.0, 20.0, 20.0),
+                  children: [
           _buildSection(
             'General Notifications',
             [
@@ -155,8 +157,22 @@ class _NotificationSettingsScreenState extends State<NotificationSettingsScreen>
           ),
         ],
       ),
-    );
-  }
+    ),
+    ),
+    Positioned(
+    top: 0,
+    left: 0,
+    right: 0,
+    child: FloatingScreenHeader(
+      title: 'Notification Settings',
+      onBackPressed: () => Navigator.pop(context),
+    ),
+  ),
+],
+),
+),
+);
+}
 
   Widget _buildSection(String title, List<Widget> children) {
     return Column(

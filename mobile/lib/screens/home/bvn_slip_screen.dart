@@ -5,6 +5,8 @@ import '../../core/api_service.dart';
 import 'pin_screen.dart';
 import 'slip_preview_screen.dart';
 
+import '../../core/connectivity_service.dart';
+
 class BvnSlipScreen extends StatefulWidget {
   const BvnSlipScreen({super.key});
 
@@ -146,6 +148,8 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
   }
 
   void _onSubmit() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     final bvn = _controller.text.trim();
     if (bvn.length != 11) {
       AppToast.show(context, message: 'BVN must be exactly 11 digits', type: ToastType.warning);
@@ -207,28 +211,30 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    Text(
-                      'BVN Slip Service',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryColor,
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.fromLTRB(24.0, 76.0, 24.0, 24.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - 100),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                      Text(
+                        'Verify your BVN and generate a premium bank verification slip instantly.',
+                        style: TextStyle(color: context.textSecondary, fontSize: 14),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Verify your BVN and generate a premium bank verification slip instantly.',
-                      style: TextStyle(color: context.textSecondary, fontSize: 16),
-                    ),
-                    const SizedBox(height: 40),
+                      const SizedBox(height: 20),
 
                     // ── BVN Input
                     _sectionLabel('11-Digit BVN'),
@@ -289,34 +295,35 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
                       ),
                     ],
 
-                    const SizedBox(height: 32),
-
                     GradientButton(
                       text: 'Verify & Generate BVN Slip',
                       icon: Icons.verified_rounded,
                       onPressed: _loading ? () {} : _onSubmit,
                       loading: _loading,
                     ),
-                    const SizedBox(height: 40),
                   ],
                 ),
               ),
             ),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: FloatingScreenHeader(
-              title: 'BVN Slip Service',
-              onBackPressed: () => Navigator.pop(context),
-            ),
-          ),
-        ],
+          );
+        },
       ),
-      ),
-    );
-  }
+    ),
+  ),
+  Positioned(
+    top: 0,
+    left: 0,
+    right: 0,
+    child: FloatingScreenHeader(
+      title: 'BVN Slip Service',
+      onBackPressed: () => Navigator.pop(context),
+    ),
+  ),
+],
+),
+),
+);
+}
 
   Widget _sectionLabel(String text) => Padding(
         padding: const EdgeInsets.only(bottom: 4),

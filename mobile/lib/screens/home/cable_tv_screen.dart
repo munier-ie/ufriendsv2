@@ -6,6 +6,8 @@ import 'pin_screen.dart';
 import 'transaction_status_screen.dart';
 import '../../main.dart';
 
+import '../../core/connectivity_service.dart';
+
 class CableTvScreen extends StatefulWidget {
   const CableTvScreen({super.key});
 
@@ -105,7 +107,9 @@ class _CableTvScreenState extends State<CableTvScreen> {
     }
   }
 
-  void _showConfirmationDrawer() {
+  Future<void> _showConfirmationDrawer() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     if (_selectedProvider == null || _selectedPlan == null || _verifiedName == null) {
       AppToast.show(context, message: 'Please complete all steps', type: ToastType.warning);
       return;
@@ -283,31 +287,30 @@ class _CableTvScreenState extends State<CableTvScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: Column(
-                  children: [
-                    Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                    Text(
-                      'Cable TV',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.primaryColor,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Renew your DSTV, GOTV & Startimes subscriptions.',
-                      style: TextStyle(color: context.textSecondary, fontSize: 14),
-                    ),
-                    const SizedBox(height: 40),
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.fromLTRB(24.0, 76.0, 24.0, 24.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - 100),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                            Text(
+                              'Renew your DSTV, GOTV & Startimes subscriptions.',
+                              style: TextStyle(color: context.textSecondary, fontSize: 14),
+                            ),
+                            const SizedBox(height: 20),
                     
                     Text(
                       'Select Provider',
@@ -494,11 +497,12 @@ class _CableTvScreenState extends State<CableTvScreen> {
                 ),
               ),
             ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
+          );
+        },
+      ),
+    ),
+  ),
+  Positioned(
               top: 0,
               left: 0,
               right: 0,

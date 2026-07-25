@@ -71,13 +71,19 @@ class _PricingScreenState extends State<PricingScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await _fetchPricing();
+                },
+                color: AppTheme.primaryColor,
                 child: Column(
-                  children: [
-                    // Search Bar
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                children: [
+                  const SizedBox(height: 76),
+                  // Search Bar
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: TextField(
                         onChanged: (val) => setState(() => _searchQuery = val),
                         decoration: InputDecoration(
@@ -210,6 +216,7 @@ class _PricingScreenState extends State<PricingScreen> {
                           : filteredServices.isEmpty
                               ? const Center(child: Text('No services found.', style: TextStyle(color: Colors.grey)))
                               : ListView.separated(
+                                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                                   itemCount: filteredServices.length,
                                   separatorBuilder: (context, index) => const Divider(height: 24),

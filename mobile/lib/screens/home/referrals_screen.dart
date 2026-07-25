@@ -96,16 +96,19 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: Column(
-                  children: [
-                    Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
-                  : SingleChildScrollView(
-                      padding: const EdgeInsets.all(24.0),
-                      child: Column(
+                  : RefreshIndicator(
+                      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                      edgeOffset: 76,
+                      onRefresh: () async {
+                        await _fetchStats();
+                      },
+                      color: AppTheme.primaryColor,
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                        padding: const EdgeInsets.fromLTRB(24.0, 76.0, 24.0, 24.0),
+                        child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
@@ -360,10 +363,7 @@ class _ReferralsScreenState extends State<ReferralsScreen> {
                         ],
                       ),
                     ),
-            ),
-                  ],
-                ),
-              ),
+                    ),
             ),
             Positioned(
               top: 0,

@@ -385,6 +385,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
       },
       color: AppTheme.primaryColor,
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           SliverPadding(
             padding: EdgeInsets.fromLTRB(16, widget.topPadding, 16, 8),

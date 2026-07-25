@@ -6,6 +6,8 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 
+import '../../core/connectivity_service.dart';
+
 class BvnServicesScreen extends StatefulWidget {
   final String? initialService;
   const BvnServicesScreen({super.key, this.initialService});
@@ -165,6 +167,8 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
   }
 
   Future<void> _submitRequest(String serviceType, String? subType) async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -208,51 +212,55 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: Column(
-                children: [
-                  // Tab Bar
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Container(
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: context.dividerColor,
-                        borderRadius: BorderRadius.circular(23),
-                      ),
-                      child: TabBar(
-                        controller: _tabController,
-                        indicatorSize: TabBarIndicatorSize.tab,
-                        indicator: BoxDecoration(
-                          color: AppTheme.secondaryColor,
-                          borderRadius: BorderRadius.circular(23),
-                        ),
-                        labelColor: Colors.white,
-                        unselectedLabelColor: context.textSecondary,
-                        tabs: const [
-                          Tab(text: 'Services'),
-                          Tab(text: 'History'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: _loadingSettings
-                        ? const Center(child: CircularProgressIndicator())
-                        : TabBarView(
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await _fetchHistory();
+                },
+                color: AppTheme.primaryColor,
+                child: NestedScrollView(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 76, 24, 16),
+                        child: Container(
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: context.dividerColor,
+                            borderRadius: BorderRadius.circular(23),
+                          ),
+                          child: TabBar(
                             controller: _tabController,
-                            children: [
-                              _buildServicesTab(),
-                              _buildHistoryTab(),
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            indicator: BoxDecoration(
+                              color: AppTheme.secondaryColor,
+                              borderRadius: BorderRadius.circular(23),
+                            ),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: context.textSecondary,
+                            tabs: const [
+                              Tab(text: 'Services'),
+                              Tab(text: 'History'),
                             ],
                           ),
-                  ),
-                ],
+                        ),
+                      ),
+                    ),
+                  ],
+                  body: _loadingSettings
+                      ? const Center(child: CircularProgressIndicator())
+                      : TabBarView(
+                          controller: _tabController,
+                          children: [
+                            _buildServicesTab(),
+                            _buildHistoryTab(),
+                          ],
+                        ),
+                ),
               ),
             ),
-          ),
           Positioned(
             top: 0,
             left: 0,
@@ -270,6 +278,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
 
   Widget _buildServicesTab() {
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -731,15 +740,12 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
       );
     }
 
-    return RefreshIndicator(
-      triggerMode: RefreshIndicatorTriggerMode.anywhere,
-      onRefresh: _fetchHistory,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(24),
-        itemCount: bvnHistory.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (context, index) => _buildHistoryCard(bvnHistory[index]),
-      ),
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      itemCount: bvnHistory.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => _buildHistoryCard(bvnHistory[index]),
     );
   }
 

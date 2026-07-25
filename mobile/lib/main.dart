@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'screens/auth/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'theme_state.dart';
+import 'core/connectivity_service.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
@@ -17,6 +18,9 @@ const String _channelDescription = 'Notifications for transactions and wallet ac
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize connectivity monitoring asynchronously (non-blocking)
+  ConnectivityService.initialize();
 
   // Create the Android notification channel BEFORE initializing the plugin
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -66,6 +70,8 @@ void main() async {
 }
 
 class UfriendsScrollBehavior extends ScrollBehavior {
+  const UfriendsScrollBehavior();
+
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
     return const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
@@ -73,10 +79,7 @@ class UfriendsScrollBehavior extends ScrollBehavior {
 
   @override
   Widget buildOverscrollIndicator(BuildContext context, Widget child, ScrollableDetails details) {
-    return StretchingOverscrollIndicator(
-      axisDirection: details.direction,
-      child: child,
-    );
+    return child;
   }
 }
 
@@ -93,9 +96,71 @@ class UfriendsApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           scrollBehavior: UfriendsScrollBehavior(),
           theme: themeState.themeData,
+          builder: (context, child) {
+            return OfflineBannerWrapper(child: child ?? const SizedBox());
+          },
           home: const SplashScreen(),
         );
       },
+    );
+  }
+}
+
+class OfflineBannerWrapper extends StatefulWidget {
+  final Widget child;
+  const OfflineBannerWrapper({super.key, required this.child});
+
+  @override
+  State<OfflineBannerWrapper> createState() => _OfflineBannerWrapperState();
+}
+
+class _OfflineBannerWrapperState extends State<OfflineBannerWrapper> {
+  bool _isOffline = !ConnectivityService.isOnline;
+
+  @override
+  void initState() {
+    super.initState();
+    ConnectivityService.onConnectivityChanged.listen((isOnline) {
+      if (mounted) {
+        setState(() {
+          _isOffline = !isOnline;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        if (_isOffline)
+          Material(
+            color: Colors.red.shade700,
+            child: SafeArea(
+              bottom: false,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.wifi_off_rounded, color: Colors.white, size: 18),
+                    SizedBox(width: 8),
+                    Text(
+                      'No Internet: Please check your connection',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        Expanded(child: widget.child),
+      ],
     );
   }
 }

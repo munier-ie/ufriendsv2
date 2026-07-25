@@ -6,6 +6,8 @@ import 'pin_screen.dart';
 import 'transaction_status_screen.dart';
 import '../../main.dart';
 
+import '../../core/connectivity_service.dart';
+
 class DataPinsScreen extends StatefulWidget {
   const DataPinsScreen({super.key});
 
@@ -228,6 +230,8 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
   }
 
   void _onProceed() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     if (_selectedNetwork == null) {
       AppToast.show(context, message: 'Please select a network', type: ToastType.warning);
       return;
@@ -324,33 +328,32 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: Column(
-                  children: [
-                    Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.05),
-                      Text(
-                        'Data Cards (Pins)',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.primaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Generate data pins for offline recharge.',
-                        style: TextStyle(color: context.textSecondary, fontSize: 16),
-                      ),
-                      const SizedBox(height: 40),
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.fromLTRB(24.0, 76.0, 24.0, 24.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - 100),
+                        child: IntrinsicHeight(
+                          child: Form(
+                            key: _formKey,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                              Text(
+                                'Generate data pins for offline recharge.',
+                                style: TextStyle(color: context.textSecondary, fontSize: 14),
+                              ),
+                              const SizedBox(height: 20),
 
                       // Network Selector
                       Text(
@@ -515,11 +518,12 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
                 ),
               ),
             ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
+          );
+        },
+      ),
+    ),
+  ),
+  Positioned(
               top: 0,
               left: 0,
               right: 0,

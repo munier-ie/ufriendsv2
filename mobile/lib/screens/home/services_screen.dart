@@ -139,6 +139,7 @@ class _ServicesScreenState extends State<ServicesScreen> {
       onRefresh: widget.onRefresh,
       color: AppTheme.primaryColor,
       child: CustomScrollView(
+        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
         slivers: [
           SliverToBoxAdapter(
             child: Padding(

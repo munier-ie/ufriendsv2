@@ -4,6 +4,8 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 
+import '../../core/connectivity_service.dart';
+
 class LoanRequestScreen extends StatefulWidget {
   const LoanRequestScreen({super.key});
 
@@ -19,8 +21,10 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
     setState(() => _formData[key] = value);
   }
 
-  void _submit() async {
-    if (_formData['accountNumber'] == null || _formData['accountNumber'].toString().length < 10) return _showError('Please enter a valid 10-digit account number');
+  Future<void> _submit() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
+    if (_formData['accountNumber'] == null || _formData['accountNumber'].toString().length != 10) return _showError('Please enter valid 10-digit account number');
     if (_formData['contactDetails'] == null || _formData['contactDetails'].toString().isEmpty) return _showError('Please enter contact details');
     if (_formData['amountNeeded'] == null || _formData['amountNeeded'].toString().isEmpty) return _showError('Please enter loan amount');
     if (_formData['repaymentSchedule'] == null) return _showError('Please select repayment schedule');
@@ -67,14 +71,32 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.scaffoldBg,
-      appBar: const PremiumAppBar(title: 'Loan Request'),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        bottom: false,
+        child: Stack(
           children: [
-            _buildHeaderCard(),
-            const SizedBox(height: 24),
+            Positioned.fill(
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 600));
+                  if (mounted) setState(() {});
+                },
+                color: AppTheme.primaryColor,
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return SingleChildScrollView(
+                      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                      padding: const EdgeInsets.fromLTRB(16.0, 76.0, 16.0, 16.0),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(minHeight: constraints.maxHeight - 100),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                      _buildHeaderCard(),
+                      const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -109,7 +131,6 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
                     {'value': 'Weekly', 'label': 'Weekly'},
                     {'value': 'Monthly', 'label': 'Monthly'},
                   ]),
-                  const SizedBox(height: 16),
                   _buildDropdown('Duration', 'duration', [
                     {'value': '12weeks', 'label': '12 Weeks'},
                     {'value': '24weeks', 'label': '24 Weeks'},
@@ -128,8 +149,26 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+},
+),
+),
+),
+Positioned(
+top: 0,
+left: 0,
+right: 0,
+child: FloatingScreenHeader(
+  title: 'Loan Request',
+  onBackPressed: () => Navigator.pop(context),
+),
+),
+],
+),
+),
+);
+}
 
   Widget _buildHeaderCard() {
     return Container(

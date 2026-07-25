@@ -6,6 +6,8 @@ import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
 import 'pin_screen.dart';
 
+import '../../core/connectivity_service.dart';
+
 class CacRegistrationScreen extends StatefulWidget {
   const CacRegistrationScreen({super.key});
 
@@ -114,6 +116,8 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (!await ConnectivityService.ensureOnline(context)) return;
+    if (!mounted) return;
     if (!_formKey.currentState!.validate()) return;
     
     if (_directorId == null) {
@@ -211,46 +215,49 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
         child: Stack(
           children: [
             Positioned.fill(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 68),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-              // Tab Bar
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Container(
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: context.dividerColor,
-                    borderRadius: BorderRadius.circular(23),
-                  ),
-                  child: TabBar(
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    indicator: BoxDecoration(
-                      color: AppTheme.secondaryColor,
-                      borderRadius: BorderRadius.circular(23),
+              child: RefreshIndicator(
+                triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                edgeOffset: 76,
+                onRefresh: () async {
+                  await _fetchHistory();
+                },
+                color: AppTheme.primaryColor,
+                child: NestedScrollView(
+                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 76, 24, 16),
+                        child: Container(
+                          height: 46,
+                          decoration: BoxDecoration(
+                            color: context.dividerColor,
+                            borderRadius: BorderRadius.circular(23),
+                          ),
+                          child: TabBar(
+                            indicatorSize: TabBarIndicatorSize.tab,
+                            indicator: BoxDecoration(
+                              color: AppTheme.secondaryColor,
+                              borderRadius: BorderRadius.circular(23),
+                            ),
+                            labelColor: Colors.white,
+                            unselectedLabelColor: Colors.black54,
+                            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                            tabs: const [
+                              Tab(text: 'Register'),
+                              Tab(text: 'History'),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.black54,
-                    labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-                    tabs: const [
-                      Tab(text: 'Register'),
-                      Tab(text: 'History'),
+                  ],
+                  body: TabBarView(
+                    children: [
+                      _buildRegisterTab(),
+                      _buildHistoryTab(),
                     ],
                   ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _buildRegisterTab(),
-                    _buildHistoryTab(),
-                  ],
-                ),
-              ),
-                  ],
                 ),
               ),
             ),
@@ -290,6 +297,7 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
     }
 
     return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: const EdgeInsets.all(24),
       child: Form(
         key: _formKey,
@@ -503,14 +511,12 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
       );
     }
 
-    return RefreshIndicator(
-      triggerMode: RefreshIndicatorTriggerMode.anywhere,
-      onRefresh: _fetchHistory,
-      child: ListView.separated(
-        padding: const EdgeInsets.all(24),
-        itemCount: _history.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 16),
-        itemBuilder: (context, index) {
+    return ListView.separated(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      itemCount: _history.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 16),
+      itemBuilder: (context, index) {
           final item = _history[index];
           final status = item['status'] ?? 0;
           
@@ -594,7 +600,6 @@ class _CacRegistrationScreenState extends State<CacRegistrationScreen> {
             ),
           );
         },
-      ),
-    );
+      );
   }
 }
