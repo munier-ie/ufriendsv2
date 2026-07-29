@@ -174,6 +174,7 @@ export default function DashboardLayout() {
                 { icon: FileEdit, label: 'NIN Modification', path: '/dashboard/manual-services?tab=NIN_MODIFICATION' },
                 { icon: ShieldCheck, label: 'NIN Validation', path: '/dashboard/manual-services?tab=NIN_VALIDATION' },
                 { icon: Shield, label: 'IPE Clearance', path: '/dashboard/manual-services?tab=IPE_CLEARANCE' },
+                { icon: Shield, label: 'IPE Modification', path: '/dashboard/manual-services?tab=IPE_MODIFICATION' },
                 { icon: Send, label: 'VNIN -> NIBS', path: '/dashboard/manual-services?tab=VNIN_NIBSS' },
                 { icon: ShoppingBag, label: 'Exam Pins', path: '/dashboard/exam-pins' },
                 { icon: Tag, label: 'Data Pins', path: '/dashboard/data-pins' },

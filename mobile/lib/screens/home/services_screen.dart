@@ -114,25 +114,53 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'desc': 'Register your business or company with CAC.'
     },
     {
-      'id': 'nin_services',
-      'name': 'NIN Services',
-      'icon': Icons.edit_document,
+      'id': 'bvn_modification',
+      'name': 'BVN Modification',
+      'icon': Icons.edit_note_rounded,
       'color': const Color(0xFF004687),
-      'desc': 'NIN modification, validation & more.'
+      'desc': 'Modify BVN details online.'
+    },
+    {
+      'id': 'bvn_retrieval',
+      'name': 'BVN Retrieval',
+      'icon': Icons.search_rounded,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'Retrieve lost BVN number.'
+    },
+    {
+      'id': 'nin_modification',
+      'name': 'NIN Modification',
+      'icon': Icons.edit_note_rounded,
+      'color': const Color(0xFF004687),
+      'desc': 'Modify NIN details online.'
+    },
+    {
+      'id': 'nin_validation',
+      'name': 'NIN Validation',
+      'icon': Icons.verified_user_outlined,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'Validate NIN for bank & SIM.'
     },
     {
       'id': 'ipe_clearance',
       'name': 'IPE Clearance',
       'icon': Icons.shield_outlined,
-      'color': const Color(0xFF1E90FF),
-      'desc': 'IPE clearance & modification services.'
+      'color': const Color(0xFF004687),
+      'desc': 'Clear IPE status with Tracking ID or NIN.'
     },
     {
-      'id': 'bvn_services',
-      'name': 'BVN Services',
-      'icon': Icons.manage_accounts_rounded,
+      'id': 'ipe_modification',
+      'name': 'IPE Modification',
+      'icon': Icons.shield_outlined,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'Modify IPE record with Tracking ID or NIN.'
+    },
+    {
+      'id': 'vnin_nibss',
+      'name': 'VNIN -> NIBS',
+      'icon': Icons.send_rounded,
       'color': const Color(0xFF004687),
-      'desc': 'BVN modification, retrieval & more.'
+      'desc': 'Forward VNIN to NIBSS database.'
     },
   ];
 
@@ -266,12 +294,20 @@ class _ServicesScreenState extends State<ServicesScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnSlipScreen()));
             } else if (cat['id'] == 'cac') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const CacRegistrationScreen()));
-            } else if (cat['id'] == 'nin_services') {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen()));
-            } else if (cat['id'] == 'bvn_services') {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen()));
+            } else if (cat['id'] == 'bvn_modification') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_MODIFICATION')));
+            } else if (cat['id'] == 'bvn_retrieval') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_RETRIEVAL')));
+            } else if (cat['id'] == 'nin_modification') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 0)));
+            } else if (cat['id'] == 'nin_validation') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 1)));
             } else if (cat['id'] == 'ipe_clearance') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 2)));
+            } else if (cat['id'] == 'ipe_modification') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 3)));
+            } else if (cat['id'] == 'vnin_nibss') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'VNIN_NIBSS')));
             } else {
               AppToast.show(context, message: 'Coming soon: ${cat['name']}', type: ToastType.warning);
             }

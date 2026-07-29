@@ -144,17 +144,33 @@ class HomeDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamPinsScreen()));
                   }),
-                  _drawerItem(context, Icons.edit_note_rounded, 'NIN Services', false, onTap: () {
+                  _drawerItem(context, Icons.edit_note_rounded, 'BVN Modification', false, onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_MODIFICATION')));
+                  }),
+                  _drawerItem(context, Icons.search_rounded, 'BVN Retrieval', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'BVN_RETRIEVAL')));
+                  }),
+                  _drawerItem(context, Icons.edit_note_rounded, 'NIN Modification', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 0)));
+                  }),
+                  _drawerItem(context, Icons.verified_user_outlined, 'NIN Validation', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 1)));
                   }),
                   _drawerItem(context, Icons.shield_outlined, 'IPE Clearance', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 2)));
                   }),
-                  _drawerItem(context, Icons.manage_accounts_rounded, 'BVN Services', false, onTap: () {
+                  _drawerItem(context, Icons.shield_outlined, 'IPE Modification', false, onTap: () {
                     Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 3)));
+                  }),
+                  _drawerItem(context, Icons.send_rounded, 'VNIN -> NIBS', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen(initialService: 'VNIN_NIBSS')));
                   }),
                   _drawerItem(context, Icons.business_center_rounded, 'CAC Reg.', false, onTap: () {
                     Navigator.pop(context);

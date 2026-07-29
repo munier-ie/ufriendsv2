@@ -181,29 +181,106 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                   headerSliverBuilder: (context, innerBoxIsScrolled) => [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 76, 24, 16),
+                        padding: const EdgeInsets.fromLTRB(20, 76, 20, 16),
                         child: Container(
-                          height: 46,
+                          height: 52,
                           decoration: BoxDecoration(
-                            color: context.dividerColor,
-                            borderRadius: BorderRadius.circular(23),
+                            color: context.subtleBg,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: context.borderColor),
                           ),
                           child: TabBar(
                             controller: _tabController,
+                            isScrollable: true,
+                            tabAlignment: TabAlignment.start,
+                            padding: const EdgeInsets.all(5),
                             indicatorSize: TabBarIndicatorSize.tab,
                             indicator: BoxDecoration(
-                              color: AppTheme.secondaryColor,
-                              borderRadius: BorderRadius.circular(23),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1E90FF), Color(0xFF004687)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF004687).withValues(alpha: 0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             labelColor: Colors.white,
                             unselectedLabelColor: context.textSecondary,
-                            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
+                            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                            dividerColor: Colors.transparent,
                             tabs: const [
-                              Tab(text: 'Modification'),
-                              Tab(text: 'Validation'),
-                              Tab(text: 'IPE Clear.'),
-                              Tab(text: 'IPE Mod.'),
-                              Tab(text: 'History'),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.edit_document, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('Modification'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.verified_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('Validation'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.shield_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('IPE Clearance'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.build_circle_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('IPE Modification'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.history_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('History'),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -256,24 +333,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Price display
-          if (_ninModSubType != null) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                  Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+          if (_ninModSubType != null) _buildFeeCard(price),
 
           // Sub-type selector
           _buildSectionLabel('Modification Type'),
@@ -387,24 +447,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (_ninValSubType != null) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                  Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+          if (_ninValSubType != null) _buildFeeCard(price),
 
           _buildSectionLabel('Validation Type'),
           const SizedBox(height: 8),
@@ -515,24 +558,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           ),
           const SizedBox(height: 20),
 
-          if (_ipeClearanceSubType != null) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                  Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+          if (_ipeClearanceSubType != null) _buildFeeCard(price),
 
           _buildSectionLabel('Identification Method'),
           const SizedBox(height: 8),
@@ -628,24 +654,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           ),
           const SizedBox(height: 20),
 
-          if (_ipeModificationSubType != null) ...[
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primaryColor.withValues(alpha: 0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                  Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+          if (_ipeModificationSubType != null) _buildFeeCard(price),
 
           _buildSectionLabel('Identification Method'),
           const SizedBox(height: 8),
@@ -1022,6 +1031,69 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
     text,
     style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: context.textPrimary),
   );
+
+  Widget _buildFeeCard(double price) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.08),
+            AppTheme.secondaryColor.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.price_check_rounded, color: AppTheme.primaryColor, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'SERVICE FEE',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
+                  color: context.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '₦${_formatPrice(price)}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.primaryColor,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTextInput({
     required String key,

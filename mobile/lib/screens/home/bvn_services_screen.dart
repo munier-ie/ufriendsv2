@@ -26,7 +26,6 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
   bool _uploading = false;
   Map<String, dynamic> _formData = {};
 
-  String _activeService = 'BVN_MODIFICATION';
   String? _bvnModSubType;
 
   final ImagePicker _picker = ImagePicker();
@@ -51,13 +50,6 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
 
   static const _geoZones = ['North Central', 'North East', 'North West', 'South East', 'South South', 'South West'];
 
-  static const _serviceLabels = {
-    'BVN_MODIFICATION': 'BVN Modification',
-    'BVN_RETRIEVAL': 'BVN Retrieval',
-    'VNIN_NIBSS': 'VNIN → NIBSS',
-    'BVN_ANDROID': 'BVN Android License',
-  };
-
   static const _allServiceDisplay = {
     'BVN_MODIFICATION': 'BVN Modification',
     'BVN_RETRIEVAL': 'BVN Retrieval',
@@ -67,13 +59,18 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
     'NIN_VALIDATION': 'NIN Validation',
   };
 
+  int _resolveInitialTab() {
+    if (widget.initialService == 'BVN_RETRIEVAL') return 1;
+    if (widget.initialService == 'VNIN_NIBSS') return 2;
+    if (widget.initialService == 'BVN_ANDROID') return 3;
+    if (widget.initialService == 'HISTORY') return 4;
+    return 0;
+  }
+
   @override
   void initState() {
     super.initState();
-    if (widget.initialService != null) {
-      _activeService = widget.initialService!;
-    }
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: _resolveInitialTab());
     _fetchSettings();
     _fetchHistory();
   }
@@ -133,14 +130,6 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
 
   void _updateField(String key, dynamic value) {
     setState(() => _formData[key] = value);
-  }
-
-  void _switchService(String svc) {
-    setState(() {
-      _activeService = svc;
-      _formData = {};
-      _bvnModSubType = null;
-    });
   }
 
   Future<void> _uploadId() async {
@@ -224,25 +213,106 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
                   headerSliverBuilder: (context, innerBoxIsScrolled) => [
                     SliverToBoxAdapter(
                       child: Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 76, 24, 16),
+                        padding: const EdgeInsets.fromLTRB(20, 76, 20, 16),
                         child: Container(
-                          height: 46,
+                          height: 52,
                           decoration: BoxDecoration(
-                            color: context.dividerColor,
-                            borderRadius: BorderRadius.circular(23),
+                            color: context.subtleBg,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: context.borderColor),
                           ),
                           child: TabBar(
                             controller: _tabController,
+                            isScrollable: true,
+                            tabAlignment: TabAlignment.start,
+                            padding: const EdgeInsets.all(5),
                             indicatorSize: TabBarIndicatorSize.tab,
                             indicator: BoxDecoration(
-                              color: AppTheme.secondaryColor,
-                              borderRadius: BorderRadius.circular(23),
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF1E90FF), Color(0xFF004687)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xFF004687).withValues(alpha: 0.3),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
                             ),
                             labelColor: Colors.white,
                             unselectedLabelColor: context.textSecondary,
+                            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                            dividerColor: Colors.transparent,
                             tabs: const [
-                              Tab(text: 'Services'),
-                              Tab(text: 'History'),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.edit_document, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('Modification'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.search_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('Retrieval'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.send_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('VNIN → NIBSS'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.smartphone_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('Android License'),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Tab(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.history_rounded, size: 16),
+                                      SizedBox(width: 8),
+                                      Text('History'),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -254,7 +324,10 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
                       : TabBarView(
                           controller: _tabController,
                           children: [
-                            _buildServicesTab(),
+                            _buildBvnModTab(),
+                            _buildBvnRetrievalTab(),
+                            _buildVninNibssTab(),
+                            _buildBvnAndroidTab(),
                             _buildHistoryTab(),
                           ],
                         ),
@@ -276,69 +349,40 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
     );
   }
 
-  Widget _buildServicesTab() {
+  Widget _buildBvnModTab() {
+    if (!_isServiceActive('BVN_MODIFICATION')) return _buildInactiveMessage();
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Service selector chips
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _serviceLabels.entries.map((e) {
-              final selected = _activeService == e.key;
-              return GestureDetector(
-                onTap: () => _switchService(e.key),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: selected ? const LinearGradient(
-                      colors: [Color(0xFF1E90FF), Color(0xFF004687)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ) : null,
-                    color: selected ? null : context.subtleBg,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: selected ? Colors.transparent : context.borderColor,
-                      width: 1,
-                    ),
-                  ),
-                  child: Text(
-                    e.value,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-                      color: selected ? Colors.white : Colors.black54,
-                    ),
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-
-          const SizedBox(height: 24),
-
-          if (!_isServiceActive(_activeService))
-            _buildInactiveMessage()
-          else
-            _buildActiveServiceForm(),
-        ],
-      ),
+      child: _buildBvnModForm(),
     );
   }
 
-  Widget _buildActiveServiceForm() {
-    switch (_activeService) {
-      case 'BVN_MODIFICATION': return _buildBvnModForm();
-      case 'BVN_RETRIEVAL': return _buildBvnRetrievalForm();
-      case 'VNIN_NIBSS': return _buildVninNibssForm();
-      case 'BVN_ANDROID': return _buildBvnAndroidForm();
-      default: return const SizedBox.shrink();
-    }
+  Widget _buildBvnRetrievalTab() {
+    if (!_isServiceActive('BVN_RETRIEVAL')) return _buildInactiveMessage();
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      child: _buildBvnRetrievalForm(),
+    );
+  }
+
+  Widget _buildVninNibssTab() {
+    if (!_isServiceActive('VNIN_NIBSS')) return _buildInactiveMessage();
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      child: _buildVninNibssForm(),
+    );
+  }
+
+  Widget _buildBvnAndroidTab() {
+    if (!_isServiceActive('BVN_ANDROID')) return _buildInactiveMessage();
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      child: _buildBvnAndroidForm(),
+    );
   }
 
   // ── BVN Modification ──
@@ -903,17 +947,62 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
 
   Widget _buildPriceCard(double price) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       decoration: BoxDecoration(
-        color: AppTheme.primaryColor.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(16),
+        gradient: LinearGradient(
+          colors: [
+            AppTheme.primaryColor.withValues(alpha: 0.08),
+            AppTheme.secondaryColor.withValues(alpha: 0.03),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-          Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppTheme.primaryColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.price_check_rounded, color: AppTheme.primaryColor, size: 24),
+          ),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'SERVICE FEE',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.1,
+                  color: context.textSecondary,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '₦${_formatPrice(price)}',
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w900,
+                  color: AppTheme.primaryColor,
+                  letterSpacing: -0.5,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
