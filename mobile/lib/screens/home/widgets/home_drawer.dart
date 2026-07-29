@@ -120,6 +120,10 @@ class HomeDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeScreen()));
                   }),
+                  _drawerItem(context, Icons.swap_horizontal_circle_outlined, 'Airtime2cash', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
+                  }),
                   _drawerItem(context, Icons.live_tv_rounded, 'Cable TV', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const CableTvScreen()));
@@ -140,13 +144,13 @@ class HomeDrawer extends StatelessWidget {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ExamPinsScreen()));
                   }),
-                  _drawerItem(context, Icons.swap_horizontal_circle_outlined, 'Airtime2cash', false, onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const AirtimeToCashScreen()));
-                  }),
                   _drawerItem(context, Icons.edit_note_rounded, 'NIN Services', false, onTap: () {
                     Navigator.pop(context);
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen()));
+                  }),
+                  _drawerItem(context, Icons.shield_outlined, 'IPE Clearance', false, onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 2)));
                   }),
                   _drawerItem(context, Icons.manage_accounts_rounded, 'BVN Services', false, onTap: () {
                     Navigator.pop(context);

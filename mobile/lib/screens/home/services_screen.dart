@@ -51,39 +51,39 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'desc': 'Get affordable data plans for all networks.'
     },
     {
+      'id': 'airtime2cash',
+      'name': 'Airtime2cash',
+      'icon': Icons.swap_horizontal_circle_outlined,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'Convert your airtime to wallet balance.'
+    },
+    {
       'id': 'cable',
       'name': 'Cable TV',
       'icon': Icons.tv_rounded,
-      'color': const Color(0xFF1E90FF),
+      'color': const Color(0xFF004687),
       'desc': 'Renew your DSTV, GOTV & Startimes.'
     },
     {
       'id': 'electricity',
       'name': 'Electricity',
       'icon': Icons.bolt_rounded,
-      'color': const Color(0xFF004687),
+      'color': const Color(0xFF1E90FF),
       'desc': 'Pay your electricity bills without hassle.'
     },
     {
       'id': 'data_pin',
       'name': 'Data Pins',
       'icon': Icons.tag_rounded,
-      'color': const Color(0xFF1E90FF),
+      'color': const Color(0xFF004687),
       'desc': 'Purchase data recharge pins for later use.'
     },
     {
       'id': 'exam',
       'name': 'Exam Pins',
       'icon': Icons.school_rounded,
-      'color': const Color(0xFF004687),
-      'desc': 'Get WAEC, NECO & JAMB result checker pins.'
-    },
-    {
-      'id': 'airtime2cash',
-      'name': 'Airtime2cash',
-      'icon': Icons.swap_horizontal_circle_outlined,
       'color': const Color(0xFF1E90FF),
-      'desc': 'Convert your airtime to wallet balance.'
+      'desc': 'Get WAEC, NECO & JAMB result checker pins.'
     },
     {
       'id': 'recharge_cards',
@@ -121,10 +121,17 @@ class _ServicesScreenState extends State<ServicesScreen> {
       'desc': 'NIN modification, validation & more.'
     },
     {
+      'id': 'ipe_clearance',
+      'name': 'IPE Clearance',
+      'icon': Icons.shield_outlined,
+      'color': const Color(0xFF1E90FF),
+      'desc': 'IPE clearance & modification services.'
+    },
+    {
       'id': 'bvn_services',
       'name': 'BVN Services',
       'icon': Icons.manage_accounts_rounded,
-      'color': const Color(0xFF1E90FF),
+      'color': const Color(0xFF004687),
       'desc': 'BVN modification, retrieval & more.'
     },
   ];
@@ -263,6 +270,8 @@ class _ServicesScreenState extends State<ServicesScreen> {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen()));
             } else if (cat['id'] == 'bvn_services') {
               Navigator.push(context, MaterialPageRoute(builder: (_) => const BvnServicesScreen()));
+            } else if (cat['id'] == 'ipe_clearance') {
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const NinServicesScreen(initialTab: 2)));
             } else {
               AppToast.show(context, message: 'Coming soon: ${cat['name']}', type: ToastType.warning);
             }

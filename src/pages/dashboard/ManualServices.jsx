@@ -1,4 +1,4 @@
-import { ShieldCheck, FileEdit, Search, Send, Smartphone, CheckCircle, AlertCircle, Loader2, Clock, Download, Eye, Hash, ExternalLink } from 'lucide-react';
+import { ShieldCheck, FileEdit, Search, Send, Smartphone, CheckCircle, AlertCircle, Loader2, Clock, Download, Eye, Hash, ExternalLink, Shield } from 'lucide-react';
 /* eslint-disable react/no-unescaped-entities, security/detect-object-injection, i18next/no-literal-string, react/jsx-no-literals */
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -73,6 +73,8 @@ const getServiceDisplay = (service) => {
         case 'NIN_VALIDATION': return 'NIN Validation';
         case 'POS_REQUEST': return 'POS Request';
         case 'LOAN_REQUEST': return 'Loan Request';
+        case 'IPE_CLEARANCE': return 'IPE Clearance';
+        case 'IPE_MODIFICATION': return 'IPE Modification';
         default: return service;
     }
 };
@@ -273,7 +275,7 @@ function ModificationForm({ subType, data, onChange, activeSub, uploading, onUpl
 export default function ManualServices() {
     const [searchParams] = useSearchParams();
     const initialTab = searchParams.get('tab') || 'BVN_MODIFICATION';
-    const initialGroup = ['NIN_MODIFICATION', 'NIN_VALIDATION'].includes(initialTab) ? 'nin' : 'bvn';
+    const initialGroup = ['NIN_MODIFICATION', 'NIN_VALIDATION', 'IPE_CLEARANCE', 'IPE_MODIFICATION'].includes(initialTab) ? 'nin' : 'bvn';
 
     const [activeGroup, setActiveGroup] = useState(initialGroup);     // 'bvn' | 'nin'
     const [activeSub, setActiveSub] = useState(initialTab);
@@ -302,6 +304,8 @@ export default function ManualServices() {
     const ninTabs = [
         { id: 'NIN_MODIFICATION', label: 'NIN Modification', icon: FileEdit },
         { id: 'NIN_VALIDATION', label: 'NIN Validation', icon: ShieldCheck },
+        { id: 'IPE_CLEARANCE', label: 'IPE Clearance', icon: Shield },
+        { id: 'IPE_MODIFICATION', label: 'IPE Modification', icon: Shield },
     ];
 
     const activeTabs = activeGroup === 'bvn' ? bvnTabs : ninTabs;
@@ -310,7 +314,7 @@ export default function ManualServices() {
         const tab = searchParams.get('tab');
         if (tab) {
             setActiveSub(tab);
-            const group = ['NIN_MODIFICATION', 'NIN_VALIDATION'].includes(tab) ? 'nin' : 'bvn';
+            const group = ['NIN_MODIFICATION', 'NIN_VALIDATION', 'IPE_CLEARANCE', 'IPE_MODIFICATION'].includes(tab) ? 'nin' : 'bvn';
             setActiveGroup(group);
         }
     }, [searchParams]);
@@ -389,9 +393,12 @@ export default function ManualServices() {
         const needsSubType = ['BVN_MODIFICATION', 'NIN_MODIFICATION', 'NIN_VALIDATION'].includes(activeSub);
         if (needsSubType && !formData.subType) return 0;
 
+        // IPE services use a flat price based on subType (tracking_id or nin)
+        const subTypeKey = formData.subType || '';
+
         const priceObj = settings.prices.find(p =>
             p.serviceType === activeSub &&
-            (p.subType === (formData.subType || ''))
+            (p.subType === subTypeKey)
         );
 
         return priceObj ? priceObj.price : 0;
@@ -412,6 +419,8 @@ export default function ManualServices() {
             case 'BVN_ANDROID': return settings.bvnAndroidActive ?? true;
             case 'NIN_MODIFICATION': return settings.ninModificationActive ?? true;
             case 'NIN_VALIDATION': return settings.ninValidationActive ?? true;
+            case 'IPE_CLEARANCE': return settings.ipeClearanceActive ?? true;
+            case 'IPE_MODIFICATION': return settings.ipeModificationActive ?? true;
             default: return true;
         }
     };
@@ -673,6 +682,55 @@ export default function ManualServices() {
                         )}
                     </div>
                 );
+
+            case 'IPE_CLEARANCE':
+            case 'IPE_MODIFICATION': {
+                const ipeLabel = activeSub === 'IPE_CLEARANCE' ? 'IPE Clearance' : 'IPE Modification';
+                return (
+                    <div className="space-y-5">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+                            <strong>Note:</strong> {ipeLabel} requires either a Tracking ID or NIN number for processing.
+                        </div>
+                        <div className="space-y-1">
+                            <label className="block text-sm font-medium text-gray-700">Identification Method</label>
+                            <select
+                                className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white transition-all"
+                                value={formData.subType || ''}
+                                onChange={e => { update('subType', e.target.value); update('trackingId', ''); update('nin', ''); }}
+                                required
+                            >
+                                <option value="" disabled>Select identification method</option>
+                                <option value="tracking_id">With Tracking ID</option>
+                                <option value="nin">With NIN Number</option>
+                            </select>
+                        </div>
+                        {formData.subType === 'tracking_id' && (
+                            <Input
+                                label="Tracking ID"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="Enter Tracking ID (max 15 digits)"
+                                value={formData.trackingId || ''}
+                                onChange={e => update('trackingId', e.target.value.replace(/\D/g, ''))}
+                                maxLength={15}
+                                required
+                            />
+                        )}
+                        {formData.subType === 'nin' && (
+                            <Input
+                                label="NIN"
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                placeholder="Enter 11-digit NIN"
+                                value={formData.nin || ''}
+                                onChange={e => update('nin', e.target.value.replace(/\D/g, ''))}
+                                maxLength={11}
+                                required
+                            />
+                        )}
+                    </div>
+                );
+            }
 
             default:
                 return null;

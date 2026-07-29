@@ -557,6 +557,8 @@ model ManualServiceSettings {
   ninValidationActive   Boolean  @default(true)
   posRequestActive      Boolean  @default(true)
   loanRequestActive     Boolean  @default(true)
+  ipeClearanceActive    Boolean  @default(true)
+  ipeModificationActive Boolean  @default(true)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
 

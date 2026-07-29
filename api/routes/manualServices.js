@@ -148,6 +148,8 @@ function resolveActive(settings, serviceType) {
         NIN_VALIDATION: settings.ninValidationActive,
         POS_REQUEST: settings.posRequestActive,
         LOAN_REQUEST: settings.loanRequestActive,
+        IPE_CLEARANCE: settings.ipeClearanceActive,
+        IPE_MODIFICATION: settings.ipeModificationActive,
     };
     return map[serviceType] ?? false;
 }
@@ -161,6 +163,8 @@ const SERVICE_LABELS = {
     NIN_VALIDATION: 'NIN Validation',
     POS_REQUEST: 'POS Request',
     LOAN_REQUEST: 'Loan Request',
+    IPE_CLEARANCE: 'IPE Clearance',
+    IPE_MODIFICATION: 'IPE Modification',
 };
 
 const { cache } = require('../middleware/cacheMiddleware');

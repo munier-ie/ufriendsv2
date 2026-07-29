@@ -20,6 +20,8 @@ const SERVICE_LABELS = {
     BVN_ANDROID: 'BVN Android License',
     NIN_MODIFICATION: 'NIN Modification',
     NIN_VALIDATION: 'NIN Validation',
+    IPE_CLEARANCE: 'IPE Clearance',
+    IPE_MODIFICATION: 'IPE Modification',
 };
 
 const SERVICE_TYPES = ['', ...Object.keys(SERVICE_LABELS)];
@@ -29,6 +31,7 @@ const DEFAULT_SETTINGS = {
     bvnAndroidPrice: 3000, ninModificationPrice: 2000, ninValidationPrice: 500,
     bvnModificationActive: true, bvnRetrievalActive: true, vninNibssActive: true,
     bvnAndroidActive: true, ninModificationActive: true, ninValidationActive: true,
+    ipeClearanceActive: true, ipeModificationActive: true,
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -212,6 +215,8 @@ export default function ManualServicesDashboard() {
         { label: 'BVN Android License', priceKey: 'bvnAndroidPrice', activeKey: 'bvnAndroidActive' },
         { label: 'NIN Modification', priceKey: 'ninModificationPrice', activeKey: 'ninModificationActive' },
         { label: 'NIN Validation', priceKey: 'ninValidationPrice', activeKey: 'ninValidationActive' },
+        { label: 'IPE Clearance', priceKey: '', activeKey: 'ipeClearanceActive' },
+        { label: 'IPE Modification', priceKey: '', activeKey: 'ipeModificationActive' },
         { label: 'POS Request', priceKey: '', activeKey: 'posRequestActive' },
         { label: 'Loan Request', priceKey: '', activeKey: 'loanRequestActive' },
     ];

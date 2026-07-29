@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Wallet, ShieldCheck, DollarSign, Grid3x3 as Grid3X3, LogOut, Landmark as Bank, Landmark, Signal, Smartphone, Ban, PhoneCall, FileText, Crown, Users, ShoppingBag, Bell, Send, Wifi, GraduationCap, Megaphone, BarChart2 as BarChart, Tv, Zap, MessageSquare, Banknote, Tag, Book, Activity, Upload, Calculator as CalculatorIcon, Globe, ArrowRightLeft, Smile, FileEdit, Search, Menu, X, Code, Bot, HelpCircle, Printer, ChevronDown, ChevronRight } from 'lucide-react';
+import { LayoutDashboard, User, Wallet, ShieldCheck, DollarSign, Grid3x3 as Grid3X3, LogOut, Landmark as Bank, Landmark, Signal, Smartphone, Ban, PhoneCall, FileText, Crown, Users, ShoppingBag, Bell, Send, Wifi, GraduationCap, Megaphone, BarChart2 as BarChart, Tv, Zap, MessageSquare, Banknote, Tag, Book, Activity, Upload, Calculator as CalculatorIcon, Globe, ArrowRightLeft, Smile, FileEdit, Search, Menu, X, Code, Bot, HelpCircle, Printer, ChevronDown, ChevronRight, Shield } from 'lucide-react';
 /* eslint-disable */
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
@@ -168,12 +168,13 @@ export default function DashboardLayout() {
             items: [
                 { icon: Wifi, label: 'Data', path: '/dashboard/services?type=data' },
                 { icon: PhoneCall, label: 'Airtime', path: '/dashboard/services?type=airtime' },
+                { icon: ArrowRightLeft, label: 'Airtime2Cash', path: '/dashboard/airtime2cash' },
                 { icon: FileEdit, label: 'BVN Modification', path: '/dashboard/manual-services?tab=BVN_MODIFICATION' },
                 { icon: Search, label: 'BVN Retrieval', path: '/dashboard/manual-services?tab=BVN_RETRIEVAL' },
                 { icon: FileEdit, label: 'NIN Modification', path: '/dashboard/manual-services?tab=NIN_MODIFICATION' },
                 { icon: ShieldCheck, label: 'NIN Validation', path: '/dashboard/manual-services?tab=NIN_VALIDATION' },
+                { icon: Shield, label: 'IPE Clearance', path: '/dashboard/manual-services?tab=IPE_CLEARANCE' },
                 { icon: Send, label: 'VNIN -> NIBS', path: '/dashboard/manual-services?tab=VNIN_NIBSS' },
-                { icon: ArrowRightLeft, label: 'Airtime2Cash', path: '/dashboard/airtime2cash' },
                 { icon: ShoppingBag, label: 'Exam Pins', path: '/dashboard/exam-pins' },
                 { icon: Tag, label: 'Data Pins', path: '/dashboard/data-pins' },
                 { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },

@@ -55,7 +55,8 @@ router.put('/settings', adminAuth, async (req, res) => {
             ninModificationPrice, ninValidationPrice,
             bvnModificationActive, bvnRetrievalActive, vninNibssActive, bvnAndroidActive,
             ninModificationActive, ninValidationActive,
-            posRequestActive, loanRequestActive
+            posRequestActive, loanRequestActive,
+            ipeClearanceActive, ipeModificationActive
         } = req.body;
 
         const existing = await prisma.manualServiceSettings.findFirst();
@@ -75,6 +76,8 @@ router.put('/settings', adminAuth, async (req, res) => {
             ...(ninValidationActive !== undefined && { ninValidationActive: Boolean(ninValidationActive) }),
             ...(posRequestActive !== undefined && { posRequestActive: Boolean(posRequestActive) }),
             ...(loanRequestActive !== undefined && { loanRequestActive: Boolean(loanRequestActive) }),
+            ...(ipeClearanceActive !== undefined && { ipeClearanceActive: Boolean(ipeClearanceActive) }),
+            ...(ipeModificationActive !== undefined && { ipeModificationActive: Boolean(ipeModificationActive) }),
         };
 
         let settings;

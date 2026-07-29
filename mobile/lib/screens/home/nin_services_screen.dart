@@ -29,6 +29,10 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   String? _ninModSubType;
   // NIN Validation sub-type
   String? _ninValSubType;
+  // IPE Clearance sub-type (tracking_id or nin)
+  String? _ipeClearanceSubType;
+  // IPE Modification sub-type (tracking_id or nin)
+  String? _ipeModificationSubType;
 
   static const _ninModOptions = [
     {'value': 'change_name', 'label': 'Change of Name'},
@@ -51,12 +55,14 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
     'BVN_RETRIEVAL': 'BVN Retrieval',
     'VNIN_NIBSS': 'VNIN → NIBSS',
     'BVN_ANDROID': 'BVN Android License',
+    'IPE_CLEARANCE': 'IPE Clearance',
+    'IPE_MODIFICATION': 'IPE Modification',
   };
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this, initialIndex: widget.initialTab ?? 0);
+    _tabController = TabController(length: 5, vsync: this, initialIndex: widget.initialTab ?? 0);
     _fetchSettings();
     _fetchHistory();
   }
@@ -103,6 +109,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
     final map = {
       'NIN_MODIFICATION': _settings!['ninModificationActive'],
       'NIN_VALIDATION': _settings!['ninValidationActive'],
+      'IPE_CLEARANCE': _settings!['ipeClearanceActive'],
+      'IPE_MODIFICATION': _settings!['ipeModificationActive'],
     };
     return map[serviceType] ?? true;
   }
@@ -142,6 +150,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           _formData = {};
           _ninModSubType = null;
           _ninValSubType = null;
+          _ipeClearanceSubType = null;
+          _ipeModificationSubType = null;
         });
         _fetchHistory();
       } else {
@@ -191,6 +201,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                             tabs: const [
                               Tab(text: 'Modification'),
                               Tab(text: 'Validation'),
+                              Tab(text: 'IPE Clear.'),
+                              Tab(text: 'IPE Mod.'),
                               Tab(text: 'History'),
                             ],
                           ),
@@ -205,6 +217,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                           children: [
                             _buildModificationTab(),
                             _buildValidationTab(),
+                            _buildIpeClearanceTab(),
+                            _buildIpeModificationTab(),
                             _buildHistoryTab(),
                           ],
                         ),
@@ -466,13 +480,240 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
     );
   }
 
+  // ── IPE Clearance Tab ──
+  Widget _buildIpeClearanceTab() {
+    if (!_isServiceActive('IPE_CLEARANCE')) return _buildInactiveMessage();
+
+    final price = _currentPrice('IPE_CLEARANCE', _ipeClearanceSubType ?? '');
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Info banner
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: Colors.blue.shade700, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'IPE Clearance requires either a Tracking ID or NIN number for processing.',
+                    style: TextStyle(fontSize: 13, color: Colors.blue.shade800, height: 1.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          if (_ipeClearanceSubType != null) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          _buildSectionLabel('Identification Method'),
+          const SizedBox(height: 8),
+          _buildBottomSheetSelector(
+            value: _ipeClearanceSubType,
+            placeholder: 'Select identification method',
+            options: const [
+              {'value': 'tracking_id', 'label': 'With Tracking ID'},
+              {'value': 'nin', 'label': 'With NIN Number'},
+            ],
+            onSelect: (v) => setState(() {
+              _ipeClearanceSubType = v;
+              _formData = {'subType': v};
+            }),
+          ),
+
+          if (_ipeClearanceSubType == 'tracking_id') ...[
+            const SizedBox(height: 20),
+            _buildSectionLabel('Tracking ID'),
+            const SizedBox(height: 8),
+            _buildTextInput(
+              key: 'trackingId',
+              hint: 'Enter Tracking ID (max 15 digits)',
+              maxLength: 15,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 24),
+            GradientButton(
+              text: 'Submit Request',
+              icon: Icons.send_rounded,
+              onPressed: _submitting ? () {} : () => _submitRequest('IPE_CLEARANCE', 'tracking_id'),
+              loading: _submitting,
+            ),
+          ],
+
+          if (_ipeClearanceSubType == 'nin') ...[
+            const SizedBox(height: 20),
+            _buildSectionLabel('NIN Number'),
+            const SizedBox(height: 8),
+            _buildTextInput(
+              key: 'nin',
+              hint: 'Enter 11-digit NIN',
+              maxLength: 11,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 24),
+            GradientButton(
+              text: 'Submit Request',
+              icon: Icons.send_rounded,
+              onPressed: _submitting ? () {} : () => _submitRequest('IPE_CLEARANCE', 'nin'),
+              loading: _submitting,
+            ),
+          ],
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
+  // ── IPE Modification Tab ──
+  Widget _buildIpeModificationTab() {
+    if (!_isServiceActive('IPE_MODIFICATION')) return _buildInactiveMessage();
+
+    final price = _currentPrice('IPE_MODIFICATION', _ipeModificationSubType ?? '');
+
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Info banner
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: Colors.blue.shade700, size: 18),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'IPE Modification requires either a Tracking ID or NIN number for processing.',
+                    style: TextStyle(fontSize: 13, color: Colors.blue.shade800, height: 1.3),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          if (_ipeModificationSubType != null) ...[
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Service Fee', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text('₦${_formatPrice(price)}', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppTheme.primaryColor)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          _buildSectionLabel('Identification Method'),
+          const SizedBox(height: 8),
+          _buildBottomSheetSelector(
+            value: _ipeModificationSubType,
+            placeholder: 'Select identification method',
+            options: const [
+              {'value': 'tracking_id', 'label': 'With Tracking ID'},
+              {'value': 'nin', 'label': 'With NIN Number'},
+            ],
+            onSelect: (v) => setState(() {
+              _ipeModificationSubType = v;
+              _formData = {'subType': v};
+            }),
+          ),
+
+          if (_ipeModificationSubType == 'tracking_id') ...[
+            const SizedBox(height: 20),
+            _buildSectionLabel('Tracking ID'),
+            const SizedBox(height: 8),
+            _buildTextInput(
+              key: 'trackingId',
+              hint: 'Enter Tracking ID (max 15 digits)',
+              maxLength: 15,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 24),
+            GradientButton(
+              text: 'Submit Request',
+              icon: Icons.send_rounded,
+              onPressed: _submitting ? () {} : () => _submitRequest('IPE_MODIFICATION', 'tracking_id'),
+              loading: _submitting,
+            ),
+          ],
+
+          if (_ipeModificationSubType == 'nin') ...[
+            const SizedBox(height: 20),
+            _buildSectionLabel('NIN Number'),
+            const SizedBox(height: 8),
+            _buildTextInput(
+              key: 'nin',
+              hint: 'Enter 11-digit NIN',
+              maxLength: 11,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 24),
+            GradientButton(
+              text: 'Submit Request',
+              icon: Icons.send_rounded,
+              onPressed: _submitting ? () {} : () => _submitRequest('IPE_MODIFICATION', 'nin'),
+              loading: _submitting,
+            ),
+          ],
+
+          const SizedBox(height: 40),
+        ],
+      ),
+    );
+  }
+
   // ── History Tab ──
   Widget _buildHistoryTab() {
     if (_loadingHistory) return const Center(child: CircularProgressIndicator());
 
     // Filter to only NIN-related history
     final ninHistory = _history.where((r) =>
-      r['serviceType'] == 'NIN_MODIFICATION' || r['serviceType'] == 'NIN_VALIDATION'
+      r['serviceType'] == 'NIN_MODIFICATION' || r['serviceType'] == 'NIN_VALIDATION' ||
+      r['serviceType'] == 'IPE_CLEARANCE' || r['serviceType'] == 'IPE_MODIFICATION'
     ).toList();
 
     if (ninHistory.isEmpty) {
@@ -484,7 +725,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
             const SizedBox(height: 16),
             Text('No Requests Yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.grey.shade800)),
             const SizedBox(height: 8),
-            Text('Your NIN service requests will appear here.', style: TextStyle(color: context.textMuted)),
+            Text('Your NIN/IPE service requests will appear here.', style: TextStyle(color: context.textMuted)),
           ],
         ),
       );
