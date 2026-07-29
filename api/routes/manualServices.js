@@ -163,12 +163,14 @@ const SERVICE_LABELS = {
     LOAN_REQUEST: 'Loan Request',
 };
 
+const { cache } = require('../middleware/cacheMiddleware');
+
 const VALID_TYPES = Object.keys(SERVICE_LABELS);
 
 // ============================================================
 // GET /api/manual-services/pricing
 // ============================================================
-router.get('/pricing', authenticateUser, async (req, res) => {
+router.get('/pricing', authenticateUser, cache(300), async (req, res) => {
     try {
         const settings = await prisma.manualServiceSettings.findFirst();
         const allPrices = await prisma.manualServicePrice.findMany({
@@ -333,11 +335,16 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
                                 timeout: 15000
                             }
                         );
-                        // If Prembly succeeds, auto-complete the request
+                        // If Prembly succeeds, auto-complete the request and store in bvnReport for future DB cache hits
                         if (premblyRes.data?.status === true || premblyRes.data?.response_code === '00') {
                             const bvnData = premblyRes.data?.data ?? premblyRes.data;
                             const bvn = bvnData?.bvn || bvnData?.bvnNumber || '';
                             if (bvn) {
+                                // Save report to DB cache
+                                await bvnService.storeBvnReport(req.user.id, transRef, bvn, bvnData, 'regular').catch(err => {
+                                    console.warn('[BVN RETRIEVAL] Failed to store report in DB cache:', err.message);
+                                });
+
                                 await prisma.manualServiceRequest.update({
                                     where: { id: result.id },
                                     data: {

@@ -5,6 +5,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { getChromePath } = require('../utils/chrome');
 const crypto = require('crypto');
+const { getCache, setCache, acquireLock, releaseLock } = require('../utils/redis');
 
 /**
  * Get Verification Settings from database
@@ -57,65 +58,105 @@ async function getBvnPricing(userType, slipType = 'regular') {
   return { userPrice, apiPrice, settings };
 }
 
+// In-flight locks map for BVN verifications to prevent concurrent Prembly calls
+const bvnInFlightLocks = new Map();
+
+/**
+ * Generate normalized search variations (e.g., 08012345678, 2348012345678, +2348012345678)
+ */
+function getSearchVariations(val) {
+  if (!val) return [];
+  const raw = String(val).trim();
+  const clean = raw.replace(/[\s\-]/g, '');
+  const set = new Set([raw, clean]);
+  const phoneDigits = clean.replace(/\+/g, '');
+  if (phoneDigits.startsWith('234') && phoneDigits.length === 13) {
+    set.add('0' + phoneDigits.slice(3));
+    set.add('+' + phoneDigits);
+    set.add(phoneDigits);
+  } else if (phoneDigits.startsWith('0') && phoneDigits.length === 11) {
+    set.add('234' + phoneDigits.slice(1));
+    set.add('+234' + phoneDigits.slice(1));
+    set.add(phoneDigits);
+  }
+  return Array.from(set).filter(v => v && v.length >= 5);
+}
+
 /**
  * Global helper to find cached BVN report by BVN number, phone number, NIN, or JSON contents
  */
 async function findCachedBvnReport(searchVal) {
   if (!searchVal) return null;
-  const rawStr = String(searchVal).trim();
-  const cleanVal = rawStr.replace(/[\s\-]/g, '');
-  if (!cleanVal || cleanVal.length < 5) return null;
+  const variations = getSearchVariations(searchVal);
+  if (variations.length === 0) return null;
 
   try {
-    // 1. Search bvnReport table by bvnNumber, phoneNumber, or nin across all users (NO status filter)
+    // 1. Try Redis L1 Cache
+    for (const v of variations) {
+      const redisCached = await getCache(`REPORT:BVN:${v}`);
+      if (redisCached) {
+        console.log(`[findCachedBvnReport] REDIS L1 Cache HIT for BVN/phone variation ${v}. Bypassing DB.`);
+        return {
+          id: 'redis-cache',
+          rawResponse: JSON.stringify(redisCached),
+          bvnNumber: v
+        };
+      }
+    }
+
+    const orConditions = [];
+    for (const v of variations) {
+      orConditions.push({ bvnNumber: v });
+      orConditions.push({ phoneNumber: v });
+      orConditions.push({ nin: v });
+      orConditions.push({ rawResponse: { contains: v } });
+    }
+
+    // 2. Search bvnReport table in DB (L2 Cache)
     let report = await prisma.bvnReport.findFirst({
       where: {
         rawResponse: { not: null },
-        OR: [
-          { bvnNumber: cleanVal },
-          { bvnNumber: rawStr },
-          { phoneNumber: cleanVal },
-          { phoneNumber: rawStr },
-          { nin: cleanVal },
-          { nin: rawStr }
-        ]
+        OR: orConditions
       },
       orderBy: { id: 'desc' }
     });
 
     if (report && report.rawResponse && report.rawResponse.length > 10) {
-      return report;
-    }
-
-    // 2. Search rawResponse JSON string for cleanVal or rawStr
-    report = await prisma.bvnReport.findFirst({
-      where: {
-        OR: [
-          { rawResponse: { contains: cleanVal } },
-          { rawResponse: { contains: rawStr } }
-        ]
-      },
-      orderBy: { id: 'desc' }
-    });
-
-    if (report && report.rawResponse && report.rawResponse.length > 10) {
+      // Warm Redis L1 Cache
+      try {
+        const parsed = JSON.parse(report.rawResponse);
+        for (const v of variations) {
+          setCache(`REPORT:BVN:${v}`, parsed, 86400 * 30).catch(() => {});
+        }
+      } catch (e) {}
       return report;
     }
 
     // 3. Search ninReport table if BVN was returned in a NIN lookup
+    const ninOrConditions = [];
+    for (const v of variations) {
+      ninOrConditions.push({ rawResponse: { contains: v } });
+    }
+
     let ninMatch = await prisma.ninReport.findFirst({
       where: {
         rawResponse: { not: null },
-        rawResponse: { contains: cleanVal }
+        OR: ninOrConditions
       },
       orderBy: { id: 'desc' }
     });
 
     if (ninMatch && ninMatch.rawResponse && ninMatch.rawResponse.length > 10) {
+      try {
+        const parsed = JSON.parse(ninMatch.rawResponse);
+        for (const v of variations) {
+          setCache(`REPORT:BVN:${v}`, parsed, 86400 * 30).catch(() => {});
+        }
+      } catch (e) {}
       return {
         id: ninMatch.id,
         rawResponse: ninMatch.rawResponse,
-        bvnNumber: cleanVal
+        bvnNumber: variations[0]
       };
     }
 
@@ -130,13 +171,53 @@ async function findCachedBvnReport(searchVal) {
  * Verify BVN using Prembly API
  */
 async function verifyBvn(bvnNumber) {
-  try {
-    const cleanBvn = String(bvnNumber || '').trim();
+  const cleanBvn = String(bvnNumber || '').trim().replace(/[\s\-]/g, '');
+  if (!cleanBvn) throw new Error('BVN number is required');
+
+  const lockKey = `BVN:${cleanBvn}`;
+  let redisLockVal = null;
+
+  // 1. Check in-flight lock (In-Memory)
+  if (bvnInFlightLocks.has(lockKey)) {
+    console.log(`[verifyBvn] IN-FLIGHT LOCK HIT for BVN ${cleanBvn}. Waiting for active Prembly call to finish...`);
+    try {
+      await bvnInFlightLocks.get(lockKey);
+    } catch (e) {}
+    const cachedAfterLock = await findCachedBvnReport(cleanBvn);
+    if (cachedAfterLock && cachedAfterLock.rawResponse) {
+      try {
+        return {
+          success: true,
+          data: JSON.parse(cachedAfterLock.rawResponse),
+          cached: true
+        };
+      } catch (e) {}
+    }
+  }
+
+  // 2. Check Redis Distributed Lock across processes
+  redisLockVal = await acquireLock(`LOCK:${lockKey}`, 30000);
+  if (!redisLockVal && !bvnInFlightLocks.has(lockKey)) {
+    console.log(`[verifyBvn] REDIS DISTRIBUTED LOCK BUSY for BVN ${cleanBvn}. Waiting 1.5s...`);
+    await new Promise(r => setTimeout(r, 1500));
+    const cachedAfterRedisLock = await findCachedBvnReport(cleanBvn);
+    if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
+      try {
+        return {
+          success: true,
+          data: JSON.parse(cachedAfterRedisLock.rawResponse),
+          cached: true
+        };
+      } catch (e) {}
+    }
+  }
+
+  const executeVerification = async () => {
     const existing = await findCachedBvnReport(cleanBvn);
     if (existing && existing.rawResponse) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
-        console.log(`[verifyBvn] GLOBAL DB Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
+        console.log(`[verifyBvn] GLOBAL DB/REDIS Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
         return {
           success: true,
           data: cachedData,
@@ -149,7 +230,6 @@ async function verifyBvn(bvnNumber) {
 
     const settings = await getVerificationSettings();
 
-    // Check if service is active and configured
     if (!settings.active) {
       throw new Error('BVN verification service is not active. Please contact administrator.');
     }
@@ -167,11 +247,8 @@ async function verifyBvn(bvnNumber) {
       headers['app-id'] = settings.appId;
     }
 
-    // Call Prembly API
-    // Use the configured base URL, ensuring no double slashes if it ends with /
     const baseUrl = (settings.baseUrl || 'https://api.prembly.com').replace(/\/$/, '');
     const endpoint = baseUrl.includes('verification') ? '/bvn' : '/verification/bvn';
-
     const fullUrl = `${baseUrl}${endpoint}`;
 
     console.log('BVN Verification Request:');
@@ -181,7 +258,7 @@ async function verifyBvn(bvnNumber) {
     const response = await axios.post(
       fullUrl,
       {
-        number: bvnNumber
+        number: cleanBvn
       },
       {
         headers,
@@ -189,11 +266,16 @@ async function verifyBvn(bvnNumber) {
       }
     );
 
-    // Check response status
     if (response.data && response.data.status === true) {
+      const resultData = response.data.data || response.data;
+      // Populate Redis Cache
+      const variations = getSearchVariations(cleanBvn);
+      for (const v of variations) {
+        setCache(`REPORT:BVN:${v}`, resultData, 86400 * 30).catch(() => {});
+      }
       return {
         success: true,
-        data: response.data.data || response.data
+        data: resultData
       };
     } else {
       return {
@@ -202,7 +284,13 @@ async function verifyBvn(bvnNumber) {
         data: response.data
       };
     }
+  };
 
+  const verificationPromise = executeVerification();
+  bvnInFlightLocks.set(lockKey, verificationPromise);
+
+  try {
+    return await verificationPromise;
   } catch (error) {
     console.error('BVN Verification Error:', error.response?.data || error.message);
 
@@ -218,6 +306,11 @@ async function verifyBvn(bvnNumber) {
       success: false,
       message: error.message || 'System error during BVN verification'
     };
+  } finally {
+    bvnInFlightLocks.delete(lockKey);
+    if (redisLockVal) {
+      await releaseLock(`LOCK:${lockKey}`, redisLockVal).catch(() => {});
+    }
   }
 }
 

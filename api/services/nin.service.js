@@ -7,6 +7,7 @@ const fsSync = require('fs');
 const path = require('path');
 const QRCode = require('qrcode');
 const { getChromePath } = require('../utils/chrome');
+const { getCache, setCache, acquireLock, releaseLock } = require('../utils/redis');
 
 function escapeHtml(unsafe) {
   if (typeof unsafe !== 'string') return unsafe;
@@ -108,67 +109,106 @@ async function getNinPricing(slipType, userType) {
   return { userPrice, apiPrice, settings };
 }
 
+// In-flight locks map for NIN / Phone verifications to prevent concurrent Prembly calls
+const ninInFlightLocks = new Map();
+
+/**
+ * Generate normalized search variations (e.g., 08012345678, 2348012345678, +2348012345678)
+ */
+function getSearchVariations(val) {
+  if (!val) return [];
+  const raw = String(val).trim();
+  const clean = raw.replace(/[\s\-]/g, '');
+  const set = new Set([raw, clean]);
+  const phoneDigits = clean.replace(/\+/g, '');
+  if (phoneDigits.startsWith('234') && phoneDigits.length === 13) {
+    set.add('0' + phoneDigits.slice(3));
+    set.add('+' + phoneDigits);
+    set.add(phoneDigits);
+  } else if (phoneDigits.startsWith('0') && phoneDigits.length === 11) {
+    set.add('234' + phoneDigits.slice(1));
+    set.add('+234' + phoneDigits.slice(1));
+    set.add(phoneDigits);
+  }
+  return Array.from(set).filter(v => v && v.length >= 5);
+}
+
 /**
  * Global helper to find cached NIN report by NIN number, phone number, trackingId, or JSON contents
  */
 async function findCachedNinReport(searchVal) {
   if (!searchVal) return null;
-  const rawStr = String(searchVal).trim();
-  const cleanVal = rawStr.replace(/[\s\-]/g, '');
-  if (!cleanVal || cleanVal.length < 5) return null;
+  const variations = getSearchVariations(searchVal);
+  if (variations.length === 0) return null;
 
   try {
-    // 1. Search ninReport table by ninNumber or trackingId across all users (NO status filter)
+    // 1. Try Redis L1 Cache
+    for (const v of variations) {
+      const redisCached = await getCache(`REPORT:NIN:${v}`);
+      if (redisCached) {
+        console.log(`[findCachedNinReport] REDIS L1 Cache HIT for NIN/phone variation ${v}. Bypassing DB.`);
+        return {
+          id: 'redis-cache',
+          rawResponse: JSON.stringify(redisCached),
+          ninNumber: v
+        };
+      }
+    }
+
+    const orConditions = [];
+    for (const v of variations) {
+      orConditions.push({ ninNumber: v });
+      orConditions.push({ trackingId: v });
+      orConditions.push({ rawResponse: { contains: v } });
+    }
+
+    // 2. Search ninReport table in DB (L2 Cache)
     let report = await prisma.ninReport.findFirst({
       where: {
         rawResponse: { not: null },
-        OR: [
-          { ninNumber: cleanVal },
-          { ninNumber: rawStr },
-          { trackingId: cleanVal },
-          { trackingId: rawStr }
-        ]
+        OR: orConditions
       },
       orderBy: { id: 'desc' }
     });
 
     if (report && report.rawResponse && report.rawResponse.length > 10) {
+      // Warm Redis L1 cache
+      try {
+        const parsed = JSON.parse(report.rawResponse);
+        for (const v of variations) {
+          setCache(`REPORT:NIN:${v}`, parsed, 86400 * 30).catch(() => {});
+        }
+      } catch (e) {}
       return report;
     }
 
-    // 2. Search rawResponse JSON string for cleanVal or rawStr
-    report = await prisma.ninReport.findFirst({
-      where: {
-        OR: [
-          { rawResponse: { contains: cleanVal } },
-          { rawResponse: { contains: rawStr } }
-        ]
-      },
-      orderBy: { id: 'desc' }
-    });
-
-    if (report && report.rawResponse && report.rawResponse.length > 10) {
-      return report;
+    // 3. Search bvnReport table if NIN or phone was captured during BVN lookup
+    const bvnOrConditions = [];
+    for (const v of variations) {
+      bvnOrConditions.push({ nin: v });
+      bvnOrConditions.push({ phoneNumber: v });
+      bvnOrConditions.push({ rawResponse: { contains: v } });
     }
 
-    // 3. Search bvnReport table if NIN was captured during BVN lookup
     let bvnMatch = await prisma.bvnReport.findFirst({
       where: {
         rawResponse: { not: null },
-        OR: [
-          { nin: cleanVal },
-          { nin: rawStr },
-          { rawResponse: { contains: cleanVal } }
-        ]
+        OR: bvnOrConditions
       },
       orderBy: { id: 'desc' }
     });
 
     if (bvnMatch && bvnMatch.rawResponse && bvnMatch.rawResponse.length > 10) {
+      try {
+        const parsed = JSON.parse(bvnMatch.rawResponse);
+        for (const v of variations) {
+          setCache(`REPORT:NIN:${v}`, parsed, 86400 * 30).catch(() => {});
+        }
+      } catch (e) {}
       return {
         id: bvnMatch.id,
         rawResponse: bvnMatch.rawResponse,
-        ninNumber: cleanVal
+        ninNumber: variations[0]
       };
     }
 
@@ -183,13 +223,53 @@ async function findCachedNinReport(searchVal) {
  * Verify NIN using Prembly API
  */
 async function verifyNin(ninNumber) {
-  try {
-    const cleanNin = String(ninNumber || '').trim();
+  const cleanNin = String(ninNumber || '').trim().replace(/[\s\-]/g, '');
+  if (!cleanNin) throw new Error('NIN number is required');
+
+  const lockKey = `NIN:${cleanNin}`;
+  let redisLockVal = null;
+
+  // 1. Check in-flight lock (In-Memory)
+  if (ninInFlightLocks.has(lockKey)) {
+    console.log(`[verifyNin] IN-FLIGHT LOCK HIT for NIN ${cleanNin}. Waiting for active Prembly call to finish...`);
+    try {
+      await ninInFlightLocks.get(lockKey);
+    } catch (e) {}
+    const cachedAfterLock = await findCachedNinReport(cleanNin);
+    if (cachedAfterLock && cachedAfterLock.rawResponse) {
+      try {
+        return {
+          success: true,
+          data: JSON.parse(cachedAfterLock.rawResponse),
+          cached: true
+        };
+      } catch (e) {}
+    }
+  }
+
+  // 2. Check Redis Distributed Lock across processes
+  redisLockVal = await acquireLock(`LOCK:${lockKey}`, 30000);
+  if (!redisLockVal && !ninInFlightLocks.has(lockKey)) {
+    console.log(`[verifyNin] REDIS DISTRIBUTED LOCK BUSY for NIN ${cleanNin}. Waiting 1.5s...`);
+    await new Promise(r => setTimeout(r, 1500));
+    const cachedAfterRedisLock = await findCachedNinReport(cleanNin);
+    if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
+      try {
+        return {
+          success: true,
+          data: JSON.parse(cachedAfterRedisLock.rawResponse),
+          cached: true
+        };
+      } catch (e) {}
+    }
+  }
+
+  const executeVerification = async () => {
     const existing = await findCachedNinReport(cleanNin);
     if (existing && existing.rawResponse) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
-        console.log(`[verifyNin] GLOBAL DB Cache HIT for NIN ${cleanNin}. Bypassing Prembly API call.`);
+        console.log(`[verifyNin] GLOBAL DB/REDIS Cache HIT for NIN ${cleanNin}. Bypassing Prembly API call.`);
         return {
           success: true,
           data: cachedData,
@@ -202,7 +282,6 @@ async function verifyNin(ninNumber) {
 
     const settings = await getVerificationSettings();
 
-    // Check if service is active and configured
     if (!settings.ninActive) {
       throw new Error('NIN verification service is not active. Please contact administrator.');
     }
@@ -220,7 +299,6 @@ async function verifyNin(ninNumber) {
       headers['app-id'] = settings.appId;
     }
 
-    // Call Prembly API
     const baseUrl = (settings.baseUrl || 'https://api.prembly.com').replace(/\/$/, '');
     const endpoint = baseUrl.includes('verification') ? '/vnin' : '/verification/vnin';
     const fullUrl = `${baseUrl}${endpoint}`;
@@ -228,12 +306,11 @@ async function verifyNin(ninNumber) {
     console.log('NIN Verification Request:');
     console.log('URL:', fullUrl);
     console.log('Payload sent to prembly (NIN redacted)');
-    console.log('Headers:', { ...headers, 'x-api-key': '***' });
 
     const response = await axios.post(
       fullUrl,
       {
-        number_nin: ninNumber
+        number_nin: cleanNin
       },
       {
         headers,
@@ -241,16 +318,20 @@ async function verifyNin(ninNumber) {
       }
     );
 
-    // LOG RESPONSE FOR DEBUGGING
     console.log('--- PREMBLY NIN RESPONSE START ---');
     console.log(JSON.stringify(response.data, null, 2));
     console.log('--- PREMBLY NIN RESPONSE END ---');
 
-    // Check response status
     if (response.data && response.data.status === true) {
+      const resultData = response.data.data || response.data;
+      // Populate Redis Cache
+      const variations = getSearchVariations(cleanNin);
+      for (const v of variations) {
+        setCache(`REPORT:NIN:${v}`, resultData, 86400 * 30).catch(() => {});
+      }
       return {
         success: true,
-        data: response.data.data || response.data
+        data: resultData
       };
     } else {
       return {
@@ -259,7 +340,13 @@ async function verifyNin(ninNumber) {
         data: response.data
       };
     }
+  };
 
+  const verificationPromise = executeVerification();
+  ninInFlightLocks.set(lockKey, verificationPromise);
+
+  try {
+    return await verificationPromise;
   } catch (error) {
     console.error('NIN Verification Error:', error.response?.data || error.message);
 
@@ -275,6 +362,11 @@ async function verifyNin(ninNumber) {
       success: false,
       message: error.message || 'System error during NIN verification'
     };
+  } finally {
+    ninInFlightLocks.delete(lockKey);
+    if (redisLockVal) {
+      await releaseLock(`LOCK:${lockKey}`, redisLockVal).catch(() => {});
+    }
   }
 }
 
@@ -282,13 +374,51 @@ async function verifyNin(ninNumber) {
  * Verify NIN using phone number via Prembly Phone Number Advance API
  */
 async function verifyNinByPhone(phoneNumber) {
-  try {
-    const cleanPhone = String(phoneNumber || '').trim();
+  const cleanPhone = String(phoneNumber || '').trim().replace(/[\s\-]/g, '');
+  if (!cleanPhone) throw new Error('Phone number is required');
+
+  const lockKey = `NIN_PHONE:${cleanPhone}`;
+  let redisLockVal = null;
+
+  if (ninInFlightLocks.has(lockKey)) {
+    console.log(`[verifyNinByPhone] IN-FLIGHT LOCK HIT for phone ${cleanPhone}. Waiting for active Prembly call to finish...`);
+    try {
+      await ninInFlightLocks.get(lockKey);
+    } catch (e) {}
+    const cachedAfterLock = await findCachedNinReport(cleanPhone);
+    if (cachedAfterLock && cachedAfterLock.rawResponse) {
+      try {
+        return {
+          success: true,
+          data: JSON.parse(cachedAfterLock.rawResponse),
+          cached: true
+        };
+      } catch (e) {}
+    }
+  }
+
+  redisLockVal = await acquireLock(`LOCK:${lockKey}`, 30000);
+  if (!redisLockVal && !ninInFlightLocks.has(lockKey)) {
+    console.log(`[verifyNinByPhone] REDIS DISTRIBUTED LOCK BUSY for phone ${cleanPhone}. Waiting 1.5s...`);
+    await new Promise(r => setTimeout(r, 1500));
+    const cachedAfterRedisLock = await findCachedNinReport(cleanPhone);
+    if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
+      try {
+        return {
+          success: true,
+          data: JSON.parse(cachedAfterRedisLock.rawResponse),
+          cached: true
+        };
+      } catch (e) {}
+    }
+  }
+
+  const executeVerification = async () => {
     const existing = await findCachedNinReport(cleanPhone);
     if (existing && existing.rawResponse) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
-        console.log(`[verifyNinByPhone] GLOBAL DB Cache HIT for phone ${cleanPhone}. Bypassing Prembly API call.`);
+        console.log(`[verifyNinByPhone] GLOBAL DB/REDIS Cache HIT for phone ${cleanPhone}. Bypassing Prembly API call.`);
         return {
           success: true,
           data: cachedData,
@@ -322,23 +452,27 @@ async function verifyNinByPhone(phoneNumber) {
 
     console.log('NIN by Phone Verification Request:');
     console.log('URL:', fullUrl);
-    console.log('Payload sent to prembly (Phone redacted)');
 
     const response = await axios.post(
       fullUrl,
-      { number: phoneNumber },
+      { number: cleanPhone },
       { headers, timeout: 30000 }
     );
 
-    // LOG RESPONSE FOR DEBUGGING
     console.log('--- PREMBLY PHONE NIN RESPONSE START ---');
     console.log(JSON.stringify(response.data, null, 2));
     console.log('--- PREMBLY PHONE NIN RESPONSE END ---');
 
     if (response.data && response.data.status === true) {
+      const resultData = response.data.data || response.data;
+      // Populate Redis Cache
+      const variations = getSearchVariations(cleanPhone);
+      for (const v of variations) {
+        setCache(`REPORT:NIN:${v}`, resultData, 86400 * 30).catch(() => {});
+      }
       return {
         success: true,
-        data: response.data.data || response.data
+        data: resultData
       };
     } else {
       return {
@@ -347,6 +481,13 @@ async function verifyNinByPhone(phoneNumber) {
         data: response.data
       };
     }
+  };
+
+  const verificationPromise = executeVerification();
+  ninInFlightLocks.set(lockKey, verificationPromise);
+
+  try {
+    return await verificationPromise;
   } catch (error) {
     console.error('NIN by Phone Verification Error:', error.response?.data || error.message);
 
@@ -362,6 +503,11 @@ async function verifyNinByPhone(phoneNumber) {
       success: false,
       message: error.message || 'System error during phone verification'
     };
+  } finally {
+    ninInFlightLocks.delete(lockKey);
+    if (redisLockVal) {
+      await releaseLock(`LOCK:${lockKey}`, redisLockVal).catch(() => {});
+    }
   }
 }
 

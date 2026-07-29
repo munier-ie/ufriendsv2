@@ -60,11 +60,13 @@ async function verifyTransactionPin(user, pin) {
     return bcrypt.compare(pin, user.transactionPin);
 }
 
+const { cache } = require('../middleware/cacheMiddleware');
+
 // ============================================================
 // GET /api/professional/cac-pricing
 // Returns CAC charges and active status
 // ============================================================
-router.get('/cac-pricing', authenticateUser, async (_req, res) => {
+router.get('/cac-pricing', authenticateUser, cache(300), async (_req, res) => {
     try {
         let settings = await prisma.cACSettings.findFirst();
         if (!settings) {

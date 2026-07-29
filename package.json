@@ -31,6 +31,7 @@
     "framer-motion": "10.18.0",
     "helmet": "7.1.0",
     "html-pdf-node": "1.0.8",
+    "ioredis": "^5.11.1",
     "jsonwebtoken": "9.0.2",
     "lucide-react": "0.294.0",
     "mmmagic": "0.5.3",

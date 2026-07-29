@@ -4,6 +4,7 @@ const basicProvider = require('../utils/providers/basic');
 const subandgain = require('../utils/providers/subandgain');
 const maskawasub = require('../utils/providers/maskawasub');
 const alrahuz = require('../utils/providers/alrahuz');
+const { getCache, setCache } = require('../utils/redis');
 
 const providers = {
     'vtpass': vtpass,
@@ -31,6 +32,13 @@ function findProviderHandler(name) {
  */
 async function verifyUtility(type, providerName, number, meterType = 'prepaid') {
     try {
+        const cleanNumber = String(number || '').trim();
+        const cacheKey = `VERIFY_UTILITY:${type}:${providerName.toLowerCase()}:${cleanNumber}:${meterType}`;
+        const cached = await getCache(cacheKey);
+        if (cached && cached.valid) {
+            console.log(`[verifyUtility] REDIS Cache HIT for ${cacheKey}`);
+            return cached;
+        }
         // 1. Find the service to know which API provider it uses
         const service = await prisma.service.findFirst({
             where: {
@@ -86,7 +94,11 @@ async function verifyUtility(type, providerName, number, meterType = 'prepaid') 
                 cableId: providerName.toLowerCase(),
                 number: number
             };
-            return await handler.verifyTV(details, config);
+            const result = await handler.verifyTV(details, config);
+            if (result && result.valid) {
+                setCache(cacheKey, result, 86400).catch(() => {});
+            }
+            return result;
         } else if (type === 'electricity') {
             if (!handler.verifyElectricity) return { valid: false, message: 'Electricity Verification not supported by this provider' };
             const details = {
@@ -94,7 +106,11 @@ async function verifyUtility(type, providerName, number, meterType = 'prepaid') 
                 number: number,
                 type: meterType
             };
-            return await handler.verifyElectricity(details, config);
+            const result = await handler.verifyElectricity(details, config);
+            if (result && result.valid) {
+                setCache(cacheKey, result, 86400).catch(() => {});
+            }
+            return result;
         } else {
             return { valid: false, message: 'Invalid verification type' };
         }
