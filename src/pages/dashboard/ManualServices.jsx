@@ -684,53 +684,55 @@ export default function ManualServices() {
                 );
 
             case 'IPE_CLEARANCE':
-            case 'IPE_MODIFICATION': {
-                const ipeLabel = activeSub === 'IPE_CLEARANCE' ? 'IPE Clearance' : 'IPE Modification';
                 return (
                     <div className="space-y-5">
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                            <strong>Note:</strong> {ipeLabel} requires either a Tracking ID or NIN number for processing.
+                            <strong>Note:</strong> IPE Clearance requires your 15-digit Tracking ID for processing.
                         </div>
                         <div className="space-y-1">
-                            <label className="block text-sm font-medium text-gray-700">Identification Method</label>
+                            <label className="block text-sm font-medium text-gray-700">Clearance Option</label>
                             <select
                                 className="w-full rounded-xl border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white transition-all"
                                 value={formData.subType || ''}
-                                onChange={e => { update('subType', e.target.value); update('trackingId', ''); update('nin', ''); }}
+                                onChange={e => update('subType', e.target.value)}
                                 required
                             >
-                                <option value="" disabled>Select identification method</option>
-                                <option value="tracking_id">With Tracking ID</option>
-                                <option value="nin">With NIN Number</option>
+                                <option value="" disabled>Select clearance option</option>
+                                <option value="clear_and_retrieve_nin">Clear Tracking ID & Retrieve NIN</option>
+                                <option value="clear_tracking_id_only">Clear Tracking ID Only</option>
                             </select>
                         </div>
-                        {formData.subType === 'tracking_id' && (
-                            <Input
-                                label="Tracking ID"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                placeholder="Enter Tracking ID (max 15 digits)"
-                                value={formData.trackingId || ''}
-                                onChange={e => update('trackingId', e.target.value.replace(/\D/g, ''))}
-                                maxLength={15}
-                                required
-                            />
-                        )}
-                        {formData.subType === 'nin' && (
-                            <Input
-                                label="NIN"
-                                inputMode="numeric"
-                                pattern="[0-9]*"
-                                placeholder="Enter 11-digit NIN"
-                                value={formData.nin || ''}
-                                onChange={e => update('nin', e.target.value.replace(/\D/g, ''))}
-                                maxLength={11}
-                                required
-                            />
-                        )}
+                        <Input
+                            label="Tracking ID"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Enter 15-digit Tracking ID"
+                            value={formData.trackingId || ''}
+                            onChange={e => update('trackingId', e.target.value.replace(/\D/g, ''))}
+                            maxLength={15}
+                            required
+                        />
                     </div>
                 );
-            }
+
+            case 'IPE_MODIFICATION':
+                return (
+                    <div className="space-y-5">
+                        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
+                            <strong>Note:</strong> IPE Modification requires your 15-digit Tracking ID for processing.
+                        </div>
+                        <Input
+                            label="Tracking ID"
+                            inputMode="numeric"
+                            pattern="[0-9]*"
+                            placeholder="Enter 15-digit Tracking ID"
+                            value={formData.trackingId || ''}
+                            onChange={e => update('trackingId', e.target.value.replace(/\D/g, ''))}
+                            maxLength={15}
+                            required
+                        />
+                    </div>
+                );
 
             default:
                 return null;

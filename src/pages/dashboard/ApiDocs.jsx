@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Book,
     Code,
@@ -306,74 +306,62 @@ curl ${API_BASE_URL}/api/v1/wallet/balance \\
     };
 
     return (
-        <div className="p-4 sm:p-6 pb-24">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
-                    <div className="flex items-center space-x-3 mb-2">
-                        <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                            <Book className="text-white" size={28} />
-                        </div>
-                        <div>
-                            <div className="flex items-center gap-3">
-                                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">Ufriends API v1</h1>
-                                <span className={`px-3 py-1 ${isSandboxMode ? 'bg-purple-100 text-purple-700' : 'bg-green-100 text-green-700'} text-xs font-bold rounded-full uppercase tracking-wide`}>
-                                    {isSandboxMode ? 'Sandbox' : 'Live'}
-                                </span>
-                            </div>
-                            <p className="text-gray-600 mt-1">Integrate VTU, NIN/BVN slips, and Wallet services into your app.</p>
-                        </div>
+        <div className="space-y-6 sm:space-y-8">
+            {/* Top Page Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-5">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Ufriends API v1</h1>
+                        <span className={`px-2.5 py-0.5 ${isSandboxMode ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'} text-xs font-semibold rounded-full uppercase`}>
+                            {isSandboxMode ? 'Sandbox' : 'Live'}
+                        </span>
                     </div>
-                    
-                    {/* Sandbox Toggle */}
-                    <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Tv className={isSandboxMode ? "text-purple-600" : "text-gray-400"} size={20} />
-                            <div>
-                                <span className="text-sm font-semibold text-gray-800 block">Sandbox Mode</span>
-                                <span className="text-xs text-gray-500">Toggle to update endpoint examples below</span>
-                            </div>
-                        </div>
-                        <button
-                            onClick={() => setIsSandboxMode(!isSandboxMode)}
-                            className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none ${isSandboxMode ? 'bg-purple-600' : 'bg-gray-200'}`}
-                        >
-                            <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${isSandboxMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                        </button>
+                    <p className="text-gray-500 text-sm mt-1">Integrate VTU, identity services, and wallet APIs into your application</p>
+                </div>
+
+                {/* Sandbox Toggle */}
+                <div className="flex items-center space-x-3 bg-gray-50 border border-gray-200/80 px-4 py-2 rounded-2xl">
+                    <Tv className={isSandboxMode ? "text-purple-600" : "text-gray-400"} size={18} />
+                    <span className="text-xs font-semibold text-gray-700">Sandbox Mode</span>
+                    <button
+                        onClick={() => setIsSandboxMode(!isSandboxMode)}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${isSandboxMode ? 'bg-purple-600' : 'bg-gray-300'}`}
+                    >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isSandboxMode ? 'translate-x-6' : 'translate-x-1'}`} />
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                {/* Sidebar Navigation */}
+                <div className="lg:col-span-1">
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 sticky top-6">
+                        <h2 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-3">API Menu</h2>
+                        <nav className="space-y-1">
+                            {sections.map((section) => {
+                                const Icon = section.icon;
+                                return (
+                                    <button
+                                        key={section.id}
+                                        onClick={() => setActiveSection(section.id)}
+                                        className={`w-full flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-xs font-semibold transition-all ${activeSection === section.id
+                                                ? 'bg-blue-50 text-primary'
+                                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                            }`}
+                                    >
+                                        <Icon size={16} className={activeSection === section.id ? 'text-primary' : 'text-gray-400'} />
+                                        <span>{section.label}</span>
+                                    </button>
+                                );
+                            })}
+                        </nav>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                    {/* Sidebar Navigation */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sticky top-6">
-                            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Navigation</h2>
-                            <nav className="space-y-1">
-                                {sections.map((section) => {
-                                    const Icon = section.icon;
-                                    return (
-                                        <button
-                                            key={section.id}
-                                            onClick={() => setActiveSection(section.id)}
-                                            className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeSection === section.id
-                                                    ? 'bg-blue-50 text-blue-700 font-semibold'
-                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                                }`}
-                                        >
-                                            <Icon size={18} className={activeSection === section.id ? 'text-blue-600' : 'text-gray-400'} />
-                                            <span>{section.label}</span>
-                                        </button>
-                                    );
-                                })}
-                            </nav>
-                        </div>
-                    </div>
-
-                    {/* Main Content */}
-                    <div className="lg:col-span-3">
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 sm:p-8">
-                            {renderSectionContent()}
-                        </div>
+                {/* Main Content */}
+                <div className="lg:col-span-3">
+                    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+                        {renderSectionContent()}
                     </div>
                 </div>
             </div>

@@ -29,10 +29,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   String? _ninModSubType;
   // NIN Validation sub-type
   String? _ninValSubType;
-  // IPE Clearance sub-type (tracking_id or nin)
+  // IPE Clearance sub-type (clear_and_retrieve_nin or clear_tracking_id_only)
   String? _ipeClearanceSubType;
-  // IPE Modification sub-type (tracking_id or nin)
-  String? _ipeModificationSubType;
 
   static const _ninModOptions = [
     {'value': 'change_name', 'label': 'Change of Name'},
@@ -151,7 +149,6 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           _ninModSubType = null;
           _ninValSubType = null;
           _ipeClearanceSubType = null;
-          _ipeModificationSubType = null;
         });
         _fetchHistory();
       } else {
@@ -549,7 +546,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'IPE Clearance requires either a Tracking ID or NIN number for processing.',
+                    'IPE Clearance requires your 15-digit Tracking ID for processing.',
                     style: TextStyle(fontSize: 13, color: Colors.blue.shade800, height: 1.3),
                   ),
                 ),
@@ -558,60 +555,39 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           ),
           const SizedBox(height: 20),
 
-          if (_ipeClearanceSubType != null) _buildFeeCard(price),
+          _buildFeeCard(price),
 
-          _buildSectionLabel('Identification Method'),
+          _buildSectionLabel('Clearance Option'),
           const SizedBox(height: 8),
           _buildBottomSheetSelector(
             value: _ipeClearanceSubType,
-            placeholder: 'Select identification method',
+            placeholder: 'Select clearance option',
             options: const [
-              {'value': 'tracking_id', 'label': 'With Tracking ID'},
-              {'value': 'nin', 'label': 'With NIN Number'},
+              {'value': 'clear_and_retrieve_nin', 'label': 'Clear Tracking ID & Retrieve NIN'},
+              {'value': 'clear_tracking_id_only', 'label': 'Clear Tracking ID Only'},
             ],
             onSelect: (v) => setState(() {
               _ipeClearanceSubType = v;
-              _formData = {'subType': v};
+              _formData['subType'] = v;
             }),
           ),
 
-          if (_ipeClearanceSubType == 'tracking_id') ...[
-            const SizedBox(height: 20),
-            _buildSectionLabel('Tracking ID'),
-            const SizedBox(height: 8),
-            _buildTextInput(
-              key: 'trackingId',
-              hint: 'Enter Tracking ID (max 15 digits)',
-              maxLength: 15,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            GradientButton(
-              text: 'Submit Request',
-              icon: Icons.send_rounded,
-              onPressed: _submitting ? () {} : () => _submitRequest('IPE_CLEARANCE', 'tracking_id'),
-              loading: _submitting,
-            ),
-          ],
-
-          if (_ipeClearanceSubType == 'nin') ...[
-            const SizedBox(height: 20),
-            _buildSectionLabel('NIN Number'),
-            const SizedBox(height: 8),
-            _buildTextInput(
-              key: 'nin',
-              hint: 'Enter 11-digit NIN',
-              maxLength: 11,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            GradientButton(
-              text: 'Submit Request',
-              icon: Icons.send_rounded,
-              onPressed: _submitting ? () {} : () => _submitRequest('IPE_CLEARANCE', 'nin'),
-              loading: _submitting,
-            ),
-          ],
+          const SizedBox(height: 20),
+          _buildSectionLabel('Tracking ID'),
+          const SizedBox(height: 8),
+          _buildTextInput(
+            key: 'trackingId',
+            hint: 'Enter 15-digit Tracking ID',
+            maxLength: 15,
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 24),
+          GradientButton(
+            text: 'Submit Request',
+            icon: Icons.send_rounded,
+            onPressed: _submitting ? () {} : () => _submitRequest('IPE_CLEARANCE', _ipeClearanceSubType ?? 'clear_and_retrieve_nin'),
+            loading: _submitting,
+          ),
 
           const SizedBox(height: 40),
         ],
@@ -623,7 +599,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   Widget _buildIpeModificationTab() {
     if (!_isServiceActive('IPE_MODIFICATION')) return _buildInactiveMessage();
 
-    final price = _currentPrice('IPE_MODIFICATION', _ipeModificationSubType ?? '');
+    final price = _currentPrice('IPE_MODIFICATION', 'tracking_id');
 
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
@@ -645,7 +621,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'IPE Modification requires either a Tracking ID or NIN number for processing.',
+                    'IPE Modification requires your 15-digit Tracking ID for processing.',
                     style: TextStyle(fontSize: 13, color: Colors.blue.shade800, height: 1.3),
                   ),
                 ),
@@ -654,60 +630,23 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           ),
           const SizedBox(height: 20),
 
-          if (_ipeModificationSubType != null) _buildFeeCard(price),
+          _buildFeeCard(price),
 
-          _buildSectionLabel('Identification Method'),
+          _buildSectionLabel('Tracking ID'),
           const SizedBox(height: 8),
-          _buildBottomSheetSelector(
-            value: _ipeModificationSubType,
-            placeholder: 'Select identification method',
-            options: const [
-              {'value': 'tracking_id', 'label': 'With Tracking ID'},
-              {'value': 'nin', 'label': 'With NIN Number'},
-            ],
-            onSelect: (v) => setState(() {
-              _ipeModificationSubType = v;
-              _formData = {'subType': v};
-            }),
+          _buildTextInput(
+            key: 'trackingId',
+            hint: 'Enter 15-digit Tracking ID',
+            maxLength: 15,
+            keyboardType: TextInputType.number,
           ),
-
-          if (_ipeModificationSubType == 'tracking_id') ...[
-            const SizedBox(height: 20),
-            _buildSectionLabel('Tracking ID'),
-            const SizedBox(height: 8),
-            _buildTextInput(
-              key: 'trackingId',
-              hint: 'Enter Tracking ID (max 15 digits)',
-              maxLength: 15,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            GradientButton(
-              text: 'Submit Request',
-              icon: Icons.send_rounded,
-              onPressed: _submitting ? () {} : () => _submitRequest('IPE_MODIFICATION', 'tracking_id'),
-              loading: _submitting,
-            ),
-          ],
-
-          if (_ipeModificationSubType == 'nin') ...[
-            const SizedBox(height: 20),
-            _buildSectionLabel('NIN Number'),
-            const SizedBox(height: 8),
-            _buildTextInput(
-              key: 'nin',
-              hint: 'Enter 11-digit NIN',
-              maxLength: 11,
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 24),
-            GradientButton(
-              text: 'Submit Request',
-              icon: Icons.send_rounded,
-              onPressed: _submitting ? () {} : () => _submitRequest('IPE_MODIFICATION', 'nin'),
-              loading: _submitting,
-            ),
-          ],
+          const SizedBox(height: 24),
+          GradientButton(
+            text: 'Submit Request',
+            icon: Icons.send_rounded,
+            onPressed: _submitting ? () {} : () => _submitRequest('IPE_MODIFICATION', 'tracking_id'),
+            loading: _submitting,
+          ),
 
           const SizedBox(height: 40),
         ],

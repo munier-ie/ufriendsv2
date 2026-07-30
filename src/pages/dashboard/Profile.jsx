@@ -1,16 +1,25 @@
-import { User, Mail, Phone, MapPin, CreditCard, Shield, Award, Users, Lock, Key, Smartphone, Code, MessageCircle, LogOut, ChevronDown, ChevronRight, Copy, Eye, EyeOff, Check, X, RefreshCw } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { 
+    User, Mail, Phone, MapPin, CreditCard, Shield, Award, Users, Lock, Key, 
+    Smartphone, Code, MessageCircle, LogOut, ChevronRight, Copy, Eye, EyeOff, 
+    Check, X, RefreshCw, Loader2, Sparkles, ExternalLink, ShieldCheck
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'sonner';
 
+import Input from '../../components/ui/Input';
+import Button from '../../components/ui/Button';
+
 export default function Profile() {
     const navigate = useNavigate();
-    const { globalSettings } = useOutletContext();
+    const { globalSettings } = useOutletContext() || {};
     const [loading, setLoading] = useState(true);
     const [profileData, setProfileData] = useState(null);
-    const [openSection, setOpenSection] = useState(null);
+    const [activeTab, setActiveTab] = useState('personal'); // 'personal', 'security', 'api', 'support'
+    
+    // API Key Visibility
     const [showApiKey, setShowApiKey] = useState(false);
     const [showTestApiKey, setShowTestApiKey] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -66,18 +75,16 @@ export default function Profile() {
             setApiIpsForm(response.data.apiIps || '');
         } catch (error) {
             console.error('Failed to fetch profile:', error);
+            toast.error('Failed to load profile details');
         } finally {
             setLoading(false);
         }
     };
 
-    const toggleSection = (section) => {
-        setOpenSection(openSection === section ? null : section);
-    };
-
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
         setCopied(true);
+        toast.success('Copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
     };
 
@@ -94,7 +101,6 @@ export default function Profile() {
             });
             toast.success('Password updated successfully!');
             setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
-            setOpenSection(null);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to update password');
         }
@@ -132,6 +138,7 @@ export default function Profile() {
             setChangePinForm({ otp: '', newPin: '', confirmPin: '' });
             setResetPinStep('initial');
             setChangePinMode(false);
+            fetchProfileData();
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to reset PIN');
         } finally {
@@ -193,7 +200,6 @@ export default function Profile() {
             fetchProfileData();
             setTwoFaStep('initial');
             setTwoFaCode('');
-            toggleSection(null);
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to verify and enable 2FA');
         }
@@ -208,7 +214,6 @@ export default function Profile() {
             toast.success('2FA disabled successfully');
             fetchProfileData();
             setDisableTwoFaCode('');
-            toggleSection(null);
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to disable 2FA');
         }
@@ -254,669 +259,619 @@ export default function Profile() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="flex flex-col items-center justify-center min-h-[400px] space-y-4">
+                <Loader2 className="animate-spin text-primary" size={44} />
+                <p className="text-gray-400 font-medium text-sm">Loading profile data...</p>
             </div>
         );
     }
 
+    const tabs = [
+        { id: 'personal', label: 'Personal Details', icon: User },
+        { id: 'security', label: 'Security & PIN', icon: Lock },
+        ...(profileData?.accountType === 'vendor' ? [{ id: 'api', label: 'API Keys & Whitelist', icon: Code }] : []),
+        { id: 'support', label: 'Support & Actions', icon: MessageCircle }
+    ];
+
     return (
-        <div className="max-w-4xl mx-auto space-y-6 pb-8">
-            {/* Profile Header */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-primary to-secondary rounded-3xl p-5 sm:p-8 text-white shadow-xl"
-            >
-                <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-3 sm:space-y-0 sm:space-x-6 text-center sm:text-left">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                        <User size={32} className="text-white sm:hidden" />
-                        <User size={40} className="text-white hidden sm:block" />
+        <div className="space-y-6 sm:space-y-8 pb-12">
+            {/* Top Page Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-5">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Account Profile</h1>
+                    <p className="text-gray-500 text-sm mt-1">Manage your account credentials, security settings, and API access</p>
+                </div>
+
+                <div className="flex items-center space-x-3">
+                    <Link to="/dashboard/upgrade">
+                        <Button className="flex items-center space-x-2 bg-gradient-to-r from-primary to-secondary text-white rounded-2xl">
+                            <Sparkles size={16} />
+                            <span>Upgrade Tier</span>
+                        </Button>
+                    </Link>
+                </div>
+            </div>
+
+            {/* Profile Overview Header Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                    <div className="flex items-center space-x-5">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-3xl bg-blue-50 text-primary flex items-center justify-center font-bold text-2xl border border-blue-100 shrink-0">
+                            {profileData?.name ? profileData.name.charAt(0).toUpperCase() : 'U'}
+                        </div>
+                        <div>
+                            <div className="flex items-center space-x-3">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{profileData?.name || 'User Account'}</h2>
+                                <span className="px-3 py-0.5 rounded-full text-xs font-semibold uppercase bg-blue-100 text-primary">
+                                    {profileData?.accountType || 'User'}
+                                </span>
+                            </div>
+                            <p className="text-gray-500 text-sm mt-0.5">{profileData?.email}</p>
+                            <p className="text-gray-400 text-xs mt-1 font-mono">{profileData?.phone || 'No phone set'}</p>
+                        </div>
                     </div>
-                    <div>
-                        <h1 className="text-xl sm:text-3xl font-bold">{profileData?.name || 'User'}</h1>
-                        <div className="flex items-center justify-center sm:justify-start space-x-2 mt-2">
-                            <span className="px-3 py-1 bg-white/20 rounded-full text-sm font-medium">
-                                {profileData?.accountType || 'User'}
+
+                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto pt-4 md:pt-0 border-t md:border-t-0 border-gray-100">
+                        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 flex-1 md:flex-none">
+                            <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Referral Code</p>
+                            <div className="flex items-center space-x-2 mt-0.5">
+                                <span className="font-mono text-sm font-bold text-gray-900">{profileData?.referralCode || 'N/A'}</span>
+                                <button
+                                    onClick={() => copyToClipboard(`${window.location.origin}/register?referral=${profileData?.referralCode || ''}`)}
+                                    className="text-gray-400 hover:text-primary transition-colors"
+                                >
+                                    <Copy size={14} />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-100 flex-1 md:flex-none">
+                            <p className="text-gray-400 text-[11px] font-bold uppercase tracking-wider">KYC Status</p>
+                            <span className={`inline-flex items-center space-x-1 mt-1 text-xs font-bold ${
+                                profileData?.kycStatus ? 'text-emerald-600' : 'text-amber-600'
+                            }`}>
+                                <ShieldCheck size={14} />
+                                <span>{profileData?.kycStatus ? 'Verified' : 'Unverified'}</span>
                             </span>
                         </div>
                     </div>
                 </div>
-            </motion.div>
+            </div>
 
-            {/* Accordion Sections */}
-            <div className="space-y-4">
-                {/* Personal Information */}
-                <AccordionItem
-                    title="Personal Information"
-                    icon={User}
-                    isOpen={openSection === 'personal'}
-                    onToggle={() => toggleSection('personal')}
-                >
-                    <div className="space-y-4">
-                        <InfoRow icon={User} label="Name" value={profileData?.name} />
-                        <InfoRow icon={Mail} label="Email" value={profileData?.email} />
-                        <InfoRow icon={Phone} label="Phone" value={profileData?.phone} />
-                        <InfoRow icon={MapPin} label="State" value={profileData?.state || 'Not set'} />
-                        <InfoRow icon={CreditCard} label="Airtime Limit" value={`₦${profileData?.airtimeLimit?.toLocaleString() || '10,000'}`} />
-                        <InfoRow icon={CreditCard} label="Account Limit" value={`₦${profileData?.accountLimit?.toLocaleString() || '500,000'}`} />
-                        <div className="flex items-center justify-between py-3 border-b border-gray-100">
-                            <div className="flex items-center space-x-3">
-                                <Award className="w-5 h-5 text-gray-400" />
-                                <span className="font-medium text-gray-700">KYC Status</span>
-                            </div>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${profileData?.kycStatus ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                }`}>
-                                {profileData?.kycStatus ? 'Verified' : 'Not Verified'}
-                            </span>
-                        </div>
-                    </div>
-                </AccordionItem>
-
-                {/* Referral Link */}
-                <AccordionItem
-                    title="Referral Link"
-                    icon={Users}
-                    isOpen={openSection === 'referral'}
-                    onToggle={() => toggleSection('referral')}
-                >
-                    <div className="space-y-4">
-                        <div className="bg-gray-50 rounded-xl p-4">
-                            <p className="text-sm text-gray-600 mb-2">Your Referral Link</p>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="text"
-                                    readOnly
-                                    value={`${window.location.origin}/register?referral=${profileData?.referralCode || ''}`}
-                                    className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm"
-                                />
-                                <button
-                                    onClick={() => copyToClipboard(`${window.location.origin}/register?referral=${profileData?.referralCode || ''}`)}
-                                    className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                                >
-                                    {copied ? <Check size={20} /> : <Copy size={20} />}
-                                </button>
-                            </div>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-blue-50 rounded-xl p-4">
-                                <p className="text-sm text-blue-600 mb-1">Total Referrals</p>
-                                <p className="text-2xl font-bold text-blue-700">{profileData?.totalReferrals || 0}</p>
-                            </div>
-                            <div className="bg-green-50 rounded-xl p-4">
-                                <p className="text-sm text-green-600 mb-1">Earnings</p>
-                                <p className="text-2xl font-bold text-green-700">₦{profileData?.refWallet?.toLocaleString() || '0'}</p>
-                            </div>
-                        </div>
-                    </div>
-                </AccordionItem>
-
-                {/* Update Password */}
-                <AccordionItem
-                    title="Update Password"
-                    icon={Lock}
-                    isOpen={openSection === 'password'}
-                    onToggle={() => toggleSection('password')}
-                >
-                    <form onSubmit={handlePasswordUpdate} className="space-y-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Old Password</label>
-                            <input
-                                type="password"
-                                value={passwordForm.oldPassword}
-                                onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">New Password</label>
-                            <input
-                                type="password"
-                                value={passwordForm.newPassword}
-                                onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                required
-                                minLength={8}
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                            <input
-                                type="password"
-                                value={passwordForm.confirmPassword}
-                                onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                required
-                            />
-                        </div>
+            {/* Navigation Tabs */}
+            <div className="flex items-center space-x-2 border-b border-gray-100 overflow-x-auto pb-2">
+                {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
                         <button
-                            type="submit"
-                            className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center space-x-2 px-5 py-3 rounded-2xl text-xs font-semibold transition-all whitespace-nowrap ${
+                                activeTab === tab.id
+                                    ? 'bg-primary text-white shadow-md'
+                                    : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-100'
+                            }`}
                         >
-                            Update Password
+                            <Icon size={16} />
+                            <span>{tab.label}</span>
                         </button>
-                    </form>
-                </AccordionItem>
+                    );
+                })}
+            </div>
 
-                {/* Transaction PIN */}
-                <AccordionItem
-                    title="Transaction PIN"
-                    icon={Key}
-                    isOpen={openSection === 'pin'}
-                    onToggle={() => toggleSection('pin')}
-                >
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <span className="font-medium text-gray-700">PIN Status</span>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${profileData?.pinEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                }`}>
-                                {profileData?.pinEnabled ? 'Enabled' : 'Disabled'}
-                            </span>
+            {/* Tab Contents */}
+            <div>
+                {/* TAB 1: PERSONAL DETAILS */}
+                {activeTab === 'personal' && (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">Personal Details</h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <InfoItem icon={User} label="Full Name" value={profileData?.name} />
+                                <InfoItem icon={Mail} label="Email Address" value={profileData?.email} />
+                                <InfoItem icon={Phone} label="Phone Number" value={profileData?.phone} />
+                                <InfoItem icon={MapPin} label="State of Residence" value={profileData?.state || 'Not set'} />
+                                <InfoItem icon={CreditCard} label="Airtime Daily Limit" value={`₦${profileData?.airtimeLimit?.toLocaleString() || '10,000'}`} />
+                                <InfoItem icon={CreditCard} label="Account Daily Limit" value={`₦${profileData?.accountLimit?.toLocaleString() || '500,000'}`} />
+                            </div>
                         </div>
 
-                        {!profileData?.pinEnabled ? (
-                            <div className="space-y-4">
-                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                    <p className="text-sm text-blue-800">
-                                        <Shield className="w-4 h-4 inline mr-2" />
-                                        Enable PIN for secure transactions
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Create 4-Digit PIN</label>
+                        {/* Referral Section */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-4">
+                            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">Referral & Commission</h3>
+                            
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Your Referral Link</label>
+                                <div className="flex items-center space-x-2">
                                     <input
-                                        type="password"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={4}
-                                        value={pinForm.pin}
-                                        onChange={(e) => setPinForm({ ...pinForm, pin: e.target.value.replace(/\D/g, '') })}
-                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="****"
+                                        type="text"
+                                        readOnly
+                                        value={`${window.location.origin}/register?referral=${profileData?.referralCode || ''}`}
+                                        className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-xs font-mono text-gray-800 outline-none"
                                     />
+                                    <Button
+                                        onClick={() => copyToClipboard(`${window.location.origin}/register?referral=${profileData?.referralCode || ''}`)}
+                                        className="bg-primary text-white rounded-2xl px-5"
+                                    >
+                                        <Copy size={16} />
+                                    </Button>
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Confirm PIN</label>
-                                    <input
-                                        type="password"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={4}
-                                        value={pinForm.confirmPin}
-                                        onChange={(e) => setPinForm({ ...pinForm, confirmPin: e.target.value.replace(/\D/g, '') })}
-                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                        placeholder="****"
-                                    />
-                                </div>
-                                <button
-                                    onClick={() => handlePinToggle('enable')}
-                                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-                                >
-                                    Enable PIN
-                                </button>
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {/********** Toggle between Disable and Reset PIN **********/}
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => { setChangePinMode(false); setResetPinStep('initial'); }}
-                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                                            !changePinMode ? 'bg-red-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        Disable PIN
-                                    </button>
-                                    <button
-                                        onClick={() => setChangePinMode(true)}
-                                        className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-colors ${
-                                            changePinMode ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        }`}
-                                    >
-                                        <RefreshCw size={14} className="inline mr-1" />
-                                        Reset PIN
-                                    </button>
-                                </div>
 
-                                {!changePinMode ? (
-                                    <div className="space-y-4">
-                                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                                            <p className="text-sm text-yellow-800">
-                                                ⚠️ Disabling PIN will remove transaction security. Only disable if your device is secure.
-                                            </p>
-                                        </div>
+                            <div className="grid grid-cols-2 gap-4 pt-2">
+                                <div className="bg-blue-50/60 p-4 rounded-2xl border border-blue-100">
+                                    <p className="text-xs font-semibold text-blue-600">Total Referrals</p>
+                                    <p className="text-2xl font-bold text-blue-900 mt-1">{profileData?.totalReferrals || 0}</p>
+                                </div>
+                                <div className="bg-emerald-50/60 p-4 rounded-2xl border border-emerald-100">
+                                    <p className="text-xs font-semibold text-emerald-600">Referral Wallet Balance</p>
+                                    <p className="text-2xl font-bold text-emerald-900 mt-1">₦{profileData?.refWallet?.toLocaleString() || '0'}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* TAB 2: SECURITY & PIN */}
+                {activeTab === 'security' && (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        {/* Password Update */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">Update Account Password</h3>
+
+                            <form onSubmit={handlePasswordUpdate} className="space-y-4 max-w-xl">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Current Password</label>
+                                    <input
+                                        type="password"
+                                        value={passwordForm.oldPassword}
+                                        onChange={(e) => setPasswordForm({ ...passwordForm, oldPassword: e.target.value })}
+                                        className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                                        required
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New Password</label>
+                                        <input
+                                            type="password"
+                                            value={passwordForm.newPassword}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
+                                            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                                            required
+                                            minLength={8}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Confirm New Password</label>
+                                        <input
+                                            type="password"
+                                            value={passwordForm.confirmPassword}
+                                            onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
+                                            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm focus:ring-2 focus:ring-primary outline-none"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <Button type="submit" className="bg-primary text-white rounded-2xl px-6">
+                                    Update Password
+                                </Button>
+                            </form>
+                        </div>
+
+                        {/* Transaction PIN Section */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Transaction PIN</h3>
+                                    <p className="text-xs text-gray-500">Require a 4-digit PIN before approving wallet debits</p>
+                                </div>
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    profileData?.pinEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                    {profileData?.pinEnabled ? 'PIN Active' : 'Disabled'}
+                                </span>
+                            </div>
+
+                            {!profileData?.pinEnabled ? (
+                                <div className="space-y-4 max-w-xl">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Enter Current PIN to Disable</label>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Create 4-Digit PIN</label>
                                             <input
                                                 type="password"
                                                 inputMode="numeric"
-                                                pattern="[0-9]*"
                                                 maxLength={4}
-                                                value={pinForm.currentPin}
-                                                onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value.replace(/\D/g, '') })}
-                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
+                                                value={pinForm.pin}
+                                                onChange={(e) => setPinForm({ ...pinForm, pin: e.target.value.replace(/\D/g, '') })}
+                                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
                                                 placeholder="****"
                                             />
                                         </div>
+                                        <div>
+                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Confirm PIN</label>
+                                            <input
+                                                type="password"
+                                                inputMode="numeric"
+                                                maxLength={4}
+                                                value={pinForm.confirmPin}
+                                                onChange={(e) => setPinForm({ ...pinForm, confirmPin: e.target.value.replace(/\D/g, '') })}
+                                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                placeholder="****"
+                                            />
+                                        </div>
+                                    </div>
+                                    <Button onClick={() => handlePinToggle('enable')} className="bg-primary text-white rounded-2xl px-6">
+                                        Enable Transaction PIN
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 max-w-xl">
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => handlePinToggle('disable')}
-                                            className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                                            onClick={() => { setChangePinMode(false); setResetPinStep('initial'); }}
+                                            className={`px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                                                !changePinMode ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            }`}
                                         >
                                             Disable PIN
                                         </button>
+                                        <button
+                                            onClick={() => setChangePinMode(true)}
+                                            className={`px-4 py-2 rounded-2xl text-xs font-semibold transition-all ${
+                                                changePinMode ? 'bg-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            Reset PIN via Email
+                                        </button>
                                     </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {resetPinStep === 'initial' ? (
-                                            <div className="space-y-4">
-                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                                    <p className="text-sm text-blue-800">
-                                                        <Shield className="w-4 h-4 inline mr-1" />
-                                                        Click below to receive a PIN reset OTP sent to your email.
-                                                    </p>
-                                                </div>
-                                                <button
+
+                                    {!changePinMode ? (
+                                        <div className="space-y-4 pt-2">
+                                            <div>
+                                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Enter Current PIN to Disable</label>
+                                                <input
+                                                    type="password"
+                                                    inputMode="numeric"
+                                                    maxLength={4}
+                                                    value={pinForm.currentPin}
+                                                    onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value.replace(/\D/g, '') })}
+                                                    className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                    placeholder="****"
+                                                />
+                                            </div>
+                                            <Button onClick={() => handlePinToggle('disable')} className="bg-red-600 text-white rounded-2xl px-6">
+                                                Disable PIN
+                                            </Button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4 pt-2">
+                                            {resetPinStep === 'initial' ? (
+                                                <Button
                                                     onClick={handleRequestPinReset}
                                                     disabled={changePinLoading}
-                                                    className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50"
+                                                    className="bg-primary text-white rounded-2xl px-6"
                                                 >
-                                                    {changePinLoading ? 'Requesting...' : 'Request Reset OTP'}
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <form onSubmit={handleResetPinSubmit} className="space-y-4">
-                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                                    <p className="text-sm text-blue-800">
-                                                        <Shield className="w-4 h-4 inline mr-1" />
-                                                        Enter the OTP sent to your email and your new PIN.
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Email OTP</label>
-                                                    <input
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        pattern="[0-9]*"
-                                                        maxLength={6}
-                                                        value={changePinForm.otp}
-                                                        onChange={(e) => setChangePinForm({ ...changePinForm, otp: e.target.value.replace(/\D/g, '') })}
-                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent text-center tracking-[0.2em] font-bold"
-                                                        placeholder="000000"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">New PIN</label>
-                                                    <input
-                                                        type="password"
-                                                        inputMode="numeric"
-                                                        pattern="[0-9]*"
-                                                        maxLength={4}
-                                                        value={changePinForm.newPin}
-                                                        onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value.replace(/\D/g, '') })}
-                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                        placeholder="****"
-                                                        required
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Confirm New PIN</label>
-                                                    <input
-                                                        type="password"
-                                                        inputMode="numeric"
-                                                        pattern="[0-9]*"
-                                                        maxLength={4}
-                                                        value={changePinForm.confirmPin}
-                                                        onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value.replace(/\D/g, '') })}
-                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary focus:border-transparent"
-                                                        placeholder="****"
-                                                        required
-                                                    />
-                                                </div>
-                                                <button
-                                                    type="submit"
-                                                    disabled={changePinLoading || changePinForm.otp.length !== 6 || changePinForm.newPin.length !== 4}
-                                                    className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                                                >
-                                                    {changePinLoading ? 'Resetting...' : 'Verify OTP & Reset PIN'}
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setResetPinStep('initial')}
-                                                    className="w-full text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm mt-2"
-                                                >
-                                                    Back
-                                                </button>
-                                            </form>
-                                        )}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                </AccordionItem>
-
-                {/* Two-Factor Authentication */}
-                <AccordionItem
-                    title="Two-Factor Authentication"
-                    icon={Smartphone}
-                    isOpen={openSection === 'twofa'}
-                    onToggle={() => toggleSection('twofa')}
-                >
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
-                            <span className="font-medium text-gray-700">2FA Status</span>
-                            <span className={`px-3 py-1 rounded-full text-sm font-medium ${profileData?.twoFaEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                }`}>
-                                {profileData?.twoFaEnabled ? 'Enabled' : 'Disabled'}
-                            </span>
-                        </div>
-
-                        {!profileData?.twoFaEnabled ? (
-                            <div className="space-y-4">
-                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                                    <p className="text-sm text-blue-800">
-                                        <Shield className="w-4 h-4 inline mr-2" />
-                                        Secure your account with two-factor authentication.
-                                    </p>
-                                </div>
-                                {twoFaStep === 'initial' && (
-                                    <button
-                                        onClick={() => setTwoFaStep('choose')}
-                                        className="w-full bg-primary text-white py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-                                    >
-                                        Setup 2FA
-                                    </button>
-                                )}
-                                {twoFaStep === 'choose' && (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => handleTwoFaSetup('totp')}
-                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center"
-                                        >
-                                            < Smartphone className="w-8 h-8 mx-auto mb-2 text-primary" />
-                                            <span className="block font-medium text-gray-900">Authenticator App</span>
-                                            <span className="text-xs text-gray-500">Use Google Auth or Authy</span>
-                                        </button>
-                                        <button
-                                            onClick={() => handleTwoFaSetup('email')}
-                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center"
-                                        >
-                                            <Mail className="w-8 h-8 mx-auto mb-2 text-primary" />
-                                            <span className="block font-medium text-gray-900">Email OTP</span>
-                                            <span className="text-xs text-gray-500">Get codes via email</span>
-                                        </button>
-                                        <button
-                                            onClick={() => setTwoFaStep('initial')}
-                                            className="col-span-2 text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm"
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                )}
-                                {twoFaStep === 'setup_totp' && (
-                                    <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
-                                        <p className="text-sm text-gray-600 font-medium">1. Scan this QR code with your authenticator app</p>
-                                        <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200 w-fit mx-auto">
-                                            <img src={twoFaQrCode} alt="2FA QR Code" />
+                                                    {changePinLoading ? 'Sending OTP...' : 'Send Reset OTP to Email'}
+                                                </Button>
+                                            ) : (
+                                                <form onSubmit={handleResetPinSubmit} className="space-y-4">
+                                                    <div>
+                                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email OTP Code</label>
+                                                        <input
+                                                            type="text"
+                                                            inputMode="numeric"
+                                                            maxLength={6}
+                                                            value={changePinForm.otp}
+                                                            onChange={(e) => setChangePinForm({ ...changePinForm, otp: e.target.value.replace(/\D/g, '') })}
+                                                            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                            placeholder="000000"
+                                                            required
+                                                        />
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">New 4-Digit PIN</label>
+                                                            <input
+                                                                type="password"
+                                                                inputMode="numeric"
+                                                                maxLength={4}
+                                                                value={changePinForm.newPin}
+                                                                onChange={(e) => setChangePinForm({ ...changePinForm, newPin: e.target.value.replace(/\D/g, '') })}
+                                                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                                placeholder="****"
+                                                                required
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Confirm New PIN</label>
+                                                            <input
+                                                                type="password"
+                                                                inputMode="numeric"
+                                                                maxLength={4}
+                                                                value={changePinForm.confirmPin}
+                                                                onChange={(e) => setChangePinForm({ ...changePinForm, confirmPin: e.target.value.replace(/\D/g, '') })}
+                                                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                                placeholder="****"
+                                                                required
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center space-x-2">
+                                                        <Button
+                                                            type="submit"
+                                                            disabled={changePinLoading || changePinForm.otp.length !== 6 || changePinForm.newPin.length !== 4}
+                                                            className="bg-emerald-600 text-white rounded-2xl px-6"
+                                                        >
+                                                            {changePinLoading ? 'Resetting...' : 'Verify OTP & Save PIN'}
+                                                        </Button>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            onClick={() => setResetPinStep('initial')}
+                                                            className="rounded-2xl"
+                                                        >
+                                                            Back
+                                                        </Button>
+                                                    </div>
+                                                </form>
+                                            )}
                                         </div>
-                                        <p className="text-sm text-gray-600 font-medium">2. Enter the 6-digit code to verify</p>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            maxLength={6}
-                                            value={twoFaCode}
-                                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
-                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
-                                            placeholder="000000"
-                                        />
-                                        <button
-                                            onClick={handleTwoFaEnable}
-                                            disabled={twoFaCode.length !== 6}
-                                            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                                        >
-                                            Verify & Enable
-                                        </button>
-                                        <button
-                                            onClick={() => setTwoFaStep('choose')}
-                                            className="w-full text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm mt-2"
-                                        >
-                                            Back
-                                        </button>
-                                    </div>
-                                )}
-                                {twoFaStep === 'setup_email' && (
-                                    <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
-                                        <p className="text-sm text-gray-600 font-medium text-center">We've sent a 6-digit code to {profileData?.email}</p>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            maxLength={6}
-                                            value={twoFaCode}
-                                            onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
-                                            className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
-                                            placeholder="000000"
-                                        />
-                                        <button
-                                            onClick={handleTwoFaEnable}
-                                            disabled={twoFaCode.length !== 6}
-                                            className="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
-                                        >
-                                            Verify & Enable Email 2FA
-                                        </button>
-                                        <button
-                                            onClick={() => setTwoFaStep('choose')}
-                                            className="w-full text-gray-500 py-2 hover:bg-gray-100 rounded-lg transition-colors font-medium text-sm mt-2"
-                                        >
-                                            Back
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                                    <p className="text-sm text-yellow-800">
-                                        ⚠️ Disabling 2FA will make your account significantly less secure. Proceed with caution.
-                                    </p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-2">Enter 6-digit Authenticator Code to Disable</label>
-                                    <input
-                                        type="text"
-                                        inputMode="numeric"
-                                        pattern="[0-9]*"
-                                        maxLength={6}
-                                        value={disableTwoFaCode}
-                                        onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}
-                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
-                                        placeholder="000000"
-                                    />
-                                </div>
-                                <button
-                                    onClick={handleTwoFaDisable}
-                                    disabled={disableTwoFaCode.length !== 6}
-                                    className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors disabled:opacity-50"
-                                >
-                                    Disable 2FA
-                                </button>
-                            </div>
-                        )}
-                    </div>
-                </AccordionItem>
-
-                {/* API Access (Vendors Only) */}
-                {profileData?.accountType === 'vendor' && (
-                    <AccordionItem
-                        title="API Access"
-                        icon={Code}
-                        isOpen={openSection === 'api'}
-                        onToggle={() => toggleSection('api')}
-                    >
-                        <div className="space-y-4">
-                            <div className="bg-purple-50 rounded-xl p-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <p className="text-sm text-purple-600">Live API Key</p>
-                                    {(!profileData?.apiKey || !profileData?.testApiKey) ? (
-                                        <button
-                                            onClick={handleGenerateApiKey}
-                                            className="text-xs bg-purple-600 text-white px-3 py-1 rounded hover:bg-purple-700 transition"
-                                        >
-                                            Generate Keys
-                                        </button>
-                                    ) : (
-                                        <button
-                                            onClick={() => {
-                                                if (window.confirm("Are you sure you want to regenerate your API keys? Your old keys will instantly stop working.")) {
-                                                    handleGenerateApiKey();
-                                                }
-                                            }}
-                                            className="text-xs bg-red-100 text-red-600 px-3 py-1 rounded hover:bg-red-200 transition"
-                                        >
-                                            Regenerate Keys
-                                        </button>
                                     )}
                                 </div>
+                            )}
+                        </div>
+
+                        {/* Two-Factor Authentication */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Two-Factor Authentication (2FA)</h3>
+                                    <p className="text-xs text-gray-500">Protect account login with TOTP authenticator or Email verification</p>
+                                </div>
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                                    profileData?.twoFaEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'
+                                }`}>
+                                    {profileData?.twoFaEnabled ? '2FA Enabled' : 'Disabled'}
+                                </span>
+                            </div>
+
+                            {!profileData?.twoFaEnabled ? (
+                                <div className="space-y-4 max-w-xl">
+                                    {twoFaStep === 'initial' && (
+                                        <Button onClick={() => setTwoFaStep('choose')} className="bg-primary text-white rounded-2xl px-6">
+                                            Setup 2FA Protection
+                                        </Button>
+                                    )}
+
+                                    {twoFaStep === 'choose' && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <button
+                                                onClick={() => handleTwoFaSetup('totp')}
+                                                className="p-5 border border-gray-200 rounded-2xl hover:border-primary transition-all text-left space-y-2"
+                                            >
+                                                <Smartphone size={24} className="text-primary" />
+                                                <h4 className="font-bold text-gray-900 text-sm">Authenticator App</h4>
+                                                <p className="text-xs text-gray-500">Google Authenticator or Authy</p>
+                                            </button>
+                                            <button
+                                                onClick={() => handleTwoFaSetup('email')}
+                                                className="p-5 border border-gray-200 rounded-2xl hover:border-primary transition-all text-left space-y-2"
+                                            >
+                                                <Mail size={24} className="text-primary" />
+                                                <h4 className="font-bold text-gray-900 text-sm">Email Verification OTP</h4>
+                                                <p className="text-xs text-gray-500">Receive single-use login codes via email</p>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {twoFaStep === 'setup_totp' && (
+                                        <div className="space-y-4 bg-gray-50 p-5 rounded-2xl border border-gray-200">
+                                            <p className="text-xs font-semibold text-gray-700">1. Scan QR Code in Google Authenticator or Authy</p>
+                                            <div className="bg-white p-3 rounded-2xl border border-gray-200 w-fit mx-auto">
+                                                <img src={twoFaQrCode} alt="2FA QR Code" className="w-40 h-40" />
+                                            </div>
+                                            <p className="text-xs font-semibold text-gray-700">2. Enter 6-digit verification code</p>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={6}
+                                                value={twoFaCode}
+                                                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                placeholder="000000"
+                                            />
+                                            <div className="flex space-x-2">
+                                                <Button onClick={handleTwoFaEnable} disabled={twoFaCode.length !== 6} className="bg-emerald-600 text-white rounded-2xl">
+                                                    Verify & Enable 2FA
+                                                </Button>
+                                                <Button variant="outline" onClick={() => setTwoFaStep('choose')} className="rounded-2xl">
+                                                    Back
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {twoFaStep === 'setup_email' && (
+                                        <div className="space-y-4 bg-gray-50 p-5 rounded-2xl border border-gray-200">
+                                            <p className="text-xs font-semibold text-gray-700">Enter the 6-digit code sent to {profileData?.email}</p>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                maxLength={6}
+                                                value={twoFaCode}
+                                                onChange={(e) => setTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                                placeholder="000000"
+                                            />
+                                            <div className="flex space-x-2">
+                                                <Button onClick={handleTwoFaEnable} disabled={twoFaCode.length !== 6} className="bg-emerald-600 text-white rounded-2xl">
+                                                    Verify & Enable Email 2FA
+                                                </Button>
+                                                <Button variant="outline" onClick={() => setTwoFaStep('choose')} className="rounded-2xl">
+                                                    Back
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="space-y-4 max-w-xl">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Enter 6-Digit Code to Disable 2FA</label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            maxLength={6}
+                                            value={disableTwoFaCode}
+                                            onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                            className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm font-mono text-center tracking-widest outline-none focus:ring-2 focus:ring-primary"
+                                            placeholder="000000"
+                                        />
+                                    </div>
+                                    <Button onClick={handleTwoFaDisable} disabled={disableTwoFaCode.length !== 6} className="bg-red-600 text-white rounded-2xl">
+                                        Disable 2FA
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* TAB 3: API KEYS & WHITELIST */}
+                {activeTab === 'api' && profileData?.accountType === 'vendor' && (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+                                <div>
+                                    <h3 className="text-lg font-bold text-gray-900">Developer API Keys</h3>
+                                    <p className="text-xs text-gray-500">Live and Sandbox Bearer tokens for API v1</p>
+                                </div>
+                                <Button onClick={handleGenerateApiKey} variant="outline" className="rounded-2xl text-xs">
+                                    Regenerate Keys
+                                </Button>
+                            </div>
+
+                            {/* Live API Key */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Live API Key</label>
                                 <div className="flex items-center space-x-2">
                                     <input
                                         type={showApiKey ? 'text' : 'password'}
                                         readOnly
                                         value={profileData?.apiKey || 'Not generated'}
-                                        className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-mono"
+                                        className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-xs font-mono outline-none"
                                     />
                                     <button
                                         onClick={() => setShowApiKey(!showApiKey)}
-                                        className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                        className="p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors text-gray-700"
                                     >
-                                        {showApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        {showApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
-                                    <button
-                                        onClick={() => copyToClipboard(profileData?.apiKey || '')}
-                                        className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                                    >
-                                        <Copy size={20} />
-                                    </button>
+                                    <Button onClick={() => copyToClipboard(profileData?.apiKey || '')} className="bg-primary text-white rounded-2xl">
+                                        <Copy size={16} />
+                                    </Button>
                                 </div>
                             </div>
 
-                            <div className="bg-purple-50 rounded-xl p-4">
-                                <div className="flex justify-between items-center mb-2">
-                                    <p className="text-sm text-purple-600">Test API Key (Sandbox)</p>
-                                </div>
+                            {/* Test API Key */}
+                            <div className="space-y-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">Test API Key (Sandbox)</label>
                                 <div className="flex items-center space-x-2">
                                     <input
                                         type={showTestApiKey ? 'text' : 'password'}
                                         readOnly
                                         value={profileData?.testApiKey || 'Not generated'}
-                                        className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-mono"
+                                        className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-xs font-mono outline-none"
                                     />
                                     <button
                                         onClick={() => setShowTestApiKey(!showTestApiKey)}
-                                        className="p-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                                        className="p-3 bg-gray-100 hover:bg-gray-200 rounded-2xl transition-colors text-gray-700"
                                     >
-                                        {showTestApiKey ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        {showTestApiKey ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
-                                    <button
-                                        onClick={() => copyToClipboard(profileData?.testApiKey || '')}
-                                        className="p-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                                    >
-                                        <Copy size={20} />
-                                    </button>
+                                    <Button onClick={() => copyToClipboard(profileData?.testApiKey || '')} className="bg-primary text-white rounded-2xl">
+                                        <Copy size={16} />
+                                    </Button>
                                 </div>
                             </div>
 
-                            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4">
-                                <p className="text-sm font-medium text-gray-700 mb-2">IP Whitelist</p>
-                                <p className="text-xs text-gray-500 mb-3">
-                                    Restrict API key usage to specific IP addresses. Separate multiple IPs with commas. Leave blank to allow any IP.
-                                </p>
+                            {/* IP Whitelist */}
+                            <div className="space-y-2 pt-4 border-t border-gray-100">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider">IP Whitelist</label>
+                                <p className="text-xs text-gray-500">Comma-separated IPv4/IPv6 addresses allowed to execute API calls (leave blank for any IP).</p>
                                 <div className="flex space-x-2">
                                     <input
                                         type="text"
                                         placeholder="e.g. 192.168.1.1, 10.0.0.1"
                                         value={apiIpsForm}
                                         onChange={(e) => setApiIpsForm(e.target.value)}
-                                        className="flex-1 bg-white border border-gray-200 rounded-lg px-4 py-2 text-sm font-mono"
+                                        className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-xs font-mono text-gray-800 outline-none"
                                     />
-                                    <button
-                                        onClick={handleSaveApiIps}
-                                        disabled={savingIps}
-                                        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-                                    >
+                                    <Button onClick={handleSaveApiIps} disabled={savingIps} className="bg-primary text-white rounded-2xl px-6">
                                         {savingIps ? 'Saving...' : 'Save IPs'}
-                                    </button>
+                                    </Button>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <Link
-                                    to="/dashboard/api-docs"
-                                    className="flex items-center justify-center space-x-2 bg-white border-2 border-primary text-primary py-3 rounded-lg font-semibold hover:bg-primary hover:text-white transition-colors"
-                                >
-                                    <Code size={20} />
-                                    <span>API Docs</span>
-                                </Link>
-                                <Link
-                                    to="/dashboard/pricing"
-                                    className="flex items-center justify-center space-x-2 bg-white border-2 border-secondary text-secondary py-3 rounded-lg font-semibold hover:bg-secondary hover:text-white transition-colors"
-                                >
-                                    <CreditCard size={20} />
-                                    <span>View Pricing</span>
-                                </Link>
                             </div>
                         </div>
-                    </AccordionItem>
+                    </motion.div>
                 )}
 
-                {/* Contact Us */}
-                <AccordionItem
-                    title="Contact Us"
-                    icon={MessageCircle}
-                    isOpen={openSection === 'contact'}
-                    onToggle={() => toggleSection('contact')}
-                >
-                    <div className="space-y-4">
-                        {(globalSettings?.contactWhatsapp || globalSettings?.sitePhone) && (
-                            <a href={`https://wa.me/${String(globalSettings?.contactWhatsapp || globalSettings?.sitePhone || '').replace(/[^0-9]/g, '')}`} className="flex items-center space-x-3 p-4 bg-green-50 rounded-xl hover:bg-green-100 transition-colors">
-                                <MessageCircle className="w-6 h-6 text-green-600" />
-                                <div>
-                                    <p className="font-medium text-gray-900">WhatsApp</p>
-                                    <p className="text-sm text-gray-600">{globalSettings?.contactWhatsapp || globalSettings?.sitePhone}</p>
-                                </div>
-                            </a>
-                        )}
-                        {globalSettings?.siteEmail && (
-                            <a href={`mailto:${globalSettings?.siteEmail}`} className="flex items-center space-x-3 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors">
-                                <Mail className="w-6 h-6 text-blue-600" />
-                                <div>
-                                    <p className="font-medium text-gray-900">Email</p>
-                                    <p className="text-sm text-gray-600">{globalSettings?.siteEmail}</p>
-                                </div>
-                            </a>
-                        )}
-                    </div>
-                </AccordionItem>
+                {/* TAB 4: SUPPORT & LOGOUT */}
+                {activeTab === 'support' && (
+                    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-6">
+                            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">Help & Support Channels</h3>
 
-                {/* Logout */}
-                <AccordionItem
-                    title="Logout"
-                    icon={LogOut}
-                    isOpen={openSection === 'logout'}
-                    onToggle={() => toggleSection('logout')}
-                >
-                    <div className="space-y-4">
-                        <p className="text-gray-600">Are you sure you want to logout?</p>
-                        <button
-                            onClick={() => setShowLogoutModal(true)}
-                            className="w-full bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
-                        >
-                            Logout
-                        </button>
-                    </div>
-                </AccordionItem>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {(globalSettings?.contactWhatsapp || globalSettings?.sitePhone) && (
+                                    <a
+                                        href={`https://wa.me/${String(globalSettings?.contactWhatsapp || globalSettings?.sitePhone || '').replace(/[^0-9]/g, '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-5 bg-emerald-50/50 border border-emerald-100 rounded-2xl flex items-center space-x-4 hover:bg-emerald-100/50 transition-all"
+                                    >
+                                        <div className="p-3 bg-emerald-500 text-white rounded-2xl">
+                                            <MessageCircle size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 text-sm">WhatsApp Support</h4>
+                                            <p className="text-xs text-gray-600">{globalSettings?.contactWhatsapp || globalSettings?.sitePhone}</p>
+                                        </div>
+                                    </a>
+                                )}
+
+                                {globalSettings?.siteEmail && (
+                                    <a
+                                        href={`mailto:${globalSettings?.siteEmail}`}
+                                        className="p-5 bg-blue-50/50 border border-blue-100 rounded-2xl flex items-center space-x-4 hover:bg-blue-100/50 transition-all"
+                                    >
+                                        <div className="p-3 bg-primary text-white rounded-2xl">
+                                            <Mail size={20} />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-gray-900 text-sm">Email Support</h4>
+                                            <p className="text-xs text-gray-600">{globalSettings?.siteEmail}</p>
+                                        </div>
+                                    </a>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Account Logout Card */}
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-red-100 space-y-4">
+                            <div>
+                                <h3 className="text-lg font-bold text-red-600">Account Logout</h3>
+                                <p className="text-xs text-gray-500 mt-0.5">Safely terminate your current dashboard session</p>
+                            </div>
+                            <Button onClick={() => setShowLogoutModal(true)} className="bg-red-600 text-white rounded-2xl px-6">
+                                <LogOut size={16} className="mr-2 inline" />
+                                <span>Logout Account</span>
+                            </Button>
+                        </div>
+                    </motion.div>
+                )}
             </div>
 
             {/* Logout Confirmation Modal */}
@@ -928,29 +883,30 @@ export default function Profile() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setShowLogoutModal(false)}
-                            className="fixed inset-0 bg-black/50 z-50"
+                            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50"
                         />
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9 }}
+                            initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl p-6 shadow-2xl z-50 max-w-sm w-full mx-4"
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-3xl p-6 sm:p-8 shadow-2xl z-50 max-w-sm w-full mx-4 border border-gray-100 space-y-4"
                         >
-                            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirm Logout</h3>
-                            <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
-                            <div className="flex space-x-3">
-                                <button
+                            <h3 className="text-xl font-bold text-gray-900">Confirm Logout</h3>
+                            <p className="text-sm text-gray-600">Are you sure you want to end your current session?</p>
+                            <div className="flex space-x-3 pt-2">
+                                <Button
+                                    variant="outline"
                                     onClick={() => setShowLogoutModal(false)}
-                                    className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+                                    className="flex-1 rounded-2xl"
                                 >
                                     Cancel
-                                </button>
-                                <button
+                                </Button>
+                                <Button
                                     onClick={handleLogout}
-                                    className="flex-1 bg-red-500 text-white py-3 rounded-lg font-semibold hover:bg-red-600 transition-colors"
+                                    className="flex-1 bg-red-600 text-white rounded-2xl"
                                 >
                                     Logout
-                                </button>
+                                </Button>
                             </div>
                         </motion.div>
                     </>
@@ -960,60 +916,14 @@ export default function Profile() {
     );
 }
 
-// Accordion Item Component
-function AccordionItem({ title, icon: Icon, isOpen, onToggle, children }) {
+function InfoItem({ icon: Icon, label, value }) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-2xl shadow-lg overflow-hidden"
-        >
-            <button
-                onClick={onToggle}
-                className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
-            >
-                <div className="flex items-center space-x-3">
-                    <Icon className="w-6 h-6 text-primary" />
-                    <span className="text-lg font-semibold text-gray-900">{title}</span>
-                </div>
-                <motion.div
-                    animate={{ rotate: isOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                >
-                    <ChevronDown className="w-5 h-5 text-gray-400" />
-                </motion.div>
-            </button>
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className="overflow-hidden"
-                    >
-                        <div className="p-6 pt-0 border-t border-gray-100">
-                            {children}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
-    );
-}
-
-// Info Row Component
-function InfoRow({ icon: Icon, label, value }) {
-    return (
-        <div className="flex items-center justify-between py-3 border-b border-gray-100">
-            <div className="flex items-center space-x-3">
-                <Icon className="w-5 h-5 text-gray-400" />
-                <span className="font-medium text-gray-700">{label}</span>
+        <div className="bg-gray-50/60 p-4 rounded-2xl border border-gray-100/80 space-y-1">
+            <div className="flex items-center space-x-2 text-gray-400">
+                <Icon size={14} />
+                <span className="text-xs font-bold uppercase tracking-wider">{label}</span>
             </div>
-            <div className="flex items-center space-x-2">
-                <span className="text-gray-900">{value}</span>
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-            </div>
+            <p className="text-sm font-semibold text-gray-900 break-words">{value || 'Not set'}</p>
         </div>
     );
 }

@@ -178,12 +178,14 @@ export default function DashboardLayout() {
                 { icon: Send, label: 'VNIN -> NIBS', path: '/dashboard/manual-services?tab=VNIN_NIBSS' },
                 { icon: ShoppingBag, label: 'Exam Pins', path: '/dashboard/exam-pins' },
                 { icon: Tag, label: 'Data Pins', path: '/dashboard/data-pins' },
+                { icon: Printer, label: 'Recharge Card Vending', path: '/dashboard/recharge-cards' },
                 { icon: Smile, label: 'Smile Data', path: '/dashboard/smile-data' },
             ]
         },
         {
-            title: 'Printing Services',
+            title: 'Printing & Verification',
             items: [
+                { icon: ShieldCheck, label: 'ID Verification Portal', path: '/dashboard/verify' },
                 { icon: Printer, label: 'NIN Slip', path: '/dashboard/gov-services?tab=nin' },
                 { icon: Printer, label: 'BVN Slip', path: '/dashboard/gov-services?tab=bvn' },
             ]
@@ -191,34 +193,35 @@ export default function DashboardLayout() {
         {
             title: 'Finance Section',
             items: [
-                { icon: Wallet, label: 'Transactions', path: '/dashboard/transactions' },
-                { icon: Banknote, label: 'Pricing', path: '/dashboard/pricing' },
+                { icon: Wallet, label: 'Transactions History', path: '/dashboard/transactions' },
+                { icon: Bank, label: 'Virtual Accounts', path: '/dashboard/virtual-accounts' },
+                { icon: Banknote, label: 'Pricing List Checker', path: '/dashboard/pricing' },
                 { icon: Landmark, label: 'Banking & Finance', path: '/dashboard/banking-finance' },
-                { icon: Bank, label: 'Virtual Account', path: '/dashboard/virtual-accounts' },
             ]
         },
         {
             title: 'Developer Tools',
             items: [
-                { icon: Book, label: 'API Docs', path: '/dashboard/api-docs', isVendorOnly: true },
-                { icon: Activity, label: 'Analytics', path: '/dashboard/vendor-analytics', isVendorOnly: true },
-                { icon: Upload, label: 'Bulk Transactions', path: '/dashboard/bulk-transactions', isVendorOnly: true },
+                { icon: Book, label: 'API Documentation', path: '/dashboard/api-docs' },
+                { icon: Activity, label: 'Vendor Analytics', path: '/dashboard/vendor-analytics' },
+                { icon: Upload, label: 'Bulk Transactions', path: '/dashboard/bulk-transactions' },
             ]
         },
         {
             title: 'Education & Tools',
             items: [
                 { icon: MessageSquare, label: 'Bulk SMS', path: '/dashboard/bulk-sms' },
-                { icon: CalculatorIcon, label: 'Calculator', path: '/dashboard/calculator' },
-                { icon: Users, label: 'Referrals', path: '/dashboard/referrals' },
+                { icon: CalculatorIcon, label: 'Profit Calculator', path: '/dashboard/calculator' },
+                { icon: Users, label: 'Referrals & Earn', path: '/dashboard/referrals' },
                 { icon: GraduationCap, label: 'Academy', path: '/dashboard/academy' },
                 { icon: Globe, label: 'Become a Reseller', path: '/reseller' },
             ]
         },
         {
-            title: 'Support',
+            title: 'Support & Alerts',
             items: [
                 { icon: HelpCircle, label: 'Support Center', path: '/dashboard/support' },
+                { icon: Bell, label: 'Notifications Center', path: '/dashboard/notifications' },
             ]
         }
     ];
@@ -242,6 +245,7 @@ export default function DashboardLayout() {
                 { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
                 { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
                 { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },
+                { icon: Users, label: 'Referral System', path: '/admin/dashboard/referrals', moduleId: 'users' },
             ]
         },
         {
@@ -262,6 +266,7 @@ export default function DashboardLayout() {
                 { icon: Zap, label: 'Electricity', path: '/admin/dashboard/electricity', moduleId: 'services' },
                 { icon: Wifi, label: 'Smile Data', path: '/admin/dashboard/smile-plans', moduleId: 'services' },
                 { icon: Tag, label: 'Pin Stock', path: '/admin/dashboard/pins', moduleId: 'services' },
+                { icon: ShoppingBag, label: 'Exam PINs', path: '/admin/dashboard/exam-pins', moduleId: 'services' },
             ]
         },
         {
@@ -271,6 +276,7 @@ export default function DashboardLayout() {
                 { icon: Crown, label: 'Alpha Topup', path: '/admin/dashboard/alpha-topup', moduleId: 'services' },
                 { icon: FileText, label: 'CAC Registration', path: '/admin/dashboard/cac', moduleId: 'cac' },
                 { icon: FileEdit, label: 'Manual Services', path: '/admin/dashboard/manual-services', moduleId: 'manual-services' },
+                { icon: DollarSign, label: 'Manual Pricing', path: '/admin/dashboard/manual-services/pricing', moduleId: 'manual-services' },
                 { icon: GraduationCap, label: 'Academy', path: '/admin/dashboard/academy', moduleId: 'services' },
             ]
         },
@@ -280,12 +286,14 @@ export default function DashboardLayout() {
                 { icon: Globe, label: 'Homepage Editor', path: '/admin/dashboard/homepage', moduleId: 'settings' },
                 { icon: Send, label: 'Messages', path: '/admin/dashboard/contact', moduleId: 'contact' },
                 { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast', moduleId: 'contact' },
+                { icon: MessageSquare, label: 'Bulk SMS Log', path: '/admin/dashboard/sms', moduleId: 'contact' },
             ]
         },
         {
             title: 'System Settings',
             items: [
                 { icon: ShieldCheck, label: 'Settings', path: '/admin/dashboard/settings', moduleId: 'settings' },
+                { icon: ShieldCheck, label: 'Verification APIs', path: '/admin/dashboard/settings/verification', moduleId: 'settings' },
                 { icon: Signal, label: 'Network Config', path: '/admin/dashboard/settings/networks', moduleId: 'settings' },
                 { icon: Ban, label: 'Blacklist', path: '/admin/dashboard/settings/blacklist', moduleId: 'settings' },
                 { icon: ShieldCheck, label: 'A. Upgrades', path: '/admin/dashboard/settings/upgrades', moduleId: 'settings' },

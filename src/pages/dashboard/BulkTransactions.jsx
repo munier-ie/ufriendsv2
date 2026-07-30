@@ -1,13 +1,19 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { Upload, FileText, CheckCircle, XCircle, AlertCircle, Download, Loader } from 'lucide-react';
+import {
+    Upload,
+    FileText,
+    CheckCircle,
+    XCircle,
+    AlertCircle,
+    Download,
+    Loader2,
+    ArrowRight,
+    FileSpreadsheet
+} from 'lucide-react';
+import Button from '../../components/ui/Button';
 
-/**
- * Bulk Transactions Component
- * Allows vendor users to upload CSV files for bulk transaction processing
- * with format validation, preview, and progress tracking
- */
-const BulkTransactions = () => {
+export default function BulkTransactions() {
     const [file, setFile] = useState(null);
     const [preview, setPreview] = useState([]);
     const [uploading, setUploading] = useState(false);
@@ -16,28 +22,24 @@ const BulkTransactions = () => {
     const [jobStatus, setJobStatus] = useState(null);
     const [error, setError] = useState('');
 
-    // Handle file selection
     const handleFileSelect = async (e) => {
         const selectedFile = e.target.files[0];
         if (!selectedFile) return;
 
-        // Validate file type
         if (!selectedFile.name.endsWith('.csv')) {
-            setError('Please upload a CSV file');
+            setError('Please select a valid CSV spreadsheet (.csv)');
             return;
         }
 
         setFile(selectedFile);
         setError('');
 
-        // Generate preview
         const text = await selectedFile.text();
-        const lines = text.split('\n').slice(0, 11); // Header + 10 rows
+        const lines = text.split('\n').filter(line => line.trim() !== '').slice(0, 11);
         const previewData = lines.map(line => line.split(','));
         setPreview(previewData);
     };
 
-    // Upload and process CSV
     const handleUpload = async () => {
         if (!file) return;
 
@@ -61,13 +63,12 @@ const BulkTransactions = () => {
             pollJobStatus(response.data.jobId);
 
         } catch (err) {
-            setError(err.response?.data?.message || 'Upload failed');
+            setError(err.response?.data?.message || 'Bulk upload failed. Please try again.');
         } finally {
             setUploading(false);
         }
     };
 
-    // Poll job status
     const pollJobStatus = async (id) => {
         const interval = setInterval(async () => {
             try {
@@ -85,12 +86,28 @@ const BulkTransactions = () => {
             } catch (err) {
                 clearInterval(interval);
                 setProcessing(false);
-                setError('Failed to fetch job status');
+                setError('Failed to fetch processing status');
             }
         }, 2000);
     };
 
-    // Download results
+    const downloadSampleCsv = () => {
+        const csvContent = "data:text/csv;charset=utf-8," + 
+            "service,phone,amount,variation_code\n" +
+            "airtime,08012345678,100,mtn\n" +
+            "data,08123456789,1000,mtn-1gb\n" +
+            "cable,01234567890,2500,dstv-compact\n" +
+            "electricity,04123456789,5000,ikeja-electric";
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "ufriends_bulk_template.csv");
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    };
+
     const downloadResults = async () => {
         if (!jobId) return;
 
@@ -109,196 +126,190 @@ const BulkTransactions = () => {
             link.click();
             link.remove();
         } catch (err) {
-            setError('Failed to download results');
+            setError('Failed to download results file');
         }
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 sm:p-6">
-            <div className="max-w-5xl mx-auto space-y-6">
-                {/* Header */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                    <div className="flex items-center space-x-3">
-                        <div className="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl">
-                            <Upload className="text-white" size={28} />
+        <div className="space-y-6 sm:space-y-8">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-gray-100 pb-5">
+                <div>
+                    <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight">Bulk Transactions</h1>
+                    <p className="text-gray-500 text-sm mt-1">Upload CSV spreadsheets for batch airtime, data, and bill processing</p>
+                </div>
+
+                <Button 
+                    onClick={downloadSampleCsv}
+                    variant="outline"
+                    className="flex items-center space-x-2 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-2xl"
+                >
+                    <Download size={16} />
+                    <span>Download CSV Template</span>
+                </Button>
+            </div>
+
+            {/* Error Banner */}
+            {error && (
+                <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm flex items-center space-x-3">
+                    <AlertCircle size={20} className="shrink-0" />
+                    <span>{error}</span>
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main File Upload & Preview Section */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* File Input Box */}
+                    <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 text-center space-y-4">
+                        <div className="w-16 h-16 bg-blue-50 text-primary rounded-2xl flex items-center justify-center mx-auto">
+                            <Upload size={28} />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-800">Bulk Transactions</h1>
-                            <p className="text-gray-600">Upload CSV for batch processing (max 1000 rows)</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* CSV Format Guide */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                        <FileText className="text-blue-600" />
-                        <span>CSV Format Guide</span>
-                    </h2>
-
-                    <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-lg mb-4">
-                        <p className="text-blue-900 font-medium mb-2">Required Columns:</p>
-                        <code className="text-blue-800 text-sm">service, phone, amount, variation_code</code>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm overflow-x-auto">
-                        <div className="text-gray-700">
-                            service,phone,amount,variation_code<br />
-                            airtime,08012345678,100,mtn<br />
-                            data,08123456789,1000,mtn-1gb<br />
-                            cable,01234567890,2500,dstv-compact
-                        </div>
-                    </div>
-
-                    <div className="mt-4 space-y-2">
-                        <h3 className="font-semibold text-gray-800">Supported Services:</h3>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                            <span className="px-3 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium">airtime</span>
-                            <span className="px-3 py-2 bg-blue-100 text-blue-700 rounded-lg text-sm font-medium">data</span>
-                            <span className="px-3 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-medium">cable</span>
-                            <span className="px-3 py-2 bg-orange-100 text-orange-700 rounded-lg text-sm font-medium">electricity</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Upload Section */}
-                <div className="bg-white rounded-2xl shadow-lg p-6">
-                    <h2 className="text-xl font-bold text-gray-800 mb-4">Upload CSV File</h2>
-
-                    <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-500 transition-colors">
-                        <input
-                            type="file"
-                            accept=".csv"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                            id="csv-upload"
-                        />
-                        <label htmlFor="csv-upload" className="cursor-pointer">
-                            <Upload className="mx-auto mb-4 text-gray-400" size={48} />
-                            <p className="text-lg font-semibold text-gray-700 mb-2">
-                                {file ? file.name : 'Click to upload CSV file'}
-                            </p>
-                            <p className="text-sm text-gray-500">Maximum 1000 rows</p>
-                        </label>
-                    </div>
-
-                    {error && (
-                        <div className="mt-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
-                            <p className="text-red-800 flex items-center space-x-2">
-                                <AlertCircle size={20} />
-                                <span>{error}</span>
+                            <h3 className="font-bold text-gray-900 text-lg">
+                                {file ? file.name : 'Select CSV File for Batch Upload'}
+                            </h3>
+                            <p className="text-gray-500 text-xs mt-1">
+                                Maximum 1,000 transaction rows per CSV upload
                             </p>
                         </div>
-                    )}
 
+                        <div className="flex items-center justify-center pt-2">
+                            <label className="cursor-pointer px-6 py-3 bg-primary text-white text-xs font-semibold rounded-2xl hover:bg-primary/90 transition-all shadow-md active:scale-95">
+                                <span>Browse CSV File</span>
+                                <input
+                                    type="file"
+                                    accept=".csv"
+                                    onChange={handleFileSelect}
+                                    className="hidden"
+                                />
+                            </label>
+                        </div>
+                    </div>
+
+                    {/* Preview Table */}
                     {preview.length > 0 && (
-                        <div className="mt-6">
-                            <h3 className="font-semibold text-gray-800 mb-3">Preview (First 10 rows)</h3>
-                            <div className="overflow-x-auto">
-                                <table className="w-full border-collapse text-sm">
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-bold text-gray-900 text-base">File Preview</h3>
+                                    <p className="text-xs text-gray-500">{preview.length - 1} rows detected</p>
+                                </div>
+                                <Button
+                                    onClick={handleUpload}
+                                    disabled={uploading || processing}
+                                    className="flex items-center space-x-2 bg-primary text-white rounded-2xl"
+                                >
+                                    {uploading ? (
+                                        <>
+                                            <Loader2 size={16} className="animate-spin" />
+                                            <span>Uploading...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span>Process Batch</span>
+                                            <ArrowRight size={16} />
+                                        </>
+                                    )}
+                                </Button>
+                            </div>
+
+                            <div className="overflow-x-auto rounded-2xl border border-gray-100">
+                                <table className="w-full text-left text-xs">
                                     <thead>
-                                        <tr className="bg-gray-50">
-                                            {preview[0]?.map((header, index) => (
-                                                <th key={index} className="border border-gray-200 px-4 py-2 text-left font-semibold text-gray-700">
-                                                    {header}
-                                                </th>
+                                        <tr className="bg-gray-50/60 border-b border-gray-100 font-semibold text-gray-500 uppercase tracking-wider">
+                                            {preview[0]?.map((col, i) => (
+                                                <th key={i} className="py-3 px-4">{col}</th>
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        {preview.slice(1).map((row, rowIndex) => (
-                                            <tr key={rowIndex} className="hover:bg-gray-50">
-                                                {row.map((cell, cellIndex) => (
-                                                    <td key={cellIndex} className="border border-gray-200 px-4 py-2 text-gray-600">
-                                                        {cell}
-                                                    </td>
+                                    <tbody className="divide-y divide-gray-100 text-gray-700 font-mono">
+                                        {preview.slice(1).map((row, idx) => (
+                                            <tr key={idx} className="hover:bg-gray-50/50">
+                                                {row.map((cell, cIdx) => (
+                                                    <td key={cIdx} className="py-2.5 px-4">{cell}</td>
                                                 ))}
                                             </tr>
                                         ))}
                                     </tbody>
                                 </table>
                             </div>
-
-                            <button
-                                onClick={handleUpload}
-                                disabled={uploading || processing}
-                                className="mt-4 px-6 py-3 bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {uploading ? 'Uploading...' : 'Process Bulk Transactions'}
-                            </button>
                         </div>
                     )}
                 </div>
 
-                {/* Processing Status */}
-                {processing && jobStatus && (
-                    <div className="bg-white rounded-2xl shadow-lg p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                            <Loader className="animate-spin text-blue-600" />
-                            <span>Processing...</span>
-                        </h2>
+                {/* Rules & Status Sidebar Column */}
+                <div className="space-y-6">
+                    <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-4">
+                        <div className="flex items-center space-x-3">
+                            <div className="p-2.5 bg-blue-50 text-primary rounded-2xl">
+                                <FileText size={20} />
+                            </div>
+                            <h3 className="font-bold text-gray-900 text-base">Required CSV Format</h3>
+                        </div>
 
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-700">Total Rows:</span>
-                                <span className="font-bold text-gray-800">{jobStatus.totalRows}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-700">Processed:</span>
-                                <span className="font-bold text-blue-600">{jobStatus.processed}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-700">Successful:</span>
-                                <span className="font-bold text-green-600 flex items-center space-x-1">
-                                    <CheckCircle size={16} />
-                                    <span>{jobStatus.successful}</span>
-                                </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-gray-700">Failed:</span>
-                                <span className="font-bold text-red-600 flex items-center space-x-1">
-                                    <XCircle size={16} />
-                                    <span>{jobStatus.failed}</span>
-                                </span>
-                            </div>
+                        <p className="text-xs text-gray-500 leading-relaxed">
+                            Ensure the first row of your CSV contains exact column headers:
+                        </p>
 
-                            {/* Progress Bar */}
-                            <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
-                                <div
-                                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-full transition-all duration-300"
-                                    style={{ width: `${(jobStatus.processed / jobStatus.totalRows) * 100}%` }}
-                                />
+                        <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 font-mono text-xs text-gray-800 leading-relaxed">
+                            service,phone,amount,variation_code<br />
+                            airtime,08012345678,100,mtn<br />
+                            data,08123456789,1000,mtn-1gb
+                        </div>
+
+                        <div className="space-y-2 text-xs text-gray-600 pt-2">
+                            <div className="flex items-start space-x-2">
+                                <CheckCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                                <span>Batch transactions execute sequentially</span>
+                            </div>
+                            <div className="flex items-start space-x-2">
+                                <CheckCircle size={14} className="text-emerald-500 mt-0.5 shrink-0" />
+                                <span>Failed rows automatically log reason in final output CSV</span>
                             </div>
                         </div>
                     </div>
-                )}
 
-                {/* Results */}
-                {jobStatus && jobStatus.status === 'completed' && (
-                    <div className="bg-white rounded-2xl shadow-lg p-6">
-                        <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center space-x-2">
-                            <CheckCircle className="text-green-600" />
-                            <span>Processing Complete</span>
-                        </h2>
+                    {/* Job Status Box */}
+                    {jobStatus && (
+                        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-bold text-gray-900 text-base">Batch Progress</h3>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                                    jobStatus.status === 'completed'
+                                        ? 'bg-green-100 text-green-800'
+                                        : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                    {jobStatus.status}
+                                </span>
+                            </div>
 
-                        <div className="bg-green-50 border-l-4 border-green-500 p-4 rounded-r-lg mb-4">
-                            <p className="text-green-800">
-                                Successfully processed {jobStatus.successful} out of {jobStatus.totalRows} transactions
-                            </p>
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-xs font-semibold text-gray-600">
+                                    <span>Processed {jobStatus.processed || 0} of {jobStatus.total || 0}</span>
+                                    <span>{Math.round(((jobStatus.processed || 0) / (jobStatus.total || 1)) * 100)}%</span>
+                                </div>
+                                <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-primary transition-all duration-300"
+                                        style={{ width: `${Math.round(((jobStatus.processed || 0) / (jobStatus.total || 1)) * 100)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            {jobStatus.status === 'completed' && (
+                                <Button
+                                    onClick={downloadResults}
+                                    className="w-full flex items-center justify-center space-x-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl"
+                                >
+                                    <Download size={16} />
+                                    <span>Download Results CSV</span>
+                                </Button>
+                            )}
                         </div>
-
-                        <button
-                            onClick={downloadResults}
-                            className="px-6 py-3 bg-gradient-to-br from-green-500 to-green-600 text-white rounded-xl font-semibold hover:shadow-lg transition-all flex items-center space-x-2"
-                        >
-                            <Download size={20} />
-                            <span>Download Results</span>
-                        </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );
-};
-
-export default BulkTransactions;
+}
