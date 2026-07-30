@@ -54,7 +54,7 @@ router.get('/settings', adminAuth, async (req, res) => {
         // Default settings as fallback
         const defaultSettings = {
             siteName: 'Ufriends 2.0',
-            siteEmail: 'support@ufriends.com',
+            siteEmail: 'info@ufriends.com.ng',
             sitePhone: '+234 800 000 0000',
             referralBonus: 100,
             referralMinBalance: 1000,

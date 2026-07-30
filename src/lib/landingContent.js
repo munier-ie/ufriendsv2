@@ -70,7 +70,7 @@ export const DEFAULT_LANDING_CONTENT = {
       { question: "Is there a referral program?", answer: "Yes! You earn commission for every friend you refer who signs up and makes a transaction. Log in to your dashboard to get your unique referral link and track your earnings." },
     ],
     support: {
-      email: "support@ufriendsit.com",
+      email: "info@ufriends.com.ng",
       phone: "+234 81 6969 6095",
       hours: "24/7",
     },

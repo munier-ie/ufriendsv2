@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
@@ -26,6 +28,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
   bool _uploading = false;
   Map<String, dynamic> _formData = {};
 
+  bool _bvnAgreed = false;
   String? _bvnModSubType;
 
   final ImagePicker _picker = ImagePicker();
@@ -71,6 +74,15 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this, initialIndex: _resolveInitialTab());
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging && _tabController.index != 0) {
+        if (_bvnAgreed) {
+          setState(() {
+            _bvnAgreed = false;
+          });
+        }
+      }
+    });
     _fetchSettings();
     _fetchHistory();
   }
@@ -351,6 +363,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
 
   Widget _buildBvnModTab() {
     if (!_isServiceActive('BVN_MODIFICATION')) return _buildInactiveMessage();
+    if (!_bvnAgreed) return _buildBvnWarningWidget();
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
       padding: const EdgeInsets.all(24),
@@ -385,12 +398,229 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
     );
   }
 
+  Widget _buildBvnWarningWidget() {
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      padding: const EdgeInsets.all(24),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: context.cardColor,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: context.borderColor),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 15,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+                ),
+                child: const Icon(Icons.info_outline_rounded, size: 28, color: AppTheme.primaryColor),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Center(
+              child: Text(
+                'BVN Modification Guidelines',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Center(
+              child: Text(
+                'Please review the submission requirements carefully before proceeding',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: context.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: context.subtleBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: context.borderColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildNoticePoint(
+                    number: '1',
+                    badgeColor: AppTheme.primaryColor,
+                    title: 'Submit Only Agency BVN (Agent BVN)',
+                    description:
+                        'This portal processes Agency BVNs only (registered via accredited NIMC/NIBSS agents).',
+                  ),
+                  const Divider(height: 24),
+                  _buildNoticePoint(
+                    number: '2',
+                    badgeColor: Colors.red.shade500,
+                    title: 'Bank-Created BVNs Not Allowed',
+                    description:
+                        'If registered directly at a Bank Branch (GTBank, FirstBank, Zenith, Access, UBA, Kuda, etc.), do NOT submit here.',
+                  ),
+                  const Divider(height: 24),
+                  _buildNoticePoint(
+                    number: '3',
+                    badgeColor: Colors.green.shade600,
+                    title: 'Have a Bank BVN? Contact Support',
+                    description:
+                        'Bank-created BVNs require manual processing. Contact Admin directly via WhatsApp below.',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () async {
+                final Uri url = Uri.parse(
+                    'https://wa.me/2348169696095?text=Hello%20Admin%2C%20I%20have%20a%20Bank-created%20BVN%20that%20I%20want%20to%20modify.');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: const FaIcon(FontAwesomeIcons.whatsapp, size: 16, color: Colors.white),
+              label: const Text(
+                'WhatsApp Admin (08169696095)',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.white),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF25D366),
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Center(
+              child: Text(
+                'By continuing, you confirm that your submission is an Agency BVN.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: context.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _bvnAgreed = true;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text(
+                      'I Agree & Continue',
+                      style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoticePoint({
+    required String number,
+    required Color badgeColor,
+    required String title,
+    required String description,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 22,
+          height: 22,
+          decoration: BoxDecoration(color: badgeColor, shape: BoxShape.circle),
+          child: Center(
+            child: Text(
+              number,
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                description,
+                style: TextStyle(fontSize: 12, height: 1.35, color: context.textSecondary),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   // ── BVN Modification ──
   Widget _buildBvnModForm() {
     final price = _currentPrice('BVN_MODIFICATION', _bvnModSubType ?? '');
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryColor.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.2)),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.info_outline_rounded, color: AppTheme.primaryColor, size: 18),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Submit Agency BVNs only. For Bank-created BVNs, contact Admin on WhatsApp (08169696095).',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primaryColor),
+                ),
+              ),
+            ],
+          ),
+        ),
+
         if (_bvnModSubType != null) _buildPriceCard(price),
         if (_bvnModSubType != null) const SizedBox(height: 20),
 

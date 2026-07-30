@@ -1,4 +1,4 @@
-import { ShieldCheck, FileEdit, Search, Send, Smartphone, CheckCircle, AlertCircle, Loader2, Clock, Download, Eye, Hash, ExternalLink, Shield } from 'lucide-react';
+import { ShieldCheck, FileEdit, Search, Send, Smartphone, CheckCircle, AlertCircle, Loader2, Clock, Download, Eye, Hash, ExternalLink, Shield, MessageCircle } from 'lucide-react';
 /* eslint-disable react/no-unescaped-entities, security/detect-object-injection, i18next/no-literal-string, react/jsx-no-literals */
 import React, { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
@@ -284,6 +284,7 @@ export default function ManualServices() {
     const navigate = useNavigate();
     const [prices, setPrices] = useState({ bvnMod: 3000, ninMod: 3000 });
     const [ninAgreed, setNinAgreed] = useState(false);
+    const [bvnAgreed, setBvnAgreed] = useState(false);
         const [submitting, setSubmitting] = useState(false);
     const [showPinModal, setShowPinModal] = useState(false);
     const [pin, setPin] = useState('');
@@ -404,11 +405,26 @@ export default function ManualServices() {
         return priceObj ? priceObj.price : 0;
     };
 
-    useEffect(() => {
-        if (settings && Array.isArray(settings.prices)) {
-            // force update of displayed price when subType changes
+    const switchGroup = (group) => {
+        setActiveGroup(group);
+        setFormData({});
+        if (group === 'bvn') {
+            setActiveSub('BVN_MODIFICATION');
+            setBvnAgreed(false);
+        } else {
+            setActiveSub('NIN_MODIFICATION');
+            setNinAgreed(false);
         }
-    }, [formData.subType, activeSub, settings]);
+    };
+
+    const handleSubTabClick = (tabId) => {
+        if (tabId === 'BVN_MODIFICATION') {
+            setBvnAgreed(false);
+        } else if (tabId === 'NIN_MODIFICATION') {
+            setNinAgreed(false);
+        }
+        setActiveSub(tabId);
+    };
 
     const isActive = () => {
         if (!settings) return true;
@@ -482,11 +498,6 @@ export default function ManualServices() {
         }
     };
 
-    const switchGroup = (g) => {
-        setActiveGroup(g);
-        setActiveSub(g === 'bvn' ? 'BVN_MODIFICATION' : 'NIN_MODIFICATION');
-        setFormData({});
-        };
 
     // ─── Form panels ────────────────────────────────────────────────────────
 
@@ -498,6 +509,17 @@ export default function ManualServices() {
                 const opts = activeSub === 'BVN_MODIFICATION' ? BVN_MOD_OPTIONS : NIN_MOD_OPTIONS;
                 return (
                     <div className="space-y-5">
+                        {activeSub === 'BVN_MODIFICATION' && (
+                            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900 space-y-1.5 mb-2">
+                                <div className="font-bold flex items-center gap-2 text-amber-900">
+                                    <AlertCircle size={18} className="text-amber-600 shrink-0" />
+                                    <span>Important Notice: Submit Agency BVN Only</span>
+                                </div>
+                                <p className="text-xs text-amber-800 leading-relaxed pl-6">
+                                    Only <strong>Agency-created BVNs</strong> can be processed on this portal. If your BVN was registered at a <strong>Bank Branch</strong>, do NOT submit here — <a href="https://wa.me/2348169696095?text=Hello%20Admin%2C%20I%20have%20a%20Bank-created%20BVN%20that%20I%20want%20to%20modify." target="_blank" rel="noopener noreferrer" className="underline font-bold text-amber-950 hover:text-emerald-700">Chat Admin on WhatsApp (08169696095)</a> or contact Support for assistance.
+                                </p>
+                            </div>
+                        )}
                         <div className="space-y-1">
                             <label className="block text-sm font-medium text-gray-700">Modification Type</label>
                             <select
@@ -742,24 +764,110 @@ export default function ManualServices() {
     // ── Render ─────────────────────────────────────────────────────────────────
     return (
         <div className="max-w-4xl mx-auto space-y-6">
-            {activeSub === 'NIN_MODIFICATION' && !ninAgreed ? (
-                <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 border border-gray-100 max-w-2xl mx-auto">
-                    <div className="text-center mb-8">
-                        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <ShieldCheck className="w-8 h-8 text-blue-600" />
+            {activeSub === 'BVN_MODIFICATION' && !bvnAgreed ? (
+                <div className="bg-white rounded-3xl shadow-xl p-5 sm:p-8 border border-gray-100 max-w-xl mx-auto w-full space-y-6">
+                    <div className="text-center space-y-2">
+                        <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto border border-blue-100">
+                            <AlertCircle className="w-7 h-7 text-blue-600" />
                         </div>
-                        <h2 className="text-2xl font-bold text-gray-900">NIN Modification Agreement</h2>
-                        <p className="text-gray-500 mt-2 text-sm">
-                            If you are seeing this, you are chosen as an agent for this service under the following circumstances. Read it carefully; if you can abide by these terms, click on "I Agreed." If not, click on "Not Agreed."
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">BVN Modification Guidelines</h2>
+                        <p className="text-gray-500 text-xs sm:text-sm">
+                            Please review the submission requirements carefully before proceeding
                         </p>
                     </div>
 
-                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-8 max-h-96 overflow-y-auto custom-scrollbar">
-                        <ul className="space-y-4 text-blue-900 text-sm list-disc pl-5">
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 space-y-4">
+                        <div className="flex items-start gap-3">
+                            <span className="w-6 h-6 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">1</span>
+                            <div>
+                                <h4 className="font-bold text-gray-900 text-sm">Submit Only Agency BVN (Agent BVN)</h4>
+                                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mt-0.5">
+                                    This portal processes <strong>Agency BVNs only</strong> (registered via accredited NIMC/NIBSS agents).
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 pt-3 border-t border-slate-200/60">
+                            <span className="w-6 h-6 rounded-full bg-red-500 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">2</span>
+                            <div>
+                                <h4 className="font-bold text-gray-900 text-sm">Bank-Created BVNs Not Allowed</h4>
+                                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mt-0.5">
+                                    If registered directly at a <strong>Bank Branch</strong> (GTBank, FirstBank, Zenith, Access, UBA, Kuda, etc.), <strong>do NOT submit here</strong>.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-start gap-3 pt-3 border-t border-slate-200/60">
+                            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">3</span>
+                            <div>
+                                <h4 className="font-bold text-gray-900 text-sm">Have a Bank BVN? Contact Support</h4>
+                                <p className="text-gray-600 text-xs sm:text-sm leading-relaxed mt-0.5">
+                                    Bank-created BVNs require manual processing. Contact Admin directly:
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="pt-1">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
+                                <a
+                                    href="https://wa.me/2348169696095?text=Hello%20Admin%2C%20I%20have%20a%20Bank-created%20BVN%20that%20I%20want%20to%20modify."
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm w-full"
+                                >
+                                    <MessageCircle size={16} />
+                                    <span>WhatsApp Admin</span>
+                                </a>
+
+                                <Link
+                                    to="/dashboard/support"
+                                    className="flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 py-3 px-4 rounded-xl font-semibold text-xs sm:text-sm whitespace-nowrap transition-all shadow-sm w-full"
+                                >
+                                    <ExternalLink size={15} />
+                                    <span>Support Center</span>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-center font-medium text-gray-600 text-xs sm:text-sm">
+                        By continuing, you confirm that your submission is an <strong>Agency BVN</strong>.
+                    </p>
+
+                    <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => navigate('/dashboard')}
+                            className="w-full sm:w-auto flex-1 py-3 px-6 text-gray-600 border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={() => setBvnAgreed(true)}
+                            className="w-full sm:w-auto flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap shadow-md"
+                        >
+                            I Agree & Continue
+                        </Button>
+                    </div>
+                </div>
+            ) : activeSub === 'NIN_MODIFICATION' && !ninAgreed ? (
+                <div className="bg-white rounded-3xl shadow-xl p-5 sm:p-8 border border-gray-100 max-w-xl mx-auto w-full space-y-6">
+                    <div className="text-center space-y-2">
+                        <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto border border-blue-100">
+                            <ShieldCheck className="w-7 h-7 text-blue-600" />
+                        </div>
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight">NIN Modification Guidelines</h2>
+                        <p className="text-gray-500 text-xs sm:text-sm">
+                            Please review the terms and authorization guidelines carefully before proceeding
+                        </p>
+                    </div>
+
+                    <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 sm:p-5 max-h-96 overflow-y-auto custom-scrollbar">
+                        <ul className="space-y-3.5 text-gray-700 text-xs sm:text-sm leading-relaxed list-disc pl-5">
                             <li>I authorize this platform and its agents to access and use my personal data, including my NIN, to process and modify my NIN record as requested.</li>
                             <li>
                                 I understand this platform is not affiliated with NIMC but I fully give my consent for this platform and its trusted agents to help me modify my NIN details on my behalf. This applies whether I am submitting the request myself or asking someone else (an agent) to do it for me.
-                                <ul className="list-circle pl-5 mt-2 space-y-2 text-blue-800">
+                                <ul className="list-circle pl-5 mt-2 space-y-2 text-gray-600">
                                     <li>NIMC recommends that NIN modifications be done personally by the NIN owner using their own device. However, by using this platform, you confirm that due to illiteracy or difficulty using the official portal, you voluntarily authorize us to proceed with the modification on your behalf, despite NIMC's guideline.</li>
                                     <li>You confirm that you are either the NIN owner or have full consent and authorization from the NIN owner to act on their behalf, regardless of the device being used.</li>
                                     <li>If in the future, NIMC enforces a rule that modifications must strictly be done on the owner's device, this platform may no longer be able to process such requests unless compliant access is available.</li>
@@ -778,21 +886,21 @@ export default function ManualServices() {
                         </ul>
                     </div>
 
-                    <p className="text-center font-semibold text-gray-800 mb-6 font-medium">
-                        I agree to the terms above and authorize this platform to proceed with my NIN modification.
+                    <p className="text-center font-medium text-gray-600 text-xs sm:text-sm">
+                        By continuing, you confirm that you authorize this platform to proceed with your NIN modification.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-2">
                         <Button
                             variant="outline"
                             onClick={() => navigate('/dashboard')}
-                            className="flex-1 py-3 text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                            className="w-full sm:w-auto flex-1 py-3 px-6 text-gray-600 border-gray-200 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap"
                         >
-                            Not Agree
+                            Cancel
                         </Button>
                         <Button
                             onClick={() => setNinAgreed(true)}
-                            className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white"
+                            className="w-full sm:w-auto flex-1 py-3 px-6 bg-primary hover:bg-primary/90 text-white rounded-2xl text-xs sm:text-sm font-bold whitespace-nowrap shadow-md"
                         >
                             I Agree & Continue
                         </Button>
@@ -836,7 +944,7 @@ export default function ManualServices() {
                 {activeTabs.map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveSub(tab.id)}
+                        onClick={() => handleSubTabClick(tab.id)}
                         className={`flex items-center gap-2 px-5 py-3 border-b-2 whitespace-nowrap transition-all text-sm font-medium ${activeSub === tab.id
                             ? 'border-primary text-primary bg-primary/5'
                             : 'border-transparent text-gray-500 hover:text-gray-700 hover:bg-gray-50'

@@ -26,10 +26,10 @@ async function sendEmail(to, subject, html) {
     try {
         const settingsService = require('./settings.service');
         const siteName = await settingsService.getSetting('siteName', 'Ufriends');
-        const siteEmail = await settingsService.getSetting('siteEmail', 'support@ufriends.com');
+        const siteEmail = await settingsService.getSetting('siteEmail', 'info@ufriends.com.ng');
 
         const info = await transporter.sendMail({
-            from: process.env.EMAIL_FROM || '"Ufriends Support" <noreply@ufriends.com.ng>',
+            from: process.env.EMAIL_FROM || '"Ufriends Support" <info@ufriends.com.ng>',
             to,
             subject,
             html,
@@ -52,10 +52,10 @@ async function sendEmailStrict(to, subject, html) {
 
     const settingsService = require('./settings.service');
     const siteName = await settingsService.getSetting('siteName', 'Ufriends');
-    const siteEmail = await settingsService.getSetting('siteEmail', 'support@ufriends.com');
+    const siteEmail = await settingsService.getSetting('siteEmail', 'info@ufriends.com.ng');
 
     const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Ufriends Support" <noreply@ufriends.com.ng>',
+        from: process.env.EMAIL_FROM || '"Ufriends Support" <info@ufriends.com.ng>',
         to,
         subject,
         html,

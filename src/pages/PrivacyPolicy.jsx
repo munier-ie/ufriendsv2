@@ -123,7 +123,7 @@ export default function PrivacyPolicy() {
 
             <Section title="14. Contact Us">
               <p>For inquiries or data protection concerns, contact:<br />
-                📧 <a href="mailto:support@ufriends.com.ng" className="text-primary hover:underline">support@ufriends.com.ng</a>
+                📧 <a href="mailto:info@ufriends.com.ng" className="text-primary hover:underline">info@ufriends.com.ng</a>
               </p>
             </Section>
           </div>

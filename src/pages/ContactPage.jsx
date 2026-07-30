@@ -180,9 +180,9 @@ export default function ContactPage() {
                             {
                                 icon: Mail,
                                 label: 'Email',
-                                value: settings.siteEmail || 'support@ufriends.com.ng',
+                                value: settings.siteEmail || 'info@ufriends.com.ng',
                                 sub: 'Response within 24 hours',
-                                href: `mailto:${settings.siteEmail || 'support@ufriends.com.ng'}`,
+                                href: `mailto:${settings.siteEmail || 'info@ufriends.com.ng'}`,
                                 color: '#1e90ff',
                                 external: false,
                             },
