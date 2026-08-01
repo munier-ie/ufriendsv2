@@ -83,6 +83,28 @@ function getSearchVariations(val) {
 }
 
 /**
+ * Helper to check if a response/message indicates a non-existent or invalid record
+ */
+function isNotFoundResponse(data, msg) {
+  const text = (String(msg || '') + ' ' + JSON.stringify(data || '')).toLowerCase();
+  return (
+    text.includes('not found') ||
+    text.includes('no record') ||
+    text.includes('invalid nin') ||
+    text.includes('invalid bvn') ||
+    text.includes('does not exist') ||
+    text.includes('no data') ||
+    text.includes('wrong nin') ||
+    text.includes('wrong bvn') ||
+    text.includes('details not found') ||
+    text.includes('could not find') ||
+    text.includes('unverified') ||
+    text.includes('record not exist') ||
+    text.includes('not exist')
+  );
+}
+
+/**
  * Global helper to find cached BVN report by BVN number, phone number, NIN, or JSON contents
  */
 async function findCachedBvnReport(searchVal) {
@@ -95,6 +117,16 @@ async function findCachedBvnReport(searchVal) {
     for (const v of variations) {
       const redisCached = await getCache(`REPORT:BVN:${v}`);
       if (redisCached) {
+        if (redisCached.notFound) {
+          console.log(`[findCachedBvnReport] REDIS L1 Cache HIT (NOT FOUND) for BVN/phone variation ${v}. Bypassing DB & Prembly.`);
+          return {
+            id: 'redis-cache-not-found',
+            rawResponse: JSON.stringify(redisCached),
+            bvnNumber: v,
+            notFound: true,
+            message: redisCached.message || 'No record found for this BVN'
+          };
+        }
         console.log(`[findCachedBvnReport] REDIS L1 Cache HIT for BVN/phone variation ${v}. Bypassing DB.`);
         return {
           id: 'redis-cache',
@@ -122,9 +154,21 @@ async function findCachedBvnReport(searchVal) {
     });
 
     if (report && report.rawResponse && report.rawResponse.length > 10) {
-      // Warm Redis L1 Cache
       try {
         const parsed = JSON.parse(report.rawResponse);
+        if (parsed.notFound || report.status === 'NOT_FOUND') {
+          console.log(`[findCachedBvnReport] DB L2 Cache HIT (NOT FOUND) for BVN report ${report.id}. Bypassing Prembly.`);
+          for (const v of variations) {
+            setCache(`REPORT:BVN:${v}`, { notFound: true, message: parsed.message || 'No record found for this BVN' }, 86400 * 30).catch(() => {});
+          }
+          return {
+            id: report.id,
+            rawResponse: report.rawResponse,
+            bvnNumber: variations[0],
+            notFound: true,
+            message: parsed.message || 'No record found for this BVN'
+          };
+        }
         for (const v of variations) {
           setCache(`REPORT:BVN:${v}`, parsed, 86400 * 30).catch(() => {});
         }
@@ -149,6 +193,15 @@ async function findCachedBvnReport(searchVal) {
     if (ninMatch && ninMatch.rawResponse && ninMatch.rawResponse.length > 10) {
       try {
         const parsed = JSON.parse(ninMatch.rawResponse);
+        if (parsed.notFound || ninMatch.status === 'NOT_FOUND') {
+          return {
+            id: ninMatch.id,
+            rawResponse: ninMatch.rawResponse,
+            bvnNumber: variations[0],
+            notFound: true,
+            message: parsed.message || 'No record found for this BVN'
+          };
+        }
         for (const v of variations) {
           setCache(`REPORT:BVN:${v}`, parsed, 86400 * 30).catch(() => {});
         }
@@ -186,9 +239,18 @@ async function verifyBvn(bvnNumber) {
     const cachedAfterLock = await findCachedBvnReport(cleanBvn);
     if (cachedAfterLock && cachedAfterLock.rawResponse) {
       try {
+        const parsed = JSON.parse(cachedAfterLock.rawResponse);
+        if (cachedAfterLock.notFound || parsed.notFound) {
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: cachedAfterLock.message || parsed.message || 'No record found for this BVN'
+          };
+        }
         return {
           success: true,
-          data: JSON.parse(cachedAfterLock.rawResponse),
+          data: parsed,
           cached: true
         };
       } catch (e) {}
@@ -203,9 +265,18 @@ async function verifyBvn(bvnNumber) {
     const cachedAfterRedisLock = await findCachedBvnReport(cleanBvn);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
       try {
+        const parsed = JSON.parse(cachedAfterRedisLock.rawResponse);
+        if (cachedAfterRedisLock.notFound || parsed.notFound) {
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: cachedAfterRedisLock.message || parsed.message || 'No record found for this BVN'
+          };
+        }
         return {
           success: true,
-          data: JSON.parse(cachedAfterRedisLock.rawResponse),
+          data: parsed,
           cached: true
         };
       } catch (e) {}
@@ -217,6 +288,16 @@ async function verifyBvn(bvnNumber) {
     if (existing && existing.rawResponse) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
+        if (existing.notFound || cachedData.notFound || existing.status === 'NOT_FOUND') {
+          console.log(`[verifyBvn] GLOBAL DB/REDIS Cache HIT (NOT FOUND) for BVN ${cleanBvn}. Bypassing Prembly API call.`);
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: existing.message || cachedData.message || 'No record found for this BVN',
+            data: cachedData
+          };
+        }
         console.log(`[verifyBvn] GLOBAL DB/REDIS Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
         return {
           success: true,
@@ -278,9 +359,19 @@ async function verifyBvn(bvnNumber) {
         data: resultData
       };
     } else {
+      const errMsg = response.data?.message || 'BVN verification failed';
+      const isNotFound = isNotFoundResponse(response.data, errMsg);
+      if (isNotFound) {
+        console.log(`[verifyBvn] Prembly returned NOT_FOUND for BVN ${cleanBvn}. Caching NOT_FOUND result.`);
+        const variations = getSearchVariations(cleanBvn);
+        for (const v of variations) {
+          setCache(`REPORT:BVN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
+        }
+      }
       return {
         success: false,
-        message: response.data?.message || 'BVN verification failed',
+        notFound: isNotFound,
+        message: errMsg,
         data: response.data
       };
     }
@@ -295,9 +386,19 @@ async function verifyBvn(bvnNumber) {
     console.error('BVN Verification Error:', error.response?.data || error.message);
 
     if (error.response) {
+      const errMsg = error.response.data?.message || 'BVN verification failed';
+      const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
+      if (isNotFound) {
+        console.log(`[verifyBvn] Prembly error 404/400 NOT_FOUND for BVN ${cleanBvn}. Caching NOT_FOUND result.`);
+        const variations = getSearchVariations(cleanBvn);
+        for (const v of variations) {
+          setCache(`REPORT:BVN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
+        }
+      }
       return {
         success: false,
-        message: error.response.data?.message || 'BVN verification failed',
+        notFound: isNotFound,
+        message: errMsg,
         error: error.response.data
       };
     }
@@ -311,6 +412,36 @@ async function verifyBvn(bvnNumber) {
     if (redisLockVal) {
       await releaseLock(`LOCK:${lockKey}`, redisLockVal).catch(() => {});
     }
+  }
+}
+
+/**
+ * Store NOT_FOUND BVN report in database so non-existent searches persist long-term
+ */
+async function storeBvnNotFoundReport(userId, transactionRef, bvnNumber, slipType, message) {
+  try {
+    const cleanBvn = String(bvnNumber || '').trim();
+    let validUserId = userId;
+    if (!validUserId) {
+      const firstUser = await prisma.user.findFirst({ select: { id: true } });
+      validUserId = firstUser?.id;
+    }
+    if (!validUserId) return null;
+    const report = await prisma.bvnReport.create({
+      data: {
+        userId: validUserId,
+        transactionRef: transactionRef || `NOTFOUND-BVN-${cleanBvn}-${Date.now()}`,
+        bvnNumber: cleanBvn,
+        slipType: slipType || 'regular',
+        status: 'NOT_FOUND',
+        rawResponse: JSON.stringify({ notFound: true, message: message || 'No record found for this BVN' }),
+        updatedAt: new Date()
+      }
+    });
+    return report;
+  } catch (error) {
+    console.error('[storeBvnNotFoundReport] Error:', error.message);
+    return null;
   }
 }
 
@@ -732,8 +863,18 @@ async function processBvnVerification(userId, bvnNumber, transactionRef, userTyp
     const verificationResult = await verifyBvn(bvnNumber);
 
     if (!verificationResult.success) {
+      if (verificationResult.notFound) {
+        const cleanBvn = String(bvnNumber || '').trim().replace(/[\s\-]/g, '');
+        const existingDb = await prisma.bvnReport.findFirst({
+          where: { bvnNumber: cleanBvn }
+        });
+        if (!existingDb) {
+          await storeBvnNotFoundReport(userId, transactionRef, bvnNumber, slipType, verificationResult.message);
+        }
+      }
       return {
         success: false,
+        notFound: verificationResult.notFound,
         message: verificationResult.message || 'BVN verification failed'
       };
     }
@@ -768,6 +909,7 @@ module.exports = {
   findCachedBvnReport,
   verifyBvn,
   storeBvnReport,
+  storeBvnNotFoundReport,
   generateBvnSlipHtml,
   generateBvnPdf,
   processBvnVerification

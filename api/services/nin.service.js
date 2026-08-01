@@ -134,6 +134,28 @@ function getSearchVariations(val) {
 }
 
 /**
+ * Helper to check if a response/message indicates a non-existent or invalid record
+ */
+function isNotFoundResponse(data, msg) {
+  const text = (String(msg || '') + ' ' + JSON.stringify(data || '')).toLowerCase();
+  return (
+    text.includes('not found') ||
+    text.includes('no record') ||
+    text.includes('invalid nin') ||
+    text.includes('invalid bvn') ||
+    text.includes('does not exist') ||
+    text.includes('no data') ||
+    text.includes('wrong nin') ||
+    text.includes('wrong bvn') ||
+    text.includes('details not found') ||
+    text.includes('could not find') ||
+    text.includes('unverified') ||
+    text.includes('record not exist') ||
+    text.includes('not exist')
+  );
+}
+
+/**
  * Global helper to find cached NIN report by NIN number, phone number, trackingId, or JSON contents
  */
 async function findCachedNinReport(searchVal) {
@@ -146,6 +168,16 @@ async function findCachedNinReport(searchVal) {
     for (const v of variations) {
       const redisCached = await getCache(`REPORT:NIN:${v}`);
       if (redisCached) {
+        if (redisCached.notFound) {
+          console.log(`[findCachedNinReport] REDIS L1 Cache HIT (NOT FOUND) for NIN/phone variation ${v}. Bypassing DB & Prembly.`);
+          return {
+            id: 'redis-cache-not-found',
+            rawResponse: JSON.stringify(redisCached),
+            ninNumber: v,
+            notFound: true,
+            message: redisCached.message || 'No record found for this NIN'
+          };
+        }
         console.log(`[findCachedNinReport] REDIS L1 Cache HIT for NIN/phone variation ${v}. Bypassing DB.`);
         return {
           id: 'redis-cache',
@@ -172,9 +204,21 @@ async function findCachedNinReport(searchVal) {
     });
 
     if (report && report.rawResponse && report.rawResponse.length > 10) {
-      // Warm Redis L1 cache
       try {
         const parsed = JSON.parse(report.rawResponse);
+        if (parsed.notFound || report.status === 'NOT_FOUND') {
+          console.log(`[findCachedNinReport] DB L2 Cache HIT (NOT FOUND) for NIN report ${report.id}. Bypassing Prembly.`);
+          for (const v of variations) {
+            setCache(`REPORT:NIN:${v}`, { notFound: true, message: parsed.message || 'No record found for this NIN' }, 86400 * 30).catch(() => {});
+          }
+          return {
+            id: report.id,
+            rawResponse: report.rawResponse,
+            ninNumber: variations[0],
+            notFound: true,
+            message: parsed.message || 'No record found for this NIN'
+          };
+        }
         for (const v of variations) {
           setCache(`REPORT:NIN:${v}`, parsed, 86400 * 30).catch(() => {});
         }
@@ -201,6 +245,15 @@ async function findCachedNinReport(searchVal) {
     if (bvnMatch && bvnMatch.rawResponse && bvnMatch.rawResponse.length > 10) {
       try {
         const parsed = JSON.parse(bvnMatch.rawResponse);
+        if (parsed.notFound || bvnMatch.status === 'NOT_FOUND') {
+          return {
+            id: bvnMatch.id,
+            rawResponse: bvnMatch.rawResponse,
+            ninNumber: variations[0],
+            notFound: true,
+            message: parsed.message || 'No record found for this NIN'
+          };
+        }
         for (const v of variations) {
           setCache(`REPORT:NIN:${v}`, parsed, 86400 * 30).catch(() => {});
         }
@@ -238,9 +291,18 @@ async function verifyNin(ninNumber) {
     const cachedAfterLock = await findCachedNinReport(cleanNin);
     if (cachedAfterLock && cachedAfterLock.rawResponse) {
       try {
+        const parsed = JSON.parse(cachedAfterLock.rawResponse);
+        if (cachedAfterLock.notFound || parsed.notFound) {
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: cachedAfterLock.message || parsed.message || 'No record found for this NIN'
+          };
+        }
         return {
           success: true,
-          data: JSON.parse(cachedAfterLock.rawResponse),
+          data: parsed,
           cached: true
         };
       } catch (e) {}
@@ -255,9 +317,18 @@ async function verifyNin(ninNumber) {
     const cachedAfterRedisLock = await findCachedNinReport(cleanNin);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
       try {
+        const parsed = JSON.parse(cachedAfterRedisLock.rawResponse);
+        if (cachedAfterRedisLock.notFound || parsed.notFound) {
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: cachedAfterRedisLock.message || parsed.message || 'No record found for this NIN'
+          };
+        }
         return {
           success: true,
-          data: JSON.parse(cachedAfterRedisLock.rawResponse),
+          data: parsed,
           cached: true
         };
       } catch (e) {}
@@ -269,6 +340,16 @@ async function verifyNin(ninNumber) {
     if (existing && existing.rawResponse) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
+        if (existing.notFound || cachedData.notFound || existing.status === 'NOT_FOUND') {
+          console.log(`[verifyNin] GLOBAL DB/REDIS Cache HIT (NOT FOUND) for NIN ${cleanNin}. Bypassing Prembly API call.`);
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: existing.message || cachedData.message || 'No record found for this NIN',
+            data: cachedData
+          };
+        }
         console.log(`[verifyNin] GLOBAL DB/REDIS Cache HIT for NIN ${cleanNin}. Bypassing Prembly API call.`);
         return {
           success: true,
@@ -334,9 +415,19 @@ async function verifyNin(ninNumber) {
         data: resultData
       };
     } else {
+      const errMsg = response.data?.message || 'NIN verification failed';
+      const isNotFound = isNotFoundResponse(response.data, errMsg);
+      if (isNotFound) {
+        console.log(`[verifyNin] Prembly returned NOT_FOUND for NIN ${cleanNin}. Caching NOT_FOUND result.`);
+        const variations = getSearchVariations(cleanNin);
+        for (const v of variations) {
+          setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
+        }
+      }
       return {
         success: false,
-        message: response.data?.message || 'NIN verification failed',
+        notFound: isNotFound,
+        message: errMsg,
         data: response.data
       };
     }
@@ -351,9 +442,19 @@ async function verifyNin(ninNumber) {
     console.error('NIN Verification Error:', error.response?.data || error.message);
 
     if (error.response) {
+      const errMsg = error.response.data?.message || 'NIN verification failed';
+      const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
+      if (isNotFound) {
+        console.log(`[verifyNin] Prembly error 404/400 NOT_FOUND for NIN ${cleanNin}. Caching NOT_FOUND result.`);
+        const variations = getSearchVariations(cleanNin);
+        for (const v of variations) {
+          setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
+        }
+      }
       return {
         success: false,
-        message: error.response.data?.message || 'NIN verification failed',
+        notFound: isNotFound,
+        message: errMsg,
         error: error.response.data
       };
     }
@@ -388,9 +489,18 @@ async function verifyNinByPhone(phoneNumber) {
     const cachedAfterLock = await findCachedNinReport(cleanPhone);
     if (cachedAfterLock && cachedAfterLock.rawResponse) {
       try {
+        const parsed = JSON.parse(cachedAfterLock.rawResponse);
+        if (cachedAfterLock.notFound || parsed.notFound) {
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: cachedAfterLock.message || parsed.message || 'No record found for this phone number'
+          };
+        }
         return {
           success: true,
-          data: JSON.parse(cachedAfterLock.rawResponse),
+          data: parsed,
           cached: true
         };
       } catch (e) {}
@@ -404,9 +514,18 @@ async function verifyNinByPhone(phoneNumber) {
     const cachedAfterRedisLock = await findCachedNinReport(cleanPhone);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
       try {
+        const parsed = JSON.parse(cachedAfterRedisLock.rawResponse);
+        if (cachedAfterRedisLock.notFound || parsed.notFound) {
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: cachedAfterRedisLock.message || parsed.message || 'No record found for this phone number'
+          };
+        }
         return {
           success: true,
-          data: JSON.parse(cachedAfterRedisLock.rawResponse),
+          data: parsed,
           cached: true
         };
       } catch (e) {}
@@ -418,6 +537,16 @@ async function verifyNinByPhone(phoneNumber) {
     if (existing && existing.rawResponse) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
+        if (existing.notFound || cachedData.notFound || existing.status === 'NOT_FOUND') {
+          console.log(`[verifyNinByPhone] GLOBAL DB/REDIS Cache HIT (NOT FOUND) for phone ${cleanPhone}. Bypassing Prembly API call.`);
+          return {
+            success: false,
+            notFound: true,
+            cached: true,
+            message: existing.message || cachedData.message || 'No record found for this phone number',
+            data: cachedData
+          };
+        }
         console.log(`[verifyNinByPhone] GLOBAL DB/REDIS Cache HIT for phone ${cleanPhone}. Bypassing Prembly API call.`);
         return {
           success: true,
@@ -475,9 +604,19 @@ async function verifyNinByPhone(phoneNumber) {
         data: resultData
       };
     } else {
+      const errMsg = response.data?.message || 'Phone number verification failed';
+      const isNotFound = isNotFoundResponse(response.data, errMsg);
+      if (isNotFound) {
+        console.log(`[verifyNinByPhone] Prembly returned NOT_FOUND for phone ${cleanPhone}. Caching NOT_FOUND result.`);
+        const variations = getSearchVariations(cleanPhone);
+        for (const v of variations) {
+          setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
+        }
+      }
       return {
         success: false,
-        message: response.data?.message || 'Phone number verification failed',
+        notFound: isNotFound,
+        message: errMsg,
         data: response.data
       };
     }
@@ -492,9 +631,19 @@ async function verifyNinByPhone(phoneNumber) {
     console.error('NIN by Phone Verification Error:', error.response?.data || error.message);
 
     if (error.response) {
+      const errMsg = error.response.data?.message || 'Phone number verification failed';
+      const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
+      if (isNotFound) {
+        console.log(`[verifyNinByPhone] Prembly error 404/400 NOT_FOUND for phone ${cleanPhone}. Caching NOT_FOUND result.`);
+        const variations = getSearchVariations(cleanPhone);
+        for (const v of variations) {
+          setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
+        }
+      }
       return {
         success: false,
-        message: error.response.data?.message || 'Phone number verification failed',
+        notFound: isNotFound,
+        message: errMsg,
         error: error.response.data
       };
     }
@@ -508,6 +657,36 @@ async function verifyNinByPhone(phoneNumber) {
     if (redisLockVal) {
       await releaseLock(`LOCK:${lockKey}`, redisLockVal).catch(() => {});
     }
+  }
+}
+
+/**
+ * Store NOT_FOUND NIN report in database so non-existent searches persist long-term
+ */
+async function storeNinNotFoundReport(userId, transactionRef, ninNumber, slipType, message) {
+  try {
+    const cleanNin = String(ninNumber || '').trim();
+    let validUserId = userId;
+    if (!validUserId) {
+      const firstUser = await prisma.user.findFirst({ select: { id: true } });
+      validUserId = firstUser?.id;
+    }
+    if (!validUserId) return null;
+    const report = await prisma.ninReport.create({
+      data: {
+        userId: validUserId,
+        transactionRef: transactionRef || `NOTFOUND-NIN-${cleanNin}-${Date.now()}`,
+        ninNumber: cleanNin,
+        slipType: slipType || 'regular',
+        status: 'NOT_FOUND',
+        rawResponse: JSON.stringify({ notFound: true, message: message || 'No record found for this NIN' }),
+        updatedAt: new Date()
+      }
+    });
+    return report;
+  } catch (error) {
+    console.error('[storeNinNotFoundReport] Error:', error.message);
+    return null;
   }
 }
 
@@ -1424,15 +1603,25 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
       : await verifyNin(ninNumber);
 
     if (!verificationResult.success) {
+      if (verificationResult.notFound) {
+        const cleanNin = String(ninNumber || '').trim().replace(/[\s\-]/g, '');
+        const existingDb = await prisma.ninReport.findFirst({
+          where: { ninNumber: cleanNin }
+        });
+        if (!existingDb) {
+          await storeNinNotFoundReport(userId, transactionRef, ninNumber, slipType, verificationResult.message);
+        }
+      }
       return {
         success: false,
+        notFound: verificationResult.notFound,
         message: verificationResult.message || 'NIN verification failed'
       };
     }
 
     // 2. Extract actual NIN from result (especially important for phone lookup)
     const actualNin = lookupMethod === 'phone' 
-      ? (verificationResult.data.nin || verificationResult.data.number || ninNumber)
+      ? (verificationResult.data?.nin || verificationResult.data?.number || ninNumber)
       : ninNumber;
 
     // 3. Store report in database
@@ -1466,6 +1655,7 @@ module.exports = {
   verifyNin,
   verifyNinByPhone,
   storeNinReport,
+  storeNinNotFoundReport,
   generateQRCode,
   generateNinSlipHtml,
   generateVninSlipHtml,
