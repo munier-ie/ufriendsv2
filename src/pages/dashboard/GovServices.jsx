@@ -334,11 +334,45 @@ export default function GovServices() {
                 const res = await axios.post('/api/professional/request', {
                     type: requestType, details, pin: formData.pin
                 }, {
-                    headers: { Authorization: `Bearer ${token}` }
+                    headers: { Authorization: `Bearer ${token}` },
+                    timeout: 120000 // 2 minutes timeout for slip generation process
                 });
 
-                if (res.data.success && res.data.report) {
+                if (res.data.status === 'pending') {
+                    toast.loading(res.data.message || 'Processing your slip, this might take a minute...', { id: 'slip-polling' });
+                    setShowPinModal(false);
+                    setFormData(INITIAL_FORM);
+
+                    const pollStatus = async () => {
+                        try {
+                            const statusRes = await axios.get(`/api/professional/request-status/${res.data.transactionRef}`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
+                            
+                            if (statusRes.data.status === 'completed') {
+                                toast.success(`${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`, { id: 'slip-polling' });
+                                setSlipPreview(statusRes.data.report);
+                                setShowPreviewModal(true);
+                                if (activeTab === 'nin') fetchNinHistory();
+                                if (activeTab === 'bvn') fetchBvnHistory();
+                                setSubmitting(false);
+                            } else if (statusRes.data.status === 'failed') {
+                                toast.error(statusRes.data.error || 'Verification failed', { id: 'slip-polling' });
+                                setSubmitting(false);
+                            } else {
+                                // Still pending
+                                setTimeout(pollStatus, 5000);
+                            }
+                        } catch (err) {
+                            setTimeout(pollStatus, 5000);
+                        }
+                    };
+                    
+                    setTimeout(pollStatus, 5000);
+                    return; // Skip the rest of the flow, submitting will be reset by pollStatus
+                } else if (res.data.success && res.data.report) {
                     setSlipPreview(res.data.report);
+                    setShowPreviewModal(true);
                     toast.success(`${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`);
                     if (activeTab === 'nin') fetchNinHistory();
                     if (activeTab === 'bvn') fetchBvnHistory();
@@ -348,18 +382,17 @@ export default function GovServices() {
 
                 setShowPinModal(false);
                 setFormData(INITIAL_FORM);
+                setSubmitting(false);
             }
         } catch (error) {
             const errorMsg = error.response?.data?.error || 'Request failed';
 
             if (errorMsg.toLowerCase().includes('pin')) {
                 toast.error('Incorrect PIN entered');
-                setShowPinModal(false);
             } else {
                 toast.error(errorMsg );
-                setShowPinModal(false);
             }
-        } finally {
+            setShowPinModal(false);
             setSubmitting(false);
         }
     };
@@ -802,8 +835,9 @@ export default function GovServices() {
                         <Button
                             type="submit"
                             className="w-full py-4 text-lg font-bold bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/25"
-                            loading={loading}
+                            loading={submitting}
                             disabled={
+                                submitting ||
                                 (activeTab === 'bvn' && currentTab.active === false) ||
                                 (activeTab === 'cac' && cacPricing?.active === false) ||
                                 !termsAgreed

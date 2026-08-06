@@ -395,7 +395,7 @@ async function verifyNin(ninNumber) {
       },
       {
         headers,
-        timeout: 30000 // 30 second timeout
+        timeout: 60000 // 60 second timeout
       }
     );
 
@@ -585,7 +585,7 @@ async function verifyNinByPhone(phoneNumber) {
     const response = await axios.post(
       fullUrl,
       { number: cleanPhone },
-      { headers, timeout: 30000 }
+      { headers, timeout: 60000 }
     );
 
     console.log('--- PREMBLY PHONE NIN RESPONSE START ---');

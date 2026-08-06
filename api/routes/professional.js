@@ -403,44 +403,59 @@ router.post('/request', authenticateUser, async (req, res) => {
             const bvnNumber = details.bvnNumber || details.bvn;
             if (!bvnNumber) return res.status(400).json({ error: 'BVN number is required' });
 
-            const verificationResult = await bvnService.processBvnVerification(
-                req.user.id, bvnNumber, result.transactionRef, req.user.type || 1, details.slipType || 'regular'
-            );
+            // Run asynchronously to prevent HTTP timeout
+            setImmediate(async () => {
+                try {
+                    const verificationResult = await bvnService.processBvnVerification(
+                        req.user.id, bvnNumber, result.transactionRef, req.user.type || 1, details.slipType || 'regular'
+                    );
 
-            if (verificationResult.success) {
-                await prisma.serviceRequest.update({
-                    where: { id: result.request.id },
-                    data: {
-                        status: 1,
-                        details: JSON.stringify({
-                            ...details,
-                            reportId: verificationResult.report.id,
-                            pdfUrl: verificationResult.report.pdfUrl
-                        })
+                    if (verificationResult.success) {
+                        await prisma.serviceRequest.update({
+                            where: { id: result.request.id },
+                            data: {
+                                status: 1,
+                                details: JSON.stringify({
+                                    ...details,
+                                    reportId: verificationResult.report.id,
+                                    pdfUrl: verificationResult.report.pdfUrl
+                                })
+                            }
+                        });
+
+                        // Trigger referral bonus
+                        const pricing = await bvnService.getBvnPricing(req.user.type || 1);
+                        creditReferralBonus(req.user.id, 'bvn', pricing.settings.referralCommission || 0).catch(err => console.error('BVN Bonus error:', err));
+                    } else {
+                        await prisma.serviceRequest.update({
+                            where: { id: result.request.id },
+                            data: { status: 2, details: JSON.stringify({ ...details, error: verificationResult.message }) }
+                        });
+                        await prisma.user.update({
+                            where: { id: req.user.id },
+                            data: { wallet: { increment: amount } }
+                        });
                     }
-                });
+                } catch (error) {
+                    console.error('BVN Async Processing Error:', error);
+                    await prisma.serviceRequest.update({
+                        where: { id: result.request.id },
+                        data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during BVN verification' }) }
+                    });
+                    await prisma.user.update({
+                        where: { id: req.user.id },
+                        data: { wallet: { increment: amount } }
+                    });
+                }
+            });
 
-                // Trigger referral bonus
-                const pricing = await bvnService.getBvnPricing(req.user.type || 1);
-                creditReferralBonus(req.user.id, 'bvn', pricing.settings.referralCommission || 0).catch(err => console.error('BVN Bonus error:', err));
-
-                return res.json({
-                    success: true,
-                    message: verificationResult.message,
-                    request: result.request,
-                    report: verificationResult.report
-                });
-            } else {
-                await prisma.serviceRequest.update({
-                    where: { id: result.request.id },
-                    data: { status: 2, details: JSON.stringify({ ...details, error: verificationResult.message }) }
-                });
-                await prisma.user.update({
-                    where: { id: req.user.id },
-                    data: { wallet: { increment: amount } }
-                });
-                return res.status(400).json({ success: false, error: verificationResult.message });
-            }
+            return res.json({
+                success: true,
+                message: 'Processing your BVN slip...',
+                status: 'pending',
+                request: result.request,
+                transactionRef: result.transactionRef
+            });
         }
 
         // 6. Process NIN verification
@@ -456,44 +471,59 @@ router.post('/request', authenticateUser, async (req, res) => {
                 return res.status(400).json({ error: `${fieldLabel} is required` });
             }
 
-            const verificationResult = await ninService.processNinVerification(
-                req.user.id, ninNumber, slipType, result.transactionRef, req.user.type || 1, lookupMethod
-            );
+            // Run asynchronously to prevent HTTP timeout
+            setImmediate(async () => {
+                try {
+                    const verificationResult = await ninService.processNinVerification(
+                        req.user.id, ninNumber, slipType, result.transactionRef, req.user.type || 1, lookupMethod
+                    );
 
-            if (verificationResult.success) {
-                await prisma.serviceRequest.update({
-                    where: { id: result.request.id },
-                    data: {
-                        status: 1,
-                        details: JSON.stringify({
-                            ...details,
-                            reportId: verificationResult.report.id,
-                            pdfUrl: verificationResult.report.pdfUrl
-                        })
+                    if (verificationResult.success) {
+                        await prisma.serviceRequest.update({
+                            where: { id: result.request.id },
+                            data: {
+                                status: 1,
+                                details: JSON.stringify({
+                                    ...details,
+                                    reportId: verificationResult.report.id,
+                                    pdfUrl: verificationResult.report.pdfUrl
+                                })
+                            }
+                        });
+
+                        // Trigger referral bonus
+                        const pricing = await ninService.getNinPricing(slipType, req.user.type || 1);
+                        creditReferralBonus(req.user.id, 'nin', pricing.settings.referralCommission || 0).catch(err => console.error('NIN Bonus error:', err));
+                    } else {
+                        await prisma.serviceRequest.update({
+                            where: { id: result.request.id },
+                            data: { status: 2, details: JSON.stringify({ ...details, error: verificationResult.message }) }
+                        });
+                        await prisma.user.update({
+                            where: { id: req.user.id },
+                            data: { wallet: { increment: amount } }
+                        });
                     }
-                });
+                } catch (error) {
+                    console.error('NIN Async Processing Error:', error);
+                    await prisma.serviceRequest.update({
+                        where: { id: result.request.id },
+                        data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during NIN verification' }) }
+                    });
+                    await prisma.user.update({
+                        where: { id: req.user.id },
+                        data: { wallet: { increment: amount } }
+                    });
+                }
+            });
 
-                // Trigger referral bonus
-                const pricing = await ninService.getNinPricing(slipType, req.user.type || 1);
-                creditReferralBonus(req.user.id, 'nin', pricing.settings.referralCommission || 0).catch(err => console.error('NIN Bonus error:', err));
-
-                return res.json({
-                    success: true,
-                    message: verificationResult.message,
-                    request: result.request,
-                    report: verificationResult.report
-                });
-            } else {
-                await prisma.serviceRequest.update({
-                    where: { id: result.request.id },
-                    data: { status: 2, details: JSON.stringify({ ...details, error: verificationResult.message }) }
-                });
-                await prisma.user.update({
-                    where: { id: req.user.id },
-                    data: { wallet: { increment: amount } }
-                });
-                return res.status(400).json({ success: false, error: verificationResult.message });
-            }
+            return res.json({
+                success: true,
+                message: 'Processing your NIN slip...',
+                status: 'pending',
+                request: result.request,
+                transactionRef: result.transactionRef
+            });
         }
 
         // Fallback
@@ -505,6 +535,34 @@ router.post('/request', authenticateUser, async (req, res) => {
     } catch (error) {
         console.error('Professional service error:', error);
         res.status(500).json({ error: 'Failed to submit request' });
+    }
+});
+
+// ============================================================
+// GET /api/professional/request-status/:reference
+// Polling endpoint for checking the status of an async request
+// ============================================================
+router.get('/request-status/:reference', authenticateUser, async (req, res) => {
+    try {
+        const { reference } = req.params;
+        const request = await prisma.serviceRequest.findFirst({
+            where: { reference, userId: req.user.id }
+        });
+
+        if (!request) return res.status(404).json({ error: 'Request not found' });
+
+        const details = JSON.parse(request.details || '{}');
+
+        if (request.status === 0) {
+            return res.json({ success: true, status: 'pending' });
+        } else if (request.status === 1) {
+            return res.json({ success: true, status: 'completed', report: details });
+        } else {
+            return res.json({ success: false, status: 'failed', error: details.error || 'Verification failed' });
+        }
+    } catch (error) {
+        console.error('Professional service status error:', error);
+        res.status(500).json({ error: 'Failed to fetch request status' });
     }
 });
 
