@@ -245,6 +245,7 @@ export default function ResellerPage() {
             <PageMeta 
                 title="Buy VTU Website & App - Build Your IT Agency"
                 description="Launch your own VTU website and mobile application agency in Nigeria. Professional white-label software for VTU, Data, and Bill Payment business. Secure, fast, and reliable."
+                canonical="https://www.ufriends.com.ng/reseller"
             />
             <LandingNavbar />
 

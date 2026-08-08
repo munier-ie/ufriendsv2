@@ -1,0 +1,252 @@
+{
+    "slug": "maskawasub-vs-ufriends-data-airtime-comparison",
+    "title": "MaskawaSub vs Ufriends IT — Honest Data & Airtime Price Comparison",
+    "excerpt": "A detailed comparison of MaskawaSub and Ufriends IT for data, airtime, bill payments, and identity services in Nigeria. Which platform saves you more money?",
+    "category": "VTU Comparison",
+    "readMin": 13,
+    "publishedAt": "2026-08-08",
+    "keywords": [
+        "maskawasub vs ufriends",
+        "maskawasub review",
+        "ufriends IT vs maskawasub",
+        "cheap data platform Nigeria",
+        "best vtu site Nigeria 2026",
+        "maskawasub data pricing",
+        "NIN BVN slip platform Nigeria"
+    ],
+    "schemaType": "Article",
+    "sections": [
+        {
+            "type": "paragraph",
+            "content": "MaskawaSub and Ufriends IT are both VTU platforms operating in Nigeria, but they serve slightly different markets. MaskawaSub focuses heavily on data and airtime reselling with competitive prices, while Ufriends IT combines VTU services with government identity features like NIN/BVN slip printing and modification. If you are trying to decide between the two, this honest comparison will help you figure out which one makes more sense for your needs."
+        },
+        {
+            "type": "paragraph",
+            "content": "We will look at the services each platform offers, compare their pricing approach, check their developer tools, and break down the key differences that actually matter when you are spending real money on data and services every day."
+        },
+        {
+            "type": "toc",
+            "items": [
+                { "title": "Quick Answer — Which Platform Is Right for You?", "id": "quick-answer" },
+                { "title": "About MaskawaSub", "id": "about-maskawasub" },
+                { "title": "About Ufriends IT", "id": "about-ufriends" },
+                { "title": "Feature Comparison Table", "id": "comparison-table" },
+                { "title": "Data and Airtime Pricing Breakdown", "id": "pricing-breakdown" },
+                { "title": "NIN and BVN Services", "id": "nin-bvn-services" },
+                { "title": "API and Reseller Tools", "id": "api-reseller" },
+                { "title": "Ease of Use and Support", "id": "ease-support" },
+                { "title": "Pros and Cons of Each Platform", "id": "pros-cons" },
+                { "title": "Our Recommendation", "id": "recommendation" },
+                { "title": "Frequently Asked Questions", "id": "faqs" }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Quick Answer — Which Platform Is Right for You?",
+            "id": "quick-answer"
+        },
+        {
+            "type": "paragraph",
+            "content": "If data and airtime reselling is all you need, MaskawaSub is a decent choice with competitive pricing and basic API support. But if you also need NIN slip printing, BVN slip generation, NIN/BVN modification, BVN retrieval, or CAC registration alongside your VTU services, Ufriends IT is the platform to use because it handles everything from one single dashboard."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "About MaskawaSub",
+            "id": "about-maskawasub"
+        },
+        {
+            "type": "paragraph",
+            "content": "MaskawaSub (maskawasub.com) is a Nigerian VTU platform operated by MSORG DEVELOPERS LIMITED. It offers data bundles for all major networks, airtime recharge, electricity and cable TV bill payments, exam pins, airtime-to-cash conversion, and bulk SMS. The platform also provides API services for developers and affiliate/reseller website options. MaskawaSub has an Android app on the Google Play Store and offers customer support via email and phone."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "About Ufriends IT",
+            "id": "about-ufriends"
+        },
+        {
+            "type": "paragraph",
+            "content": "Ufriends IT (ufriends.com.ng) combines VTU services with government identity services. Beyond data, airtime, cable TV, electricity, and exam pins, it also offers NIN slip printing in four formats (Regular, Standard, Premium, VNIN), BVN slip generation, lawful BVN and NIN modification (name, date of birth, phone number corrections), BVN retrieval using phone numbers, and CAC business registration. It includes a Developer API v1 with Sandbox Mode, Node.js and PHP SDKs, and automated webhooks. Wallet funding is handled through dedicated virtual bank accounts for instant auto-credit."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Feature Comparison Table",
+            "id": "comparison-table"
+        },
+        {
+            "type": "table",
+            "headers": ["Feature", "MaskawaSub", "Ufriends IT"],
+            "rows": [
+                ["Data Bundles (All Networks)", "✅ Yes", "✅ Yes"],
+                ["Airtime Recharge", "✅ Yes", "✅ Yes"],
+                ["Electricity Bills", "✅ Yes", "✅ Yes"],
+                ["Cable TV (DStv, GOtv)", "✅ Yes", "✅ Yes"],
+                ["Exam Pins (WAEC, NECO, JAMB)", "✅ Yes", "✅ Yes"],
+                ["Airtime to Cash", "✅ Yes", "✅ Yes"],
+                ["Bulk SMS", "✅ Yes", "✅ Yes"],
+                ["NIN Slip Printing", "❌ No", "✅ Yes (4 formats)"],
+                ["BVN Slip Generation", "❌ No", "✅ Yes"],
+                ["NIN/BVN Modification", "❌ No", "✅ Yes"],
+                ["BVN Retrieval", "❌ No", "✅ Yes"],
+                ["CAC Registration", "❌ No", "✅ Yes"],
+                ["Developer API", "✅ Basic", "✅ Full (v1 + SDKs + Sandbox)"],
+                ["Affiliate/Reseller Websites", "✅ Yes", "✅ Reseller tiers"],
+                ["Virtual Account Funding", "❌ Manual transfer", "✅ Auto-credit"],
+                ["Mobile App", "✅ Android", "✅ PWA (all devices)"]
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Data and Airtime Pricing Breakdown",
+            "id": "pricing-breakdown"
+        },
+        {
+            "type": "paragraph",
+            "content": "MaskawaSub offers tiered pricing — standard users pay one rate, while resellers and upgraded accounts get better discounts. Their MTN SME data, Airtel Corporate Gifting, and Glo data plans are priced competitively. The exact rates fluctuate frequently based on network provider changes."
+        },
+        {
+            "type": "paragraph",
+            "content": "Ufriends IT uses a similar tiered pricing model with multiple account levels. Their data rates across all four networks are consistently among the cheapest in the market, with daily updates to reflect network pricing changes. The key advantage is that you can use the same wallet balance for both data purchases and identity services like NIN slip printing, so your money stays in one place."
+        },
+        {
+            "type": "paragraph",
+            "content": "For pure data pricing, both platforms are close. The real value difference comes from the additional services Ufriends IT provides — if you regularly need NIN/BVN documents, you save time and possibly money by not needing a second platform."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "NIN and BVN Services",
+            "id": "nin-bvn-services"
+        },
+        {
+            "type": "paragraph",
+            "content": "MaskawaSub does not offer any NIN or BVN services. If you need to print your NIN slip for a bank KYC requirement, correct a wrong name on your BVN, or retrieve a forgotten BVN number, you would need to use a separate service."
+        },
+        {
+            "type": "paragraph",
+            "content": "Ufriends IT handles all of these from the same dashboard where you buy data. NIN slips are generated instantly in Regular, Standard, Premium, or VNIN format. BVN slips can be printed in regular or premium plastic card format. For corrections, you can submit BVN and NIN modification requests (change of name, date of birth, or phone number) directly through the platform. This is especially valuable for Nigerians dealing with KYC failures due to mismatched identity records."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "API and Reseller Tools",
+            "id": "api-reseller"
+        },
+        {
+            "type": "paragraph",
+            "content": "MaskawaSub provides API integration and the option to create affiliate or reseller websites using their backend. This is useful for developers who want to build their own VTU portal powered by MaskawaSub's infrastructure. Their API covers data, airtime, and bill payment endpoints."
+        },
+        {
+            "type": "paragraph",
+            "content": "Ufriends IT's Developer API v1 goes further with a dedicated Sandbox Mode for testing without spending real money, official SDKs for Node.js and PHP, and automated webhooks that notify your server when transactions complete. This makes it more suitable for developers building production-grade fintech applications."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Ease of Use and Support",
+            "id": "ease-support"
+        },
+        {
+            "type": "paragraph",
+            "content": "Both platforms have clean dashboards. MaskawaSub has a dedicated Android app which some users prefer. Ufriends IT uses a responsive web app that works on all devices — you can add it to your home screen and it behaves like a native app. For support, MaskawaSub uses email and phone, while Ufriends IT offers WhatsApp support and an in-dashboard ticket system. Both aim to resolve issues within 24 hours."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Pros and Cons of Each Platform",
+            "id": "pros-cons"
+        },
+        {
+            "type": "heading",
+            "level": 3,
+            "content": "MaskawaSub"
+        },
+        {
+            "type": "list",
+            "style": "unordered",
+            "items": [
+                "✅ Competitive data and airtime pricing",
+                "✅ Affiliate website creation option",
+                "✅ Dedicated Android app",
+                "✅ Airtime-to-cash conversion available",
+                "❌ No NIN or BVN services at all",
+                "❌ No CAC registration",
+                "❌ Basic API without sandbox or SDKs",
+                "❌ Manual bank transfer for wallet funding"
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 3,
+            "content": "Ufriends IT"
+        },
+        {
+            "type": "list",
+            "style": "unordered",
+            "items": [
+                "✅ All-in-one VTU + identity services platform",
+                "✅ NIN slip printing (4 formats) and BVN slip generation",
+                "✅ Lawful NIN/BVN modification services",
+                "✅ Full Developer API with Sandbox, SDKs, and webhooks",
+                "✅ Virtual bank account for instant wallet funding",
+                "✅ CAC business registration",
+                "❌ No native Android app (PWA-based)",
+                "❌ No affiliate website builder feature"
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Our Recommendation",
+            "id": "recommendation"
+        },
+        {
+            "type": "paragraph",
+            "content": "MaskawaSub is a fine platform for basic VTU transactions. But when you compare total value — including NIN/BVN services, developer tools, and the convenience of handling everything from one wallet — Ufriends IT delivers more for the same or similar pricing on data and airtime. If identity services matter to you at all (and in Nigeria, they matter a lot), Ufriends IT is the stronger pick."
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "Want to try it yourself? Sign up free at ufriends.com.ng and compare the data prices directly. You can also print your NIN or BVN slip right away."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Frequently Asked Questions",
+            "id": "faqs"
+        },
+        {
+            "type": "faq",
+            "items": [
+                {
+                    "q": "Is MaskawaSub cheaper than Ufriends IT for data bundles?",
+                    "a": "Both platforms offer very similar wholesale data rates. On some specific plans, MaskawaSub may be a few naira cheaper, while on others Ufriends IT may be cheaper. The difference is usually marginal. Ufriends IT adds more value through its identity services."
+                },
+                {
+                    "q": "Can I print NIN or BVN slips on MaskawaSub?",
+                    "a": "No. MaskawaSub does not offer NIN or BVN slip printing, generation, or modification services. For these services, you would need to use a separate platform like Ufriends IT."
+                },
+                {
+                    "q": "Which platform is more reliable for daily data purchases?",
+                    "a": "Both platforms offer automated, instant data delivery for the major Nigerian networks. Reliability is comparable for standard VTU transactions. Test with small amounts first on either platform to confirm delivery speed in your area."
+                },
+                {
+                    "q": "Does MaskawaSub have a developer API?",
+                    "a": "Yes, MaskawaSub offers API access for developers. However, it is more basic compared to Ufriends IT's API, which includes a Sandbox Mode, Node.js and PHP SDKs, and automated webhooks for transaction notifications."
+                },
+                {
+                    "q": "Can I modify my BVN or NIN on MaskawaSub?",
+                    "a": "No. BVN and NIN modification services are not available on MaskawaSub. Ufriends IT offers lawful corrections for name, date of birth, and phone number on both BVN and NIN."
+                },
+                {
+                    "q": "Which platform should I use if I run a VTU business?",
+                    "a": "If you only resell data and airtime, both work. If you want to also offer NIN/BVN services to your customers as an additional revenue stream, use Ufriends IT because it provides everything in one dashboard."
+                }
+            ]
+        }
+    ]
+}

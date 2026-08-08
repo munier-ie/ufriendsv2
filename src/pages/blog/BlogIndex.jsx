@@ -277,6 +277,51 @@ export const BLOG_POSTS = [
         readMin: 15,
         publishedAt: '2026-05-12',
         keywords: ['best vtu platform nigeria', 'buy cheap data online', 'waec result checker pins'],
+    },
+    {
+        slug: 'alrahuz-vs-ufriends-best-vtu-platform-nigeria',
+        title: 'Alrahuz vs Ufriends IT — Which VTU Platform Is Better for You?',
+        excerpt: 'Comparing Alrahuz Data and Ufriends IT side by side — pricing, services, NIN/BVN support, API access, and reliability. Find out which Nigerian VTU platform fits your needs.',
+        category: 'VTU Comparison',
+        readMin: 14,
+        publishedAt: '2026-08-08',
+        keywords: ['alrahuz vs ufriends', 'best VTU platform Nigeria', 'alrahuz data review'],
+    },
+    {
+        slug: 'maskawasub-vs-ufriends-data-airtime-comparison',
+        title: 'MaskawaSub vs Ufriends IT — Honest Data & Airtime Price Comparison',
+        excerpt: 'A detailed comparison of MaskawaSub and Ufriends IT for data, airtime, bill payments, and identity services in Nigeria. Which platform saves you more money?',
+        category: 'VTU Comparison',
+        readMin: 13,
+        publishedAt: '2026-08-08',
+        keywords: ['maskawasub vs ufriends', 'maskawasub review', 'cheap data platform Nigeria'],
+    },
+    {
+        slug: 'subandgain-vs-ufriends-cheapest-data-nigeria',
+        title: 'SubAndGain vs Ufriends IT — Which Gives You Cheaper Data in Nigeria?',
+        excerpt: 'Comparing SubAndGain and Ufriends IT head-to-head on data pricing, VTU services, NIN/BVN features, and reliability. Find out which platform gives you more value in Nigeria.',
+        category: 'VTU Comparison',
+        readMin: 13,
+        publishedAt: '2026-08-08',
+        keywords: ['subandgain vs ufriends', 'cheapest data platform Nigeria 2026', 'subandgain review Nigeria'],
+    },
+    {
+        slug: 'clubkonnect-vs-ufriends-vtu-services-compared',
+        title: 'Clubkonnect vs Ufriends IT — Full VTU & Identity Services Comparison',
+        excerpt: 'Clubkonnect and Ufriends IT are both popular Nigerian VTU platforms. This comparison covers pricing, services, NIN/BVN features, API tools, and which platform gives you better value.',
+        category: 'VTU Comparison',
+        readMin: 14,
+        publishedAt: '2026-08-08',
+        keywords: ['clubkonnect vs ufriends', 'clubkonnect review Nigeria', 'best VTU website Nigeria'],
+    },
+    {
+        slug: 'vtpass-vs-ufriends-best-nin-bvn-slip-platform',
+        title: 'VTpass vs Ufriends IT — Best Platform for NIN/BVN Slips & VTU in Nigeria',
+        excerpt: 'VTpass is big on bill payments, but how does it compare to Ufriends IT for NIN/BVN slip printing, data pricing, and identity services? Full honest comparison inside.',
+        category: 'VTU Comparison',
+        readMin: 13,
+        publishedAt: '2026-08-08',
+        keywords: ['vtpass vs ufriends', 'vtpass review Nigeria', 'best platform NIN BVN slip Nigeria'],
     }
 ];
 
@@ -291,6 +336,7 @@ const CATEGORY_STYLES = {
     'Business Registration': 'bg-primary/10 text-primary',
     'VTU Guides': 'bg-secondary/10 text-secondary',
     'VTU Reselling': 'bg-secondary/10 text-secondary',
+    'VTU Comparison': 'bg-primary/10 text-primary',
 };
 
 // ─── Blog card ───────────────────────────────────────────────────────────────

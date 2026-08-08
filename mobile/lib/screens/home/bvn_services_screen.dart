@@ -175,6 +175,7 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
       MaterialPageRoute(
         builder: (_) => PinScreen(
           title: 'Confirm Request',
+          warningText: 'Make sure the BVN number you entered is 100% correct. If the number is WRONG or does not exist — You will still be charged ₦100 and your money will NOT be refunded. Take a moment to verify your details before proceeding.',
           onVerify: (pin) async {
             return await ApiService.submitManualService(
               serviceType: serviceType,

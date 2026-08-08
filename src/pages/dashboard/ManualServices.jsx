@@ -1162,7 +1162,7 @@ export default function ManualServices() {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-white rounded-2xl shadow-xl w-full max-w-sm overflow-hidden"
+                            className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden"
                         >
                             <div className="p-6 text-center space-y-4">
                                 <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto">
@@ -1174,6 +1174,33 @@ export default function ManualServices() {
                                         Confirm your 4-digit PIN to submit this request (₦{currentPrice().toLocaleString()}).
                                     </p>
                                 </div>
+
+                                {/* ⚠️ NIN/BVN Accuracy Warning */}
+                                {['BVN_RETRIEVAL', 'BVN_MODIFICATION', 'NIN_MODIFICATION'].includes(activeSub) && (
+                                    <div className="bg-amber-50 border border-amber-300 rounded-xl p-4 text-left space-y-2">
+                                        <p className="text-sm font-bold text-amber-900 flex items-center gap-2">
+                                            <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                                            Please Double-Check Before You Continue
+                                        </p>
+                                        <p className="text-xs text-amber-800 leading-relaxed">
+                                            Make sure the {activeSub === 'NIN_MODIFICATION' ? 'NIN' : 'BVN'} number {activeSub === 'BVN_RETRIEVAL' ? '(and phone number) ' : ''}you entered is <strong>100% correct</strong>.
+                                        </p>
+                                        <ul className="text-xs text-amber-800 space-y-1.5 pl-1">
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-red-500 font-bold shrink-0">✗</span>
+                                                <span>If the details are <strong>WRONG</strong> or do not exist — You will still be charged <strong>₦100</strong> and your money will <strong>NOT</strong> be refunded.</span>
+                                            </li>
+                                            <li className="flex items-start gap-2">
+                                                <span className="text-green-600 font-bold shrink-0">✓</span>
+                                                <span>If the details are <strong>CORRECT</strong> — You will be charged the full service fee (<strong>₦{currentPrice().toLocaleString()}</strong>) and your request will be processed.</span>
+                                            </li>
+                                        </ul>
+                                        <p className="text-xs text-amber-900 font-semibold pt-1">
+                                            Take a moment to verify your details before proceeding.
+                                        </p>
+                                    </div>
+                                )}
+
                                 <Input
                                     type="password"
                                     inputMode="numeric"

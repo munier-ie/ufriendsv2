@@ -16,10 +16,10 @@ const contactSchema = {
     '@type': 'ContactPage',
     name: 'Contact Ufriends IT',
     description: 'Get in touch with Ufriends IT support team via email, WhatsApp, or our contact form.',
-    url: 'https://ufriends.com.ng/contact',
+    url: 'https://www.ufriends.com.ng/contact',
     mainEntity: {
         '@type': 'Organization',
-        '@id': 'https://ufriends.com.ng/#organization',
+        '@id': 'https://www.ufriends.com.ng/#organization',
         contactPoint: {
             '@type': 'ContactPoint',
             contactType: 'customer support',
@@ -126,7 +126,7 @@ export default function ContactPage() {
             <PageMeta
                 title="Contact Us | Ufriends IT Support"
                 description="Need help? Contact Ufriends IT via email, WhatsApp or our contact form. We respond within 24 hours for all inquiries including transactions, NIN/BVN, and account issues."
-                canonical="https://ufriends.com.ng/contact"
+                canonical="https://www.ufriends.com.ng/contact"
                 schema={contactSchema}
             />
 

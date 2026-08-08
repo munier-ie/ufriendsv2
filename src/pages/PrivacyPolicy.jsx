@@ -2,10 +2,16 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import Logo from '../components/ui/Logo';
 import LandingFooter from '../components/landing/LandingFooter';
+import PageMeta from '../components/seo/PageMeta';
 
 export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-gray-50">
+      <PageMeta 
+        title="Privacy Policy" 
+        description="Privacy Policy for Ufriends IT Nigeria."
+        canonical="https://www.ufriends.com.ng/privacy"
+      />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-8">
           <Link to="/" className="inline-flex items-center text-gray-500 hover:text-primary transition-colors mb-6 text-sm font-medium">

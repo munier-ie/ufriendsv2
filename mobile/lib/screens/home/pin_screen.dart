@@ -6,11 +6,13 @@ import '../../core/custom_widgets.dart';
 
 class PinScreen extends StatefulWidget {
   final String title;
+  final String? warningText;
   final Future<Map<String, dynamic>> Function(String pin) onVerify;
 
   const PinScreen({
     super.key, 
     this.title = 'Enter Transaction PIN',
+    this.warningText,
     required this.onVerify,
   });
 
@@ -99,7 +101,37 @@ class _PinScreenState extends State<PinScreen> {
                 style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
               
-              const SizedBox(height: 48),
+              if (widget.warningText != null) ...[
+                const SizedBox(height: 24),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    border: Border.all(color: Colors.orange.shade200),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.orange.shade700, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          widget.warningText!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.orange.shade900,
+                            height: 1.4,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              
+              const SizedBox(height: 32),
               
               // PIN Display
               Row(
