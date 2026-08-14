@@ -887,10 +887,10 @@ export default function Services() {
                                         </p>
                                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                                             tx.status === 0 ? 'bg-green-100 text-green-800' :
-                                            tx.status === 1 ? 'bg-red-100 text-red-800' :
+                                            (tx.status === 2 || tx.status === 3) ? 'bg-red-100 text-red-800' :
                                             'bg-yellow-100 text-yellow-800'
                                         }`}>
-                                            {tx.status === 0 ? 'Success' : tx.status === 1 ? 'Failed' : 'Pending'}
+                                            {tx.status === 0 ? 'Success' : (tx.status === 2 || tx.status === 3) ? 'Failed' : 'Pending'}
                                         </span>
                                     </div>
                                 </div>
@@ -927,8 +927,8 @@ export default function Services() {
                             <div className="p-6 space-y-4">
                                 <div className="text-center mb-6">
                                     <div className="flex justify-center mb-3">
-                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedTx.status === 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                            {selectedTx.status === 0 ? <CheckCircle size={32} /> : <XCircle size={32} />}
+                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedTx.status === 0 ? 'bg-green-100 text-green-600' : (selectedTx.status === 2 || selectedTx.status === 3) ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'}`}>
+                                            {selectedTx.status === 0 ? <CheckCircle size={32} /> : (selectedTx.status === 2 || selectedTx.status === 3) ? <XCircle size={32} /> : <AlertCircle size={32} />}
                                         </div>
                                     </div>
                                     <h2 className="text-2xl font-bold text-gray-900">₦{Math.abs(selectedTx.amount).toLocaleString()}</h2>
@@ -946,8 +946,8 @@ export default function Services() {
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100">
                                         <span className="text-gray-500">Status</span>
-                                        <span className={`font-bold ${selectedTx.status === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {selectedTx.status === 0 ? 'Successful' : 'Failed'}
+                                        <span className={`font-bold ${selectedTx.status === 0 ? 'text-green-600' : (selectedTx.status === 2 || selectedTx.status === 3) ? 'text-red-600' : 'text-yellow-600'}`}>
+                                            {selectedTx.status === 0 ? 'Successful' : (selectedTx.status === 2 || selectedTx.status === 3) ? 'Failed' : 'Pending'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100">

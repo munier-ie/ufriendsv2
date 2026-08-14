@@ -149,7 +149,6 @@ function isNotFoundResponse(data, msg) {
     text.includes('wrong bvn') ||
     text.includes('details not found') ||
     text.includes('could not find') ||
-    text.includes('unverified') ||
     text.includes('record not exist') ||
     text.includes('not exist')
   );

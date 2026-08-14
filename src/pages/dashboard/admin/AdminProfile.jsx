@@ -72,6 +72,9 @@ export default function AdminProfile() {
 
     const handlePinUpdate = async (e) => {
         e.preventDefault();
+        if (pinForm.enable && pinForm.pin.length !== 4) {
+            return toast.error('Please enter a 4-digit PIN to enable or change.');
+        }
         if (pinForm.pin !== pinForm.confirmPin) {
             return toast.error('PINs do not match')
         }

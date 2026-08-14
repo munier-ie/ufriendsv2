@@ -343,7 +343,17 @@ export default function GovServices() {
                     setShowPinModal(false);
                     setFormData(INITIAL_FORM);
 
+                    let pollCount = 0;
+                    const maxPolls = 30; // 30 * 5s = 2.5 minutes
+
                     const pollStatus = async () => {
+                        pollCount++;
+                        if (pollCount > maxPolls) {
+                            toast.error('Verification timed out. Please check your history or contact support.', { id: 'slip-polling' });
+                            setSubmitting(false);
+                            return;
+                        }
+
                         try {
                             const statusRes = await axios.get(`/api/professional/request-status/${res.data.transactionRef}`, {
                                 headers: { Authorization: `Bearer ${token}` }

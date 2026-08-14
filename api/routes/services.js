@@ -233,7 +233,7 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
         if (type === 'data') {
             const dataPlans = await prisma.dataPlan.findMany();
             dataPlans.forEach(dp => {
-                dataPlansMap[dp.planId] = {
+                dataPlansMap[`${dp.planId}_${dp.apiProviderId}`] = {
                     network: dp.network,
                     dataType: dp.dataType
                 };
@@ -242,7 +242,7 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
 
         const extractNetworkInfo = (service) => {
             if (type === 'data') {
-                const dp = dataPlansMap[service.code];
+                const dp = dataPlansMap[`${service.code}_${service.apiProviderId}`];
                 if (dp) return { network: dp.network, networkType: dp.dataType };
             } else if (type === 'airtime') {
                 return { network: service.provider, networkType: 'VTU' }; // Simplification for airtime

@@ -75,7 +75,7 @@ export default function ProviderSwitch() {
             const res = await axios.post('/api/admin/bot/sync', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.error(res.data.message)
+            toast.success(res.data.message)
             fetchBotStats();
             fetchData();
         } catch (error) {
@@ -92,7 +92,7 @@ export default function ProviderSwitch() {
             const token = localStorage.getItem('adminToken');
 
             // Fetch Global Status
-            const statusRes = await axios.get('/api/admin/provider-status', {
+            const statusRes = await axios.get(`/api/admin/provider-status?_t=${new Date().getTime()}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setActiveProviders(statusRes.data.activeProviders || []);
@@ -118,12 +118,24 @@ export default function ProviderSwitch() {
         fetchData();
     }, []);
 
-    // --- Global Switch Logic ---
     const handleProviderChange = async (serviceType, apiProviderId) => {
         if (!apiProviderId) return;
         try {
             setSaving(true);
             const token = localStorage.getItem('adminToken');
+            
+            // Optimistic update
+            setActiveProviders(prev => {
+                const updated = [...prev];
+                const index = updated.findIndex(ap => ap.serviceType === serviceType);
+                if (index !== -1) {
+                    updated[index] = { ...updated[index], apiProviderId: Number(apiProviderId) };
+                } else {
+                    updated.push({ serviceType, apiProviderId: Number(apiProviderId) });
+                }
+                return updated;
+            });
+
             await axios.put('/api/admin/provider-status', { serviceType, apiProviderId }, {
                 headers: { Authorization: `Bearer ${token}` }
             });

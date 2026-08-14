@@ -362,7 +362,7 @@ router.post('/request', authenticateUser, async (req, res) => {
 
         // 4. Atomic Transaction
         const result = await prisma.$transaction(async (tx) => {
-            await tx.user.update({
+            const updatedUser = await tx.user.update({
                 where: { id: req.user.id },
                 data: { wallet: { decrement: amount } }
             });
@@ -387,15 +387,15 @@ router.post('/request', authenticateUser, async (req, res) => {
                     description: `Request for ${type.replace(/_/g, ' ')}`,
                     amount: -amount,
                     status: 0,
-                    oldBalance: req.user.wallet,
-                    newBalance: req.user.wallet - amount,
+                    oldBalance: updatedUser.wallet + amount,
+                    newBalance: updatedUser.wallet,
                     profit: profit > 0 ? profit : 0,
                     userId: req.user.id,
                     type: 'professional'
                 }
             });
 
-            return { request, transactionRef };
+            return { request, transactionRef, postDebitWallet: updatedUser.wallet };
         });
 
         // 5. Process BVN verification
@@ -436,44 +436,48 @@ router.post('/request', authenticateUser, async (req, res) => {
                             errorMsg = `${errorMsg} (₦100 service charge applied)`;
                         }
 
-                        await prisma.serviceRequest.update({
-                            where: { id: result.request.id },
-                            data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
-                        });
-                        await prisma.transaction.update({
-                            where: { reference: result.transactionRef },
-                            data: {
-                                status: 2,
-                                amount: verificationResult.notFound ? -100 : 0,
-                                newBalance: verificationResult.notFound ? req.user.wallet - 100 : req.user.wallet,
-                                profit: verificationResult.notFound ? 100 : 0,
-                                description: verificationResult.notFound ? `Failed Request (₦100 service charge)` : `Failed Request (Refunded)`
-                            }
-                        });
-                        await prisma.user.update({
-                            where: { id: req.user.id },
-                            data: { wallet: { increment: refundAmount } }
+                        await prisma.$transaction(async (tx) => {
+                            const freshUser = await tx.user.update({
+                                where: { id: req.user.id },
+                                data: { wallet: { increment: refundAmount } }
+                            });
+                            await tx.serviceRequest.update({
+                                where: { id: result.request.id },
+                                data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
+                            });
+                            await tx.transaction.update({
+                                where: { reference: result.transactionRef },
+                                data: {
+                                    status: 2,
+                                    amount: verificationResult.notFound ? -100 : 0,
+                                    newBalance: freshUser.wallet,
+                                    profit: verificationResult.notFound ? 100 : 0,
+                                    description: verificationResult.notFound ? `Failed Request (₦100 service charge)` : `Failed Request (Refunded)`
+                                }
+                            });
                         });
                     }
                 } catch (error) {
                     console.error('BVN Async Processing Error:', error);
-                    await prisma.serviceRequest.update({
-                        where: { id: result.request.id },
-                        data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during BVN verification' }) }
-                    });
-                    await prisma.transaction.update({
-                        where: { reference: result.transactionRef },
-                        data: {
-                            status: 2,
-                            amount: 0,
-                            newBalance: req.user.wallet,
-                            profit: 0,
-                            description: `Failed Request (Refunded)`
-                        }
-                    });
-                    await prisma.user.update({
-                        where: { id: req.user.id },
-                        data: { wallet: { increment: amount } }
+                    await prisma.$transaction(async (tx) => {
+                        const freshUser = await tx.user.update({
+                            where: { id: req.user.id },
+                            data: { wallet: { increment: amount } }
+                        });
+                        await tx.serviceRequest.update({
+                            where: { id: result.request.id },
+                            data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during BVN verification' }) }
+                        });
+                        await tx.transaction.update({
+                            where: { reference: result.transactionRef },
+                            data: {
+                                status: 2,
+                                amount: 0,
+                                newBalance: freshUser.wallet,
+                                profit: 0,
+                                description: `Failed Request (Refunded)`
+                            }
+                        });
                     });
                 }
             });
@@ -533,44 +537,48 @@ router.post('/request', authenticateUser, async (req, res) => {
                             errorMsg = `${errorMsg} (₦100 service charge applied)`;
                         }
 
-                        await prisma.serviceRequest.update({
-                            where: { id: result.request.id },
-                            data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
-                        });
-                        await prisma.transaction.update({
-                            where: { reference: result.transactionRef },
-                            data: {
-                                status: 2,
-                                amount: verificationResult.notFound ? -100 : 0,
-                                newBalance: verificationResult.notFound ? req.user.wallet - 100 : req.user.wallet,
-                                profit: verificationResult.notFound ? 100 : 0,
-                                description: verificationResult.notFound ? `Failed Request (₦100 service charge)` : `Failed Request (Refunded)`
-                            }
-                        });
-                        await prisma.user.update({
-                            where: { id: req.user.id },
-                            data: { wallet: { increment: refundAmount } }
+                        await prisma.$transaction(async (tx) => {
+                            const freshUser = await tx.user.update({
+                                where: { id: req.user.id },
+                                data: { wallet: { increment: refundAmount } }
+                            });
+                            await tx.serviceRequest.update({
+                                where: { id: result.request.id },
+                                data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
+                            });
+                            await tx.transaction.update({
+                                where: { reference: result.transactionRef },
+                                data: {
+                                    status: 2,
+                                    amount: verificationResult.notFound ? -100 : 0,
+                                    newBalance: freshUser.wallet,
+                                    profit: verificationResult.notFound ? 100 : 0,
+                                    description: verificationResult.notFound ? `Failed Request (₦100 service charge)` : `Failed Request (Refunded)`
+                                }
+                            });
                         });
                     }
                 } catch (error) {
                     console.error('NIN Async Processing Error:', error);
-                    await prisma.serviceRequest.update({
-                        where: { id: result.request.id },
-                        data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during NIN verification' }) }
-                    });
-                    await prisma.transaction.update({
-                        where: { reference: result.transactionRef },
-                        data: {
-                            status: 2,
-                            amount: 0,
-                            newBalance: req.user.wallet,
-                            profit: 0,
-                            description: `Failed Request (Refunded)`
-                        }
-                    });
-                    await prisma.user.update({
-                        where: { id: req.user.id },
-                        data: { wallet: { increment: amount } }
+                    await prisma.$transaction(async (tx) => {
+                        const freshUser = await tx.user.update({
+                            where: { id: req.user.id },
+                            data: { wallet: { increment: amount } }
+                        });
+                        await tx.serviceRequest.update({
+                            where: { id: result.request.id },
+                            data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during NIN verification' }) }
+                        });
+                        await tx.transaction.update({
+                            where: { reference: result.transactionRef },
+                            data: {
+                                status: 2,
+                                amount: 0,
+                                newBalance: freshUser.wallet,
+                                profit: 0,
+                                description: `Failed Request (Refunded)`
+                            }
+                        });
                     });
                 }
             });

@@ -225,7 +225,7 @@ async function vendData(transaction, service, phone, network) {
         let networkType = 'SME'; // Default fallback
         if (service.code) {
             const dataPlan = await prisma.dataPlan.findFirst({
-                where: { planId: service.code, network: network }
+                where: { planId: service.code, network: network, apiProviderId: service.apiProviderId }
             });
             if (dataPlan && dataPlan.dataType) {
                 networkType = dataPlan.dataType;

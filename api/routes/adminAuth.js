@@ -420,22 +420,28 @@ router.post('/disable-2fa', adminAuthMiddleware, async (req, res) => {
 router.put('/update-pin', adminAuthMiddleware, async (req, res) => {
     try {
         const { pin, enable } = z.object({
-            pin: z.string().length(4),
+            pin: z.string().optional(),
             enable: z.boolean()
         }).parse(req.body);
 
-        const hashed = await bcrypt.hash(pin, 10);
+        if (enable && (!pin || pin.length !== 4)) {
+            return res.status(400).json({ error: 'A 4-digit PIN is required to enable.' });
+        }
+
+        const updateData = { pinStatus: enable ? 1 : 0 };
+        if (enable && pin && pin.length === 4) {
+            updateData.pinToken = await bcrypt.hash(pin, 10);
+        }
+
         await prisma.adminUser.update({
             where: { id: req.admin.id },
-            data: {
-                pinToken: hashed,
-                pinStatus: enable ? 1 : 0
-            }
+            data: updateData
         });
 
         res.json({ success: true, message: 'PIN updated successfully' });
     } catch (error) {
-        res.status(400).json({ error: 'Failed to update PIN' });
+        console.error('Update PIN error:', error);
+        res.status(400).json({ error: error.message || 'Failed to update PIN', stack: error.stack, zod: error.errors });
     }
 });
 

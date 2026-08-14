@@ -86,12 +86,14 @@ export default function Transactions() {
                         <CheckCircle size={12} /> Success
                     </span>
                 );
-            case 1:
+            case 2:
+            case 3:
                 return (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        <XCircle size={12} /> Failed
+                        <XCircle size={12} /> {status === 3 ? 'Refunded' : 'Failed'}
                     </span>
                 );
+            case 1:
             default:
                 return (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -153,8 +155,9 @@ export default function Transactions() {
                         >
                             <option value="all">All Status</option>
                             <option value="0">Success</option>
-                            <option value="1">Failed</option>
-                            <option value="2">Pending</option>
+                            <option value="1">Pending</option>
+                            <option value="2">Failed</option>
+                            <option value="3">Refunded</option>
                         </select>
                     </div>
 
@@ -345,8 +348,8 @@ export default function Transactions() {
                                 <div className="text-center mb-6">
                                     <div className="flex justify-center mb-3">
                                         {/* Simplified large icon for modal */}
-                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedTx.status === 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                                            {selectedTx.status === 0 ? <CheckCircle size={32} /> : <XCircle size={32} />}
+                                        <div className={`w-16 h-16 rounded-full flex items-center justify-center ${selectedTx.status === 0 ? 'bg-green-100 text-green-600' : (selectedTx.status === 2 || selectedTx.status === 3) ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'}`}>
+                                            {selectedTx.status === 0 ? <CheckCircle size={32} /> : (selectedTx.status === 2 || selectedTx.status === 3) ? <XCircle size={32} /> : <AlertCircle size={32} />}
                                         </div>
                                     </div>
                                     <h2 className="text-2xl font-bold text-gray-900">₦{Math.abs(selectedTx.amount).toLocaleString()}</h2>
@@ -364,8 +367,8 @@ export default function Transactions() {
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100">
                                         <span className="text-gray-500">Status</span>
-                                        <span className={`font-bold ${selectedTx.status === 0 ? 'text-green-600' : 'text-red-600'}`}>
-                                            {selectedTx.status === 0 ? 'Successful' : 'Failed'}
+                                        <span className={`font-bold ${selectedTx.status === 0 ? 'text-green-600' : (selectedTx.status === 2 || selectedTx.status === 3) ? 'text-red-600' : 'text-yellow-600'}`}>
+                                            {selectedTx.status === 0 ? 'Successful' : (selectedTx.status === 2 || selectedTx.status === 3) ? 'Failed' : 'Pending'}
                                         </span>
                                     </div>
                                     <div className="flex justify-between py-2 border-b border-gray-100">

@@ -113,6 +113,26 @@ async function syncDataPlans(providers) {
             console.warn(`[SmartRoutingBot] Skipping plan with invalid price: ${plan.network} ${plan.dataName} [ID: ${plan.planId}] via ${plan.providerName}`);
             continue;
         }
+
+        // Feature: Filter out massive plans (>10GB) to prevent sync/buy overload
+        function extractMegabytes(name) {
+            if (!name) return 0;
+            const match = name.toUpperCase().match(/([\d.]+)\s*(MB|GB|TB)/);
+            if (!match) return 0;
+            const value = parseFloat(match[1]);
+            const unit = match[2];
+            if (unit === 'MB') return value;
+            if (unit === 'GB') return value * 1024;
+            if (unit === 'TB') return value * 1024 * 1024;
+            return 0;
+        }
+
+        const mbSize = extractMegabytes(plan.dataName);
+        if (mbSize > 10240) {
+            console.warn(`[SmartRoutingBot] Skipping large plan (>10GB): ${plan.network} ${plan.dataName}`);
+            continue;
+        }
+
         const prices = calcPrices(plan.apiPrice);
 
         // ✅ Match by planId + apiProviderId — NOT by name
