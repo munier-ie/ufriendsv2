@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import Logo from '../ui/Logo';
 import Button from '../ui/Button';
+import { parsePinTokens } from './PinContentDisplay';
 
 /**
  * Receipt Component for Transactions
@@ -109,12 +110,45 @@ export default function Receipt({ transaction, onClose }) {
                                 <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600 w-1/3">PACKAGE</th>
                                 <td className="p-3 border border-gray-200 text-sm font-bold text-gray-800">{transaction.serviceName}</td>
                             </tr>
-                            {transaction.pinContent && (
-                                <tr>
-                                    <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">TOKEN / PIN</th>
-                                    <td className="p-3 border border-gray-200 text-sm font-mono font-black text-primary break-all tracking-wider">{transaction.pinContent}</td>
-                                </tr>
-                            )}
+                            {transaction.pinContent && (() => {
+                                const tokens = parsePinTokens(transaction.pinContent);
+                                if (tokens.length === 1 && tokens[0].serial) {
+                                    return (
+                                        <>
+                                            <tr>
+                                                <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">EXAM PIN</th>
+                                                <td className="p-3 border border-gray-200 text-sm font-mono font-black text-primary break-all tracking-wider">{tokens[0].pin}</td>
+                                            </tr>
+                                            <tr>
+                                                <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">SERIAL NUMBER</th>
+                                                <td className="p-3 border border-gray-200 text-sm font-mono font-bold text-gray-800 break-all tracking-wider">{tokens[0].serial}</td>
+                                            </tr>
+                                        </>
+                                    );
+                                }
+                                if (tokens.length > 1) {
+                                    return tokens.map((tok, i) => (
+                                        <React.Fragment key={i}>
+                                            <tr>
+                                                <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">{`PIN #${i + 1}`}</th>
+                                                <td className="p-3 border border-gray-200 text-sm font-mono font-black text-primary break-all tracking-wider">{tok.pin}</td>
+                                            </tr>
+                                            {tok.serial && (
+                                                <tr>
+                                                    <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">{`SERIAL #${i + 1}`}</th>
+                                                    <td className="p-3 border border-gray-200 text-sm font-mono font-bold text-gray-800 break-all tracking-wider">{tok.serial}</td>
+                                                </tr>
+                                            )}
+                                        </React.Fragment>
+                                    ));
+                                }
+                                return (
+                                    <tr>
+                                        <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">TOKEN / PIN</th>
+                                        <td className="p-3 border border-gray-200 text-sm font-mono font-black text-primary break-all tracking-wider">{transaction.pinContent}</td>
+                                    </tr>
+                                );
+                            })()}
                             <tr>
                                 <th className="bg-gray-50/80 p-3 border border-gray-200 text-left text-xs font-bold uppercase text-gray-600">PRICE</th>
                                 <td className="p-3 border border-gray-200 text-sm font-bold text-gray-800">₦{Math.abs(transaction.amount).toLocaleString()}</td>

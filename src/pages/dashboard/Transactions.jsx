@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Receipt from '../../components/dashboard/Receipt';
+import PinContentDisplay from '../../components/dashboard/PinContentDisplay';
 
 import ServiceIcon from '../../components/dashboard/ServiceIcon';
 
@@ -378,18 +379,7 @@ export default function Transactions() {
 
                                     {/* PIN Display Section */}
                                     {selectedTx.pinContent && (
-                                        <div className="mt-4 bg-gray-900 rounded-xl p-4 text-white relative group">
-                                            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Purchased PIN</p>
-                                            <div className="font-mono text-xl font-bold tracking-widest break-all">
-                                                {selectedTx.pinContent}
-                                            </div>
-                                            <button
-                                                onClick={() => copyToClipboard(selectedTx.pinContent)}
-                                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors"
-                                            >
-                                                <Copy size={16} />
-                                            </button>
-                                        </div>
+                                        <PinContentDisplay pinContent={selectedTx.pinContent} />
                                     )}
                                 </div>
                             </div>

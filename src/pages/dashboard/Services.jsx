@@ -12,6 +12,7 @@ import NetworkStatus from '../../components/dashboard/NetworkStatus';
 import BeneficiaryModal from '../../components/dashboard/BeneficiaryModal';
 
 import Receipt from '../../components/dashboard/Receipt';
+import PinContentDisplay from '../../components/dashboard/PinContentDisplay';
 
 // Logos (using placeholders for now, can be replaced with real assets)
 const PROVIDER_LOGOS = {
@@ -967,21 +968,7 @@ export default function Services() {
                                     </div>
 
                                     {selectedTx.pinContent && (
-                                        <div className="mt-4 bg-gray-900 rounded-xl p-4 text-white relative group">
-                                            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wider">Purchased PIN</p>
-                                            <div className="font-mono text-xl font-bold tracking-widest break-all">
-                                                {selectedTx.pinContent}
-                                            </div>
-                                            <button
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(selectedTx.pinContent);
-                                                    toast.success('PIN copied to clipboard');
-                                                }}
-                                                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors"
-                                            >
-                                                <Copy size={16} />
-                                            </button>
-                                        </div>
+                                        <PinContentDisplay pinContent={selectedTx.pinContent} />
                                     )}
                                 </div>
                             </div>

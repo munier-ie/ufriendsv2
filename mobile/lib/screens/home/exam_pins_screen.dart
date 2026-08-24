@@ -140,7 +140,7 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
           body: 'Your purchase of $_selectedQuantity ${_selectedProviderKey!.toUpperCase()} pins was successful',
         );
 
-        final pinData = result is Map && result['data'] != null ? result['data']['pinContent'] : null;
+        final pinData = result is Map && result['data'] != null ? (result['data']['pin'] ?? result['data']['pinContent']) : null;
         
         Navigator.push(
           context,
@@ -149,12 +149,12 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
               isSuccess: true,
               title: 'Purchase Successful',
               message: 'Your exam pins were generated successfully.',
+              pinContent: pinData?.toString(),
               details: {
                 'Exam Board': _selectedProviderKey!.toUpperCase(),
                 'Plan': _selectedExamPlan!['name'],
                 'Quantity': '$_selectedQuantity Piece(s)',
                 'Total Amount': '₦${formatCurrency(((_selectedExamPlan!['price'] ?? 0) as num).toDouble() * int.parse(_selectedQuantity))}',
-                'Pins': pinData?.toString() ?? 'View in history',
               },
             ),
           ),

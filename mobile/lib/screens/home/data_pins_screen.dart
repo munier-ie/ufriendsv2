@@ -267,7 +267,7 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
           body: 'Your purchase of $_selectedQuantity $_selectedNetwork data pins was successful',
         );
 
-        final pinData = result is Map && result['data'] != null ? result['data']['pinContent'] : null;
+        final pinData = result is Map && result['data'] != null ? (result['data']['pin'] ?? result['data']['pinContent']) : null;
         
         Navigator.push(
           context,
@@ -276,12 +276,12 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
               isSuccess: true,
               title: 'Purchase Successful',
               message: 'Your data pins were generated successfully.',
+              pinContent: pinData?.toString(),
               details: {
                 'Network': _selectedNetwork!,
                 'Plan': _selectedDataPlan!['name'],
                 'Quantity': _selectedQuantity,
                 'Total Amount': '₦${formatCurrency(((_selectedDataPlan!['price'] ?? 0) as num).toDouble() * int.parse(_selectedQuantity))}',
-                'Pins': pinData?.toString() ?? 'View in history',
               },
             ),
           ),

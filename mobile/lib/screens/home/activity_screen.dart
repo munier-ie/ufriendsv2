@@ -6,6 +6,7 @@ import '../../core/custom_widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'slip_preview_screen.dart';
+import '../../widgets/pin_display_widget.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
@@ -132,6 +133,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
               _detailRow('Status', status, valueColor: statusColor),
               _detailRow('Date', formatDate(tx['date'])),
               _detailRow('Description', tx['description'] ?? 'N/A'),
+              if (tx['pinContent'] != null && tx['pinContent'].toString().trim().isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: PinDisplayWidget(pinContent: tx['pinContent'].toString()),
+                ),
               const SizedBox(height: 32),
               Row(
                 children: [
@@ -255,6 +261,23 @@ class _ActivityScreenState extends State<ActivityScreen> {
                               _receiptRow('Amount', '₦${formatCurrency((tx['amount'] ?? 0).abs().toDouble())}'),
                               _receiptRow('Date', formatDate(tx['date'])),
                               _receiptRow('Description', tx['description'] ?? 'N/A'),
+                              if (tx['pinContent'] != null && tx['pinContent'].toString().trim().isNotEmpty) ...[
+                                ...parsePinTokens(tx['pinContent'].toString()).asMap().entries.map((entry) {
+                                  final idx = entry.key;
+                                  final tok = entry.value;
+                                  final isMultiple = parsePinTokens(tx['pinContent'].toString()).length > 1;
+                                  final pinLabel = isMultiple ? 'PIN #${idx + 1}' : 'PIN';
+                                  final serialLabel = isMultiple ? 'Serial #${idx + 1}' : 'Serial No';
+
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _receiptRow(pinLabel, tok.pin),
+                                      if (tok.serial != null) _receiptRow(serialLabel, tok.serial!),
+                                    ],
+                                  );
+                                }),
+                              ],
                             ],
                           ),
                         ),
