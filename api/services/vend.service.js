@@ -233,7 +233,13 @@ async function vendData(transaction, service, phone, network) {
         }
 
         // 1. Get Provider Details
-        const apiProvider = await resolveProvider('data', network, networkType, service);
+        let apiProvider = null;
+        if (service && service.apiProviderId) {
+            apiProvider = await prisma.apiProvider.findUnique({ where: { id: service.apiProviderId } });
+        }
+        if (!apiProvider) {
+            apiProvider = await resolveProvider('data', network, networkType, service);
+        }
 
         if (!apiProvider || !apiProvider.name) {
             return { status: 'failed', message: 'No API Provider configured for this data service' };

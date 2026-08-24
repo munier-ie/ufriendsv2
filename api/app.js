@@ -40,6 +40,7 @@ const kycRoutes = require('./routes/kyc'); // Import KYC routes
 const compression = require('compression');
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy (Nginx / Cloudflare on VPS)
 app.use(compression());
 
 // Configure helmet to allow PDFs to render inside iframes

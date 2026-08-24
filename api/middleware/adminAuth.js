@@ -7,7 +7,7 @@ async function adminAuth(req, res, next) {
         // Strip "Bearer " prefix regardless of casing, then trim whitespace
         const token = authHeader.replace(/^bearer\s+/i, '').trim();
 
-        if (!token) {
+        if (!token || token === 'undefined' || token === 'null') {
             return res.status(401).json({ success: false, error: 'No token provided' });
         }
 

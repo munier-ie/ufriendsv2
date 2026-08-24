@@ -114,19 +114,18 @@ router.post('/access', async (req, res) => {
             });
         }
 
-        // Check if PIN is required
-        if (admin.pinStatus === 1 && !pin) {
-            clearTimeout(timeout);
-            return res.status(400).json({
-                success: false,
-                error: 'PIN required',
-                pinRequired: true
-            });
-        }
+        // Check if PIN is required and configured
+        if (admin.pinStatus === 1 && admin.pinToken) {
+            if (!pin) {
+                clearTimeout(timeout);
+                return res.status(400).json({
+                    success: false,
+                    error: 'PIN required',
+                    pinRequired: true
+                });
+            }
 
-        // Verify PIN if provided and required
-        if (admin.pinStatus === 1 && pin) {
-            const validPin = await bcrypt.compare(pin, admin.pinToken);
+            const validPin = await bcrypt.compare(String(pin), String(admin.pinToken));
             if (!validPin) {
                 clearTimeout(timeout);
                 return res.status(401).json({

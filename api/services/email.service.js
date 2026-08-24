@@ -105,28 +105,190 @@ async function sendWelcomeEmail(user) {
     return sendEmail(user.email, subject, html);
 }
 
+const axios = require('axios');
+
+function isPrivateIp(ip) {
+    if (!ip) return true;
+    const cleanIp = ip.replace(/^::ffff:/, '');
+    if (cleanIp === '127.0.0.1' || cleanIp === '::1' || cleanIp === 'localhost') return true;
+    if (cleanIp.startsWith('10.') || cleanIp.startsWith('192.168.') || cleanIp.startsWith('fc00:') || cleanIp.startsWith('fe80:')) return true;
+    if (/^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(cleanIp)) return true;
+    return false;
+}
+
+function parseDevice(userAgent) {
+    if (!userAgent || typeof userAgent !== 'string') return 'Unknown Device';
+    
+    // Check for Mobile App (Flutter/Dart or custom app headers)
+    if (userAgent.includes('Dart') || userAgent.includes('Flutter') || userAgent.includes('UfriendsMobile') || userAgent.includes('MobileApp')) {
+        if (userAgent.includes('Android') || userAgent.includes('android')) return 'Ufriends Mobile App (Android)';
+        if (userAgent.includes('iOS') || userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'Ufriends Mobile App (iOS)';
+        return 'Ufriends Mobile App';
+    }
+
+    let os = 'Unknown OS';
+    if (userAgent.includes('Windows')) os = 'Windows';
+    else if (userAgent.includes('Android')) os = 'Android';
+    else if (userAgent.includes('iPhone') || userAgent.includes('iPad') || userAgent.includes('iOS')) os = 'iOS';
+    else if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS')) os = 'macOS';
+    else if (userAgent.includes('Linux')) os = 'Linux';
+
+    let browser = 'Unknown Browser';
+    if (userAgent.includes('Edg/')) browser = 'Edge';
+    else if (userAgent.includes('Chrome/') && !userAgent.includes('Edg/')) browser = 'Chrome';
+    else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome/')) browser = 'Safari';
+    else if (userAgent.includes('Firefox/')) browser = 'Firefox';
+    else if (userAgent.includes('Opera/') || userAgent.includes('OPR/')) browser = 'Opera';
+
+    if (browser !== 'Unknown Browser' && os !== 'Unknown OS') {
+        return `${browser} on ${os}`;
+    } else if (os !== 'Unknown OS') {
+        return os;
+    } else if (browser !== 'Unknown Browser') {
+        return browser;
+    }
+    
+    return userAgent.length > 50 ? userAgent.substring(0, 47) + '...' : userAgent;
+}
+
+function formatNigerianTime(date = new Date()) {
+    try {
+        const options = {
+            timeZone: 'Africa/Lagos',
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true
+        };
+        return new Intl.DateTimeFormat('en-NG', options).format(date) + ' (WAT)';
+    } catch {
+        const utc = date.getTime() + (date.getTimezoneOffset() * 60000);
+        const watDate = new Date(utc + (3600000 * 1));
+        return watDate.toLocaleString() + ' (WAT)';
+    }
+}
+
+async function resolveLocation(ip, reqHeaders = {}, userState = null) {
+    // 1. Check Cloudflare / CDN geo-headers first
+    const cfCountry = reqHeaders['cf-ipcountry'];
+    const cfCity = reqHeaders['cf-ipcity'];
+    if (cfCountry) {
+        const countryName = cfCountry === 'NG' ? 'Nigeria' : cfCountry;
+        if (cfCity) return `${cfCity}, ${countryName}`;
+        if (userState && cfCountry === 'NG') return `${userState}, Nigeria`;
+        return countryName;
+    }
+
+    // 2. If IP is private / local / missing, fallback to user registered state or Nigeria
+    if (!ip || isPrivateIp(ip)) {
+        return userState ? `${userState}, Nigeria` : 'Nigeria';
+    }
+
+    // 3. Perform fast IP geolocation lookup with 1.5s timeout
+    try {
+        const cleanIp = ip.replace(/^::ffff:/, '');
+        const response = await axios.get(`http://ip-api.com/json/${cleanIp}?fields=status,country,regionName,city`, { timeout: 1500 });
+        if (response.data && response.data.status === 'success') {
+            const { city, regionName, country } = response.data;
+            const parts = [city, regionName || country].filter(Boolean);
+            if (parts.length > 0) {
+                return parts.join(', ');
+            }
+        }
+    } catch (err) {
+        // Silently catch network/timeout errors
+    }
+
+    return userState ? `${userState}, Nigeria` : 'Nigeria';
+}
+
 /**
  * Send Login Alert
  */
-async function sendLoginAlert(user, deviceInfo) {
+async function sendLoginAlert(user, reqOrMeta) {
+    let rawUserAgent = '';
+    let ip = null;
+    let reqHeaders = {};
+
+    if (reqOrMeta && typeof reqOrMeta === 'object') {
+        if (reqOrMeta.headers) {
+            // Express req object
+            rawUserAgent = reqOrMeta.headers['user-agent'] || '';
+            reqHeaders = reqOrMeta.headers;
+            ip = reqOrMeta.headers['cf-connecting-ip'] || 
+                 reqOrMeta.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
+                 reqOrMeta.headers['x-real-ip'] || 
+                 reqOrMeta.ip;
+        } else {
+            // Metadata object
+            rawUserAgent = reqOrMeta.userAgent || reqOrMeta.device || '';
+            reqHeaders = reqOrMeta.headers || {};
+            ip = reqOrMeta.ip;
+        }
+    } else if (typeof reqOrMeta === 'string') {
+        rawUserAgent = reqOrMeta;
+    }
+
+    const device = parseDevice(rawUserAgent);
+    const location = await resolveLocation(ip, reqHeaders, user?.state);
+    const timeStr = formatNigerianTime(new Date());
+    const displayIp = ip && !isPrivateIp(ip) ? ip.replace(/^::ffff:/, '') : null;
+
     const subject = 'New Login Alert - Ufriends';
     const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #dc3545;">New Login Detected</h2>
-            <p>Hello ${user.firstName},</p>
-            <p>We detected a new login to your Ufriends account.</p>
-            <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
-            <p><strong>Device:</strong> ${deviceInfo || 'Unknown Device'}</p>
-            <br>
-            <p>If this was you, you can ignore this email. If you did not authorize this login, please contact support immediately and change your password.</p>
-            <br>
-                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
-                    Log In to Secure Account
-                </a>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background-color: #004687; padding: 25px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 22px;">Security Alert: New Login</h1>
             </div>
-            <br>
-            <p>Best regards,</p>
-            <p>The Ufriends Team</p>
+            <div style="padding: 30px;">
+                <h2 style="color: #004687; margin-top: 0; font-size: 18px;">Hello ${user.firstName},</h2>
+                <p style="color: #475569; font-size: 14px; line-height: 1.6;">
+                    We noticed a new login to your Ufriends account. If this was you, you can safely disregard this email.
+                </p>
+
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; margin: 25px 0;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; width: 35%;">Date & Time:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600;">${timeStr}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Device:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${device}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Location:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${location}</td>
+                        </tr>
+                        ${displayIp ? `
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">IP Address:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${displayIp}</td>
+                        </tr>
+                        ` : ''}
+                    </table>
+                </div>
+
+                <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 14px 18px; margin-bottom: 25px; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0; color: #991b1b; font-size: 13px; line-height: 1.5;">
+                        <strong>Didn't log in?</strong> If you do not recognize this activity, your account may be compromised. Please secure your account immediately.
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0 10px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                        Secure My Account
+                    </a>
+                </div>
+
+                <br>
+                <p style="margin: 0; color: #64748b; font-size: 13px;">Best regards,<br><strong style="color: #0f172a;">The Ufriends Security Team</strong></p>
+            </div>
+            <div style="background-color: #f8fafc; padding: 18px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                &copy; ${new Date().getFullYear()} Ufriends. All rights reserved.
+            </div>
         </div>
     `;
     return sendEmail(user.email, subject, html);

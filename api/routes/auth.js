@@ -271,7 +271,7 @@ router.post('/access', loginRateLimit, async (req, res) => {
         });
 
         // Send Login Alert
-        sendLoginAlert(user, req.headers['user-agent']).catch(err => console.error('Email error:', err));
+        sendLoginAlert(user, req).catch(err => console.error('Email error:', err));
 
         // Auto-generate Virtual Account if missing
         if (!user.bankNo) {
@@ -333,7 +333,7 @@ async function completeLoginProcess(user, req, res) {
     });
 
     // Send Login Alert
-    sendLoginAlert(user, req.headers['user-agent']).catch(err => console.error('Email error:', err));
+    sendLoginAlert(user, req).catch(err => console.error('Email error:', err));
 
     // Auto-generate Virtual Account if missing
     if (!user.bankNo) {

@@ -337,16 +337,27 @@ export default function Services() {
             if (!s.provider.toLowerCase().includes(formData.networkId.toLowerCase())) return false;
         }
 
-        // Data Specific Filtering: match plan type (SME, GIFTING, CORPORATE, CORPORATE2)
+        // Strip data plans outside 500MB to 10GB (500MB <= size <= 10240MB)
+        if (activeTab === 'data') {
+            const sizeInMb = parseDataSize(s.name);
+            if (sizeInMb < 500 || sizeInMb > 10240) return false;
+        }
+
+        // Data Specific Filtering: match plan type (SME, GIFTING, CORPORATE, CORPORATE2, etc.)
         if (activeTab === 'data' && formData.dataType) {
             const type = formData.dataType.toUpperCase();
             const nameUpper = s.name.toUpperCase();
 
             if (type === 'CORPORATE') {
-                if (!nameUpper.includes('CORPORATE') && !nameUpper.includes('C.G')) return false;
+                if (!nameUpper.includes('CORPORATE') && !nameUpper.includes('C.G') && !nameUpper.includes('CG')) return false;
             } else if (type === 'GIFTING') {
-                // If GIFTING, it might match CORPORATE GIFTING, which is fine
-                if (!nameUpper.includes('GIFTING')) return false;
+                if (!nameUpper.includes('GIFTING') || nameUpper.includes('CORPORATE') || nameUpper.includes('C.G') || nameUpper.includes('CG')) return false;
+            } else if (type === 'DATA COUPONS' || type === 'COUPON') {
+                if (!nameUpper.includes('COUPON')) return false;
+            } else if (type === 'DATA SHARE' || type === 'SHARE') {
+                if (!nameUpper.includes('SHARE')) return false;
+            } else if (type === 'DATA AWOOF' || type === 'AWOOF') {
+                if (!nameUpper.includes('AWOOF')) return false;
             } else {
                 // e.g. SME will match SME and SME2
                 if (!nameUpper.includes(type)) return false;

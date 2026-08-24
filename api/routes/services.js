@@ -212,66 +212,118 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
             return res.json({ services });
         }
 
-        const activeProvider = await prisma.activeProvider.findUnique({
-            where: { serviceType: type }
-        });
+        const [activeProvider, routingOverrides, allServices] = await Promise.all([
+            prisma.activeProvider.findUnique({ where: { serviceType: type } }),
+            prisma.providerRouting.findMany({ where: { serviceType: type, active: true } }),
+            prisma.service.findMany({ where: { type, active: true }, orderBy: { price: 'asc' } })
+        ]);
 
         const activeProviderId = activeProvider ? activeProvider.apiProviderId : null;
 
-        // Fetch active routing rules with full Provider details
-        const routingOverrides = await prisma.providerRouting.findMany({
-            where: { serviceType: type, active: true }
-        });
+        let services = [];
 
-        // We fetch ALL services for this type because we will filter them in memory
-        let allServices = await prisma.service.findMany({
-            where: { type, active: true },
-            orderBy: { name: 'asc' }
-        });
-
-        let dataPlansMap = {};
         if (type === 'data') {
-            const dataPlans = await prisma.dataPlan.findMany();
-            dataPlans.forEach(dp => {
-                dataPlansMap[`${dp.planId}_${dp.apiProviderId}`] = {
-                    network: dp.network,
-                    dataType: dp.dataType
-                };
+            function parseDataSizeInMb(name) {
+                if (!name) return 0;
+                const match = name.toUpperCase().match(/([\d.]+)\s*(MB|GB|TB)/);
+                if (!match) return 0;
+                const value = parseFloat(match[1]);
+                const unit = match[2];
+                if (unit === 'MB') return value;
+                if (unit === 'GB') return value * 1024;
+                if (unit === 'TB') return value * 1024 * 1024;
+                return 0;
+            }
+
+            function normalizeNetwork(str) {
+                if (!str) return '';
+                const upper = str.toUpperCase();
+                if (upper.includes('MTN')) return 'MTN';
+                if (upper.includes('GLO')) return 'GLO';
+                if (upper.includes('AIRTEL')) return 'AIRTEL';
+                if (upper.includes('9MOBILE') || upper.includes('ETISALAT')) return '9MOBILE';
+                return upper;
+            }
+
+            function normalizeDataType(name, rawCode = '') {
+                const combined = `${name} ${rawCode}`.toUpperCase();
+                if (combined.includes('CORPORATE') || combined.includes('C.G') || combined.includes('CG')) return 'CORPORATE GIFTING';
+                if (combined.includes('AWOOF')) return 'DATA AWOOF';
+                if (combined.includes('COUPON')) return 'DATA COUPONS';
+                if (combined.includes('SHARE')) return 'DATA SHARE';
+                if (combined.includes('GIFTING')) return 'GIFTING';
+                if (combined.includes('SME')) return 'SME';
+                return 'GIFTING';
+            }
+
+            function getTargetProviderId(network, category) {
+                const exact = routingOverrides.find(r => 
+                    r.network.toUpperCase() === network.toUpperCase() && 
+                    r.networkType.toUpperCase() === category.toUpperCase()
+                );
+                if (exact) return exact.apiProviderId;
+
+                const partial = routingOverrides.find(r => 
+                    r.network.toUpperCase() === network.toUpperCase() && 
+                    (r.networkType.toUpperCase().includes(category.toUpperCase()) || category.toUpperCase().includes(r.networkType.toUpperCase()))
+                );
+                return partial ? partial.apiProviderId : activeProviderId;
+            }
+
+            const seenMap = new Map();
+
+            for (const s of allServices) {
+                // 1. Skip if price is corrupted / absurd
+                if (!s.price || s.price <= 0 || s.price > 50000) continue;
+
+                // 2. Filter strictly 500MB to 10GB range
+                const sizeMb = parseDataSizeInMb(s.name);
+                if (sizeMb < 500 || sizeMb > 10240) continue;
+
+                const network = normalizeNetwork(s.provider || s.name);
+                const category = normalizeDataType(s.name, s.code);
+
+                // 3. Strictly match active routed provider
+                const targetProviderId = getTargetProviderId(network, category);
+                if (s.apiProviderId !== targetProviderId) continue;
+
+                // 4. Deduplicate plans of the same capacity (sizeMb) within the same network & category
+                const dedupeKey = `${network}_${category}_${sizeMb}`;
+                const isPromoOrShortTerm = /1day|2day|3day|7day|daily|weekly|social|insta|tiktok|promo/i.test(s.name);
+
+                if (!seenMap.has(dedupeKey)) {
+                    seenMap.set(dedupeKey, s);
+                } else {
+                    const existing = seenMap.get(dedupeKey);
+                    const existingIsShort = /1day|2day|3day|7day|daily|weekly|social|insta|tiktok|promo/i.test(existing.name);
+                    if (existingIsShort && !isPromoOrShortTerm) {
+                        seenMap.set(dedupeKey, s);
+                    } else if (existingIsShort === isPromoOrShortTerm && s.price < existing.price) {
+                        seenMap.set(dedupeKey, s);
+                    }
+                }
+            }
+
+            services = Array.from(seenMap.values()).sort((a, b) => {
+                const netA = normalizeNetwork(a.provider || a.name);
+                const netB = normalizeNetwork(b.provider || b.name);
+                if (netA !== netB) return netA.localeCompare(netB);
+                const catA = normalizeDataType(a.name);
+                const catB = normalizeDataType(b.name);
+                if (catA !== catB) return catA.localeCompare(catB);
+                return parseDataSizeInMb(a.name) - parseDataSizeInMb(b.name);
+            });
+        } else {
+            // Non-data services (airtime, etc.)
+            services = allServices.filter(service => {
+                if (service.apiProviderId === null) return true;
+                const override = routingOverrides.find(r =>
+                    r.network.toUpperCase() === (service.provider || '').toUpperCase()
+                );
+                if (override) return service.apiProviderId === override.apiProviderId;
+                return service.apiProviderId === activeProviderId;
             });
         }
-
-        const extractNetworkInfo = (service) => {
-            if (type === 'data') {
-                const dp = dataPlansMap[`${service.code}_${service.apiProviderId}`];
-                if (dp) return { network: dp.network, networkType: dp.dataType };
-            } else if (type === 'airtime') {
-                return { network: service.provider, networkType: 'VTU' }; // Simplification for airtime
-            }
-            return { network: service.provider, networkType: null };
-        };
-
-        const filteredServices = allServices.filter(service => {
-            // Unmapped generic services bypass strict routing (e.g. system fees)
-            if (service.apiProviderId === null) return true;
-
-            const { network, networkType } = extractNetworkInfo(service);
-
-            // 1. Is there an advanced override for this exact network and type?
-            const override = routingOverrides.find(r =>
-                r.network.toUpperCase() === (network || '').toUpperCase() &&
-                r.networkType.toUpperCase() === (networkType || '').toUpperCase()
-            );
-
-            if (override) {
-                // If an override exists for THIS network/type, we ONLY show the service if it belongs to the overridden provider
-                return service.apiProviderId === override.apiProviderId;
-            } else {
-                // If NO override exists, we ONLY show the service if it belongs to the GLOBAL default provider
-                return service.apiProviderId === activeProviderId;
-            }
-        });
-
-        let services = filteredServices;
 
         // Adjust prices based on user type
         const adjustedServices = services.map(s => {
