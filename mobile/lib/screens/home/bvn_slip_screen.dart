@@ -296,6 +296,8 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
                       ),
                     ],
 
+                    const SizedBox(height: 36),
+
                     GradientButton(
                       text: 'Verify & Generate BVN Slip',
                       icon: Icons.verified_rounded,

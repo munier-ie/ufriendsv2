@@ -88,8 +88,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _showTransactionDetails(Map<String, dynamic> tx) {
     final bool isDebit = (tx['amount'] ?? 0) < 0;
-    final String status = tx['status'] == 0 ? 'Success' : tx['status'] == 1 ? 'Failed' : 'Pending';
-    final Color statusColor = tx['status'] == 0 ? Colors.green : tx['status'] == 1 ? Colors.red : Colors.orange;
+    final bool isSuccess = tx['status'] == 0 || tx['status'] == '0';
+    final bool isFailed = tx['status'] == 1 || tx['status'] == '1';
+    final String status = isSuccess ? 'Success' : (isFailed ? 'Failed' : 'Pending');
+    final Color statusColor = isSuccess ? Colors.green : (isFailed ? Colors.red : Colors.orange);
     final bool isSlipTransaction = (tx['serviceName'] ?? '').toString().toLowerCase().contains('slip') ||
                                    (tx['serviceName'] ?? '').toString().toLowerCase().contains('bvn') ||
                                    (tx['serviceName'] ?? '').toString().toLowerCase().contains('nin');
@@ -103,7 +105,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             color: context.bottomSheetBg,
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(24),
               topRight: Radius.circular(24),
             ),
@@ -133,10 +135,10 @@ class _ActivityScreenState extends State<ActivityScreen> {
               const SizedBox(height: 32),
               Row(
                 children: [
-                  if (isSlipTransaction)
+                  if (isSlipTransaction && isSuccess)
                     Expanded(
                       child: GradientButton(
-                        text: 'Download',
+                        text: 'Download Slip',
                         icon: Icons.download_rounded,
                         onPressed: () async {
                           AppToast.show(context, message: 'Fetching slip details...', type: ToastType.success);
@@ -167,7 +169,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   else
                     Expanded(
                       child: GradientButton(
-                        text: 'Print',
+                        text: 'Print Receipt',
                         icon: Icons.print_rounded,
                         onPressed: () {
                           Navigator.pop(context); // Close details drawer
