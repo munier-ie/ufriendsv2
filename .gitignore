@@ -31,3 +31,8 @@ api/apk/download/
 mobile.backup
 # mobile
 api/uploads/apks
+
+## Android Release Keystore & Secrets
+**/android/key.properties
+*.jks
+*.keystore

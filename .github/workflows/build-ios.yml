@@ -1,0 +1,53 @@
+name: Build Unsigned iOS IPA
+
+on:
+  workflow_dispatch: # Allows you to manually trigger the build with a button in GitHub Actions
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+
+jobs:
+  build-ios:
+    name: Build iOS IPA (Unsigned)
+    runs-on: macos-14 # Apple Silicon M1 runner on GitHub Actions
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Install dependencies
+        working-directory: mobile
+        run: |
+          flutter pub get
+
+      - name: Install CocoaPods
+        working-directory: mobile/ios
+        run: |
+          pod install
+
+      - name: Build iOS Release (No Codesign)
+        working-directory: mobile
+        run: |
+          flutter build ios --release --no-codesign
+
+      - name: Package Runner.app into .ipa
+        working-directory: mobile
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r ufriends-unsigned.ipa Payload
+          rm -rf Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ufriends-ios-unsigned
+          path: mobile/ufriends-unsigned.ipa
+          retention-days: 14
