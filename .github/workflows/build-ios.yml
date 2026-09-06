@@ -26,12 +26,6 @@ jobs:
         working-directory: mobile
         run: |
           flutter pub get
-
-      - name: Install CocoaPods
-        working-directory: mobile/ios
-        run: |
-          pod install
-
       - name: Build iOS Release (No Codesign)
         working-directory: mobile
         run: |
