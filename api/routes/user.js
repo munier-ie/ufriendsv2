@@ -331,4 +331,81 @@ router.post('/support', authenticateUser, async (req, res) => {
     }
 });
 
+// Account Deletion Flow
+const crypto = require('crypto');
+const { sendEmailStrict } = require('../services/email.service');
+
+router.post('/account-deletion/request', authenticateUser, async (req, res) => {
+    try {
+        const user = req.user;
+        const otpCode = crypto.randomInt(100000, 999999);
+        const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
+
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+        });
+
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto;">
+                <h2 style="color: #ef4444;">Account Deletion Request</h2>
+                <p>Hello ${user.firstName},</p>
+                <p>We received a request to delete your Ufriends account. This action will terminate your account for 14 days, after which it will be permanently deleted.</p>
+                <p>To confirm this request, please enter the OTP below:</p>
+                <h3 style="background: #f3f4f6; padding: 10px; text-align: center; font-size: 24px; letter-spacing: 5px;">${otpCode}</h3>
+                <p>This code is valid for 15 minutes. If you did not request this, please ignore this email.</p>
+            </div>
+        `;
+
+        await sendEmailStrict(user.email, 'Account Deletion OTP - Ufriends', html);
+
+        res.json({ success: true, message: 'OTP sent to your email.' });
+    } catch (error) {
+        console.error('Account deletion request error:', error);
+        res.status(500).json({ error: 'Failed to process request' });
+    }
+});
+
+router.post('/account-deletion/confirm', authenticateUser, async (req, res) => {
+    try {
+        const { otp, reason } = req.body;
+        const user = req.user;
+
+        if (!otp) return res.status(400).json({ error: 'OTP is required' });
+        if (!reason) return res.status(400).json({ error: 'Deletion reason is required' });
+
+        if (user.emailVerifyCode !== parseInt(otp)) {
+            return res.status(400).json({ error: 'Invalid OTP code' });
+        }
+        if (new Date() > user.emailVerifyExpiry) {
+            return res.status(400).json({ error: 'OTP code has expired' });
+        }
+
+        // Proceed with soft deletion
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    regStatus: 2, // Terminated
+                    emailVerifyCode: null,
+                    emailVerifyExpiry: null
+                }
+            }),
+            prisma.accountDeletion.upsert({
+                where: { userId: user.id },
+                update: { reason, status: 'pending' },
+                create: { userId: user.id, reason, status: 'pending' }
+            }),
+            prisma.userLogin.deleteMany({
+                where: { userId: user.id }
+            })
+        ]);
+
+        res.json({ success: true, message: 'Your account has been terminated and scheduled for deletion in 14 days.' });
+    } catch (error) {
+        console.error('Account deletion confirm error:', error);
+        res.status(500).json({ error: 'Failed to confirm account deletion' });
+    }
+});
+
 module.exports = router;

@@ -84,6 +84,7 @@ model User {
   ninReports           NinReport[]            @relation("ninReports")
   resellerRequests     ResellerRequest[]
   userActions          UserAction[]           @relation("userActions")
+  accountDeletion      AccountDeletion?
 }
 
 model Notification {
@@ -772,6 +773,16 @@ model DataPlan {
   apiProvider        ApiProvider? @relation(fields: [apiProviderId], references: [id])
 
   @@map("data_plans")
+}
+
+
+model AccountDeletion {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  reason    String
+  status    String   @default("pending")
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model ElectricityProvider {

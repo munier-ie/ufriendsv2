@@ -181,6 +181,10 @@ router.post('/access', loginRateLimit, async (req, res) => {
             if (req._recordLoginFailure) req._recordLoginFailure();
             return res.status(400).json({ error: 'Invalid credentials' });
         }
+        
+        if (user.regStatus === 2) {
+            return res.status(403).json({ error: 'Account is terminated.' });
+        }
 
         // Strict Bcrypt check only
         const valid = await bcrypt.compare(password, user.password);

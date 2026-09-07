@@ -17,6 +17,7 @@ const authenticateUser = async (req, res, next) => {
         if (!user) return res.status(401).json({ error: 'User not found' });
 
         if (user.regStatus === 1) return res.status(403).json({ error: 'Account blocked. Contact support.' });
+        if (user.regStatus === 2) return res.status(403).json({ error: 'Account is terminated.' });
 
         req.user = user;
         next();

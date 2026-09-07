@@ -75,6 +75,15 @@ const apiKeyAuth = async (req, res, next) => {
                 errorCode: 4003
             });
         }
+        
+        if (user.regStatus === 2) {
+            await logApiRequest(user.id, req, 403, Date.now() - startTime);
+            return res.status(403).json({
+                status: 1,
+                message: 'Account is terminated.',
+                errorCode: 4004
+            });
+        }
 
         // [SEC] Only Vendor accounts (type === 3) may use the external API
         if (user.type !== 3) {

@@ -97,6 +97,7 @@ const NotFound          = React.lazy(() => import('./pages/NotFound'));
 const ResellerPage      = React.lazy(() => import('./pages/ResellerPage'));
 const ResellerStatusPage = React.lazy(() => import('./pages/ResellerStatusPage'));
 const ResellerCallback  = React.lazy(() => import('./pages/ResellerCallback'));
+const DeleteAccountPage = React.lazy(() => import('./pages/DeleteAccountPage'));
 
 // ─── User Dashboard Pages (lazy-loaded) ─────────────────────────────────────
 const Home              = React.lazy(() => import('./pages/dashboard/Home'));
@@ -220,6 +221,7 @@ export default function App() {
                     <Route path="/forgot-password" element={<ForgotPassword />} />
                     <Route path="/reset-password" element={<ResetPassword />} />
                     <Route path="/admin/login" element={<AdminLogin />} />
+                    <Route path="/delete-account" element={<DeleteAccountPage />} />
 
                     {/* Protected User Routes */}
                     <Route path="/dashboard" element={<DashboardLayout />}>
