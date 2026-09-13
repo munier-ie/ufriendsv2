@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Logo from '../components/ui/Logo';
+import PageMeta from '../components/seo/PageMeta';
 
 export default function ForgotPassword() {
     const navigate = useNavigate();
@@ -37,6 +38,12 @@ export default function ForgotPassword() {
 
     return (
         <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #f3fcfd 0%, #e8f4fb 50%, #ddeefa 100%)' }}>
+            <PageMeta
+                title="Forgot Password | Ufriends IT"
+                description="Reset your Ufriends IT account password."
+                canonical="https://www.ufriends.com.ng/forgot-password"
+                noIndex={true}
+            />
             {/* Left decorative panel */}
             <div
                 className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-16 relative overflow-hidden"

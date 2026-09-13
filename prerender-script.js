@@ -141,6 +141,30 @@ const STATIC_PAGES = {
             "name": "Ufriends IT Blog",
             "url": "https://www.ufriends.com.ng/blog"
         }
+    },
+    '/login': {
+        title: "Log In to Your Account | Ufriends IT",
+        description: "Log into your Ufriends IT account to buy cheap data, airtime, print NIN/BVN slips, and manage your wallet.",
+        canonical: "https://www.ufriends.com.ng/login",
+        noIndex: true
+    },
+    '/register': {
+        title: "Create Free Account | Ufriends IT",
+        description: "Sign up for a free Ufriends IT account in seconds. Buy cheap data, airtime, print NIN and BVN slips online.",
+        canonical: "https://www.ufriends.com.ng/register",
+        noIndex: true
+    },
+    '/forgot-password': {
+        title: "Reset Password | Ufriends IT",
+        description: "Reset your Ufriends IT password.",
+        canonical: "https://www.ufriends.com.ng/forgot-password",
+        noIndex: true
+    },
+    '/reset-password': {
+        title: "Set New Password | Ufriends IT",
+        description: "Set a new password for your Ufriends IT account.",
+        canonical: "https://www.ufriends.com.ng/reset-password",
+        noIndex: true
     }
 };
 
@@ -151,7 +175,11 @@ const PUBLIC_ROUTES = [
     '/reseller',
     '/privacy',
     '/terms',
-    '/blog'
+    '/blog',
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password'
 ];
 
 // Add service landing pages
@@ -380,9 +408,84 @@ function getRouteBodyHtml(route) {
         `;
     }
 
-    // 4. Static Pages
-    if (STATIC_PAGES[route] && STATIC_PAGES[route].bodyContent) {
-        return STATIC_PAGES[route].bodyContent;
+    // 4. Home Page
+    if (route === '/') {
+        return `
+            <div class="pre-rendered-page" style="max-width:1100px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
+                <header style="text-align:center;margin-bottom:48px;">
+                    <span style="display:inline-block;padding:6px 16px;background:#e0f2fe;color:#0284c7;border-radius:9999px;font-size:14px;font-weight:700;margin-bottom:16px;">Nigeria's #1 VTU & Identity Platform</span>
+                    <h1 style="font-size:36px;font-weight:800;color:#004687;line-height:1.25;margin-bottom:16px;">Buy Cheap Data, Airtime & Government Identity Services Online</h1>
+                    <p style="font-size:18px;color:#475569;max-width:800px;margin:0 auto 24px;line-height:1.6;">Nigeria's most trusted platform for cheap data bundles, lawful BVN and NIN modifications, instant slip retrieval, bill payments, and developer APIs.</p>
+                    <div style="margin-top:24px;">
+                        <a href="/register" style="display:inline-block;padding:14px 32px;background:#004687;color:#fff;font-weight:700;border-radius:12px;text-decoration:none;margin-right:12px;">Get Started Free</a>
+                        <a href="/login" style="display:inline-block;padding:14px 28px;border:1px solid #cbd5e1;color:#334155;font-weight:600;border-radius:12px;text-decoration:none;">Log In</a>
+                    </div>
+                </header>
+                <section style="margin-bottom:48px;">
+                    <h2 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:10px;">Our Core Services</h2>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/buy-data-nigeria" style="color:inherit;text-decoration:none;">1. Cheap Data Bundles</a></h3>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Wholesale and SME data for MTN, Airtel, Glo, and 9mobile at rock-bottom prices with instant automated delivery.</p>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/bvn-modification-nigeria" style="color:inherit;text-decoration:none;">2. BVN Modification</a></h3>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Lawful online assistance for correcting BVN registration errors including name order, date of birth, and phone number update.</p>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/nin-modification-nigeria" style="color:inherit;text-decoration:none;">3. NIN Modification</a></h3>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Official and lawful NIN demographic detail corrections (name correction, date of birth, phone number adjustment).</p>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/print-nin-slip-nigeria" style="color:inherit;text-decoration:none;">4. NIN & BVN Slips</a></h3>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Instant retrieval and printing of official Standard, Premium, and Regular NIN slips, VNIN validation, and official BVN slips.</p>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;">5. Other Digital Services</h3>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">BVN retrieval by phone, CAC business registration, WAEC, NECO & JAMB exam PINs, electricity bill payments, cable TV subscriptions, and airtime to cash.</p>
+                        </div>
+                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/reseller" style="color:inherit;text-decoration:none;">6. Developer API Access</a></h3>
+                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Developer API v1, sandbox testing environment, Node.js and PHP SDKs, and automated webhooks for seamless VTU integration.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        `;
+    }
+
+    // 5. Auth Pages (Loader shell for fast hydration without broken markup)
+    if (['/login', '/register', '/forgot-password', '/reset-password'].includes(route)) {
+        return `
+    <div class="initial-loader-wrapper">
+      <div class="spinner"></div>
+      <div class="loading-phrases">
+        <div class="phrase">Connecting to UFriends IT...</div>
+        <div class="phrase">Fetching best data deals...</div>
+        <div class="phrase">Loading BVN & NIN services...</div>
+        <div class="phrase">Preparing NIN & BVN slips...</div>
+        <div class="phrase">Setting up bill payments & business registration...</div>
+        <div class="phrase">Loading WAEC, NECO & JAMB PINs...</div>
+        <div class="phrase">Almost ready...</div>
+        <div class="phrase">Welcome to UFriends IT!</div>
+      </div>
+    </div>`;
+    }
+
+    // 6. Other Static Pages
+    if (STATIC_PAGES[route]) {
+        const p = STATIC_PAGES[route];
+        if (p.bodyContent) return p.bodyContent;
+        return `
+            <div class="pre-rendered-page" style="max-width:900px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
+                <h1 style="font-size:32px;font-weight:800;color:#004687;margin-bottom:16px;">${escapeHtml(p.h1 || p.title)}</h1>
+                ${p.subtitle ? `<p style="font-size:18px;color:#475569;line-height:1.6;margin-bottom:24px;">${escapeHtml(p.subtitle)}</p>` : ''}
+                <div style="margin-top:24px;">
+                    <a href="/register" style="display:inline-block;padding:12px 28px;background:#004687;color:#fff;font-weight:700;border-radius:10px;text-decoration:none;margin-right:12px;">Get Started</a>
+                    <a href="/login" style="display:inline-block;padding:12px 24px;border:1px solid #cbd5e1;color:#334155;font-weight:600;border-radius:10px;text-decoration:none;">Log In</a>
+                </div>
+            </div>
+        `;
     }
 
     return `
@@ -416,6 +519,7 @@ function generateStaticRoutes(distDir) {
         html = html.replace(/<link rel="canonical"[^>]*>/gi, '');
         html = html.replace(/<title>[\s\S]*?<\/title>/gi, '');
         html = html.replace(/<meta name="description"[^>]*>/gi, '');
+        html = html.replace(/<meta name="robots"[^>]*>/gi, '');
         html = html.replace(/<meta property="og:title"[^>]*>/gi, '');
         html = html.replace(/<meta property="og:description"[^>]*>/gi, '');
         html = html.replace(/<meta property="og:url"[^>]*>/gi, '');
@@ -427,6 +531,9 @@ function generateStaticRoutes(distDir) {
         const headTags = [
             `  <title>${escapeHtml(meta.title)}</title>`,
             `  <meta name="description" content="${escapeHtml(meta.description)}" />`,
+            meta.noIndex 
+                ? `  <meta name="robots" content="noindex, nofollow" />`
+                : `  <meta name="robots" content="index, follow" />`,
             `  <link rel="canonical" href="${meta.canonical}" />`,
             `  <meta property="og:title" content="${escapeHtml(meta.title)}" />`,
             `  <meta property="og:description" content="${escapeHtml(meta.description)}" />`,
@@ -442,12 +549,15 @@ function generateStaticRoutes(distDir) {
         // Insert new head tags right after <head>
         html = html.replace(/<head>/i, `<head>\n${headTags.join('\n')}`);
 
-        // Inject semantic pre-rendered body into <body><div id="app">...</div></body>
-        const bodyWithContent = `<body>\n  <div id="app">\n${bodyContent}\n  </div>`;
-        html = html.replace(/<body>[\s\S]*?<div id="app">[\s\S]*?<\/div>[\s\S]*?<\/body>/i, `${bodyWithContent}\n</body>`);
-
-        // If the regex didn't match due to unexpected markup, fallback to direct replacement
-        if (!html.includes('class="pre-rendered-page"')) {
+        // Inject semantic pre-rendered body into <div id="app">...</div>
+        // CAUTION: Preserve <script> tags inside <body> so client-side React can mount!
+        const appStart = html.indexOf('<div id="app">');
+        const scriptStart = html.indexOf('<script', appStart);
+        if (appStart !== -1 && scriptStart !== -1) {
+            html = html.substring(0, appStart) +
+                   `<div id="app">\n${bodyContent}\n  </div>\n  ` +
+                   html.substring(scriptStart);
+        } else {
             const bodyIdx = html.indexOf('<body');
             const endBodyIdx = html.indexOf('</body>');
             if (bodyIdx !== -1 && endBodyIdx !== -1) {
@@ -467,9 +577,13 @@ function generateStaticRoutes(distDir) {
                 fs.mkdirSync(routeDir, { recursive: true });
             }
 
-            // Write both directory index.html and root .html for 100% Vercel cleanUrls compatibility
+            // Write directory index.html
             fs.writeFileSync(path.join(routeDir, 'index.html'), html);
-            fs.writeFileSync(path.join(distDir, `${cleanRoute}.html`), html);
+            
+            // Also write direct .html file for single-level routes (e.g. dist/login.html)
+            if (!cleanRoute.includes('/')) {
+                fs.writeFileSync(path.join(distDir, `${cleanRoute}.html`), html);
+            }
         }
 
         generatedCount++;

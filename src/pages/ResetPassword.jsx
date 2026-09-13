@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import Logo from '../components/ui/Logo';
+import PageMeta from '../components/seo/PageMeta';
 
 function EyeIcon({ open }) {
     return open ? (
@@ -104,6 +105,12 @@ export default function ResetPassword() {
 
     return (
         <div className="min-h-screen flex" style={{ background: 'linear-gradient(135deg, #f3fcfd 0%, #e8f4fb 50%, #ddeefa 100%)' }}>
+            <PageMeta
+                title="Reset Password | Ufriends IT"
+                description="Set a new password for your Ufriends IT account."
+                canonical="https://www.ufriends.com.ng/reset-password"
+                noIndex={true}
+            />
             {/* Left decorative panel */}
             <div
                 className="hidden lg:flex lg:w-1/2 flex-col items-center justify-center p-16 relative overflow-hidden"
