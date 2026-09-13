@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import AuthLayout from '../components/layout/AuthLayout';
 import Logo from '../components/ui/Logo';
 import { Eye, EyeOff, ArrowLeft, Clock } from 'lucide-react';
+import PageMeta from '../components/seo/PageMeta';
 
 export default function Login() {
     const [step, setStep] = useState('login'); // 'login' | 'email-verify' | '2fa-verify'
@@ -133,6 +134,12 @@ export default function Login() {
 
     return (
         <AuthLayout>
+            <PageMeta
+                title="Log In to Your Account"
+                description="Log into your Ufriends IT account to buy data, airtime, print NIN/BVN slips, and manage your wallet."
+                canonical="https://www.ufriends.com.ng/login"
+                noIndex={true}
+            />
             <div className="mb-6 flex justify-between items-center px-2">
                 <Link 
                     to="/" 

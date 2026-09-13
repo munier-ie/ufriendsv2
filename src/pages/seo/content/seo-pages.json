@@ -2,7 +2,7 @@
     "buy-airtime-nigeria": {
         "metaTitle": "Buy Airtime Online Nigeria — MTN, Airtel, Glo & 9Mobile | Ufriends IT",
         "metaDescription": "Recharge airtime online for any MTN, Airtel, Glo or 9mobile number in Nigeria. Instant delivery, up to 3% discount on airtime. No bank charges. Ufriends IT — Nigeria's fastest VTU platform.",
-        "canonical": "https://ufriends.com.ng/buy-airtime-nigeria",
+        "canonical": "https://www.ufriends.com.ng/buy-airtime-nigeria",
         "h1": "Buy Airtime Online in Nigeria — All Networks, Instant Recharge",
         "subtitle": "Recharge MTN, Airtel, Glo, and 9mobile airtime instantly at discounted rates. VTU, Share & Sell options available — Nigeria's most reliable airtime top-up platform.",
         "badge": "Airtime VTU",
@@ -57,7 +57,7 @@
                 "@type": "Service",
                 "serviceType": "Recharge MTN, Airtel, Glo, and 9mobile airtime instantly at discounted rates. VTU, Share & Sell options available — Nigeria's most reliable airtime top-up platform.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -74,7 +74,7 @@
     "buy-data-nigeria": {
         "metaTitle": "Buy Cheap Data Online Nigeria — MTN, Airtel, Glo & 9Mobile",
         "metaDescription": "Buy the cheapest data plans in Nigeria on Ufriends IT. MTN SME data, Airtel gifting data, Glo data bundles and 9mobile plans at the lowest prices. Instant delivery, no charges. Start for free.",
-        "canonical": "https://ufriends.com.ng/buy-data-nigeria",
+        "canonical": "https://www.ufriends.com.ng/buy-data-nigeria",
         "h1": "Buy Cheap Data Online in Nigeria — All Networks, Instant Delivery",
         "subtitle": "Get the cheapest MTN, Airtel, Glo, and 9mobile data plans in Nigeria. SME data, Corporate Gifting, Data Awoof and more — automated delivery directly to your phone in seconds.",
         "badge": "Data Top-Up",
@@ -137,7 +137,7 @@
                 "@type": "Service",
                 "serviceType": "Get the cheapest MTN, Airtel, Glo, and 9mobile data plans in Nigeria. SME data, Corporate Gifting, Data Awoof and more — automated delivery directly to your phone in seconds.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -154,7 +154,7 @@
     "bvn-modification-nigeria": {
         "metaTitle": "BVN Modification Nigeria — Update Your BVN Details Online",
         "metaDescription": "Need to update your BVN name, date of birth, or phone number? Ufriends IT handles BVN modification in Nigeria online — fast, secure, and affordable. No bank visit needed. Start for free.",
-        "canonical": "https://ufriends.com.ng/bvn-modification-nigeria",
+        "canonical": "https://www.ufriends.com.ng/bvn-modification-nigeria",
         "h1": "BVN Modification in Nigeria — Update Your BVN Without Bank Queues",
         "subtitle": "Incorrect name, wrong date of birth, or need to update the phone number on your Bank Verification Number? Ufriends IT processes BVN modifications quickly, securely, and online.",
         "badge": "Banking Identity Services",
@@ -217,7 +217,7 @@
                 "@type": "Service",
                 "serviceType": "Incorrect name, wrong date of birth, or need to update the phone number on your Bank Verification Number? Ufriends IT processes BVN modifications quickly, securely, and online.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -234,7 +234,7 @@
     "subscribe-cable-tv-nigeria": {
         "metaTitle": "DStv GOtv Startimes Online Subscription Nigeria | Ufriends IT",
         "metaDescription": "Subscribe or renew DStv, GOtv or Startimes online in Nigeria at the cheapest price. Instant activation, package change supported. Ufriends IT — pay your cable TV in seconds. Start for free.",
-        "canonical": "https://ufriends.com.ng/subscribe-cable-tv-nigeria",
+        "canonical": "https://www.ufriends.com.ng/subscribe-cable-tv-nigeria",
         "h1": "Subscribe to DStv, GOtv & Startimes Online in Nigeria",
         "subtitle": "Renew or change your DStv, GOtv, or Startimes cable TV subscription online at the cheapest rate. Instant activation, no queues, available 24 hours a day, 7 days a week.",
         "badge": "Cable TV Subscription",
@@ -297,7 +297,7 @@
                 "@type": "Service",
                 "serviceType": "Renew or change your DStv, GOtv, or Startimes cable TV subscription online at the cheapest rate. Instant activation, no queues, available 24 hours a day, 7 days a week.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -314,7 +314,7 @@
     "cac-registration-nigeria": {
         "metaTitle": "CAC Business Registration Online Nigeria — Business Name, LTD & NGO | Ufriends IT",
         "metaDescription": "Register your business with CAC online in Nigeria. Ufriends IT handles Business Name, LTD, Enterprise and NGO registration. No CAC office visit needed. Fast, affordable, start for free.",
-        "canonical": "https://ufriends.com.ng/cac-registration-nigeria",
+        "canonical": "https://www.ufriends.com.ng/cac-registration-nigeria",
         "h1": "CAC Business Registration Online in Nigeria — Business Name, LTD, NGO & More",
         "subtitle": "Register your business with the Corporate Affairs Commission (CAC) through Ufriends IT. Business Name, Limited Company, Enterprise, and NGO registration — handled completely online.",
         "badge": "CAC Business Registration",
@@ -377,7 +377,7 @@
                 "@type": "Service",
                 "serviceType": "Register your business with the Corporate Affairs Commission (CAC) through Ufriends IT. Business Name, Limited Company, Enterprise, and NGO registration — handled completely online.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -394,7 +394,7 @@
     "buy-exam-pins-nigeria": {
         "metaTitle": "Buy WAEC Pin, NECO Scratch Card & Exam Pins Online Nigeria | Ufriends IT",
         "metaDescription": "Buy WAEC result checker PIN and NECO scratch card online in Nigeria. Instant delivery to your email and dashboard. Ufriends IT — Nigeria's fastest exam pin vending platform. Start for free.",
-        "canonical": "https://ufriends.com.ng/buy-exam-pins-nigeria",
+        "canonical": "https://www.ufriends.com.ng/buy-exam-pins-nigeria",
         "h1": "Buy WAEC Pin & NECO Scratch Card Online in Nigeria — Instant Delivery",
         "subtitle": "Purchase authentic WAEC result checker PINs and NECO scratch cards online in Nigeria. Instant delivery to your dashboard and email — no queues, no physical cards required.",
         "badge": "Education Pins",
@@ -457,7 +457,7 @@
                 "@type": "Service",
                 "serviceType": "Purchase authentic WAEC result checker PINs and NECO scratch cards online in Nigeria. Instant delivery to your dashboard and email — no queues, no physical cards required.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -474,7 +474,7 @@
     "nin-modification-nigeria": {
         "metaTitle": "NIN Modification Online Nigeria — Correct Your NIN Details Fast",
         "metaDescription": "Need to correct your NIN name, date of birth, or phone number? Ufriends IT handles NIN modification online in Nigeria — fast, authorised, and affordable. Start for free today.",
-        "canonical": "https://ufriends.com.ng/nin-modification-nigeria",
+        "canonical": "https://www.ufriends.com.ng/nin-modification-nigeria",
         "h1": "NIN Modification Online in Nigeria — Correct Your NIN Details Today",
         "subtitle": "Made an error on your National Identification Number? Ufriends IT handles NIN name correction, date of birth updates, and phone number modifications — all online, no NIMC office queues.",
         "badge": "Government Identity Services",
@@ -537,7 +537,7 @@
                 "@type": "Service",
                 "serviceType": "Made an error on your National Identification Number? Ufriends IT handles NIN name correction, date of birth updates, and phone number modifications — all online, no NIMC office queues.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -554,7 +554,7 @@
     "pay-electricity-bill-nigeria": {
         "metaTitle": "Pay Electricity Bill Online Nigeria — All DISCOs Supported | Ufriends IT",
         "metaDescription": "Pay electricity bills online in Nigeria for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan and Kaduna DISCOs. Get prepaid token instantly. Ufriends IT — fast, secure electricity payments.",
-        "canonical": "https://ufriends.com.ng/pay-electricity-bill-nigeria",
+        "canonical": "https://www.ufriends.com.ng/pay-electricity-bill-nigeria",
         "h1": "Pay Your Electricity Bill Online in Nigeria — All 8 DISCOs Supported",
         "subtitle": "Pay electricity bills for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan and Kaduna electricity companies online. Get your prepaid token instantly — no meter visit, no stress.",
         "badge": "Utility Bill Payment",
@@ -617,7 +617,7 @@
                 "@type": "Service",
                 "serviceType": "Pay electricity bills for Ikeja, Eko, Abuja, Kano, Port Harcourt, Jos, Ibadan and Kaduna electricity companies online. Get your prepaid token instantly — no meter visit, no stress.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -634,7 +634,7 @@
     "print-bvn-slip-nigeria": {
         "metaTitle": "Print BVN Slip Online Nigeria — Regular & Premium Plastic | Ufriends IT",
         "metaDescription": "Print your BVN slip online in Nigeria on Ufriends IT. Regular or Premium Plastic format, instant delivery, no bank visit required. Secure and affordable. Start for free today.",
-        "canonical": "https://ufriends.com.ng/print-bvn-slip-nigeria",
+        "canonical": "https://www.ufriends.com.ng/print-bvn-slip-nigeria",
         "h1": "Print Your BVN Slip Online in Nigeria — Regular & Premium Formats",
         "subtitle": "Get your Bank Verification Number (BVN) slip printed online in Nigeria. Choose Regular or Premium Plastic format — delivered instantly. No bank visit, no stress.",
         "badge": "BVN Services",
@@ -689,7 +689,7 @@
                 "@type": "Service",
                 "serviceType": "Get your Bank Verification Number (BVN) slip printed online in Nigeria. Choose Regular or Premium Plastic format — delivered instantly. No bank visit, no stress.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",
@@ -706,7 +706,7 @@
     "print-nin-slip-nigeria": {
         "metaTitle": "Print NIN Slip Online Nigeria — All Formats, Instant Delivery",
         "metaDescription": "Print your NIN slip online in Nigeria on Ufriends IT. All formats available: Regular, Standard, Premium and VNIN. Secure, fast and instant. No queues, no stress. Start for free.",
-        "canonical": "https://ufriends.com.ng/print-nin-slip-nigeria",
+        "canonical": "https://www.ufriends.com.ng/print-nin-slip-nigeria",
         "h1": "Print Your NIN Slip Online in Nigeria",
         "subtitle": "Get your National Identification Number (NIN) slip instantly — Regular, Standard, Premium, and VNIN formats. No NIMC office queues, no delays. Download and print in minutes.",
         "badge": "Government Identity Services",
@@ -777,7 +777,7 @@
                 "@type": "Service",
                 "serviceType": "Get your National Identification Number (NIN) slip instantly — Regular, Standard, Premium, and VNIN formats. No NIMC office queues, no delays. Download and print in minutes.",
                 "provider": {
-                    "@id": "https://ufriends.com.ng/#organization"
+                    "@id": "https://www.ufriends.com.ng/#organization"
                 },
                 "areaServed": {
                     "@type": "Country",

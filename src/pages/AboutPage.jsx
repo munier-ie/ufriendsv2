@@ -12,10 +12,10 @@ const aboutSchema = {
     '@type': 'AboutPage',
     name: 'About Ufriends IT',
     description: "Ufriends IT is Nigeria's all-in-one digital services platform. We make buying airtime, data, NIN slips, BVN slips, electricity bills, cable TV, exam pins and CAC registration simple, fast and affordable.",
-    url: 'https://ufriends.com.ng/about',
+    url: 'https://www.ufriends.com.ng/about',
     mainEntity: {
         '@type': 'Organization',
-        '@id': 'https://ufriends.com.ng/#organization',
+        '@id': 'https://www.ufriends.com.ng/#organization',
     }
 };
 
@@ -86,7 +86,7 @@ export default function AboutPage() {
             <PageMeta
                 title="About Ufriends IT — Nigeria's All-In-One Digital Services Platform"
                 description="Ufriends IT is Nigeria's leading VTU and digital services platform. Buy data, airtime, print NIN/BVN slips, pay bills, register a business with CAC, and more — from your phone in minutes."
-                canonical="https://ufriends.com.ng/about"
+                canonical="https://www.ufriends.com.ng/about"
                 schema={aboutSchema}
             />
 

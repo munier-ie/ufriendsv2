@@ -395,11 +395,11 @@ const blogSchema = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     name: 'Ufriends IT Blog',
-    url: 'https://ufriends.com.ng/blog',
+    url: 'https://www.ufriends.com.ng/blog',
     description: 'Guides, tips and tutorials on VTU services, NIN/BVN, data plans, electricity bills, cable TV subscriptions, and government services in Nigeria.',
     publisher: {
         '@type': 'Organization',
-        '@id': 'https://ufriends.com.ng/#organization',
+        '@id': 'https://www.ufriends.com.ng/#organization',
         name: 'Ufriends IT',
     },
 };
@@ -410,7 +410,7 @@ export default function BlogIndex() {
             <PageMeta
                 title="Blog — VTU, NIN, BVN & Government Services Guides for Nigerians"
                 description="Ufriends IT Blog: step-by-step guides on buying cheap data, printing NIN/BVN slips, NIN/BVN modification, cable TV subscriptions, electricity bills, and government services in Nigeria."
-                canonical="https://ufriends.com.ng/blog"
+                canonical="https://www.ufriends.com.ng/blog"
                 schema={blogSchema}
             />
 

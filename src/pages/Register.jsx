@@ -7,6 +7,7 @@ import Button from '../components/ui/Button';
 import AuthLayout from '../components/layout/AuthLayout';
 import Logo from '../components/ui/Logo';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import PageMeta from '../components/seo/PageMeta';
 
 const NIGERIAN_STATES = [
     "Abuja FCT", "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno",
@@ -98,6 +99,12 @@ export default function Register() {
 
     return (
         <AuthLayout maxWidth="max-w-2xl">
+            <PageMeta
+                title="Create Free Account"
+                description="Sign up for a free Ufriends IT account in seconds. Buy cheap data, airtime, print NIN and BVN slips online."
+                canonical="https://www.ufriends.com.ng/register"
+                noIndex={true}
+            />
             <div className="mb-6 flex justify-between items-center px-2">
                 <Link 
                     to="/" 

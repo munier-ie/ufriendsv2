@@ -237,15 +237,15 @@ export default function BlogPost() {
         author: {
             '@type': 'Organization',
             name: 'Ufriends IT',
-            url: 'https://ufriends.com.ng',
+            url: 'https://www.ufriends.com.ng',
         },
         publisher: {
             '@type': 'Organization',
-            '@id': 'https://ufriends.com.ng/#organization',
+            '@id': 'https://www.ufriends.com.ng/#organization',
             name: 'Ufriends IT',
-            logo: { '@type': 'ImageObject', url: 'https://ufriends.com.ng/favicon.svg' },
+            logo: { '@type': 'ImageObject', url: 'https://www.ufriends.com.ng/favicon.svg' },
         },
-        mainEntityOfPage: { '@type': 'WebPage', '@id': `https://ufriends.com.ng/blog/${slug}` },
+        mainEntityOfPage: { '@type': 'WebPage', '@id': `https://www.ufriends.com.ng/blog/${slug}` },
         keywords: post.keywords.join(', '),
     };
 
@@ -268,7 +268,7 @@ export default function BlogPost() {
             <PageMeta
                 title={post.title}
                 description={post.excerpt}
-                canonical={`https://ufriends.com.ng/blog/${slug}`}
+                canonical={`https://www.ufriends.com.ng/blog/${slug}`}
                 schema={articleSchema}
             />
 

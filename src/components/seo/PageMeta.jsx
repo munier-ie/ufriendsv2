@@ -17,7 +17,7 @@ export default function PageMeta({
     canonical,
     schema,
     noIndex = false,
-    ogImage = 'https://ufriends.com.ng/assets/og-image.png',
+    ogImage = 'https://www.ufriends.com.ng/assets/og-image.png',
 }) {
     const fullTitle = title
         ? `${title} | Ufriends IT Nigeria`
@@ -27,7 +27,7 @@ export default function PageMeta({
         description ||
         'Ufriends IT is Nigeria\'s all-in-one VTU platform. Buy cheap data, airtime, print NIN slip, BVN slip, NIN/BVN modification, cable TV, electricity bills, exam pins and government services. Start for free.';
 
-    const canonicalUrl = canonical || 'https://ufriends.com.ng/';
+    const canonicalUrl = canonical || 'https://www.ufriends.com.ng/';
 
     return (
         <Helmet>
