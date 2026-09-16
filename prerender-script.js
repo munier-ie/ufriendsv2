@@ -169,7 +169,6 @@ const STATIC_PAGES = {
 };
 
 const PUBLIC_ROUTES = [
-    '/',
     '/about',
     '/contact',
     '/reseller',
@@ -254,8 +253,23 @@ function getRouteMetadata(route) {
     };
 }
 
+const LOADER_HTML = `
+    <div class="initial-loader-wrapper">
+      <div class="spinner"></div>
+      <div class="loading-phrases">
+        <div class="phrase">Connecting to UFriends IT...</div>
+        <div class="phrase">Fetching best data deals...</div>
+        <div class="phrase">Loading BVN & NIN services...</div>
+        <div class="phrase">Preparing NIN & BVN slips...</div>
+        <div class="phrase">Setting up bill payments & business registration...</div>
+        <div class="phrase">Loading WAEC, NECO & JAMB PINs...</div>
+        <div class="phrase">Almost ready...</div>
+        <div class="phrase">Welcome to UFriends IT!</div>
+      </div>
+    </div>`;
+
 function getRouteBodyHtml(route) {
-    // 1. Service Landing Pages
+    // 1. Service Landing Pages (Only the 10 specific SEO pages)
     const serviceSlug = route.replace('/', '');
     const service = seoPagesDb[serviceSlug];
     if (service) {
@@ -356,24 +370,23 @@ function getRouteBodyHtml(route) {
             }
 
             return `
-                <div class="pre-rendered-page blog-post" style="max-width:900px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
-                    <header style="margin-bottom:36px;">
-                        <div style="font-size:13px;color:#0284c7;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">${escapeHtml(post.category)} • ${escapeHtml(post.readMin)} MIN READ</div>
-                        <h1 style="font-size:36px;font-weight:800;color:#0f172a;line-height:1.25;margin-bottom:16px;">${escapeHtml(post.title)}</h1>
-                        <p style="font-size:18px;color:#64748b;line-height:1.6;margin-bottom:16px;">${escapeHtml(post.excerpt)}</p>
-                        <div style="font-size:13px;color:#94a3b8;">Published on ${escapeHtml(post.publishedAt)} by Ufriends IT</div>
-                    </header>
-                    <main style="line-height:1.8;font-size:17px;color:#334155;">
-                        ${sectionsHtml}
-                    </main>
-                    <footer style="margin-top:56px;padding-top:36px;border-top:1px solid #e2e8f0;">
-                        <div style="background:#004687;color:#fff;padding:36px;border-radius:16px;text-align:center;">
-                            <h2 style="font-size:24px;font-weight:700;margin-bottom:12px;color:#fff;">Try It on Ufriends IT Today</h2>
-                            <p style="color:#e2e8f0;margin-bottom:20px;font-size:16px;max-width:600px;margin-left:auto;margin-right:auto;">Everything covered in this guide is available on Ufriends IT. Create a free account in seconds.</p>
-                            <a href="/register" style="display:inline-block;padding:12px 32px;background:#fff;color:#004687;font-weight:700;border-radius:10px;text-decoration:none;">Create Free Account</a>
+                <article class="pre-rendered-page blog-post-page" style="max-width:850px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
+                    <header style="margin-bottom:32px;border-bottom:1px solid #e2e8f0;padding-bottom:24px;">
+                        <a href="/blog" style="color:#004687;font-weight:600;text-decoration:none;font-size:14px;">← Back to Blog</a>
+                        <h1 style="font-size:36px;font-weight:800;color:#0f172a;line-height:1.25;margin-top:16px;margin-bottom:12px;">${escapeHtml(post.title)}</h1>
+                        <div style="font-size:14px;color:#64748b;display:flex;gap:16px;">
+                            <span>Published: ${escapeHtml(post.publishedAt || '2026')}</span>
+                            <span>By Ufriends IT Editorial Team</span>
                         </div>
+                    </header>
+                    <div class="blog-body" style="font-size:17px;line-height:1.8;color:#334155;">
+                        ${sectionsHtml}
+                    </div>
+                    <footer style="border-top:1px solid #e2e8f0;padding-top:32px;margin-top:48px;text-align:center;">
+                        <p style="font-weight:600;color:#004687;margin-bottom:16px;">Ready to get started with Ufriends IT?</p>
+                        <a href="/register" style="display:inline-block;padding:12px 28px;background:#004687;color:#fff;font-weight:700;border-radius:10px;text-decoration:none;">Create Free Account</a>
                     </footer>
-                </div>
+                </article>
             `;
         }
     }
@@ -382,10 +395,10 @@ function getRouteBodyHtml(route) {
     if (route === '/blog') {
         const postsList = Object.entries(blogDb);
         return `
-            <div class="pre-rendered-page blog-index" style="max-width:1100px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
+            <div class="pre-rendered-page blog-index-page" style="max-width:1100px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
                 <header style="text-align:center;margin-bottom:48px;">
-                    <h1 style="font-size:38px;font-weight:800;color:#004687;margin-bottom:16px;">Ufriends IT Blog & Identity Guides</h1>
-                    <p style="font-size:18px;color:#64748b;max-width:750px;margin:0 auto;line-height:1.6;">In-depth guides, comparisons, and step-by-step tutorials on data bundles, NIN/BVN slips, and telecom reselling in Nigeria.</p>
+                    <h1 style="font-size:36px;font-weight:800;color:#004687;margin-bottom:12px;">Ufriends IT Blog & Guides</h1>
+                    <p style="font-size:18px;color:#475569;max-width:700px;margin:0 auto;">Learn how to buy cheap data, resolve NIN/BVN errors, print official slips online, and build your digital services agency.</p>
                 </header>
                 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;">
                     ${postsList.map(([slug, post]) => `
@@ -408,92 +421,9 @@ function getRouteBodyHtml(route) {
         `;
     }
 
-    // 4. Home Page
-    if (route === '/') {
-        return `
-            <div class="pre-rendered-page" style="max-width:1100px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
-                <header style="text-align:center;margin-bottom:48px;">
-                    <span style="display:inline-block;padding:6px 16px;background:#e0f2fe;color:#0284c7;border-radius:9999px;font-size:14px;font-weight:700;margin-bottom:16px;">Nigeria's #1 VTU & Identity Platform</span>
-                    <h1 style="font-size:36px;font-weight:800;color:#004687;line-height:1.25;margin-bottom:16px;">Buy Cheap Data, Airtime & Government Identity Services Online</h1>
-                    <p style="font-size:18px;color:#475569;max-width:800px;margin:0 auto 24px;line-height:1.6;">Nigeria's most trusted platform for cheap data bundles, lawful BVN and NIN modifications, instant slip retrieval, bill payments, and developer APIs.</p>
-                    <div style="margin-top:24px;">
-                        <a href="/register" style="display:inline-block;padding:14px 32px;background:#004687;color:#fff;font-weight:700;border-radius:12px;text-decoration:none;margin-right:12px;">Get Started Free</a>
-                        <a href="/login" style="display:inline-block;padding:14px 28px;border:1px solid #cbd5e1;color:#334155;font-weight:600;border-radius:12px;text-decoration:none;">Log In</a>
-                    </div>
-                </header>
-                <section style="margin-bottom:48px;">
-                    <h2 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:20px;border-bottom:2px solid #e2e8f0;padding-bottom:10px;">Our Core Services</h2>
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
-                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/buy-data-nigeria" style="color:inherit;text-decoration:none;">1. Cheap Data Bundles</a></h3>
-                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Wholesale and SME data for MTN, Airtel, Glo, and 9mobile at rock-bottom prices with instant automated delivery.</p>
-                        </div>
-                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/bvn-modification-nigeria" style="color:inherit;text-decoration:none;">2. BVN Modification</a></h3>
-                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Lawful online assistance for correcting BVN registration errors including name order, date of birth, and phone number update.</p>
-                        </div>
-                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/nin-modification-nigeria" style="color:inherit;text-decoration:none;">3. NIN Modification</a></h3>
-                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Official and lawful NIN demographic detail corrections (name correction, date of birth, phone number adjustment).</p>
-                        </div>
-                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/print-nin-slip-nigeria" style="color:inherit;text-decoration:none;">4. NIN & BVN Slips</a></h3>
-                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Instant retrieval and printing of official Standard, Premium, and Regular NIN slips, VNIN validation, and official BVN slips.</p>
-                        </div>
-                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;">5. Other Digital Services</h3>
-                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">BVN retrieval by phone, CAC business registration, WAEC, NECO & JAMB exam PINs, electricity bill payments, cable TV subscriptions, and airtime to cash.</p>
-                        </div>
-                        <div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
-                            <h3 style="font-size:18px;font-weight:700;color:#004687;margin-bottom:8px;"><a href="/reseller" style="color:inherit;text-decoration:none;">6. Developer API Access</a></h3>
-                            <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0;">Developer API v1, sandbox testing environment, Node.js and PHP SDKs, and automated webhooks for seamless VTU integration.</p>
-                        </div>
-                    </div>
-                </section>
-            </div>
-        `;
-    }
-
-    // 5. Auth Pages (Loader shell for fast hydration without broken markup)
-    if (['/login', '/register', '/forgot-password', '/reset-password'].includes(route)) {
-        return `
-    <div class="initial-loader-wrapper">
-      <div class="spinner"></div>
-      <div class="loading-phrases">
-        <div class="phrase">Connecting to UFriends IT...</div>
-        <div class="phrase">Fetching best data deals...</div>
-        <div class="phrase">Loading BVN & NIN services...</div>
-        <div class="phrase">Preparing NIN & BVN slips...</div>
-        <div class="phrase">Setting up bill payments & business registration...</div>
-        <div class="phrase">Loading WAEC, NECO & JAMB PINs...</div>
-        <div class="phrase">Almost ready...</div>
-        <div class="phrase">Welcome to UFriends IT!</div>
-      </div>
-    </div>`;
-    }
-
-    // 6. Other Static Pages
-    if (STATIC_PAGES[route]) {
-        const p = STATIC_PAGES[route];
-        if (p.bodyContent) return p.bodyContent;
-        return `
-            <div class="pre-rendered-page" style="max-width:900px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
-                <h1 style="font-size:32px;font-weight:800;color:#004687;margin-bottom:16px;">${escapeHtml(p.h1 || p.title)}</h1>
-                ${p.subtitle ? `<p style="font-size:18px;color:#475569;line-height:1.6;margin-bottom:24px;">${escapeHtml(p.subtitle)}</p>` : ''}
-                <div style="margin-top:24px;">
-                    <a href="/register" style="display:inline-block;padding:12px 28px;background:#004687;color:#fff;font-weight:700;border-radius:10px;text-decoration:none;margin-right:12px;">Get Started</a>
-                    <a href="/login" style="display:inline-block;padding:12px 24px;border:1px solid #cbd5e1;color:#334155;font-weight:600;border-radius:10px;text-decoration:none;">Log In</a>
-                </div>
-            </div>
-        `;
-    }
-
-    return `
-        <div class="pre-rendered-page" style="max-width:900px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
-            <h1 style="font-size:32px;font-weight:800;color:#004687;margin-bottom:16px;">Ufriends IT</h1>
-            <p style="font-size:16px;color:#475569;line-height:1.6;">Nigeria's all-in-one VTU & government identity services platform.</p>
-        </div>
-    `;
+    // All other routes (home, auth, about, contact, reseller, privacy, terms):
+    // Retain the branded animated loader spinner so no unwanted text ever flashes
+    return LOADER_HTML;
 }
 
 // ─── 4. Main Prerender Generator ────────────────────────────────────────────
@@ -510,6 +440,8 @@ function generateStaticRoutes(distDir) {
     let generatedCount = 0;
 
     for (const route of PUBLIC_ROUTES) {
+        if (route === '/') continue; // Never overwrite dist/index.html (it retains the branded animated loader)
+
         const meta = getRouteMetadata(route);
         const bodyContent = getRouteBodyHtml(route);
 
@@ -568,22 +500,18 @@ function generateStaticRoutes(distDir) {
         }
 
         // Determine destination paths
-        if (route === '/') {
-            fs.writeFileSync(path.join(distDir, 'index.html'), html);
-        } else {
-            const cleanRoute = route.startsWith('/') ? route.substring(1) : route;
-            const routeDir = path.join(distDir, cleanRoute);
-            if (!fs.existsSync(routeDir)) {
-                fs.mkdirSync(routeDir, { recursive: true });
-            }
+        const cleanRoute = route.startsWith('/') ? route.substring(1) : route;
+        const routeDir = path.join(distDir, cleanRoute);
+        if (!fs.existsSync(routeDir)) {
+            fs.mkdirSync(routeDir, { recursive: true });
+        }
 
-            // Write directory index.html
-            fs.writeFileSync(path.join(routeDir, 'index.html'), html);
-            
-            // Also write direct .html file for single-level routes (e.g. dist/login.html)
-            if (!cleanRoute.includes('/')) {
-                fs.writeFileSync(path.join(distDir, `${cleanRoute}.html`), html);
-            }
+        // Write directory index.html
+        fs.writeFileSync(path.join(routeDir, 'index.html'), html);
+        
+        // Also write direct .html file for single-level routes (e.g. dist/login.html)
+        if (!cleanRoute.includes('/')) {
+            fs.writeFileSync(path.join(distDir, `${cleanRoute}.html`), html);
         }
 
         generatedCount++;

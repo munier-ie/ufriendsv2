@@ -13,6 +13,7 @@ import 'kyc_screen.dart';
 import '../../core/biometric_service.dart';
 import '../../core/auth_service.dart';
 import '../auth/login_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? userProfile;
@@ -548,7 +549,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget _buildSecuritySection() {
     return _buildSection(
-      'Security',
+      'Security & Account',
       [
         _settingsItem(Icons.phonelink_lock_rounded, 'Two-Factor Auth (2FA)', () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const TwoFaScreen()));
@@ -556,6 +557,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _settingsItem(Icons.code_rounded, 'Developer API Keys', () {
           Navigator.push(context, MaterialPageRoute(builder: (_) => const ApiKeysScreen()));
         }),
+        _settingsItem(
+          Icons.delete_forever_rounded,
+          'Delete Account',
+          _showDeleteAccountConfirmation,
+          trailing: const Icon(Icons.open_in_new_rounded, size: 18, color: Colors.redAccent),
+        ),
       ],
     );
   }
@@ -722,6 +729,100 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         }
                       },
                       child: const Text('Sign Out'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteAccountConfirmation() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: context.bottomSheetBg,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Icon(
+                Icons.delete_forever_rounded,
+                color: Colors.redAccent,
+                size: 48,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Delete Account',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: context.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'To permanently delete your Ufriends IT account and all associated data, you will be redirected to our secure web account deletion portal.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red.shade600,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(sheetContext);
+                        final uri = Uri.parse('https://www.ufriends.com.ng/delete-account');
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri, mode: LaunchMode.externalApplication);
+                        } else {
+                          if (mounted) {
+                            AppToast.show(
+                              context,
+                              message: 'Could not open browser. Please visit https://www.ufriends.com.ng/delete-account',
+                              type: ToastType.error,
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Proceed to Delete'),
                     ),
                   ),
                 ],
