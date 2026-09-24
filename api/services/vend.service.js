@@ -49,19 +49,208 @@ function sanitizeVendResult(result) {
 
 
 /**
+ * Shared atomic refund helper
+ */
+async function refundTransaction(transaction, reason) {
+    try {
+        await prisma.$transaction([
+            prisma.transaction.update({
+                where: { id: transaction.id },
+                data: {
+                    status: 2, // 2 = Failed / Refunded
+                    description: `${transaction.description} [FAILED: ${reason}]`
+                }
+            }),
+            prisma.user.update({
+                where: { id: transaction.userId },
+                data: { wallet: { increment: Math.abs(transaction.amount) } }
+            })
+        ]);
+        console.log(`[Refund] Successfully refunded transaction ${transaction.id} (user: ${transaction.userId}, amount: ${Math.abs(transaction.amount)})`);
+    } catch (refErr) {
+        console.error(`[Refund Error] Failed to execute atomic refund for transaction ${transaction.id}:`, refErr);
+    }
+}
+
+/**
+ * Standard provider config builder
+ */
+function getProviderConfig(apiProvider) {
+    return {
+        baseUrl: apiProvider.baseUrl,
+        apiKey: apiProvider.apiKey,
+        secretKey: apiProvider.apiToken,
+        username: apiProvider.username || '',
+        userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
+    };
+}
+
+/**
+ * Helper to get network ID
+ */
+function getNetworkIdForProvider(providerKey, network) {
+    const net = (network || '').toLowerCase();
+    if (providerKey && providerKey.includes('vtpass')) {
+        return null;
+    }
+    // Standard VTU provider mapping: 1=MTN, 2=GLO, 3=9MOBILE, 4=AIRTEL
+    const standardMap = { 'mtn': '1', 'glo': '2', '9mobile': '3', 'airtel': '4' };
+    return standardMap[net] || '1';
+}
+
+/**
+ * Parse data capacity in megabytes from string (e.g. '1.0GB' -> 1000, '500MB' -> 500)
+ */
+function parseDataCapacity(str) {
+    if (!str) return null;
+    const match = str.match(/(\d+(?:\.\d+)?)\s*(GB|MB|TB)/i);
+    if (!match) return null;
+    const val = parseFloat(match[1]);
+    const unit = match[2].toUpperCase();
+    if (unit === 'TB') return Math.round(val * 1000000);
+    if (unit === 'GB') return Math.round(val * 1000);
+    return Math.round(val);
+}
+
+/**
+ * Normalize data type category
+ */
+function normalizeDataType(str) {
+    if (!str) return 'SME';
+    const s = str.toUpperCase();
+    if (s.includes('SME2')) return 'SME2';
+    if (s.includes('SME')) return 'SME';
+    if (s.includes('CORPORATE GIFTING 2') || s.includes('CG2') || s.includes('CG 2')) return 'CORPORATE GIFTING 2';
+    if (s.includes('CORPORATE') || s.includes('CG') || s.includes('C.G')) return 'CORPORATE GIFTING';
+    if (s.includes('COUPON')) return 'DATA COUPONS';
+    if (s.includes('SHARE')) return 'DATA SHARE';
+    if (s.includes('AWOOF')) return 'AWOOF GIFTING';
+    if (s.includes('GIFTING')) return 'GIFTING';
+    return 'SME';
+}
+
+/**
+ * Resolve clean network name (MTN, GLO, AIRTEL, 9MOBILE)
+ */
+function resolveEffectiveNetwork(service, fallbackNetwork) {
+    if (service?.metadata) {
+        try {
+            const meta = typeof service.metadata === 'string' ? JSON.parse(service.metadata) : service.metadata;
+            if (meta.network && ['MTN', 'GLO', 'AIRTEL', '9MOBILE'].includes(meta.network.toUpperCase())) {
+                return meta.network.toUpperCase();
+            }
+        } catch {}
+    }
+    const name = (service?.name || '').toUpperCase();
+    if (/\b9MOBILE\b|\bETISALAT\b/.test(name)) return '9MOBILE';
+    if (/\bMTN\b/.test(name)) return 'MTN';
+    if (/\bGLO\b/.test(name)) return 'GLO';
+    if (/\bAIRTEL\b/.test(name)) return 'AIRTEL';
+
+    const prov = (service?.provider || '').toUpperCase();
+    if (['MTN', 'GLO', 'AIRTEL', '9MOBILE'].includes(prov)) return prov;
+
+    const fb = (fallbackNetwork || '').toUpperCase();
+    if (['MTN', 'GLO', 'AIRTEL', '9MOBILE'].includes(fb)) return fb;
+
+    return 'MTN';
+}
+
+/**
+ * Resolve data type from service metadata or name
+ */
+function resolveDataType(service) {
+    if (service?.metadata) {
+        try {
+            const meta = typeof service.metadata === 'string' ? JSON.parse(service.metadata) : service.metadata;
+            if (meta.dataType) return normalizeDataType(meta.dataType);
+        } catch {}
+    }
+    return normalizeDataType(service?.name || '');
+}
+
+/**
+ * Compatibility rank between requested type and plan type:
+ * Rank 1: Exact match
+ * Rank 2: Closely compatible variant
+ * Rank 3: Same network & size fallback
+ */
+function getTypeRank(planType, requestedType) {
+    const normPlan = normalizeDataType(planType);
+    const normReq = normalizeDataType(requestedType);
+    if (normPlan === normReq) return 1;
+
+    if (normReq === 'SME' && normPlan === 'SME2') return 2;
+    if (normReq === 'SME2' && normPlan === 'SME') return 2;
+    if (normReq === 'CORPORATE GIFTING' && normPlan === 'CORPORATE GIFTING 2') return 2;
+    if (normReq === 'CORPORATE GIFTING 2' && normPlan === 'CORPORATE GIFTING') return 2;
+    if (normReq === 'GIFTING' && normPlan === 'AWOOF GIFTING') return 2;
+    if (normReq === 'AWOOF GIFTING' && normPlan === 'GIFTING') return 2;
+
+    return 3;
+}
+
+/**
+ * Dynamically translate and locate a provider's plan ID for a given network and capacity
+ */
+async function findPlanForProvider(providerId, network, capacityMb, dataType, originalCode = null, originalProviderId = null) {
+    // Direct match if this candidate is the service's native provider
+    if (originalProviderId && providerId === originalProviderId && originalCode) {
+        const directPlan = await prisma.dataPlan.findFirst({
+            where: { apiProviderId: providerId, planId: String(originalCode), active: true }
+        });
+        if (directPlan) {
+            return {
+                planId: directPlan.planId,
+                dataName: directPlan.dataName,
+                dataType: directPlan.dataType,
+                apiPrice: directPlan.apiPrice,
+                matchType: 'direct'
+            };
+        }
+    }
+
+    // Query active plans for this provider & network
+    const plans = await prisma.dataPlan.findMany({
+        where: { apiProviderId: providerId, network: network, active: true }
+    });
+
+    const matchingPlans = plans
+        .filter(p => parseDataCapacity(p.dataName) === capacityMb)
+        .map(p => ({
+            ...p,
+            rank: getTypeRank(p.dataType, dataType)
+        }))
+        .sort((a, b) => a.rank - b.rank || a.apiPrice - b.apiPrice);
+
+    if (matchingPlans.length > 0) {
+        const best = matchingPlans[0];
+        return {
+            planId: best.planId,
+            dataName: best.dataName,
+            dataType: best.dataType,
+            apiPrice: best.apiPrice,
+            matchType: `rank_${best.rank}`
+        };
+    }
+
+    return null;
+}
+
+/**
  * Resolve the API provider for a given service, network, and network type.
  * 
  * Hierarchy:
- * 1. ProviderRouting (Network + NetworkType specific)
- * 2. Service directly (service.apiProviderId)
- * 3. ActiveProvider (Generic for the serviceType)
+ * 1. ProviderRouting (Network + NetworkType specific override)
+ * 2. ActiveProvider (Generic active default for serviceType)
+ * 3. Service directly (service.apiProviderId fallback)
  */
 async function resolveProvider(serviceType, network, networkType, service) {
     let apiProviderId = null;
 
     // 1. Check ProviderRouting for Network + NetworkType override
     if (network && networkType) {
-        const routing = await prisma.providerRouting.findFirst({
+        let routing = await prisma.providerRouting.findFirst({
             where: {
                 serviceType,
                 network: network.toUpperCase(),
@@ -69,20 +258,34 @@ async function resolveProvider(serviceType, network, networkType, service) {
                 active: true
             }
         });
+
+        // If not found and networkType ends in '2' (e.g. SME2 -> SME, CORPORATE GIFTING 2 -> CORPORATE GIFTING)
+        if (!routing && /2$/.test(networkType.trim())) {
+            const baseType = networkType.trim().replace(/\s*2$/, '');
+            routing = await prisma.providerRouting.findFirst({
+                where: {
+                    serviceType,
+                    network: network.toUpperCase(),
+                    networkType: { equals: baseType, mode: 'insensitive' },
+                    active: true
+                }
+            });
+        }
+
         if (routing) apiProviderId = routing.apiProviderId;
     }
 
-    // 2. Check Service directly
-    if (!apiProviderId && service && service.apiProviderId) {
-        apiProviderId = service.apiProviderId;
-    }
-
-    // 3. Fallback to ActiveProvider
+    // 2. Check ActiveProvider (system default for this serviceType)
     if (!apiProviderId) {
         const activeProv = await prisma.activeProvider.findUnique({
             where: { serviceType }
         });
         if (activeProv) apiProviderId = activeProv.apiProviderId;
+    }
+
+    // 3. Fallback to Service directly
+    if (!apiProviderId && service && service.apiProviderId) {
+        apiProviderId = service.apiProviderId;
     }
 
     if (!apiProviderId) return null;
@@ -91,7 +294,7 @@ async function resolveProvider(serviceType, network, networkType, service) {
 }
 
 /**
- * Vend Airtime
+ * Vend Airtime with Multi-Provider Runtime Fallback
  * @param {Object} transaction - The transaction object
  * @param {Object} service - The service object
  * @param {string} phone - Recipient phone number
@@ -100,81 +303,111 @@ async function resolveProvider(serviceType, network, networkType, service) {
  */
 async function vendAirtime(transaction, service, phone, network, airtimeType = 'VTU') {
     try {
-        console.log(`Attempting to vend airtime on ${network} using ${service.provider} (phone redacted)`);
+        const effectiveNetwork = resolveEffectiveNetwork(service, network);
+        const amount = transaction.faceValue || Math.abs(transaction.amount);
+        console.log(`[VendAirtime] Starting airtime vending: Network=${effectiveNetwork}, Amount=₦${amount} (phone redacted)`);
 
-        // 1. Get Provider Details
-        const apiProvider = await resolveProvider('airtime', network, airtimeType, service);
+        // 1. Resolve Primary Provider
+        const primaryProvider = await resolveProvider('airtime', effectiveNetwork, airtimeType, service);
 
-        if (!apiProvider || !apiProvider.name) {
-            return { status: 'failed', message: 'No API Provider configured for this service' };
+        // 2. Retrieve all active API providers with wallet balances
+        const allActiveProviders = await prisma.apiProvider.findMany({
+            where: { active: true },
+            include: { apiWallet: true }
+        });
+
+        // Filter to providers with a valid purchaseAirtime handler
+        const supportedProviders = allActiveProviders.filter(p => {
+            const key = p.name.toLowerCase().replace(/\s+/g, '');
+            const h = findProviderHandler(key);
+            return h && typeof h.purchaseAirtime === 'function';
+        });
+
+        // 3. Build prioritized candidate queue (Primary first, followed by others sorted by balance descending)
+        const candidates = [];
+        if (primaryProvider && supportedProviders.some(p => p.id === primaryProvider.id)) {
+            candidates.push(primaryProvider);
         }
-
-        const providerKey = apiProvider.name.toLowerCase().replace(/\s+/g, ''); // normalize 'N3T Data' -> 'n3tdata'
-        const handler = findProviderHandler(providerKey);
-
-        if (!handler) {
-            return { status: 'failed', message: `Provider handler not found for ${apiProvider.name}` };
-        }
-
-        // 2. Prepare Config
-        const config = {
-            baseUrl: apiProvider.baseUrl,
-            apiKey: apiProvider.apiKey,
-            secretKey: apiProvider.apiToken,
-            username: apiProvider.username || '',
-            userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
-        };
-
-        // 3. Prepare Details
-        const details = {
-            network: network,
-            amount: transaction.faceValue || Math.abs(transaction.amount),
-            phone: phone,
-            requestId: transaction.reference,
-            airtimeType: airtimeType,
-            // Basic Provider Specifics
-            networkId: await getNetworkIdForProvider(providerKey, network)
-        };
-
-        // 4. Call Provider
-        const result = await handler.purchaseAirtime(details, config);
-
-        // 5. Update Transaction
-        if (result.status === 'success') {
-            await prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 0, description: `${transaction.description} [SUCCESS]` } // 0 = Success
+        const others = supportedProviders
+            .filter(p => !primaryProvider || p.id !== primaryProvider.id)
+            .sort((a, b) => {
+                const balA = a.apiWallet?.[0]?.balance ?? 0;
+                const balB = b.apiWallet?.[0]?.balance ?? 0;
+                return balB - balA;
             });
-        } else if (result.status === 'failed') {
-            // Refund user
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` } // 2 = Failed
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
+        candidates.push(...others);
+
+        if (candidates.length === 0) {
+            console.error('[VendAirtime] No active airtime API provider configured');
+            await refundTransaction(transaction, 'No active API Provider configured');
+            return { status: 'failed', message: 'No API Provider configured for this airtime service' };
         }
 
-        return sanitizeVendResult(result);
+        console.log(`[VendAirtime] Candidates queue: ${candidates.map(c => `${c.name} (ID: ${c.id})`).join(' -> ')}`);
+
+        // 4. Attempt vending across candidate providers in sequence
+        const attemptedErrors = [];
+
+        for (const prov of candidates) {
+            const providerKey = prov.name.toLowerCase().replace(/\s+/g, '');
+            const handler = findProviderHandler(providerKey);
+            if (!handler || !handler.purchaseAirtime) continue;
+
+            const config = getProviderConfig(prov);
+            const details = {
+                network: effectiveNetwork,
+                amount: amount,
+                phone: phone,
+                requestId: transaction.reference,
+                airtimeType: airtimeType,
+                networkId: getNetworkIdForProvider(providerKey, effectiveNetwork)
+            };
+
+            console.log(`[VendAirtime] Attempting vending via ${prov.name}...`);
+
+            try {
+                const result = await handler.purchaseAirtime(details, config);
+
+                if (result.status === 'success' || result.status === 'pending') {
+                    console.log(`[VendAirtime] SUCCESS via ${prov.name}! Status=${result.status}, Ref=${transaction.reference}`);
+                    await prisma.transaction.update({
+                        where: { id: transaction.id },
+                        data: {
+                            status: 0, // 0 = Success
+                            description: `${transaction.description} [SUCCESS via ${prov.name}]`
+                        }
+                    });
+                    return sanitizeVendResult(result);
+                } else {
+                    const errMsg = result.message || 'Transaction rejected';
+                    console.warn(`[VendAirtime] Provider ${prov.name} returned failed status: ${errMsg}. Attempting fallback...`);
+                    attemptedErrors.push({ provider: prov.name, message: errMsg });
+                }
+            } catch (provErr) {
+                const errMsg = provErr.message || 'Connection error';
+                console.warn(`[VendAirtime] Provider ${prov.name} threw exception: ${errMsg}. Attempting fallback...`);
+                attemptedErrors.push({ provider: prov.name, message: errMsg });
+            }
+        }
+
+        // 5. All candidates failed - execute atomic refund
+        const lastErrorSummary = attemptedErrors.length > 0
+            ? attemptedErrors.map(e => `${e.provider}: ${e.message}`).join(' | ')
+            : 'All providers failed';
+
+        console.error(`[VendAirtime] All candidates exhausted for tx ${transaction.id}: ${lastErrorSummary}`);
+        await refundTransaction(transaction, lastErrorSummary);
+
+        const clientMessage = attemptedErrors.length > 0
+            ? attemptedErrors[attemptedErrors.length - 1].message
+            : 'Service Temporarily Unavailable';
+
+        return sanitizeVendResult({ status: 'failed', message: clientMessage });
 
     } catch (error) {
-        console.error('Vending Error:', error);
-        // Process Refund on system error
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
-        return { status: 'failed', message: 'System Error during vending' };
+        console.error('[VendAirtime] System Error:', error);
+        await refundTransaction(transaction, 'System Error during airtime vending');
+        return { status: 'failed', message: 'System Error during airtime vending' };
     }
 }
 
@@ -194,24 +427,8 @@ function findProviderHandler(name) {
     return null;
 }
 
-// Helper to get network ID (mock logic, should be in DB)
-async function getNetworkIdForProvider(provider, network) {
-    const net = network.toLowerCase();
-    // V3 had hardcoded IDs in DB or config. We need a mapping.
-    // For now, return a safe default or mapping based on V3 logic.
-
-    if (provider.includes('vtpass')) {
-        // Handled inside vtpass.js map
-        return null;
-    }
-
-    // Basic Providers usually use: 1=MTN, 2=GLO, 3=9MOBILE, 4=AIRTEL (Example)
-    const standardMap = { 'mtn': '1', 'glo': '2', '9mobile': '3', 'airtel': '4' };
-    return standardMap[net] || '1';
-}
-
 /**
- * Vend Data
+ * Vend Data with Dynamic Plan ID Translation & Multi-Provider Runtime Fallback
  * @param {Object} transaction - The transaction object
  * @param {Object} service - The service object
  * @param {string} phone - Recipient phone number
@@ -219,105 +436,128 @@ async function getNetworkIdForProvider(provider, network) {
  */
 async function vendData(transaction, service, phone, network) {
     try {
-        console.log(`Attempting to vend data on ${network} using ${service.provider} (phone redacted)`);
+        const effectiveNetwork = resolveEffectiveNetwork(service, network);
+        const capacityMb = parseDataCapacity(service.name) || 1000;
+        const dataType = resolveDataType(service);
 
-        // Try to identify NetworkType (SME, Gifting, Corporate) from DataPlan based on the service's code (planId)
-        let networkType = 'SME'; // Default fallback
-        if (service.code) {
-            const dataPlan = await prisma.dataPlan.findFirst({
-                where: { planId: service.code, network: network, apiProviderId: service.apiProviderId }
+        console.log(`[VendData] Starting data vending: Network=${effectiveNetwork}, Capacity=${capacityMb}MB, Type=${dataType} (phone redacted)`);
+
+        // 1. Resolve Primary Routed Provider
+        const primaryProvider = await resolveProvider('data', effectiveNetwork, dataType, service);
+
+        // 2. Retrieve all active API providers with wallet balances
+        const allActiveProviders = await prisma.apiProvider.findMany({
+            where: { active: true },
+            include: { apiWallet: true }
+        });
+
+        // Filter to providers with a valid purchaseData handler
+        const supportedProviders = allActiveProviders.filter(p => {
+            const key = p.name.toLowerCase().replace(/\s+/g, '');
+            const h = findProviderHandler(key);
+            return h && typeof h.purchaseData === 'function';
+        });
+
+        // 3. Build prioritized candidate queue (Primary first, then others sorted by balance descending)
+        const candidates = [];
+        if (primaryProvider && supportedProviders.some(p => p.id === primaryProvider.id)) {
+            candidates.push(primaryProvider);
+        }
+        const others = supportedProviders
+            .filter(p => !primaryProvider || p.id !== primaryProvider.id)
+            .sort((a, b) => {
+                const balA = a.apiWallet?.[0]?.balance ?? 0;
+                const balB = b.apiWallet?.[0]?.balance ?? 0;
+                return balB - balA;
             });
-            if (dataPlan && dataPlan.dataType) {
-                networkType = dataPlan.dataType;
-            }
-        }
+        candidates.push(...others);
 
-        // 1. Get Provider Details
-        let apiProvider = null;
-        if (service && service.apiProviderId) {
-            apiProvider = await prisma.apiProvider.findUnique({ where: { id: service.apiProviderId } });
-        }
-        if (!apiProvider) {
-            apiProvider = await resolveProvider('data', network, networkType, service);
-        }
-
-        if (!apiProvider || !apiProvider.name) {
+        if (candidates.length === 0) {
+            console.error('[VendData] No active data API provider configured');
+            await refundTransaction(transaction, 'No active API Provider configured');
             return { status: 'failed', message: 'No API Provider configured for this data service' };
         }
 
-        const providerKey = apiProvider.name.toLowerCase().replace(/\s+/g, '');
-        const handler = findProviderHandler(providerKey);
+        console.log(`[VendData] Candidates queue: ${candidates.map(c => `${c.name} (ID: ${c.id})`).join(' -> ')}`);
 
-        if (!handler || !handler.purchaseData) {
-            return { status: 'failed', message: `Data handler not found for ${apiProvider.name}` };
+        // 4. Attempt vending across candidate providers with dynamic plan ID translation
+        const attemptedErrors = [];
+
+        for (const prov of candidates) {
+            const providerKey = prov.name.toLowerCase().replace(/\s+/g, '');
+            const handler = findProviderHandler(providerKey);
+            if (!handler || !handler.purchaseData) continue;
+
+            // Dynamically translate plan ID for this specific candidate provider
+            const matchedPlan = await findPlanForProvider(
+                prov.id,
+                effectiveNetwork,
+                capacityMb,
+                dataType,
+                service.code,
+                service.apiProviderId
+            );
+
+            if (!matchedPlan) {
+                console.warn(`[VendData] Candidate ${prov.name} (ID: ${prov.id}) has no matching plan for ${effectiveNetwork} ${capacityMb}MB (${dataType}). Skipping to next candidate.`);
+                attemptedErrors.push({ provider: prov.name, message: 'No matching plan available on provider' });
+                continue;
+            }
+
+            const config = getProviderConfig(prov);
+            const details = {
+                network: effectiveNetwork,
+                phone: phone,
+                requestId: transaction.reference,
+                planId: matchedPlan.planId,
+                variationCode: matchedPlan.planId,
+                networkId: getNetworkIdForProvider(providerKey, effectiveNetwork)
+            };
+
+            console.log(`[VendData] Attempting vending via ${prov.name}: PlanID=${matchedPlan.planId} (${matchedPlan.dataName}, ${matchedPlan.dataType}, ₦${matchedPlan.apiPrice}, ${matchedPlan.matchType})...`);
+
+            try {
+                const result = await handler.purchaseData(details, config);
+
+                if (result.status === 'success' || result.status === 'pending') {
+                    console.log(`[VendData] SUCCESS via ${prov.name}! Status=${result.status}, Ref=${transaction.reference}`);
+                    await prisma.transaction.update({
+                        where: { id: transaction.id },
+                        data: {
+                            status: 0, // 0 = Success
+                            description: `${transaction.description} [SUCCESS via ${prov.name}]`
+                        }
+                    });
+                    return sanitizeVendResult(result);
+                } else {
+                    const errMsg = result.message || 'Transaction rejected';
+                    console.warn(`[VendData] Provider ${prov.name} returned failed status: ${errMsg}. Attempting fallback...`);
+                    attemptedErrors.push({ provider: prov.name, message: errMsg });
+                }
+            } catch (provErr) {
+                const errMsg = provErr.message || 'Connection error';
+                console.warn(`[VendData] Provider ${prov.name} threw exception: ${errMsg}. Attempting fallback...`);
+                attemptedErrors.push({ provider: prov.name, message: errMsg });
+            }
         }
 
-        // 2. Prepare Config
-        const config = {
-            baseUrl: apiProvider.baseUrl,
-            apiKey: apiProvider.apiKey,
-            secretKey: apiProvider.apiToken,
-            username: apiProvider.username || '',
-            userUrl: apiProvider.baseUrl && apiProvider.baseUrl.includes('api/user') ? apiProvider.baseUrl : null
-        };
+        // 5. All candidates failed - execute atomic refund
+        const lastErrorSummary = attemptedErrors.length > 0
+            ? attemptedErrors.map(e => `${e.provider}: ${e.message}`).join(' | ')
+            : 'All providers failed or no matching plans';
 
-        // 3. Prepare Details
-        // For Maskawa, all services share provider='Maskawasub', so extract the real network from service.name
-        // e.g. service.name = 'MTN 1.0GB (SME)' -> network = 'MTN'
-        let effectiveNetwork = network;
-        if (providerKey === 'maskawasub' && service.name) {
-            const nameUpper = service.name.toUpperCase();
-            if (nameUpper.startsWith('MTN')) effectiveNetwork = 'MTN';
-            else if (nameUpper.startsWith('GLO')) effectiveNetwork = 'GLO';
-            else if (nameUpper.startsWith('AIRTEL')) effectiveNetwork = 'AIRTEL';
-            else if (nameUpper.startsWith('9MOBILE')) effectiveNetwork = '9MOBILE';
-        }
+        console.error(`[VendData] All candidates exhausted for tx ${transaction.id}: ${lastErrorSummary}`);
+        await refundTransaction(transaction, lastErrorSummary);
 
-        const details = {
-            network: effectiveNetwork,
-            phone: phone,
-            requestId: transaction.reference,
-            planId: service.apiPlanId || service.providerPlanId || service.code, // Handle both common naming conventions (code = Maskawa planId)
-            variationCode: service.apiPlanId || service.providerPlanId || service.code, // VTPass uses variation_code
-            networkId: await getNetworkIdForProvider(providerKey, effectiveNetwork)
-        };
+        const clientMessage = attemptedErrors.length > 0
+            ? attemptedErrors[attemptedErrors.length - 1].message
+            : 'Service Temporarily Unavailable';
 
-        // 4. Call Provider
-        const result = await handler.purchaseData(details, config);
-
-        // 5. Update Transaction
-        if (result.status === 'success') {
-            await prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 0, description: `${transaction.description} [SUCCESS]` } // 0 = Success
-            });
-        } else if (result.status === 'failed') {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` } // 2 = Failed
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
-        }
-
-        return sanitizeVendResult(result);
+        return sanitizeVendResult({ status: 'failed', message: clientMessage });
 
     } catch (error) {
-        console.error('Data Vending Error:', error);
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
+        console.error('[VendData] System Error:', error);
+        await refundTransaction(transaction, 'System Error during data vending');
         return { status: 'failed', message: 'System Error during data vending' };
     }
 }

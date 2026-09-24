@@ -26,24 +26,6 @@ const providerHandlers = {
 };
 
 /**
- * Send alert email to admin
- */
-async function sendAdminAlert(subject, message) {
-    console.log(`[SmartRoutingBot] ALERT: ${subject} - ${message}`);
-    try {
-        if (!process.env.ADMIN_EMAIL || !process.env.SMTP_USER) return;
-        await transporter.sendMail({
-            from: `"Ufriends Router Bot" <${process.env.SMTP_USER}>`,
-            to: process.env.ADMIN_EMAIL,
-            subject: subject,
-            text: message
-        });
-    } catch (error) {
-        console.error('[SmartRoutingBot] Email Alert failed:', error.message);
-    }
-}
-
-/**
  * Get the handler and config for a provider DB record.
  * Provider name in DB (e.g. "Maskawa Sub", "Alrahuz") is normalized to match keys in providerHandlers.
  */
@@ -438,17 +420,48 @@ async function runSmartRoutingSwitch(providers) {
         const network = plans[0].network;
         const networkType = plans[0].dataType;
 
-        let bestPlan = null;
-        let currentBestApiPrice = Infinity;
+        // Group plans by provider to evaluate overall provider price competitiveness for this network & dataType
+        const providerScores = new Map();
 
         for (const p of plans) {
-            if (p.apiProviderId && p.apiPrice < currentBestApiPrice) {
-                const prov = providers.find(pr => pr.id === p.apiProviderId);
-                const wallet = prov?.apiWallet?.[0];
-                if (wallet && wallet.balance > 500) {
-                    bestPlan = p;
-                    currentBestApiPrice = p.apiPrice;
+            if (!p.apiProviderId || !p.apiPrice || p.apiPrice <= 0) continue;
+            const prov = providers.find(pr => pr.id === p.apiProviderId);
+            const wallet = prov?.apiWallet?.[0];
+            // Minimum balance threshold: at least ₦200 to route to this provider
+            if (wallet && wallet.balance < 200) continue;
+
+            const sizeMb = extractMegabytes(p.dataName) || 1024;
+            const pricePerGb = (p.apiPrice / sizeMb) * 1024;
+
+            if (!providerScores.has(p.apiProviderId)) {
+                providerScores.set(p.apiProviderId, {
+                    providerId: p.apiProviderId,
+                    totalPricePerGb: pricePerGb,
+                    planCount: 1,
+                    hasOneGb: /1\.?0?GB/i.test(p.dataName),
+                    oneGbPrice: /1\.?0?GB/i.test(p.dataName) ? p.apiPrice : null,
+                    samplePlan: p
+                });
+            } else {
+                const cur = providerScores.get(p.apiProviderId);
+                cur.totalPricePerGb += pricePerGb;
+                cur.planCount += 1;
+                if (/1\.?0?GB/i.test(p.dataName)) {
+                    cur.hasOneGb = true;
+                    cur.oneGbPrice = p.apiPrice;
                 }
+            }
+        }
+
+        let bestPlan = null;
+        let lowestBenchmarkPrice = Infinity;
+
+        for (const score of providerScores.values()) {
+            // Prioritize 1GB plan price if available, otherwise average price per GB
+            const benchmark = score.oneGbPrice || (score.totalPricePerGb / score.planCount);
+            if (benchmark < lowestBenchmarkPrice) {
+                lowestBenchmarkPrice = benchmark;
+                bestPlan = score.samplePlan;
             }
         }
 
@@ -490,6 +503,39 @@ async function runSmartRoutingSwitch(providers) {
     }
 }
 
+/**
+ * Live-sync provider balances from their respective APIs into apiWallet table
+ */
+async function syncProviderBalances(providers) {
+    console.log('[SmartRoutingBot] Live-syncing provider wallet balances...');
+    for (const provider of providers) {
+        const { handler, config } = getHandlerAndConfig(provider);
+        if (handler && typeof handler.checkBalance === 'function') {
+            try {
+                const balRes = await handler.checkBalance(config);
+                if (balRes && balRes.success && typeof balRes.balance === 'number') {
+                    const balance = balRes.balance;
+                    const existing = await prisma.apiWallet.findFirst({ where: { apiProviderId: provider.id } });
+                    if (existing) {
+                        await prisma.apiWallet.update({
+                            where: { id: existing.id },
+                            data: { balance, lastChecked: new Date() }
+                        });
+                    } else {
+                        await prisma.apiWallet.create({
+                            data: { apiProviderId: provider.id, balance, lastChecked: new Date() }
+                        });
+                    }
+                    provider.apiWallet = [{ balance, lastChecked: new Date() }];
+                    console.log(`[SmartRoutingBot] Live balance for ${provider.name}: ₦${balance.toFixed(2)}`);
+                }
+            } catch (err) {
+                console.warn(`[SmartRoutingBot] Balance sync failed for ${provider.name}:`, err.message);
+            }
+        }
+    }
+}
+
 // =============================================================================
 //  MAIN ENTRY POINT
 // =============================================================================
@@ -507,6 +553,9 @@ async function runSmartRouting() {
         }
 
         console.log(`[SmartRoutingBot] Found ${providers.length} active provider(s): ${providers.map(p => p.name).join(', ')}`);
+
+        // 0. Live-sync real-time wallet balances so smart routing never acts on stale 0 balance
+        await syncProviderBalances(providers);
 
         // Run all sync phases
         await syncDataPlans(providers);

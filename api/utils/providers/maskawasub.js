@@ -539,12 +539,27 @@ async function fetchDataPlans(config) {
             return { success: false, message: 'No plans found in provider response' };
         }
 
+        function extractMaskawaPlanPrice(p) {
+            const candidate = p.Affilliate_price ?? p.Reseller_price ?? p.TopUser_price;
+            if (candidate != null && !isNaN(parseFloat(candidate))) {
+                return parseFloat(candidate);
+            }
+            if (typeof p.plan_amount === 'number') return p.plan_amount;
+            if (typeof p.plan_amount === 'string') {
+                const direct = parseFloat(p.plan_amount);
+                if (!isNaN(direct)) return direct;
+                const match = p.plan_amount.match(/----N?([\d.]+)/i);
+                if (match) return parseFloat(match[1]);
+            }
+            return 0;
+        }
+
         const formattedPlans = plans.map(plan => ({
             network: (plan.plan_network || '').toUpperCase().trim(),
             dataName: plan.plan,
             dataType: (plan.plan_type || '').toUpperCase().trim(),
             planId: String(plan.dataplan_id),
-            apiPrice: parseFloat(plan.plan_amount),
+            apiPrice: extractMaskawaPlanPrice(plan),
             duration: plan.month_validate || '30 days'
         }));
 
