@@ -319,15 +319,19 @@ router.get('/transactions', authenticateUser, async (req, res) => {
             if (tx.type === 'professional') {
                 const ninReport = await prisma.ninReport.findUnique({
                     where: { transactionRef: tx.reference },
-                    select: { pdfUrl: true }
+                    select: { pdfUrl: true, id: true }
                 });
-                if (ninReport?.pdfUrl) return { ...tx, slipUrl: ninReport.pdfUrl };
+                if (ninReport?.pdfUrl) {
+                    return { ...tx, slipUrl: `/api/slips/nin/${ninReport.id}/download`, slipReportId: ninReport.id, slipType: 'nin' };
+                }
 
                 const bvnReport = await prisma.bvnReport.findUnique({
                     where: { transactionRef: tx.reference },
-                    select: { pdfUrl: true }
+                    select: { pdfUrl: true, id: true }
                 });
-                if (bvnReport?.pdfUrl) return { ...tx, slipUrl: bvnReport.pdfUrl };
+                if (bvnReport?.pdfUrl) {
+                    return { ...tx, slipUrl: `/api/slips/bvn/${bvnReport.id}/download`, slipReportId: bvnReport.id, slipType: 'bvn' };
+                }
             }
             return tx;
         }));
@@ -370,7 +374,9 @@ router.get('/transactions/:reference', authenticateUser, async (req, res) => {
                 where: { transactionRef: transaction.reference }
             });
             if (ninReport) {
-                slipUrl = ninReport.pdfUrl;
+                if (ninReport.pdfUrl) {
+                    slipUrl = `/api/slips/nin/${ninReport.id}/download`;
+                }
                 report = ninReport;
                 slipType = 'nin';
                 slipVariant = ninReport.slipType;
@@ -379,7 +385,9 @@ router.get('/transactions/:reference', authenticateUser, async (req, res) => {
                     where: { transactionRef: transaction.reference }
                 });
                 if (bvnReport) {
-                    slipUrl = bvnReport.pdfUrl;
+                    if (bvnReport.pdfUrl) {
+                        slipUrl = `/api/slips/bvn/${bvnReport.id}/download`;
+                    }
                     report = bvnReport;
                     slipType = 'bvn';
                     slipVariant = bvnReport.slipType;

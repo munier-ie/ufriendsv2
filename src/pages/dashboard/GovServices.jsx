@@ -409,9 +409,10 @@ export default function GovServices() {
 
     const handleDownloadSlip = () => {
         if (slipPreview?.pdfUrl) {
-            const slipUrl = slipPreview.pdfUrl.includes('?') 
-                ? `${slipPreview.pdfUrl}&token=${localStorage.getItem('token')}`
-                : `${slipPreview.pdfUrl}?token=${localStorage.getItem('token')}`;
+            const token = localStorage.getItem('token');
+            const slipUrl = token
+                ? (slipPreview.pdfUrl.includes('?') ? `${slipPreview.pdfUrl}&token=${token}` : `${slipPreview.pdfUrl}?token=${token}`)
+                : slipPreview.pdfUrl;
             window.open(slipUrl, '_blank');
         }
     };
@@ -944,9 +945,10 @@ export default function GovServices() {
                                                 size="sm"
                                                 icon={Download}
                                                 onClick={() => {
-                                                    const slipUrl = report.pdfUrl.includes('?') 
-                                                        ? `${report.pdfUrl}&token=${localStorage.getItem('token')}`
-                                                        : `${report.pdfUrl}?token=${localStorage.getItem('token')}`;
+                                                    const token = localStorage.getItem('token');
+                                                    const slipUrl = token
+                                                        ? (report.pdfUrl.includes('?') ? `${report.pdfUrl}&token=${token}` : `${report.pdfUrl}?token=${token}`)
+                                                        : report.pdfUrl;
                                                     window.open(slipUrl, '_blank');
                                                 }}
                                                 className="border-primary/20 text-primary hover:bg-primary/5 shrink-0"
@@ -1013,9 +1015,10 @@ export default function GovServices() {
                                                 size="sm"
                                                 icon={Download}
                                                 onClick={() => {
-                                                    const slipUrl = report.pdfUrl.includes('?') 
-                                                        ? `${report.pdfUrl}&token=${localStorage.getItem('token')}`
-                                                        : `${report.pdfUrl}?token=${localStorage.getItem('token')}`;
+                                                    const token = localStorage.getItem('token');
+                                                    const slipUrl = token
+                                                        ? (report.pdfUrl.includes('?') ? `${report.pdfUrl}&token=${token}` : `${report.pdfUrl}?token=${token}`)
+                                                        : report.pdfUrl;
                                                     window.open(slipUrl, '_blank');
                                                 }}
                                                 className="border-primary/20 text-primary hover:bg-primary/5 shrink-0"

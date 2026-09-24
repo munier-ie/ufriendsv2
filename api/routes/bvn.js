@@ -22,10 +22,15 @@ router.post('/verify', auth, async (req, res) => {
         const result = await bvnService.processBvnVerification(userId, bvnNumber, transactionRef, userType);
 
         if (result.success) {
+            const report = result.report ? {
+                ...result.report,
+                pdfUrl: result.report.id ? `/api/slips/bvn/${result.report.id}/download` : result.report.pdfUrl
+            } : null;
+
             res.json({
                 success: true,
                 message: result.message,
-                report: result.report
+                report
             });
         } else {
             res.status(400).json({
@@ -42,6 +47,7 @@ router.post('/verify', auth, async (req, res) => {
 
 /**
  * GET /api/bvn/reports - Get user's BVN reports
+ * Returns download URL pointing to our authenticated proxy endpoint (/api/slips/bvn/:id/download)
  */
 router.get('/reports', auth, async (req, res) => {
     try {
@@ -71,9 +77,16 @@ router.get('/reports', auth, async (req, res) => {
             prisma.bvnReport.count({ where: { userId } })
         ]);
 
+        // Point pdfUrl to the authenticated download endpoint
+        const reportsWithUrls = reports.map((report) => ({
+            ...report,
+            reportId: report.id,
+            pdfUrl: report.pdfUrl ? `/api/slips/bvn/${report.id}/download` : null
+        }));
+
         res.json({
             success: true,
-            reports,
+            reports: reportsWithUrls,
             pagination: {
                 total,
                 page: parseInt(page),
@@ -106,7 +119,9 @@ router.get('/reports/:id', auth, async (req, res) => {
             return res.status(404).json({ error: 'Report not found' });
         }
 
-        res.json({ success: true, report });
+        const pdfUrl = report.pdfUrl ? `/api/slips/bvn/${report.id}/download` : null;
+
+        res.json({ success: true, report: { ...report, pdfUrl } });
 
     } catch (error) {
         console.error('Get BVN Report Error:', error);

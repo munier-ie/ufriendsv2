@@ -167,8 +167,8 @@ app.use('/api/uploads/manual-proof', protectedUploads, express.static(path.join(
 app.use('/api/uploads/manual-ids', protectedUploads, express.static(path.join(__dirname, '../uploads/manual-ids')));
 // Serve academy content uploads (Protected)
 app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dirname, '../uploads/academy')));
-// Serve NIN/BVN slips (Protected)
-app.use('/api/uploads/slips', protectedUploads, express.static(path.join(__dirname, '../uploads/slips')));
+// NIN/BVN slips are served via presigned R2 URLs — see /api/slips route
+// Legacy static path removed (migrated to Cloudflare R2)
 
 
 // [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
@@ -199,6 +199,7 @@ app.use('/api/transfer', actionLimiterMiddleware, require('./routes/transfer'));
 app.use('/api/recharge-cards', require('./routes/rechargeCards')); // Recharge Card Printing routes
 app.use('/api/notifications', require('./routes/notifications')); // Notifications routes
 app.use('/api/professional', require('./routes/professional')); // Professional services (NIN, BVN, CAC)
+app.use('/api/slips', require('./routes/slips')); // Slip PDF streaming proxy (authenticated, anti-caching)
 app.use('/api/bvn', require('./routes/bvn')); // BVN verification and reports
 app.use('/api/nin', require('./routes/nin')); // NIN verification and reports
 app.use('/api/admin/verification', require('./routes/adminVerification')); // Admin verification settings

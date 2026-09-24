@@ -6,6 +6,7 @@ const path = require('path');
 const { getChromePath } = require('../utils/chrome');
 const crypto = require('crypto');
 const { getCache, setCache, acquireLock, releaseLock } = require('../utils/redis');
+const { uploadSlip, isR2Configured } = require('../utils/r2');
 
 /**
  * Get Verification Settings from database
@@ -782,21 +783,16 @@ function generateBvnPlasticSlipHtml(reportData) {
 }
 
 /**
- * Generate PDF from BVN report
+ * Generate PDF from BVN report and upload to R2
  */
 async function generateBvnPdf(reportData) {
   try {
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(__dirname, '../../uploads/slips/bvn');
-    await fs.mkdir(uploadsDir, { recursive: true });
-
     // Generate HTML
     const isPlastic = reportData.slipType === 'plastic';
     const html = isPlastic ? generateBvnPlasticSlipHtml(reportData) : generateBvnSlipHtml(reportData);
 
-    // Generate PDF filename
-    const pdfFilename = `${reportData.transactionRef}.pdf`;
-    const pdfPath = path.join(uploadsDir, pdfFilename);
+    // Generate PDF filename — use UUID for consistency
+    const pdfFilename = `${crypto.randomUUID()}.pdf`;
 
     const chromePath = getChromePath();
 
@@ -833,13 +829,15 @@ async function generateBvnPdf(reportData) {
       await browser.close();
     }
 
-    // Save PDF to file
-    await fs.writeFile(pdfPath, pdfBuffer);
+    // Upload PDF to R2
+    const slipSubtype = isPlastic ? 'plastic' : 'regular';
+    const r2Key = `slips/bvn/${slipSubtype}/${pdfFilename}`;
+    await uploadSlip(pdfBuffer, r2Key);
 
-    // Return prefixed URL so Vercel proxies it to the backend server
-    const pdfUrl = `/api/uploads/slips/bvn/${pdfFilename}`;
+    // Store R2 object key as pdfUrl (presigned URLs are generated on-demand)
+    const pdfUrl = r2Key;
 
-    // Update report with PDF URL
+    // Update report with R2 key
     await prisma.bvnReport.update({
       where: { id: reportData.id },
       data: { pdfUrl }

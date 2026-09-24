@@ -12,6 +12,7 @@ const ninService = require('../services/nin.service');
 const { creditReferralBonus } = require('../services/referral.service');
 const whatsappService = require('../services/whatsapp.service');
 
+
 // --- Multer config for CAC file uploads ---
 const cacUploadDir = path.join(__dirname, '../uploads/cac');
 if (!fs.existsSync(cacUploadDir)) {
@@ -622,6 +623,10 @@ router.get('/request-status/:reference', authenticateUser, async (req, res) => {
         if (request.status === 0) {
             return res.json({ success: true, status: 'pending' });
         } else if (request.status === 1) {
+            // Point pdfUrl to the authenticated download endpoint
+            if (details.pdfUrl) {
+                details.pdfUrl = `/api/slips/by-ref/${reference}/download`;
+            }
             return res.json({ success: true, status: 'completed', report: details });
         } else {
             return res.json({ success: false, status: 'failed', error: details.error || 'Verification failed' });

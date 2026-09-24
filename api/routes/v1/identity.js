@@ -21,6 +21,7 @@ const bvnService = require('../../services/bvn.service');
 const ninService = require('../../services/nin.service');
 const { creditReferralBonus }     = require('../../services/referral.service');
 const { sendWebhookNotification } = require('../webhookVendor');
+const { getPresignedUrl, isR2Configured } = require('../../utils/r2');
 
 router.use(logApiResponse);
 
@@ -206,11 +207,17 @@ router.post('/bvn', apiKeyAuth, async (req, res) => {
             creditReferralBonus(req.user.id, 'bvn', pricing.settings.referralCommission || 0)
                 .catch(err => console.error('[v1/bvn] Referral bonus error:', err));
 
+            // Generate presigned URL for external API consumers
+            let presignedPdfUrl = verificationResult.report?.pdfUrl;
+            if (presignedPdfUrl && isR2Configured()) {
+                try { presignedPdfUrl = await getPresignedUrl(presignedPdfUrl); } catch { /* presign failed */ }
+            }
+
             // Webhook
             sendWebhookNotification(req.user.id, 'identity.bvn.success', {
                 reference:  transactionRef,
                 slipType,
-                pdfUrl:     verificationResult.report?.pdfUrl,
+                pdfUrl:     presignedPdfUrl,
                 newBalance: dbResult.newBalance
             }).catch(() => {});
 
@@ -218,7 +225,7 @@ router.post('/bvn', apiKeyAuth, async (req, res) => {
                 success:    true,
                 reference:  transactionRef,
                 newBalance: dbResult.newBalance,
-                report:     verificationResult.report
+                report:     { ...verificationResult.report, pdfUrl: presignedPdfUrl }
             });
 
         } else {
@@ -390,12 +397,18 @@ router.post('/nin', apiKeyAuth, async (req, res) => {
             creditReferralBonus(req.user.id, 'nin', pricing.settings.referralCommission || 0)
                 .catch(err => console.error('[v1/nin] Referral bonus error:', err));
 
+            // Generate presigned URL for external API consumers
+            let presignedPdfUrl = verificationResult.report?.pdfUrl;
+            if (presignedPdfUrl && isR2Configured()) {
+                try { presignedPdfUrl = await getPresignedUrl(presignedPdfUrl); } catch { /* presign failed */ }
+            }
+
             // Webhook
             sendWebhookNotification(req.user.id, 'identity.nin.success', {
                 reference:    transactionRef,
                 slipType,
                 lookupMethod,
-                pdfUrl:       verificationResult.report?.pdfUrl,
+                pdfUrl:       presignedPdfUrl,
                 newBalance:   dbResult.newBalance
             }).catch(() => {});
 
@@ -403,7 +416,7 @@ router.post('/nin', apiKeyAuth, async (req, res) => {
                 success:    true,
                 reference:  transactionRef,
                 newBalance: dbResult.newBalance,
-                report:     verificationResult.report
+                report:     { ...verificationResult.report, pdfUrl: presignedPdfUrl }
             });
 
         } else {

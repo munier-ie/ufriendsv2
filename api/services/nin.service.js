@@ -8,6 +8,7 @@ const path = require('path');
 const QRCode = require('qrcode');
 const { getChromePath } = require('../utils/chrome');
 const { getCache, setCache, acquireLock, releaseLock } = require('../utils/redis');
+const { uploadSlip, isR2Configured } = require('../utils/r2');
 
 function escapeHtml(unsafe) {
   if (typeof unsafe !== 'string') return unsafe;
@@ -1515,29 +1516,20 @@ async function generateVninSlipHtml(reportData, ninFormatted, fullName) {
 }
 
 /**
- * Generate PDF from NIN report
+ * Generate PDF from NIN report and upload to R2
  */
 async function generateNinPdf(reportData, slipType) {
   try {
-    // Resolve upload dir from __dirname literals only — no user input ever
-    // reaches the filesystem. switch makes this provable to static analysers.
-    const baseUploadsDir = path.normalize(path.join(__dirname, '../../uploads/slips/nin'));
-    let safeUploadsDir;
-    switch (slipType) {
-      case 'regular':  safeUploadsDir = path.join(baseUploadsDir, 'regular');  break;
-      case 'standard': safeUploadsDir = path.join(baseUploadsDir, 'standard'); break;
-      case 'premium':  safeUploadsDir = path.join(baseUploadsDir, 'premium');  break;
-      case 'vnin':     safeUploadsDir = path.join(baseUploadsDir, 'vnin');     break;
-      default: throw new Error('Invalid slip type');
+    // Validate slip type
+    if (!['regular', 'standard', 'premium', 'vnin'].includes(slipType)) {
+      throw new Error('Invalid slip type');
     }
-    await fs.mkdir(safeUploadsDir, { recursive: true });
 
     // Generate HTML
     const html = await generateNinSlipHtml(reportData, slipType);
 
     // Generate PDF filename — use only a UUID, never user input
     const pdfFilename = `${crypto.randomUUID()}.pdf`;
-    const safePdfPath = path.join(safeUploadsDir, pdfFilename);
 
     const chromePath = getChromePath();
 
@@ -1569,13 +1561,14 @@ async function generateNinPdf(reportData, slipType) {
       await browser.close();
     }
 
-    // Save PDF — pdfFilename is a UUID, safeUploadsDir is from a switch literal above
-    await fs.writeFile(path.join(safeUploadsDir, pdfFilename), pdfBuffer);
+    // Upload PDF to R2 — key serves as the identifier stored in DB
+    const r2Key = `slips/nin/${slipType}/${pdfFilename}`;
+    await uploadSlip(pdfBuffer, r2Key);
 
-    // Prefix with /api so Vercel proxies it to the backend server
-    const pdfUrl = `/api/uploads/slips/nin/${slipType}/${pdfFilename}`;
+    // Store R2 object key as pdfUrl (presigned URLs are generated on-demand)
+    const pdfUrl = r2Key;
 
-    // Update report with PDF URL
+    // Update report with R2 key
     await prisma.ninReport.update({
       where: { id: reportData.id },
       data: { pdfUrl }
