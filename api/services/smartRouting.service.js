@@ -53,6 +53,21 @@ function calcPrices(basePrice) {
     };
 }
 
+/**
+ * Extract size in megabytes from plan name (e.g. '1.0GB' -> 1024, '500MB' -> 500)
+ */
+function extractMegabytes(name) {
+    if (!name) return 0;
+    const match = name.toUpperCase().match(/([\d.]+)\s*(MB|GB|TB)/);
+    if (!match) return 0;
+    const value = parseFloat(match[1]);
+    const unit = match[2];
+    if (unit === 'MB') return value;
+    if (unit === 'GB') return value * 1024;
+    if (unit === 'TB') return value * 1024 * 1024;
+    return 0;
+}
+
 // =============================================================================
 //  PHASE 1: DATA PLANS — Fetch, Discover & Price-Protect
 //  Match is now performed on planId + apiProviderId (NOT plan name).
@@ -96,19 +111,7 @@ async function syncDataPlans(providers) {
             continue;
         }
 
-        // Feature: Filter out massive plans (>10GB) to prevent sync/buy overload
-        function extractMegabytes(name) {
-            if (!name) return 0;
-            const match = name.toUpperCase().match(/([\d.]+)\s*(MB|GB|TB)/);
-            if (!match) return 0;
-            const value = parseFloat(match[1]);
-            const unit = match[2];
-            if (unit === 'MB') return value;
-            if (unit === 'GB') return value * 1024;
-            if (unit === 'TB') return value * 1024 * 1024;
-            return 0;
-        }
-
+        // Filter out massive plans (>10GB) to prevent sync/buy overload
         const mbSize = extractMegabytes(plan.dataName);
         if (mbSize > 10240) {
             console.warn(`[SmartRoutingBot] Skipping large plan (>10GB): ${plan.network} ${plan.dataName}`);
@@ -407,6 +410,13 @@ async function syncExamPlans(providers) {
 async function runSmartRoutingSwitch(providers) {
     console.log('[SmartRoutingBot] --- Phase 4: Smart Routing Switch ---');
 
+    // Reload active providers to ensure we evaluate the newly live-synced wallet balances
+    const freshProviders = await prisma.apiProvider.findMany({
+        where: { active: true },
+        include: { apiWallet: true }
+    });
+    const currentProviders = freshProviders.length > 0 ? freshProviders : providers;
+
     const updatedPlans = await prisma.dataPlan.findMany({ where: { active: true } });
     const routingGroups = new Map();
 
@@ -425,7 +435,7 @@ async function runSmartRoutingSwitch(providers) {
 
         for (const p of plans) {
             if (!p.apiProviderId || !p.apiPrice || p.apiPrice <= 0) continue;
-            const prov = providers.find(pr => pr.id === p.apiProviderId);
+            const prov = currentProviders.find(pr => pr.id === p.apiProviderId);
             const wallet = prov?.apiWallet?.[0];
             // Minimum balance threshold: at least ₦200 to route to this provider
             if (wallet && wallet.balance < 200) continue;

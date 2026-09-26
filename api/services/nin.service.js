@@ -399,9 +399,7 @@ async function verifyNin(ninNumber) {
       }
     );
 
-    console.log('--- PREMBLY NIN RESPONSE START ---');
-    console.log(JSON.stringify(response.data, null, 2));
-    console.log('--- PREMBLY NIN RESPONSE END ---');
+    console.log(`[verifyNin] Prembly response received (status: ${response.data?.status === true ? 'VERIFIED' : 'FAILED'})`);
 
     if (response.data && response.data.status === true) {
       const resultData = response.data.data || response.data;
@@ -588,9 +586,7 @@ async function verifyNinByPhone(phoneNumber) {
       { headers, timeout: 60000 }
     );
 
-    console.log('--- PREMBLY PHONE NIN RESPONSE START ---');
-    console.log(JSON.stringify(response.data, null, 2));
-    console.log('--- PREMBLY PHONE NIN RESPONSE END ---');
+    console.log(`[verifyNinByPhone] Prembly phone response received (status: ${response.data?.status === true ? 'VERIFIED' : 'FAILED'})`);
 
     if (response.data && response.data.status === true) {
       const resultData = response.data.data || response.data;
