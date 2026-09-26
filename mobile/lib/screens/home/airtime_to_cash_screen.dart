@@ -251,6 +251,7 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
               message: isSuccess 
                   ? 'Your airtime conversion request was successful.' 
                   : errorMessage,
+              amount: isSuccess ? '₦${_amountController.text}' : null,
               details: isSuccess ? {
                 'Service': 'Airtime2cash',
                 'Network': _selectedNetwork!,

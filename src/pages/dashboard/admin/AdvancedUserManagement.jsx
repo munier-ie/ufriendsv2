@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
 import {
     Users, Search, Loader2, RefreshCw, Key, Lock, Trash2,

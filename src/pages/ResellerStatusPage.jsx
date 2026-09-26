@@ -6,7 +6,7 @@ import {
     Shield, Zap, MessageSquare, Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
+import { modal } from '../contexts/ModalContext';
 import axios from 'axios';
 import LandingNavbar from '../components/landing/LandingNavbar';
 import LandingFooter from '../components/landing/LandingFooter';
@@ -96,10 +96,10 @@ export default function ResellerStatusPage() {
             }
 
             await axios.post(`/api/reseller/onboarding/${reference}`, finalOnboardingData);
-            toast.success('Branding information submitted successfully!');
+            modal.success('Branding information submitted successfully!');
             setRequest(prev => ({ ...prev, onboardingCompleted: true, onboardingData: finalOnboardingData }));
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to submit branding information');
+            modal.error(err.response?.data?.error || 'Failed to submit branding information');
         } finally {
             setSubmitting(false);
         }

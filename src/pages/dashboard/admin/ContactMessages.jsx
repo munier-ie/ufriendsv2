@@ -1,6 +1,6 @@
 import { Loader2, Mail, Send, Trash2, CheckCheck } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
 
 import Button from '../../../components/ui/Button';

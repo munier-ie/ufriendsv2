@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -174,7 +174,7 @@ export default function Services() {
                 formData.recipient;
 
         if (!numberToVerify || numberToVerify.length < 5) {
-            toast.error('Please enter a valid number' );
+            modal.error('Please enter a valid number');
             return;
         }
 
@@ -184,7 +184,7 @@ export default function Services() {
         const providerForVerify = selectedService?.provider || formData.networkId?.toLowerCase();
 
         if (!providerForVerify) {
-            toast.error(`Please select a ${activeTab === 'cable' ? 'Cable TV provider' : 'Disco/Provider'} first` );
+            modal.error(`Please select a ${activeTab === 'cable' ? 'Cable TV provider' : 'Disco/Provider'} first`);
             return;
         }
 
@@ -205,13 +205,13 @@ export default function Services() {
                 if (res.data.accessToken) {
                     setFormData(prev => ({ ...prev, accessToken: res.data.accessToken }));
                 }
-                toast.success(`Verified: ${res.data.customerName}` );
+                modal.success(`Verified: ${res.data.customerName}`);
             } else {
-                toast.error('Verification failed' );
+                modal.error('Verification failed');
                 setVerifiedName(null);
             }
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Verification failed' );
+            modal.error(error.response?.data?.error || 'Verification failed');
             setVerifiedName(null);
         } finally {
             setVerifying(false);
@@ -222,7 +222,7 @@ export default function Services() {
         e.preventDefault();
 
         if ((activeTab === 'cable' || activeTab === 'electricity') && !verifiedName) {
-            toast.error('Please verify the number first' );
+            modal.error('Please verify the number first');
             return;
         }
 
@@ -233,7 +233,7 @@ export default function Services() {
 
     const handleFinalSubmit = async () => {
         if (formData.pin.length !== 4) {
-            toast.error('Please enter a valid 4-digit PIN' );
+            modal.error('Please enter a valid 4-digit PIN');
             return;
         }
 
@@ -256,11 +256,39 @@ export default function Services() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            let successMsg = res.data.message;
-            if (res.data.token) successMsg += `. TOKEN: ${res.data.token}`;
-            if (res.data.pin) successMsg += `. PIN: ${res.data.pin}`;
+            const selectedService = services.find(s => s.id == formData.serviceId);
+            const targetRecipient = formData.recipient || formData.meterNumber || formData.iucNumber;
+            const purchasedPinOrToken = res.data.token || res.data.pin || (res.data.pins && res.data.pins.map(p => p.content).join(', '));
 
-            toast.success(successMsg );
+            // Show rich transactional receipt modal
+            const txData = res.data.transaction || {
+                reference: res.data.reference || `TX-${Date.now().toString().slice(-8)}`,
+                serviceName: selectedService?.name || `${activeTab.toUpperCase()} Purchase`,
+                amount: parseFloat(formData.amount) || amountToPay,
+                recipient: targetRecipient,
+                status: 0,
+                date: new Date().toISOString(),
+                newBalance: res.data.newBalance,
+                pinContent: purchasedPinOrToken
+            };
+
+            modal.transaction({
+                title: `${activeTab === 'electricity' ? 'Electricity Purchase' : activeTab === 'cable' ? 'Cable Subscription' : activeTab === 'data' ? 'Data Purchase' : activeTab === 'airtime' ? 'Airtime Purchase' : 'Purchase'} Successful`,
+                message: res.data.message || 'Your order was processed successfully.',
+                transaction: {
+                    ...txData,
+                    recipient: txData.recipient || targetRecipient,
+                    serviceName: txData.serviceName || selectedService?.name || activeTab.toUpperCase(),
+                    amount: txData.amount || amountToPay || formData.amount
+                },
+                token: res.data.token || (activeTab === 'electricity' ? purchasedPinOrToken : null),
+                pin: res.data.pin || (activeTab !== 'electricity' ? purchasedPinOrToken : null),
+                onPrintReceipt: (tx) => {
+                    setSelectedTx(tx);
+                    setShowReceipt(true);
+                }
+            });
+
             setShowPinModal(false);
             resetForm();
             fetchRecentTransactions(activeTab);
@@ -268,10 +296,10 @@ export default function Services() {
             const errorMsg = error.response?.data?.error || 'Transaction failed';
 
             if (errorMsg.toLowerCase().includes('pin')) {
-                toast.error('Incorrect PIN entered');
+                modal.error('Incorrect PIN entered');
                 setShowPinModal(false);
             } else {
-                toast.error(errorMsg );
+                modal.error(errorMsg);
                 setShowPinModal(false);
             }
         } finally {

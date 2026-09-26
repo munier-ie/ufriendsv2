@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import { Network, ServerIcon, Save, Activity, Plus, Trash2, Loader2 } from 'lucide-react';
 import axios from 'axios';
 

@@ -184,7 +184,14 @@ class _BvnSlipScreenState extends State<BvnSlipScreen> {
 
     if (result != null && mounted) {
       if (result is Map && result['success'] == true) {
-        final report = result['report'] as Map<String, dynamic>? ?? {};
+        final report = result['report'] is Map<String, dynamic>
+            ? Map<String, dynamic>.from(result['report'])
+            : <String, dynamic>{};
+        if (result['transactionRef'] != null) {
+          report['transactionRef'] = result['transactionRef'];
+        }
+        report['slipType'] = 'bvn';
+        report['slipVariant'] = _slipType!;
         Navigator.push(
           context,
           MaterialPageRoute(

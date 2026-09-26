@@ -1,6 +1,6 @@
 import { Wifi, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import React, { useState } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -44,10 +44,22 @@ export default function SmileData() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            toast.success(res.data.message );
+            const selectedPlan = smilePlans.find(p => p.id === formData.planId);
+            modal.transaction({
+                title: 'Smile Data Recharge Successful',
+                message: res.data.message || 'Smile data plan activated successfully.',
+                transaction: {
+                    reference: res.data.transaction?.reference || `SMILE-${Date.now().toString().slice(-8)}`,
+                    serviceName: selectedPlan?.name || 'Smile Data Plan',
+                    amount: parseFloat(formData.amount) || selectedPlan?.price || 0,
+                    recipient: formData.accountNumber,
+                    status: 0,
+                    date: new Date().toISOString()
+                }
+            });
             setFormData({ accountNumber: '', phoneNumber: '', planId: '', amount: '' });
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Transaction failed' );
+            modal.error(error.response?.data?.error || 'Transaction failed');
         } finally {
             setSubmitting(false);
         }

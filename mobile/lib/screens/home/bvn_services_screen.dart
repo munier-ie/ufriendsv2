@@ -190,10 +190,22 @@ class _BvnServicesScreenState extends State<BvnServicesScreen> with SingleTicker
 
     if (result != null && mounted) {
       if (result['success'] == true) {
-        final msg = result['bvn'] != null
-            ? 'BVN retrieved: ${result['bvn']}'
-            : (result['message'] ?? 'Request submitted');
-        AppToast.show(context, message: msg, type: ToastType.success);
+        if (result['bvn'] != null) {
+          AppModal.transaction(
+            context,
+            isSuccess: true,
+            title: 'BVN Retrieved',
+            message: 'Your Bank Verification Number was retrieved successfully.',
+            pinContent: result['bvn'].toString(),
+            details: {
+              'Service': 'BVN Retrieval',
+              'BVN': result['bvn'].toString(),
+            },
+          );
+        } else {
+          final msg = result['message'] ?? 'Request submitted successfully';
+          AppToast.show(context, message: msg, type: ToastType.success);
+        }
         setState(() {
           _formData = {};
           _bvnModSubType = null;

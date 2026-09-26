@@ -6,7 +6,7 @@ import {
     Globe, Smartphone, Apple, Layout, Copy
 } from 'lucide-react';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import Button from '../../../components/ui/Button';
 import Input from '../../../components/ui/Input';
 

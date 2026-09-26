@@ -2,6 +2,7 @@ import { GraduationCap, Plus, Edit, Trash2, X, Upload, AlertCircle, CheckCircle,
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { modal } from '../../../contexts/ModalContext';
 
 const TYPE_OPTIONS = [
     { value: 'video', label: '📹 Video' },
@@ -319,11 +320,15 @@ export default function AcademyDashboard() {
     const [modalOpen, setModalOpen] = useState(false);
     const [editTarget, setEditTarget] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
-    const [toast, setToast] = useState(null);
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
+        if (type === 'error') {
+            modal.error(msg);
+        } else if (type === 'warning') {
+            modal.warning(msg);
+        } else {
+            modal.success(msg);
+        }
     };
 
     const fetchContents = useCallback(async () => {
@@ -550,17 +555,6 @@ export default function AcademyDashboard() {
                 )}
             </AnimatePresence>
 
-            {/* Toast */}
-            <AnimatePresence>
-                {toast && (
-                    <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 30 }}
-                        className={`fixed bottom-6 right-6 z-[100] flex items-center space-x-3 px-5 py-3.5 rounded-2xl shadow-xl font-medium text-sm text-white ${toast.type === 'error' ? 'bg-red-600' : 'bg-gray-900'
-                            }`}>
-                        {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle size={18} />}
-                        <span>{toast.msg}</span>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 }

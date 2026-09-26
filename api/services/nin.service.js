@@ -1620,7 +1620,17 @@ async function processNinVerification(userId, ninNumber, slipType, transactionRe
 
     // 5. Return success with report details
     const { rawResponse, ...safeReport } = report;
+    const vData = verificationResult.data || {};
     safeReport.pdfUrl = pdfUrl;
+    safeReport.phoneNumber = vData.telephoneno || vData.telephone || vData.phone || vData.phoneNumber || vData.phone_number || vData.mobile;
+    safeReport.stateOfOrigin = vData.state_of_origin || vData.origin_state || vData.stateOfOrigin || vData.originState;
+    safeReport.lgaOfOrigin = vData.lga_of_origin || vData.origin_lga || vData.lgaOfOrigin || vData.originLga;
+    safeReport.stateOfResidence = report.residenceState || vData.residence_state || vData.residenceState || vData.state;
+    safeReport.lgaOfResidence = report.residenceLga || vData.residence_lga || vData.residenceLga || vData.lga;
+    safeReport.residentialAddress = report.residenceAddress || vData.residence_address || vData.residenceAddress || vData.address;
+    safeReport.trackingId = report.trackingId || vData.trackingId || vData.tracking_id;
+    safeReport.middleName = report.middleName || vData.middleName || vData.middle_name || vData.middlename;
+
     return {
       success: true,
       message: 'NIN verified successfully',

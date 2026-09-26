@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
-import { toast, Toaster } from 'sonner';
+import { modal } from '../contexts/ModalContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import LandingNavbar from '../components/landing/LandingNavbar';
 import LandingFooter from '../components/landing/LandingFooter';
@@ -45,7 +45,7 @@ export default function DeleteAccountPage() {
     useEffect(() => {
         const storedToken = localStorage.getItem('token');
         if (!storedToken) {
-            toast.error('You must be logged in to delete your account.');
+            modal.error('You must be logged in to delete your account.');
             navigate('/login');
         } else {
             setToken(storedToken);
@@ -55,7 +55,7 @@ export default function DeleteAccountPage() {
     const handleRequestDeletion = async (e) => {
         e.preventDefault();
         if (!reason) {
-            toast.error('Please select a reason for deletion.');
+            modal.error('Please select a reason for deletion.');
             return;
         }
 
@@ -64,10 +64,10 @@ export default function DeleteAccountPage() {
             const response = await axios.post('/api/user/account-deletion/request', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success(response.data.message || 'OTP sent to your email.');
+            modal.success(response.data.message || 'OTP sent to your email.');
             setStep(2);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to request account deletion.');
+            modal.error(error.response?.data?.error || 'Failed to request account deletion.');
         } finally {
             setLoading(false);
         }
@@ -76,7 +76,7 @@ export default function DeleteAccountPage() {
     const handleConfirmDeletion = async (e) => {
         e.preventDefault();
         if (!otp) {
-            toast.error('Please enter the OTP sent to your email.');
+            modal.error('Please enter the OTP sent to your email.');
             return;
         }
 
@@ -89,7 +89,7 @@ export default function DeleteAccountPage() {
                 headers: { Authorization: `Bearer ${token}` }
             });
             
-            toast.success(response.data.message || 'Account terminated.');
+            modal.success(response.data.message || 'Account terminated.');
             
             localStorage.removeItem('token');
             localStorage.removeItem('user');
@@ -98,7 +98,7 @@ export default function DeleteAccountPage() {
                 navigate('/');
             }, 3000);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to confirm account deletion.');
+            modal.error(error.response?.data?.error || 'Failed to confirm account deletion.');
         } finally {
             setLoading(false);
         }
@@ -143,8 +143,6 @@ export default function DeleteAccountPage() {
 
     return (
         <div className="min-h-screen flex flex-col bg-[#f8fafc] relative overflow-hidden">
-            <Toaster position="top-right" richColors />
-            
             <div className="relative z-20">
                 <LandingNavbar />
             </div>

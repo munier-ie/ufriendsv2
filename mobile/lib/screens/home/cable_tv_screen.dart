@@ -224,6 +224,7 @@ class _CableTvScreenState extends State<CableTvScreen> {
                                 message: isSuccess 
                                     ? 'Your cable TV subscription was successful.' 
                                     : errorMessage,
+                                amount: isSuccess ? '₦${formatCurrency(amount)}' : null,
                                 details: isSuccess ? {
                                   'Provider': _selectedProvider!.toUpperCase(),
                                   'IUC Number': _iucController.text,

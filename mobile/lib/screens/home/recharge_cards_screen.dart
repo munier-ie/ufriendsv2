@@ -113,10 +113,29 @@ class _RechargeCardsScreenState extends State<RechargeCardsScreen> {
       if (!mounted) return;
       final bool isSuccess = result is Map ? result['success'] == true : (result == true);
       if (isSuccess) {
-        AppToast.show(context, message: 'Purchase Successful!', type: ToastType.success);
+        final pin = result is Map ? (result['data']?['pin'] ?? result['data']?['pinContent'] ?? result['data']?['pins'])?.toString() : null;
+        final qty = int.tryParse(_quantityController.text) ?? 1;
+        final denom = double.tryParse(_selectedDenomination ?? '0') ?? 0.0;
+        final totalPrice = denom * qty;
+        AppModal.transaction(
+          context,
+          isSuccess: true,
+          title: 'Purchase Successful',
+          message: 'Your ${_selectedNetwork!.toUpperCase()} recharge card PIN is ready.',
+          amount: '₦${formatCurrency(totalPrice)}',
+          pinContent: pin,
+          details: {
+            'Network': _selectedNetwork!.toUpperCase(),
+            'Denomination': '₦$_selectedDenomination',
+            'Quantity': '$qty Piece(s)',
+            'Total': '₦${formatCurrency(totalPrice)}',
+            if (result is Map && result['data']?['reference'] != null)
+              'Reference': result['data']['reference'].toString(),
+          },
+        );
       } else {
         final errorMsg = result is Map ? (result['error'] ?? 'Purchase failed') : 'Purchase failed';
-        AppToast.show(context, message: errorMsg, type: ToastType.error);
+        AppToast.error(context, errorMsg);
       }
     }
   }

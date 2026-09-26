@@ -1,7 +1,7 @@
 import { Search, MoreVertical, Wallet, Ban, CheckCircle, Loader2, X, User, FileText, History, Plus } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 

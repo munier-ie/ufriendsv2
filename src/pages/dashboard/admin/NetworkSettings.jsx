@@ -1,6 +1,6 @@
 import { Loader2, Signal, AlertCircle } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
 
 import Switch from '../../../components/ui/Switch'; // Assuming Switch component exists or I'll implement inline if not

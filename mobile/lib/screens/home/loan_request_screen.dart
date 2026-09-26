@@ -54,9 +54,7 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
     if (result != null && mounted) {
       if (result['success'] == true) {
         Navigator.pop(context); // close screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Loan Request submitted successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
-        );
+        AppToast.success(context, 'Loan Request submitted successfully');
       } else {
         _showError(result['error'] ?? 'Failed to submit request');
       }
@@ -64,7 +62,7 @@ class _LoanRequestScreenState extends State<LoanRequestScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+    AppToast.error(context, message);
   }
 
   @override

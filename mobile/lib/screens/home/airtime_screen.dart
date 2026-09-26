@@ -236,6 +236,7 @@ class _AirtimeScreenState extends State<AirtimeScreen> {
                                     message: isSuccess 
                                         ? 'Your airtime purchase was successful.' 
                                         : errorMessage,
+                                    amount: isSuccess ? amount : null,
                                     details: isSuccess ? {
                                       'Service': 'Airtime Purchase',
                                       'Network': network,

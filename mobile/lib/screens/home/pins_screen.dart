@@ -33,7 +33,7 @@ class _PinsScreenState extends State<PinsScreen> {
     if (res['success']) {
       setState(() => _services = res['services']);
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'] ?? 'Failed to fetch services')));
+      AppToast.error(context, res['error'] ?? 'Failed to fetch services');
     }
   }
 
@@ -63,26 +63,24 @@ class _PinsScreenState extends State<PinsScreen> {
     if (pinResult != null) {
       final bool isSuccess = pinResult is Map ? pinResult['success'] == true : (pinResult == true);
       if (isSuccess) {
-        final pin = pinResult['data']['pinContent'];
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Purchase Successful'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('PIN: $pin', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ],
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK')),
-            ],
-          ),
+        final pin = pinResult['data']?['pinContent']?.toString() ?? '';
+        AppModal.transaction(
+          context,
+          isSuccess: true,
+          title: 'Purchase Successful',
+          message: 'Your ${_selectedService['name']} PIN has been generated.',
+          amount: '₦${formatCurrency((_selectedService['price'] ?? 0).toDouble())}',
+          pinContent: pin,
+          details: {
+            'Service': _selectedService['name']?.toString() ?? 'PIN Purchase',
+            'Quantity': '1',
+            if (pinResult['data']?['reference'] != null)
+              'Reference': pinResult['data']['reference'].toString(),
+          },
         );
       } else {
         final errorMsg = pinResult is Map ? pinResult['error'] : 'Purchase failed';
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(errorMsg ?? 'Purchase failed')));
+        AppToast.error(context, errorMsg ?? 'Purchase failed');
       }
     }
   }

@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import Button from '../components/ui/Button';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal } from '../contexts/ModalContext';
 import { useNavigate } from 'react-router-dom';
 
 const HelpTooltip = ({ text }) => (
@@ -81,15 +81,15 @@ export default function ResellerPage() {
         try {
             const res = await axios.get(`/api/reseller/verify/${reference}`);
             if (res.data.success) {
-                toast.success('Payment verified successfully!');
+                modal.success('Payment verified successfully!');
                 localStorage.removeItem('pending_reseller_verification');
                 navigate(`/reseller/status/${reference}`);
             } else {
-                toast.error(res.data.error || 'Verification failed');
+                modal.error(res.data.error || 'Verification failed');
             }
         } catch (err) {
             console.error('Verification error:', err);
-            toast.error('Verification failed. We will keep trying in the background.');
+            modal.error('Verification failed. We will keep trying in the background.');
         } finally {
             setVerifying(false);
         }
@@ -107,7 +107,7 @@ export default function ResellerPage() {
                 }
             } catch (err) {
                 console.error('Failed to fetch data:', err);
-                toast.error('Failed to load pricing or settings');
+                modal.error('Failed to load pricing or settings');
             } finally {
                 setLoading(false);
             }
@@ -156,16 +156,16 @@ export default function ResellerPage() {
     const handleSubmit = async () => {
         // Input validation
         if (!contact.email || !contact.phone) {
-            return toast.error('Please provide your email and phone number');
+            return modal.error('Please provide your email and phone number');
         }
         if (contact.phone.length !== 11) {
-            return toast.error('Please provide a valid 11-digit Nigerian phone number');
+            return modal.error('Please provide a valid 11-digit Nigerian phone number');
         }
 
         // SECURITY: Block submission entirely if Paystack is not loaded/configured.
         // No request should be allowed without a successful payment.
         if (!paystackKey || !window.PaystackPop) {
-            return toast.error('Payment system is not available. Please refresh the page or contact support.');
+            return modal.error('Payment system is not available. Please refresh the page or contact support.');
         }
 
         setSubmitting(true);
@@ -195,12 +195,12 @@ export default function ResellerPage() {
                     verifyPayment(response.reference);
                 },
                 onClose: () => {
-                    toast.info('Payment window closed. Your request has not been submitted.');
+                    modal.info('Payment window closed. Your request has not been submitted.');
                 }
             });
             handler.openIframe();
         } catch (err) {
-            toast.error(err.response?.data?.error || 'Failed to submit request');
+            modal.error(err.response?.data?.error || 'Failed to submit request');
         } finally {
             setSubmitting(false);
         }

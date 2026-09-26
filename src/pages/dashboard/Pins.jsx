@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ShoppingBag, Copy, CheckCircle, AlertCircle } from 'lucide-react';
@@ -22,7 +22,7 @@ export default function Pins() {
         try {
             setLoading(true);
             const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:3000/api/pins/services', {
+            const response = await axios.get('/api/pins/services', {
                 headers: { Authorization: `Bearer ${token}` }
             });
             setServices(response.data);
@@ -41,7 +41,7 @@ export default function Pins() {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://localhost:3000/api/pins/purchase',
+            const response = await axios.post('/api/pins/purchase',
                 {
                     serviceId: selectedService.id,
                     quantity: 1, // Only 1 for now to keep it simple, or implement quantity loop in backend
@@ -50,11 +50,27 @@ export default function Pins() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
+            const pinObj = response.data.pin || (response.data.pins && response.data.pins[0]);
+            setPurchasedPin(pinObj);
 
-            setPurchasedPin(response.data.pin);
-            // Refresh balance or services if needed
+            modal.transaction({
+                title: 'PIN Purchase Successful',
+                message: response.data.message || 'Your PIN order has been processed.',
+                transaction: {
+                    reference: response.data.transaction?.reference || `PIN-${Date.now().toString().slice(-8)}`,
+                    serviceName: selectedService.name || 'Data/Recharge PIN',
+                    amount: selectedService.price || 0,
+                    status: 0,
+                    date: new Date().toISOString(),
+                    newBalance: response.data.newBalance
+                },
+                pin: pinObj?.content || (typeof pinObj === 'string' ? pinObj : null),
+                token: pinObj?.serialNumber ? `SN: ${pinObj.serialNumber}` : null
+            });
         } catch (err) {
-            setError(err.response?.data?.error || 'Purchase failed');
+            const errMsg = err.response?.data?.error || 'Purchase failed';
+            setError(errMsg);
+            modal.error(errMsg);
         } finally {
             setPurchaseLoading(false);
         }
@@ -62,7 +78,7 @@ export default function Pins() {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        toast.success('PIN copied to clipboard!')
+        modal.success('PIN copied to clipboard!');
     };
 
     return (

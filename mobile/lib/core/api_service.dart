@@ -1010,6 +1010,23 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> getProfessionalRequestStatus(String reference) async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/professional/request-status/$reference'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        },
+      );
+      if (_handleAuthError(response)) return {'success': false, 'error': 'Session expired'};
+      final data = jsonDecode(response.body);
+      return data is Map<String, dynamic> ? data : {'success': false, 'error': 'Invalid status response'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error checking status: $e'};
+    }
+  }
+
   static Future<Map<String, dynamic>> submitProfessionalRequest({
     required String type,
     required Map<String, dynamic> details,
@@ -1030,7 +1047,57 @@ class ApiService {
       if (response.statusCode == 200) {
         ApiCache.bustKeys(['profile']);
         ApiCache.bustPrefix('transactions');
-        return {'success': true, 'report': data['report'], 'message': data['message']};
+
+        // Check if the request is running asynchronously
+        if (data['status'] == 'pending' && data['transactionRef'] != null) {
+          final ref = data['transactionRef'].toString();
+          int pollCount = 0;
+          const maxPolls = 40; // 40 * 2.5s = 100 seconds
+          while (pollCount < maxPolls) {
+            await Future.delayed(const Duration(milliseconds: 2500));
+            pollCount++;
+            final statusRes = await getProfessionalRequestStatus(ref);
+            if (statusRes['status'] == 'completed') {
+              final report = statusRes['report'] is Map<String, dynamic>
+                  ? Map<String, dynamic>.from(statusRes['report'])
+                  : <String, dynamic>{};
+              report['transactionRef'] = ref;
+              return {
+                'success': true,
+                'status': 'completed',
+                'report': report,
+                'message': data['message'] ?? 'Slip generated successfully',
+                'transactionRef': ref,
+              };
+            } else if (statusRes['status'] == 'failed' || statusRes['success'] == false) {
+              return {
+                'success': false,
+                'status': 'failed',
+                'error': statusRes['error'] ?? 'Verification failed',
+                'transactionRef': ref,
+              };
+            }
+          }
+          return {
+            'success': false,
+            'status': 'timeout',
+            'error': 'Verification timed out. Please check your transaction history.',
+            'transactionRef': ref,
+          };
+        }
+
+        final report = data['report'] is Map<String, dynamic>
+            ? Map<String, dynamic>.from(data['report'])
+            : <String, dynamic>{};
+        if (data['transactionRef'] != null) {
+          report['transactionRef'] = data['transactionRef'];
+        }
+        return {
+          'success': true,
+          'report': report,
+          'message': data['message'],
+          'transactionRef': data['transactionRef'],
+        };
       }
       return {'success': false, 'error': data['error'] ?? 'Request failed'};
     } catch (e) {

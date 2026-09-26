@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 import Button from '../../../components/ui/Button';
+import { modal } from '../../../contexts/ModalContext';
 
 const STATUS_CONFIG = {
     updated: { label: 'Live',    icon: CheckCircle,  color: 'text-green-600',  bg: 'bg-green-50',  border: 'border-green-200' },
@@ -19,11 +20,13 @@ export default function ApiWalletMonitor() {
     const [editForm, setEditForm]     = useState({ balance: '', lowBalanceAlert: '' });
     const [saving, setSaving]         = useState(false);
     const [checkResults, setCheckResults] = useState(null);  // { summary, results }
-    const [toast, setToast]           = useState(null);
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 4000);
+        if (type === 'error') {
+            modal.error(msg);
+        } else {
+            modal.success(msg);
+        }
     };
 
     useEffect(() => { fetchWallets(); }, []);
@@ -102,13 +105,6 @@ export default function ApiWalletMonitor() {
 
     return (
         <div className="space-y-6">
-            {/* Toast */}
-            {toast && (
-                <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl text-white text-sm font-medium
-                    ${toast.type === 'error' ? 'bg-red-500' : 'bg-green-600'}`}>
-                    {toast.msg}
-                </div>
-            )}
 
             {/* Header */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">

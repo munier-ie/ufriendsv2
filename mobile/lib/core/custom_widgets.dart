@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'app_theme.dart';
+import '../widgets/app_modal.dart';
+export '../widgets/app_modal.dart';
 
 String formatCurrency(double amount) {
   String str = amount.toStringAsFixed(2);
@@ -82,66 +84,60 @@ class GradientButton extends StatelessWidget {
   }
 }
 
-enum ToastType { success, error, warning }
+enum ToastType { success, error, warning, info }
 
 class AppToast {
-  static void show(BuildContext context, {required String message, required ToastType type}) {
-    Color backgroundColor;
-    IconData icon;
-
+  /// Displays a modern popup modal with Lottie animation
+  static void show(
+    BuildContext context, {
+    required String message,
+    required ToastType type,
+    String? title,
+    bool autoClose = true,
+  }) {
+    ModalType modalType;
     switch (type) {
       case ToastType.success:
-        backgroundColor = AppTheme.successColor;
-        icon = Icons.check_circle_outline;
+        modalType = ModalType.success;
         break;
       case ToastType.error:
-        backgroundColor = AppTheme.errorColor;
-        icon = Icons.error_outline;
+        modalType = ModalType.error;
         break;
       case ToastType.warning:
-        backgroundColor = AppTheme.warningColor;
-        icon = Icons.warning_amber_rounded;
+        modalType = ModalType.warning;
+        break;
+      case ToastType.info:
+        modalType = ModalType.info;
         break;
     }
 
-    final snackBar = SnackBar(
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.transparent,
-      margin: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
-      content: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: backgroundColor.withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                message,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-              ),
-            ),
-          ],
-        ),
-      ),
+    AppModal.show(
+      context,
+      title: title,
+      message: message,
+      type: modalType,
+      autoClose: autoClose,
+      autoCloseDuration: Duration(milliseconds: type == ToastType.error ? 4200 : 3200),
     );
+  }
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(snackBar);
+  static void success(BuildContext context, String message, {String? title, bool autoClose = true}) {
+    show(context, message: message, type: ToastType.success, title: title, autoClose: autoClose);
+  }
+
+  static void error(BuildContext context, String message, {String? title, bool autoClose = false}) {
+    show(context, message: message, type: ToastType.error, title: title, autoClose: autoClose);
+  }
+
+  static void warning(BuildContext context, String message, {String? title, bool autoClose = true}) {
+    show(context, message: message, type: ToastType.warning, title: title, autoClose: autoClose);
+  }
+
+  static void info(BuildContext context, String message, {String? title, bool autoClose = true}) {
+    show(context, message: message, type: ToastType.info, title: title, autoClose: autoClose);
   }
 }
+
 
 class AppLogo extends StatelessWidget {
   final double size;

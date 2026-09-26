@@ -263,6 +263,8 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                             );
                           }
                           
+                          final token = result is Map ? (result['data']?['token'] ?? result['token'] ?? result['data']?['pin'] ?? result['data']?['pinContent'] ?? result['data']?['mainToken'])?.toString() : null;
+                          
                           navigator.push(
                             MaterialPageRoute(
                               builder: (_) => TransactionStatusScreen(
@@ -271,10 +273,14 @@ class _ElectricityScreenState extends State<ElectricityScreen> {
                                 message: isSuccess 
                                     ? 'Your electricity token purchase was successful.' 
                                     : errorMessage,
+                                amount: '₦${formatCurrency(totalAmount)}',
+                                pinContent: token,
                                 details: isSuccess ? {
                                   'Provider': _selectedProvider!.toUpperCase(),
                                   'Meter Number': _meterController.text,
+                                  'Meter Type': _selectedMeterType.toUpperCase(),
                                   'Amount': '₦${formatCurrency(totalAmount)}',
+                                  if (token != null) ...{'Token': token},
                                 } : null,
                               ),
                             ),

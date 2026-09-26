@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -235,32 +235,32 @@ export default function GovServices() {
         e.preventDefault();
 
         if (!termsAgreed) {
-            toast.error('You must agree to the Terms of Service & Privacy Policy' );
+            modal.error('You must agree to the Terms of Service & Privacy Policy');
             return;
         }
 
         if (activeTab === 'bvn' && formData.bvn.length !== 11) {
-            toast.error('BVN must be exactly 11 digits' );
+            modal.error('BVN must be exactly 11 digits');
             return;
         }
 
         // CAC-specific validation
         if (activeTab === 'cac') {
             if (!directorIdCard) {
-                toast.error('Please upload Director ID card' );
+                modal.error('Please upload Director ID card');
                 return;
             }
             if (!passportPhoto) {
-                toast.error('Please upload Passport photograph' );
+                modal.error('Please upload Passport photograph');
                 return;
             }
             if (directorIdCard.size > 5 * 1024 * 1024 || passportPhoto.size > 5 * 1024 * 1024) {
-                toast.error('Files must be under 5MB each' );
+                modal.error('Files must be under 5MB each');
                 return;
             }
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(formData.email)) {
-                toast.error('Please enter a valid email address' );
+                modal.error('Please enter a valid email address');
                 return;
             }
         }
@@ -271,7 +271,7 @@ export default function GovServices() {
 
     const handleFinalSubmit = async () => {
         if (formData.pin.length !== 4) {
-            toast.error('Please enter a valid 4-digit PIN' );
+            modal.error('Please enter a valid 4-digit PIN');
             return;
         }
 
@@ -304,7 +304,7 @@ export default function GovServices() {
                     }
                 });
 
-                toast.success(res.data.message );
+                modal.success(res.data.message || 'CAC registration request submitted successfully');
                 setShowPinModal(false);
                 setFormData(INITIAL_FORM);
                 setDirectorIdCard(null);
@@ -338,8 +338,12 @@ export default function GovServices() {
                     timeout: 120000 // 2 minutes timeout for slip generation process
                 });
 
+                const applicantIdentifier = formData.nin || formData.bvn || formData.ninPhone;
+                const chosenSlip = activeTab === 'nin' ? selectedSlipType : selectedBvnSlipType;
+                const slipPrice = activeTab === 'nin' ? (ninPricing?.[selectedSlipType] || 150) : (bvnPricing?.[selectedBvnSlipType] || 500);
+
                 if (res.data.status === 'pending') {
-                    toast.loading(res.data.message || 'Processing your slip, this might take a minute...', { id: 'slip-polling' });
+                    modal.loading(res.data.message || 'Processing your slip, this might take a minute...');
                     setShowPinModal(false);
                     setFormData(INITIAL_FORM);
 
@@ -349,7 +353,7 @@ export default function GovServices() {
                     const pollStatus = async () => {
                         pollCount++;
                         if (pollCount > maxPolls) {
-                            toast.error('Verification timed out. Please check your history or contact support.', { id: 'slip-polling' });
+                            modal.error('Verification timed out. Please check your history or contact support.');
                             setSubmitting(false);
                             return;
                         }
@@ -360,14 +364,26 @@ export default function GovServices() {
                             });
                             
                             if (statusRes.data.status === 'completed') {
-                                toast.success(`${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`, { id: 'slip-polling' });
                                 setSlipPreview(statusRes.data.report);
-                                setShowPreviewModal(true);
+                                modal.transaction({
+                                    title: `${activeTab === 'nin' ? 'NIN' : 'BVN'} Slip Ready`,
+                                    message: `${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download or printing.`,
+                                    transaction: {
+                                        reference: res.data.transactionRef || `SLIP-${Date.now().toString().slice(-8)}`,
+                                        serviceName: `${activeTab === 'nin' ? 'NIN Slip' : 'BVN Slip'} (${chosenSlip.toUpperCase()})`,
+                                        amount: slipPrice,
+                                        recipient: applicantIdentifier,
+                                        status: 0,
+                                        date: new Date().toISOString()
+                                    },
+                                    slipUrl: statusRes.data.report?.pdfUrl,
+                                    pdfUrl: statusRes.data.report?.pdfUrl
+                                });
                                 if (activeTab === 'nin') fetchNinHistory();
                                 if (activeTab === 'bvn') fetchBvnHistory();
                                 setSubmitting(false);
                             } else if (statusRes.data.status === 'failed') {
-                                toast.error(statusRes.data.error || 'Verification failed', { id: 'slip-polling' });
+                                modal.error(statusRes.data.error || 'Verification failed');
                                 setSubmitting(false);
                             } else {
                                 // Still pending
@@ -382,12 +398,24 @@ export default function GovServices() {
                     return; // Skip the rest of the flow, submitting will be reset by pollStatus
                 } else if (res.data.success && res.data.report) {
                     setSlipPreview(res.data.report);
-                    setShowPreviewModal(true);
-                    toast.success(`${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download.`);
+                    modal.transaction({
+                        title: `${activeTab === 'nin' ? 'NIN' : 'BVN'} Slip Ready`,
+                        message: `${activeTab === 'nin' ? 'NIN' : 'BVN'} verified successfully! Your slip is ready for download or printing.`,
+                        transaction: {
+                            reference: res.data.transactionRef || `SLIP-${Date.now().toString().slice(-8)}`,
+                            serviceName: `${activeTab === 'nin' ? 'NIN Slip' : 'BVN Slip'} (${chosenSlip.toUpperCase()})`,
+                            amount: slipPrice,
+                            recipient: applicantIdentifier,
+                            status: 0,
+                            date: new Date().toISOString()
+                        },
+                        slipUrl: res.data.report.pdfUrl,
+                        pdfUrl: res.data.report.pdfUrl
+                    });
                     if (activeTab === 'nin') fetchNinHistory();
                     if (activeTab === 'bvn') fetchBvnHistory();
                 } else {
-                    toast.success(res.data.message );
+                    modal.success(res.data.message || 'Request submitted successfully');
                 }
 
                 setShowPinModal(false);
@@ -398,9 +426,9 @@ export default function GovServices() {
             const errorMsg = error.response?.data?.error || 'Request failed';
 
             if (errorMsg.toLowerCase().includes('pin')) {
-                toast.error('Incorrect PIN entered');
+                modal.error('Incorrect PIN entered');
             } else {
-                toast.error(errorMsg );
+                modal.error(errorMsg);
             }
             setShowPinModal(false);
             setSubmitting(false);

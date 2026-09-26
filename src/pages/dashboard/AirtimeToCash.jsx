@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import { ArrowRight, History as HistoryIcon, Wallet, AlertCircle } from 'lucide-react';
@@ -48,10 +48,10 @@ export default function AirtimeToCash() {
                 { network: formData.network, phoneNumber: formData.phoneNumber },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            toast.success('OTP sent successfully!');
+            modal.success('OTP sent successfully!');
             setStep(2);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to send OTP');
+            modal.error(error.response?.data?.error || 'Failed to send OTP');
         } finally {
             setLoading(false);
         }
@@ -65,11 +65,11 @@ export default function AirtimeToCash() {
                 { network: formData.network, phoneNumber: formData.phoneNumber, otp },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            toast.success('OTP verified!');
+            modal.success('OTP verified!');
             setSessionId(response.data.data.sessionId);
             setStep(3);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'OTP verification failed');
+            modal.error(error.response?.data?.error || 'OTP verification failed');
         } finally {
             setLoading(false);
         }
@@ -80,7 +80,7 @@ export default function AirtimeToCash() {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post('/api/airtime-cash/request',
+            const res = await axios.post('/api/airtime-cash/request',
                 {
                     ...formData,
                     amount: parseFloat(formData.amount),
@@ -91,7 +91,19 @@ export default function AirtimeToCash() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            toast.success('Conversion successful! Wallet credited.');
+            modal.transaction({
+                title: 'Airtime to Cash Successful',
+                message: res.data?.message || 'Conversion successful! Wallet credited.',
+                transaction: {
+                    reference: res.data?.transaction?.reference || `A2C-${Date.now().toString().slice(-8)}`,
+                    serviceName: `${formData.network} Airtime to Cash`,
+                    amount: parseFloat(formData.amount) || 0,
+                    recipient: formData.phoneNumber,
+                    status: 0,
+                    date: new Date().toISOString()
+                }
+            });
+
             setFormData({ network: '', amount: '', phoneNumber: '' });
             setOtp('');
             setTransferPin('');
@@ -100,7 +112,7 @@ export default function AirtimeToCash() {
             setStep(1);
             fetchHistory();
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Request failed');
+            modal.error(error.response?.data?.error || 'Request failed');
         } finally {
             setLoading(false);
         }

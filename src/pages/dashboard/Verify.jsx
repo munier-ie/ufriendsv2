@@ -6,6 +6,7 @@ import axios from 'axios';
 
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
+import { modal } from '../../contexts/ModalContext';
 
 export default function Verify() {
     const [submitting, setSubmitting] = useState(false);
@@ -73,7 +74,7 @@ export default function Verify() {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        // You could add a toast notification here
+        modal.success('Copied to clipboard!');
     };
 
     if (kycStatus === 'verified') {

@@ -2,7 +2,7 @@ import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 import React, { useEffect, useState, useRef } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal } from '../contexts/ModalContext';
 
 const ResellerCallback = () => {
     const [searchParams] = useSearchParams();
@@ -29,7 +29,7 @@ const ResellerCallback = () => {
 
                 if (response.data.success) {
                     setStatus('success');
-                    toast.success('Payment verified successfully!');
+                    modal.success('Payment verified successfully!');
 
                     // Redirect to status page after 3 seconds
                     setTimeout(() => {

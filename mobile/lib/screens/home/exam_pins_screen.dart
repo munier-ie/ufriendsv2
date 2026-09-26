@@ -149,6 +149,7 @@ class _ExamPinsScreenState extends State<ExamPinsScreen> {
               isSuccess: true,
               title: 'Purchase Successful',
               message: 'Your exam pins were generated successfully.',
+              amount: '₦${formatCurrency(((_selectedExamPlan!['price'] ?? 0) as num).toDouble() * int.parse(_selectedQuantity))}',
               pinContent: pinData?.toString(),
               details: {
                 'Exam Board': _selectedProviderKey!.toUpperCase(),

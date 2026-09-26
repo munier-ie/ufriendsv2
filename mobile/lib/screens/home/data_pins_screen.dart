@@ -276,6 +276,7 @@ class _DataPinsScreenState extends State<DataPinsScreen> {
               isSuccess: true,
               title: 'Purchase Successful',
               message: 'Your data pins were generated successfully.',
+              amount: '₦${formatCurrency(((_selectedDataPlan!['price'] ?? 0) as num).toDouble() * int.parse(_selectedQuantity))}',
               pinContent: pinData?.toString(),
               details: {
                 'Network': _selectedNetwork!,

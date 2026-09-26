@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './style.css'
 import { LandingContentProvider } from './contexts/LandingContentContext.jsx'
-import { Toaster } from 'sonner'
+import { ModalProvider } from './contexts/ModalContext.jsx'
 import { HelmetProvider } from 'react-helmet-async'
 
 ReactDOM.createRoot(document.getElementById('app')).render(
@@ -11,19 +11,9 @@ ReactDOM.createRoot(document.getElementById('app')).render(
         {/* HelmetProvider enables per-page <head> meta injection via react-helmet-async */}
         <HelmetProvider>
             <LandingContentProvider>
-                <App />
-                <Toaster
-                    position="top-right"
-                    richColors
-                    expand={false}
-                    duration={4000}
-                    toastOptions={{
-                        style: {
-                            fontFamily: 'inherit',
-                            borderRadius: '12px',
-                        },
-                    }}
-                />
+                <ModalProvider>
+                    <App />
+                </ModalProvider>
             </LandingContentProvider>
         </HelmetProvider>
     </React.StrictMode>,

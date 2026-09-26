@@ -380,6 +380,7 @@ class _DataScreenState extends State<DataScreen> {
                                     message: isSuccess 
                                         ? 'Your data purchase was successful.' 
                                         : errorMessage,
+                                    amount: isSuccess ? amount : null,
                                     details: isSuccess ? {
                                       'Service': 'Data Purchase',
                                       'Type': ?dataType,

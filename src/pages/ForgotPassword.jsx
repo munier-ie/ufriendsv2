@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../contexts/ModalContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Logo from '../components/ui/Logo';
@@ -17,19 +17,19 @@ export default function ForgotPassword() {
         try {
             const response = await axios.post('/api/auth/forgot-password', { email });
             setStatus('success');
-            toast.success(response.data.message);
+            modal.success(response.data.message || 'Password reset link sent to your email.');
         } catch (err) {
             const errorCode = err.response?.data?.error;
             const serverMsg = err.response?.data?.message;
 
             if (errorCode === 'EMAIL_NOT_CONFIGURED') {
-                toast.error('Email service is currently unavailable. Please contact support or try again later.');
+                modal.error('Email service is currently unavailable. Please contact support or try again later.');
             } else if (errorCode === 'EMAIL_SEND_FAILED') {
-                toast.error(serverMsg || 'We could not deliver the email. Please try again in a moment.');
+                modal.error(serverMsg || 'We could not deliver the email. Please try again in a moment.');
             } else if (err.response?.status === 400) {
-                toast.error(err.response?.data?.error || 'Invalid request. Please check your email and try again.');
+                modal.error(err.response?.data?.error || 'Invalid request. Please check your email and try again.');
             } else {
-                toast.error('Something went wrong. Please check your internet connection and try again.');
+                modal.error('Something went wrong. Please check your internet connection and try again.');
             }
         } finally {
             setLoading(false);

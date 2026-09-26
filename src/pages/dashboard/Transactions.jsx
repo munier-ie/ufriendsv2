@@ -7,6 +7,7 @@ import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
 import Receipt from '../../components/dashboard/Receipt';
 import PinContentDisplay from '../../components/dashboard/PinContentDisplay';
+import { modal } from '../../contexts/ModalContext';
 
 import ServiceIcon from '../../components/dashboard/ServiceIcon';
 
@@ -72,7 +73,7 @@ export default function Transactions() {
 
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
-        // Could show a toast here
+        modal.success('Copied to clipboard!');
     };
 
     const renderServiceIcon = (serviceName) => {

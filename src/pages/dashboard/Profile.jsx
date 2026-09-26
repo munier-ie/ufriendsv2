@@ -7,7 +7,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate, useOutletContext } from 'react-router-dom';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 
 import Input from '../../components/ui/Input';
 import Button from '../../components/ui/Button';
@@ -75,7 +75,7 @@ export default function Profile() {
             setApiIpsForm(response.data.apiIps || '');
         } catch (error) {
             console.error('Failed to fetch profile:', error);
-            toast.error('Failed to load profile details');
+            modal.error('Failed to load profile details');
         } finally {
             setLoading(false);
         }
@@ -84,14 +84,14 @@ export default function Profile() {
     const copyToClipboard = (text) => {
         navigator.clipboard.writeText(text);
         setCopied(true);
-        toast.success('Copied to clipboard!');
+        modal.success('Copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
     };
 
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            toast.error('Passwords do not match');
+            modal.error('Passwords do not match');
             return;
         }
         try {
@@ -99,10 +99,10 @@ export default function Profile() {
             await axios.put('/api/auth/update-password', passwordForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('Password updated successfully!');
+            modal.success('Password updated successfully!');
             setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Failed to update password');
+            modal.error(error.response?.data?.message || 'Failed to update password');
         }
     };
 
@@ -113,10 +113,10 @@ export default function Profile() {
             await axios.post('/api/auth/pin/forgot', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('Reset OTP sent to your email!');
+            modal.success('Reset OTP sent to your email!');
             setResetPinStep('otp_sent');
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to request PIN reset');
+            modal.error(error.response?.data?.error || 'Failed to request PIN reset');
         } finally {
             setChangePinLoading(false);
         }
@@ -125,7 +125,7 @@ export default function Profile() {
     const handleResetPinSubmit = async (e) => {
         e.preventDefault();
         if (changePinForm.newPin !== changePinForm.confirmPin) {
-            toast.error('New PINs do not match');
+            modal.error('New PINs do not match');
             return;
         }
         setChangePinLoading(true);
@@ -134,13 +134,13 @@ export default function Profile() {
             await axios.post('/api/auth/pin/reset-with-otp', changePinForm, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('Transaction PIN reset successfully!');
+            modal.success('Transaction PIN reset successfully!');
             setChangePinForm({ otp: '', newPin: '', confirmPin: '' });
             setResetPinStep('initial');
             setChangePinMode(false);
             fetchProfileData();
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to reset PIN');
+            modal.error(error.response?.data?.error || 'Failed to reset PIN');
         } finally {
             setChangePinLoading(false);
         }
@@ -155,11 +155,11 @@ export default function Profile() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success(`PIN ${action}d successfully!`);
+            modal.success(`PIN ${action}d successfully!`);
             fetchProfileData();
             setPinForm({ pin: '', confirmPin: '', currentPin: '' });
         } catch (error) {
-            toast.error(error.response?.data?.message || `Failed to ${action} PIN`);
+            modal.error(error.response?.data?.message || `Failed to ${action} PIN`);
         }
     };
 
@@ -182,7 +182,7 @@ export default function Profile() {
                 setTwoFaMethod('email');
             }
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to initialize 2FA setup');
+            modal.error(error.response?.data?.error || 'Failed to initialize 2FA setup');
         }
     };
 
@@ -196,12 +196,12 @@ export default function Profile() {
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('2FA enabled successfully!');
+            modal.success('2FA enabled successfully!');
             fetchProfileData();
             setTwoFaStep('initial');
             setTwoFaCode('');
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to verify and enable 2FA');
+            modal.error(error.response?.data?.error || 'Failed to verify and enable 2FA');
         }
     };
 
@@ -211,11 +211,11 @@ export default function Profile() {
             await axios.post('/api/twofa/disable', { code: disableTwoFaCode }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('2FA disabled successfully');
+            modal.success('2FA disabled successfully');
             fetchProfileData();
             setDisableTwoFaCode('');
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to disable 2FA');
+            modal.error(error.response?.data?.error || 'Failed to disable 2FA');
         }
     };
 
@@ -230,14 +230,14 @@ export default function Profile() {
             const response = await axios.post('/api/auth/api-key/regenerate', {}, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('API Keys generated successfully!');
+            modal.success('API Keys generated successfully!');
             setProfileData(prev => ({ 
                 ...prev, 
                 apiKey: response.data.apiKey,
                 testApiKey: response.data.testApiKey 
             }));
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to generate API Keys');
+            modal.error(error.response?.data?.error || 'Failed to generate API Keys');
         }
     };
 
@@ -248,10 +248,10 @@ export default function Profile() {
             await axios.post('/api/auth/api-ips', { ips: apiIpsForm }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            toast.success('API Whitelist updated successfully!');
+            modal.success('API Whitelist updated successfully!');
             fetchProfileData();
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to update API Whitelist');
+            modal.error(error.response?.data?.error || 'Failed to update API Whitelist');
         } finally {
             setSavingIps(false);
         }

@@ -68,16 +68,16 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
       if (res['success'] == true) {
         _updateField(key, res['data']['filePath']);
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Document uploaded successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));
+          AppToast.success(context, 'Document uploaded successfully');
         }
       } else {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(res['error'] ?? 'Upload failed')));
+          AppToast.error(context, res['error'] ?? 'Upload failed');
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('An error occurred during upload')));
+        AppToast.error(context, 'An error occurred during upload: $e');
       }
     } finally {
       setState(() => _uploading = false);
@@ -116,9 +116,7 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
     if (result != null && mounted) {
       if (result['success'] == true) {
         Navigator.pop(context); // close screen
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('POS Request submitted successfully', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
-        );
+        AppToast.success(context, 'POS Request submitted successfully');
       } else {
         _showError(result['error'] ?? 'Failed to submit request');
       }
@@ -126,7 +124,7 @@ class _PosRequestScreenState extends State<PosRequestScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message), backgroundColor: Colors.red));
+    AppToast.error(context, message);
   }
 
   @override

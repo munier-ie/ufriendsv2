@@ -1,6 +1,6 @@
 import { Landmark, CreditCard, Banknote, Loader2, CheckCircle, Clock } from 'lucide-react';
 import React, { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useOutletContext, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
@@ -323,7 +323,7 @@ export default function BankingFinance() {
         if (!file) return;
 
         if (file.size > 5 * 1024 * 1024) {
-            toast.error('File size must be less than 5MB');
+            modal.error('File size must be less than 5MB');
             return;
         }
 
@@ -341,9 +341,9 @@ export default function BankingFinance() {
             });
 
             updateFormData(fieldName, res.data.fileUrl);
-            toast.success('File uploaded successfully');
+            modal.success('File uploaded successfully');
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to upload file');
+            modal.error(error.response?.data?.error || 'Failed to upload file');
         } finally {
             setUploading(false);
         }
@@ -365,18 +365,18 @@ export default function BankingFinance() {
 
         // Validation for POS Request
         if (activeTab === 'POS_REQUEST') {
-            if (!formData.provider) return toast.error('Select POS provider');
-            if (!formData.posType) return toast.error('Select POS type');
-            if (!formData.subType) return toast.error('Select payment option');
+            if (!formData.provider) return modal.error('Select POS provider');
+            if (!formData.posType) return modal.error('Select POS type');
+            if (!formData.subType) return modal.error('Select payment option');
             if (formData.subType === 'FEE_WAIVER' && !formData.proofOfBusinessUrl) {
-                return toast.error('Please upload proof of business for fee waiver');
+                return modal.error('Please upload proof of business for fee waiver');
             }
         }
 
         // Validation for Loan Request
         if (activeTab === 'LOAN_REQUEST') {
-            if (!formData.accountNumber) return toast.error('Account number is required');
-            if (!formData.amountNeeded) return toast.error('Amount is required');
+            if (!formData.accountNumber) return modal.error('Account number is required');
+            if (!formData.amountNeeded) return modal.error('Amount is required');
         }
 
         const price = getPrice();
@@ -403,12 +403,12 @@ export default function BankingFinance() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            toast.success(res.data.message || 'Request submitted successfully');
+            modal.success(res.data.message || 'Request submitted successfully');
             setFormData({});
             fetchHistory();
             if (showPinModal) setShowPinModal(false);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to submit request');
+            modal.error(error.response?.data?.error || 'Failed to submit request');
         } finally {
             setLoading(false);
         }

@@ -1,7 +1,7 @@
 import { ShieldCheck, FileEdit, Search, Send, Smartphone, CheckCircle, AlertCircle, Loader2, Clock, Download, Eye, Hash, ExternalLink, Shield, MessageCircle } from 'lucide-react';
 /* eslint-disable react/no-unescaped-entities, security/detect-object-injection, i18next/no-literal-string, react/jsx-no-literals */
 import React, { useState, useEffect, useCallback } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 
@@ -382,7 +382,7 @@ export default function ManualServices() {
             });
             update(key, res.data.filePath);
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to upload document');
+            modal.error(error.response?.data?.error || 'Failed to upload document');
         } finally {
             setUploading(false);
         }
@@ -445,13 +445,13 @@ export default function ManualServices() {
         e.preventDefault();
 
         if (!termsAgreed) {
-            toast.error('You must agree to the Terms of Service & Privacy Policy' );
+            modal.error('You must agree to the Terms of Service & Privacy Policy');
             return;
         }
 
         // Extra validation for uploads
         if (activeSub === 'BVN_MODIFICATION' && formData.idType && formData.idType !== 'nin' && !formData.idFileUrl) {
-            toast.error('Please upload the identification document' );
+            modal.error('Please upload the identification document');
             return;
         }
 
@@ -461,7 +461,7 @@ export default function ManualServices() {
 
     const handleFinalSubmit = async () => {
         if (pin.length !== 4) {
-            toast.error('Please enter a valid 4-digit PIN' );
+            modal.error('Please enter a valid 4-digit PIN');
             return;
         }
         setSubmitting(true);
@@ -474,11 +474,24 @@ export default function ManualServices() {
                 pin
             }, { headers: { Authorization: `Bearer ${token}` } });
 
-            const successMsg = res.data.bvn
-                ? `BVN retrieved: ${res.data.bvn}`
-                : res.data.message || 'Request submitted successfully.';
+            if (res.data.bvn) {
+                modal.transaction({
+                    title: 'BVN Retrieved Successfully',
+                    message: 'Your BVN was retrieved successfully.',
+                    transaction: {
+                        reference: res.data.transactionRef || `BVN-${Date.now().toString().slice(-8)}`,
+                        serviceName: 'BVN Retrieval',
+                        amount: currentPrice(),
+                        status: 0,
+                        date: new Date().toISOString()
+                    },
+                    pin: res.data.bvn,
+                    token: `BVN: ${res.data.bvn}`
+                });
+            } else {
+                modal.success(res.data.message || 'Request submitted successfully.');
+            }
 
-            toast.success(successMsg );
             setShowPinModal(false);
             setFormData({});
             setPin('');
@@ -487,10 +500,10 @@ export default function ManualServices() {
             const errMsg = err.response?.data?.error || 'Submission failed';
 
             if (errMsg.toLowerCase().includes('pin')) {
-                toast.error('Incorrect PIN entered');
+                modal.error('Incorrect PIN entered');
                 setShowPinModal(false);
             } else {
-                toast.error(errMsg );
+                modal.error(errMsg);
                 setShowPinModal(false);
             }
         } finally {

@@ -1,6 +1,6 @@
 import { Loader2, MessageSquare, Plus, CheckCheck, Clock } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -55,9 +55,9 @@ export default function Support() {
             setIsModalOpen(false);
             setSubject('');
             setMessageContent('');
-            toast.success('Your message has been sent to our support team.');
+            modal.success('Your message has been sent to our support team.');
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Failed to send message');
+            modal.error(error.response?.data?.error || 'Failed to send message');
         } finally {
             setSending(false);
         }

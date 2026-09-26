@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 
 import Button from '../../../components/ui/Button';
+import { modal } from '../../../contexts/ModalContext';
 
 const TYPE_CONFIG = {
     data:  { label: 'Data Plans',   icon: Database,       color: 'blue',  bg: 'bg-blue-50',   text: 'text-blue-700',   badge: 'bg-blue-100 text-blue-700' },
@@ -16,11 +17,15 @@ export default function BotDiscoveredPlans() {
     const [activeTab, setActiveTab]   = useState('all');
     const [loading, setLoading]       = useState(true);
     const [processingId, setProcessingId] = useState(null);
-    const [toast, setToast]           = useState(null);
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
+        if (type === 'error') {
+            modal.error(msg);
+        } else if (type === 'warning') {
+            modal.warning(msg);
+        } else {
+            modal.success(msg);
+        }
     };
 
     const fetchDiscoveredPlans = useCallback(async (tab = activeTab) => {
@@ -110,13 +115,6 @@ export default function BotDiscoveredPlans() {
     return (
         <div className="max-w-6xl mx-auto p-6 space-y-6">
 
-            {/* Toast */}
-            {toast && (
-                <div className={`fixed top-6 right-6 z-50 px-5 py-3 rounded-xl shadow-xl text-white text-sm font-medium transition-all
-                    ${toast.type === 'error' ? 'bg-red-500' : toast.type === 'warning' ? 'bg-yellow-500' : 'bg-green-500'}`}>
-                    {toast.msg}
-                </div>
-            )}
 
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

@@ -419,7 +419,8 @@ router.post('/request', authenticateUser, async (req, res) => {
                                 details: JSON.stringify({
                                     ...details,
                                     reportId: verificationResult.report.id,
-                                    pdfUrl: verificationResult.report.pdfUrl
+                                    pdfUrl: verificationResult.report.pdfUrl,
+                                    report: verificationResult.report
                                 })
                             }
                         });
@@ -520,7 +521,8 @@ router.post('/request', authenticateUser, async (req, res) => {
                                 details: JSON.stringify({
                                     ...details,
                                     reportId: verificationResult.report.id,
-                                    pdfUrl: verificationResult.report.pdfUrl
+                                    pdfUrl: verificationResult.report.pdfUrl,
+                                    report: verificationResult.report
                                 })
                             }
                         });
@@ -623,11 +625,81 @@ router.get('/request-status/:reference', authenticateUser, async (req, res) => {
         if (request.status === 0) {
             return res.json({ success: true, status: 'pending' });
         } else if (request.status === 1) {
-            // Point pdfUrl to the authenticated download endpoint
-            if (details.pdfUrl) {
-                details.pdfUrl = `/api/slips/by-ref/${reference}/download`;
+            // Find full report from details, ninReport or bvnReport tables
+            let fullReport = details.report ? { ...details.report } : { ...details };
+
+            // Always look up the latest record from ninReport or bvnReport to ensure full demography
+            const ninReport = await prisma.ninReport.findUnique({
+                where: { transactionRef: reference }
+            });
+            if (ninReport) {
+                const { rawResponse, ...safeNin } = ninReport;
+                let rawData = {};
+                try { rawData = JSON.parse(rawResponse || '{}'); } catch (_) {}
+                fullReport = {
+                    ...fullReport,
+                    ...rawData,
+                    ...safeNin,
+                    firstName: ninReport.firstName || rawData.firstName || rawData.first_name || rawData.firstname,
+                    lastName: ninReport.surname || rawData.surname || rawData.last_name || rawData.lastname,
+                    surname: ninReport.surname || rawData.surname || rawData.last_name || rawData.lastname,
+                    middleName: ninReport.middleName || rawData.middleName || rawData.middle_name || rawData.middlename,
+                    dateOfBirth: ninReport.dateOfBirth || rawData.dateOfBirth || rawData.date_of_birth || rawData.birthdate || rawData.dob,
+                    gender: ninReport.gender || rawData.gender,
+                    phoneNumber: rawData.telephoneno || rawData.telephone || rawData.phone || rawData.phoneNumber || rawData.phone_number || rawData.mobile,
+                    nin: ninReport.ninNumber || rawData.nin || rawData.number_nin,
+                    ninNumber: ninReport.ninNumber || rawData.nin || rawData.number_nin,
+                    trackingId: ninReport.trackingId || rawData.trackingId || rawData.tracking_id,
+                    stateOfOrigin: rawData.state_of_origin || rawData.origin_state || rawData.stateOfOrigin || rawData.originState,
+                    lgaOfOrigin: rawData.lga_of_origin || rawData.origin_lga || rawData.lgaOfOrigin || rawData.originLga,
+                    stateOfResidence: ninReport.residenceState || rawData.residence_state || rawData.residenceState || rawData.state,
+                    lgaOfResidence: ninReport.residenceLga || rawData.residence_lga || rawData.residenceLga || rawData.lga,
+                    residentialAddress: ninReport.residenceAddress || rawData.residence_address || rawData.residenceAddress || rawData.address,
+                    base64Photo: ninReport.base64Photo || rawData.base64Photo || rawData.base64_photo || rawData.photo || rawData.image,
+                };
+            } else {
+                // Look up in bvnReport
+                const bvnReport = await prisma.bvnReport.findUnique({
+                    where: { transactionRef: reference }
+                });
+                if (bvnReport) {
+                    const { rawResponse, ...safeBvn } = bvnReport;
+                    let rawData = {};
+                    try { rawData = JSON.parse(rawResponse || '{}'); } catch (_) {}
+                    fullReport = {
+                        ...fullReport,
+                        ...rawData,
+                        ...safeBvn,
+                        firstName: bvnReport.firstName || rawData.firstName || rawData.first_name,
+                        lastName: bvnReport.lastName || rawData.lastName || rawData.last_name || rawData.surname,
+                        middleName: bvnReport.middleName || rawData.middleName || rawData.middle_name,
+                        dateOfBirth: bvnReport.dateOfBirth || rawData.dateOfBirth || rawData.date_of_birth || rawData.dob,
+                        gender: bvnReport.gender || rawData.gender,
+                        phoneNumber: bvnReport.phoneNumber || rawData.phoneNumber || rawData.phone_number || rawData.phone || rawData.telephoneno,
+                        bvn: bvnReport.bvnNumber || rawData.bvn || rawData.bvnNumber,
+                        bvnNumber: bvnReport.bvnNumber || rawData.bvn || rawData.bvnNumber,
+                        nin: bvnReport.nin || rawData.nin,
+                        maritalStatus: bvnReport.maritalStatus || rawData.maritalStatus || rawData.marital_status,
+                        enrollmentBank: bvnReport.enrollmentBank || rawData.enrollmentBank || rawData.enrollment_bank,
+                        enrollmentBranch: bvnReport.enrollmentBranch || rawData.enrollmentBranch || rawData.enrollment_branch,
+                        stateOfOrigin: bvnReport.stateOfOrigin || rawData.stateOfOrigin || rawData.state_of_origin,
+                        lgaOfOrigin: bvnReport.lgaOfOrigin || rawData.lgaOfOrigin || rawData.lga_of_origin,
+                        stateOfResidence: bvnReport.stateOfResidence || rawData.stateOfResidence || rawData.state_of_residence,
+                        lgaOfResidence: bvnReport.lgaOfResidence || rawData.lgaOfResidence || rawData.lga_of_residence,
+                        residentialAddress: bvnReport.residentialAddress || rawData.residentialAddress || rawData.residential_address || rawData.address,
+                        base64Photo: bvnReport.base64Image || rawData.base64Image || rawData.base64Photo || rawData.photo || rawData.image,
+                    };
+                }
             }
-            return res.json({ success: true, status: 'completed', report: details });
+
+            // Point pdfUrl to the authenticated download endpoint
+            fullReport.pdfUrl = `/api/slips/by-ref/${reference}/download`;
+            fullReport.transactionRef = reference;
+            if (details.slipType && !fullReport.slipType) {
+                fullReport.slipType = details.slipType;
+            }
+
+            return res.json({ success: true, status: 'completed', report: fullReport });
         } else {
             return res.json({ success: false, status: 'failed', error: details.error || 'Verification failed' });
         }

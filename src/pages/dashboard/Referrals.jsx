@@ -2,7 +2,7 @@ import { Users, Wallet, Copy, ArrowRight, Loader2, CheckCheck, ChevronDown, File
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 
 import Button from '../../components/ui/Button';
 
@@ -36,7 +36,7 @@ export default function Referrals() {
     const handleCopy = () => {
         const code = stats?.referralCode;
         if (!code) {
-            toast.error('Referral code not available yet');
+            modal.error('Referral code not available yet');
             return;
         }
 
@@ -46,6 +46,7 @@ export default function Referrals() {
             navigator.clipboard.writeText(link)
                 .then(() => {
                     setCopied(true);
+                    modal.success('Referral link copied to clipboard!');
                     setTimeout(() => setCopied(false), 2000);
                 })
                 .catch(err => {
@@ -60,7 +61,7 @@ export default function Referrals() {
     const handleCopyCode = () => {
         const code = stats?.referralCode;
         if (!code) {
-            toast.error('Referral code not available yet');
+            modal.error('Referral code not available yet');
             return;
         }
 
@@ -68,6 +69,7 @@ export default function Referrals() {
             navigator.clipboard.writeText(code)
                 .then(() => {
                     setCodeCopied(true);
+                    modal.success('Referral code copied to clipboard!');
                     setTimeout(() => setCodeCopied(false), 2000);
                 })
                 .catch(err => {
@@ -89,6 +91,7 @@ export default function Referrals() {
         try {
             document.execCommand('copy');
             setCopyState(true);
+            modal.success('Copied to clipboard!');
             setTimeout(() => setCopyState(false), 2000);
         } catch (err) {
             console.error('Fallback copy failed:', err);
@@ -107,11 +110,11 @@ export default function Referrals() {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            toast.success(res.data.message || 'Commission withdrawn to wallet!');
+            modal.success(res.data.message || 'Commission withdrawn to wallet!');
             setWithdrawAmount('');
             fetchStats();
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Withdrawal failed');
+            modal.error(error.response?.data?.error || 'Withdrawal failed');
         } finally {
             setWithdrawLoading(false);
         }

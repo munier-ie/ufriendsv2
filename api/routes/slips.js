@@ -233,7 +233,18 @@ router.get('/by-ref/:reference/download', authenticateAny, async (req, res) => {
         });
 
         if (!transaction && !req.isAdmin) {
-            return res.status(404).json({ error: 'Transaction not found or access denied' });
+            // Also check if ninReport or bvnReport belongs directly to this user
+            const directReport = await prisma.ninReport.findFirst({
+                where: { transactionRef: reference, userId: req.user.id },
+                select: { id: true }
+            }) || await prisma.bvnReport.findFirst({
+                where: { transactionRef: reference, userId: req.user.id },
+                select: { id: true }
+            });
+
+            if (!directReport) {
+                return res.status(404).json({ error: 'Transaction not found or access denied' });
+            }
         }
 
         // Check NIN reports first

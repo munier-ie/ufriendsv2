@@ -1,6 +1,6 @@
 import { Plus, Edit3, Loader2, CheckCircle, XCircle, Eye, EyeOff } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-import { toast } from 'sonner';
+import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 

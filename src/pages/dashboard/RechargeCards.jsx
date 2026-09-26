@@ -1,6 +1,6 @@
 import { Printer } from 'lucide-react';
 import React, { useState } from 'react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
@@ -41,11 +41,29 @@ export default function RechargeCards() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
-            toast.success(res.data.message);
-            setGeneratedPins(res.data.pins || []);
+            const pinsList = res.data.pins || [];
+            setGeneratedPins(pinsList);
             setFormData({ ...formData, pin: '' }); // Clear PIN
+
+            const firstPin = pinsList[0];
+            const totalAmount = parseInt(formData.denomination) * parseInt(formData.quantity);
+
+            modal.transaction({
+                title: 'Recharge Cards Generated',
+                message: res.data.message || 'Your recharge pins are ready for printing.',
+                transaction: {
+                    reference: res.data.reference || `RC-${Date.now().toString().slice(-8)}`,
+                    serviceName: `${formData.network} Recharge Card (₦${formData.denomination} x ${formData.quantity})`,
+                    amount: totalAmount,
+                    status: 0,
+                    date: new Date().toISOString()
+                },
+                pin: firstPin?.token,
+                token: firstPin?.serial ? `SN: ${firstPin.serial}` : null,
+                onPrintReceipt: () => window.print()
+            });
         } catch (error) {
-            toast.error(error.response?.data?.error || 'Transaction failed');
+            modal.error(error.response?.data?.error || 'Transaction failed');
         } finally {
             setLoading(false);
         }

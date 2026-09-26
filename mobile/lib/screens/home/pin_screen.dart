@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../core/skeleton_loader.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 
@@ -75,16 +74,48 @@ class _PinScreenState extends State<PinScreen> {
                     const Spacer(flex: 1),
             
             if (_isLoading) ...[
-              const Expanded(
+              Expanded(
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Skeleton(width: 200, height: 120),
-                      SizedBox(height: 24),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Center(
+                          child: SizedBox(
+                            width: 46,
+                            height: 46,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 3.5,
+                              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
                       Text(
-                        'Processing transaction...',
-                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                        'Processing Transaction...',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: context.textPrimary,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Securely communicating with verification server',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: context.textSecondary,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -206,8 +237,8 @@ class _PinScreenState extends State<PinScreen> {
               left: 0,
               right: 0,
               child: FloatingScreenHeader(
-                title: 'Processing transaction...',
-                onBackPressed: () => Navigator.pop(context),
+                title: _isLoading ? 'Processing Transaction' : widget.title,
+                onBackPressed: _isLoading ? null : () => Navigator.pop(context),
               ),
             ),
           ],

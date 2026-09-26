@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Copy, Check, Key, Hash, Layers } from 'lucide-react';
-import { toast } from 'sonner';
+import { modal } from '../../contexts/ModalContext';
 
 /**
  * Utility to parse exam pin content (handles WAEC, NECO, Data Pins, etc.)
@@ -77,7 +77,7 @@ export default function PinContentDisplay({ pinContent, title = "Purchased PIN D
         navigator.clipboard.writeText(text);
         setCopiedIndex(index);
         setCopiedField(field);
-        toast.success(`${label} copied to clipboard`);
+        modal.success(`${label} copied to clipboard`);
         setTimeout(() => {
             setCopiedIndex(null);
             setCopiedField(null);
@@ -86,7 +86,7 @@ export default function PinContentDisplay({ pinContent, title = "Purchased PIN D
 
     const handleCopyAll = () => {
         navigator.clipboard.writeText(pinContent);
-        toast.success('All PIN details copied to clipboard');
+        modal.success('All PIN details copied to clipboard');
     };
 
     return (

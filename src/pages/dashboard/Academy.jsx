@@ -2,6 +2,7 @@ import { GraduationCap, BookOpen, Play, FileText, Image, Radio, Lock, Unlock, X,
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
+import { modal } from '../../contexts/ModalContext';
 
 const TYPE_ICON = {
     video: Play,
@@ -375,11 +376,13 @@ export default function Academy() {
     const [walletBalance, setWalletBalance] = useState(0);
     const [viewing, setViewing] = useState(null);
     const [purchasing, setPurchasing] = useState(null);
-    const [toast, setToast] = useState(null);
 
     const showToast = (msg, type = 'success') => {
-        setToast({ msg, type });
-        setTimeout(() => setToast(null), 3500);
+        if (type === 'error') {
+            modal.error(msg);
+        } else {
+            modal.success(msg);
+        }
     };
 
     const fetchContents = useCallback(async () => {
@@ -555,22 +558,6 @@ export default function Academy() {
                             handleViewLocked(purchasing);
                         }}
                     />
-                )}
-            </AnimatePresence>
-
-            {/* Toast */}
-            <AnimatePresence>
-                {toast && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 30 }}
-                        className={`fixed bottom-6 right-6 z-[100] flex items-center space-x-3 px-5 py-3.5 rounded-2xl shadow-xl font-medium text-sm ${toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-900 text-white'
-                            }`}
-                    >
-                        {toast.type === 'error' ? <AlertCircle size={18} /> : <CheckCircle size={18} />}
-                        <span>{toast.msg}</span>
-                    </motion.div>
                 )}
             </AnimatePresence>
         </div>

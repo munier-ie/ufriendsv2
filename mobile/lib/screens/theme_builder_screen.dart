@@ -6,6 +6,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../theme_state.dart';
 import '../core/app_theme.dart';
+import '../core/custom_widgets.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -160,10 +161,8 @@ class _ThemeBuilderScreenState extends State<ThemeBuilderScreen> {
             TextButton(
               onPressed: () {
                 Clipboard.setData(ClipboardData(text: code));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Copied to clipboard!')),
-                );
                 Navigator.of(context).pop();
+                AppToast.success(context, 'Copied to clipboard!');
               },
               child: const Text('Copy to Clipboard'),
             ),
@@ -532,42 +531,10 @@ class PreviewPane extends StatelessWidget {
   }
 
   void _showNotification(BuildContext context) {
-    final themeState = Provider.of<ThemeState>(context, listen: false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        padding: EdgeInsets.zero,
-        duration: const Duration(seconds: 4),
-        content: Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-            decoration: BoxDecoration(
-              gradient: themeState.primaryGradient,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 5))],
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: Colors.white),
-                const SizedBox(width: 15),
-                const Expanded(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('System Notification', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      Text('Funds successfully added to your wallet.', style: TextStyle(color: Colors.white70, fontSize: 12)),
-                    ],
-                  ),
-                ),
-                IconButton(icon: const Icon(Icons.close, color: Colors.white, size: 18), onPressed: () => ScaffoldMessenger.of(context).hideCurrentSnackBar()),
-              ],
-            ),
-          ),
-        ),
-      ),
+    AppToast.success(
+      context,
+      'Funds successfully added to your wallet.',
+      title: 'System Notification',
     );
   }
 
