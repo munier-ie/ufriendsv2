@@ -103,7 +103,13 @@ export default function AlertModal({
 
     if (!isOpen) return null;
 
-    const progressPercentage = autoClose && duration > 0 ? (timeLeft / duration) * 100 : 0;
+    const cleanText = (text) => {
+        if (typeof text !== 'string') return text;
+        return text.replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F1E0}-\u{1F1FF}]/gu, '').trim();
+    };
+
+    const displayTitle = cleanText(title || config.defaultTitle);
+    const displayMessage = cleanText(message);
 
     return (
         <motion.div
@@ -126,17 +132,6 @@ export default function AlertModal({
                 className="relative bg-white rounded-3xl shadow-2xl border border-gray-100 w-full max-w-sm sm:max-w-md overflow-hidden text-left"
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Auto-close Progress Bar */}
-                {autoClose && type !== 'loading' && (
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gray-100 overflow-hidden z-10">
-                        <motion.div
-                            className={`h-full ${config.progressBarClass}`}
-                            style={{ width: `${progressPercentage}%` }}
-                            transition={{ ease: 'linear' }}
-                        />
-                    </div>
-                )}
-
                 {/* Dismiss button */}
                 {type !== 'loading' && (
                     <button
@@ -172,12 +167,12 @@ export default function AlertModal({
 
                     {/* Title */}
                     <h3 className="text-xl font-bold text-gray-900 tracking-tight">
-                        {title || config.defaultTitle}
+                        {displayTitle}
                     </h3>
 
                     {/* Message */}
                     <p className="mt-2 text-sm text-gray-600 leading-relaxed font-normal">
-                        {message}
+                        {displayMessage}
                     </p>
 
                     {/* Structured Balance Breakdown if available */}
