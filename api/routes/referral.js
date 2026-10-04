@@ -3,6 +3,7 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const { z } = require('zod');
 const authenticateUser = require('../middleware/auth');
+const { recordWalletCredit } = require('../services/security.service');
 
 // GET /api/referrals/stats
 router.get('/stats', authenticateUser, async (req, res) => {
@@ -92,17 +93,19 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
         const newRefBalance = user.refWallet - withdrawAmount;
         const newMainBalance = user.wallet + withdrawAmount;
 
-        await prisma.$transaction([
+        const depRef = `REF_DEP_${Date.now()}_${userId}`;
+        await prisma.$transaction(async (tx) => {
             // Deduct from Ref Wallet
-            prisma.user.update({
+            await tx.user.update({
                 where: { id: userId },
                 data: {
                     refWallet: newRefBalance,
                     wallet: newMainBalance
                 }
-            }),
+            });
+
             // Record Debit from Ref Wallet
-            prisma.transaction.create({
+            await tx.transaction.create({
                 data: {
                     reference: `REF_WD_${Date.now()}_${userId}`,
                     serviceName: 'Referral Withdraw',
@@ -114,11 +117,12 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
                     type: 'referral_withdraw',
                     userId
                 }
-            }),
+            });
+
             // Record Credit to Main Wallet
-            prisma.transaction.create({
+            await tx.transaction.create({
                 data: {
-                    reference: `REF_DEP_${Date.now()}_${userId}`,
+                    reference: depRef,
                     serviceName: 'Wallet Fund',
                     description: `Funded N${withdrawAmount} from Referral Wallet`,
                     amount: withdrawAmount,
@@ -128,8 +132,21 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
                     type: 'wallet_fund',
                     userId
                 }
-            })
-        ]);
+            });
+
+            await recordWalletCredit(tx, {
+                user,
+                amount: withdrawAmount,
+                previousBalance: user.wallet,
+                newBalance: newMainBalance,
+                type: 'referral_withdrawal',
+                channel: 'referral',
+                reference: depRef,
+                description: `Funded ₦${withdrawAmount} from Referral Bonus Wallet`,
+                initiatedBy: user.phone,
+                metadata: { withdrawAmount }
+            });
+        });
 
         res.json({
             success: true,

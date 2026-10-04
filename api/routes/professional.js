@@ -11,6 +11,7 @@ const bvnService = require('../services/bvn.service');
 const ninService = require('../services/nin.service');
 const { creditReferralBonus } = require('../services/referral.service');
 const whatsappService = require('../services/whatsapp.service');
+const { recordWalletCredit } = require('../services/security.service');
 
 
 // --- Multer config for CAC file uploads ---
@@ -438,11 +439,13 @@ router.post('/request', authenticateUser, async (req, res) => {
                             errorMsg = `${errorMsg} (₦100 service charge applied)`;
                         }
 
+                        let refundedBal = 0;
                         await prisma.$transaction(async (tx) => {
                             const freshUser = await tx.user.update({
                                 where: { id: req.user.id },
                                 data: { wallet: { increment: refundAmount } }
                             });
+                            refundedBal = freshUser.wallet;
                             await tx.serviceRequest.update({
                                 where: { id: result.request.id },
                                 data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
@@ -458,14 +461,27 @@ router.post('/request', authenticateUser, async (req, res) => {
                                 }
                             });
                         });
+                        recordWalletCredit(prisma, {
+                            userId: req.user.id,
+                            amount: refundAmount,
+                            type: 'REFUND',
+                            channel: 'BVN_VERIFICATION_REFUND',
+                            reference: result.transactionRef,
+                            previousBalance: (refundedBal - refundAmount),
+                            newBalance: refundedBal,
+                            initiatedBy: 'SYSTEM',
+                            description: `BVN verification refund (${errorMsg})`
+                        }).catch(e => console.error('[BVN Refund] Credit log error:', e.message));
                     }
                 } catch (error) {
                     console.error('BVN Async Processing Error:', error);
+                    let errRefundedBal = 0;
                     await prisma.$transaction(async (tx) => {
                         const freshUser = await tx.user.update({
                             where: { id: req.user.id },
                             data: { wallet: { increment: amount } }
                         });
+                        errRefundedBal = freshUser.wallet;
                         await tx.serviceRequest.update({
                             where: { id: result.request.id },
                             data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during BVN verification' }) }
@@ -481,6 +497,17 @@ router.post('/request', authenticateUser, async (req, res) => {
                             }
                         });
                     });
+                    recordWalletCredit(prisma, {
+                        userId: req.user.id,
+                        amount: amount,
+                        type: 'REFUND',
+                        channel: 'BVN_VERIFICATION_REFUND',
+                        reference: result.transactionRef,
+                        previousBalance: (errRefundedBal - amount),
+                        newBalance: errRefundedBal,
+                        initiatedBy: 'SYSTEM',
+                        description: `BVN verification system error refund`
+                    }).catch(e => console.error('[BVN Error Refund] Credit log error:', e.message));
                 }
             });
 
@@ -540,11 +567,13 @@ router.post('/request', authenticateUser, async (req, res) => {
                             errorMsg = `${errorMsg} (₦100 service charge applied)`;
                         }
 
+                        let refundedBal = 0;
                         await prisma.$transaction(async (tx) => {
                             const freshUser = await tx.user.update({
                                 where: { id: req.user.id },
                                 data: { wallet: { increment: refundAmount } }
                             });
+                            refundedBal = freshUser.wallet;
                             await tx.serviceRequest.update({
                                 where: { id: result.request.id },
                                 data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
@@ -560,14 +589,27 @@ router.post('/request', authenticateUser, async (req, res) => {
                                 }
                             });
                         });
+                        recordWalletCredit(prisma, {
+                            userId: req.user.id,
+                            amount: refundAmount,
+                            type: 'REFUND',
+                            channel: 'NIN_VERIFICATION_REFUND',
+                            reference: result.transactionRef,
+                            previousBalance: (refundedBal - refundAmount),
+                            newBalance: refundedBal,
+                            initiatedBy: 'SYSTEM',
+                            description: `NIN verification refund (${errorMsg})`
+                        }).catch(e => console.error('[NIN Refund] Credit log error:', e.message));
                     }
                 } catch (error) {
                     console.error('NIN Async Processing Error:', error);
+                    let errRefundedBal = 0;
                     await prisma.$transaction(async (tx) => {
                         const freshUser = await tx.user.update({
                             where: { id: req.user.id },
                             data: { wallet: { increment: amount } }
                         });
+                        errRefundedBal = freshUser.wallet;
                         await tx.serviceRequest.update({
                             where: { id: result.request.id },
                             data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during NIN verification' }) }
@@ -583,6 +625,17 @@ router.post('/request', authenticateUser, async (req, res) => {
                             }
                         });
                     });
+                    recordWalletCredit(prisma, {
+                        userId: req.user.id,
+                        amount: amount,
+                        type: 'REFUND',
+                        channel: 'NIN_VERIFICATION_REFUND',
+                        reference: result.transactionRef,
+                        previousBalance: (errRefundedBal - amount),
+                        newBalance: errRefundedBal,
+                        initiatedBy: 'SYSTEM',
+                        description: `NIN verification system error refund`
+                    }).catch(e => console.error('[NIN Error Refund] Credit log error:', e.message));
                 }
             });
 

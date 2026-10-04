@@ -6,6 +6,7 @@ const { sendTransactionReceipt, sendAdminAlert } = require('../services/email.se
 const prisma = require('../../prisma/client');
 const monnifyService = require('../services/monnify.service');
 const paymentpointService = require('../services/paymentpoint.service');
+const { recordWalletCredit } = require('../services/security.service');
 
 /**
  * @route   POST /api/webhooks/monnify
@@ -97,6 +98,19 @@ router.post('/monnify', async (req, res) => {
                         newBalance: updatedUser.wallet,
                         date: new Date(paidOn)
                     }
+                });
+
+                await recordWalletCredit(tx, {
+                    user,
+                    amount: finalAmount,
+                    previousBalance: user.wallet,
+                    newBalance: updatedUser.wallet,
+                    type: 'MONNIFY_WEBHOOK',
+                    channel: 'monnify',
+                    reference: transactionReference,
+                    description: `Wallet Funding via Monnify (Fee: ₦${serviceCharge.toFixed(2)})`,
+                    initiatedBy: 'monnify_webhook',
+                    metadata: { serviceCharge, rawAmount: amount, paidOn }
                 });
 
                 return { updatedUser };
@@ -246,6 +260,19 @@ router.post('/paymentpoint', async (req, res) => {
                         newBalance: updatedUser.wallet,
                         date: paidAt ? new Date(paidAt) : new Date()
                     }
+                });
+
+                await recordWalletCredit(tx, {
+                    user,
+                    amount: finalAmount,
+                    previousBalance: user.wallet,
+                    newBalance: updatedUser.wallet,
+                    type: 'PAYMENTPOINT_WEBHOOK',
+                    channel: 'paymentpoint',
+                    reference: reference,
+                    description: `Wallet Funding via PaymentPoint (Fee: ₦${serviceCharge.toFixed(2)})`,
+                    initiatedBy: 'paymentpoint_webhook',
+                    metadata: { serviceCharge, rawAmount: amountInNaira, paidAt, customerEmail }
                 });
 
                 return { updatedUser };

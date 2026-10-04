@@ -691,6 +691,425 @@ async function sendManualServiceUpdateNotification(user, serviceType, updatedSta
     return sendEmail(user.email, subject, html);
 }
 
+/**
+ * Send Admin Login Alert — notifies all admin emails when any admin account logs in
+ */
+async function sendAdminLoginAlert(admin, reqOrMeta) {
+    if (!process.env.ADMIN_EMAIL) return;
+
+    let rawUserAgent = '';
+    let ip = null;
+    let reqHeaders = {};
+
+    if (reqOrMeta && typeof reqOrMeta === 'object') {
+        if (reqOrMeta.headers) {
+            rawUserAgent = reqOrMeta.headers['user-agent'] || '';
+            reqHeaders = reqOrMeta.headers;
+            ip = reqOrMeta.headers['cf-connecting-ip'] ||
+                 reqOrMeta.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                 reqOrMeta.headers['x-real-ip'] ||
+                 reqOrMeta.ip;
+        } else {
+            rawUserAgent = reqOrMeta.userAgent || '';
+            reqHeaders = reqOrMeta.headers || {};
+            ip = reqOrMeta.ip;
+        }
+    }
+
+    const device = parseDevice(rawUserAgent);
+    const location = await resolveLocation(ip, reqHeaders);
+    const timeStr = formatNigerianTime(new Date());
+    const displayIp = ip && !isPrivateIp(ip) ? ip.replace(/^::ffff:/, '') : null;
+
+    const subject = `🔐 Admin Login Alert — ${admin.name || admin.username}`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background: linear-gradient(135deg, #dc2626, #991b1b); padding: 28px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px; letter-spacing: 0.5px;">⚠️ Admin Panel Login Detected</h1>
+            </div>
+            <div style="padding: 30px;">
+                <p style="color: #475569; font-size: 14px; line-height: 1.6; margin-top: 0;">
+                    A login to the <strong>Ufriends Admin Panel</strong> was detected. Review the details below to confirm this was authorized.
+                </p>
+
+                <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; width: 35%;">Admin Account:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 700;">${admin.name} (${admin.username})</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Role:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${admin.role === 1 ? 'Super Admin' : 'Admin'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Date & Time:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${timeStr}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Device / Browser:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${device}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">User Agent:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2; word-break: break-all; font-size: 12px;">${rawUserAgent ? (rawUserAgent.length > 120 ? rawUserAgent.substring(0, 117) + '...' : rawUserAgent) : 'Not available'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Location:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${location}</td>
+                        </tr>
+                        ${displayIp ? `
+                        <tr>
+                            <td style="padding: 10px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">IP Address:</td>
+                            <td style="padding: 10px 0; color: #0f172a; font-weight: 700; border-top: 1px solid #fee2e2; font-family: monospace;">${displayIp}</td>
+                        </tr>
+                        ` : ''}
+                    </table>
+                </div>
+
+                <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 14px 18px; margin-bottom: 25px; border-radius: 0 8px 8px 0;">
+                    <p style="margin: 0; color: #92400e; font-size: 13px; line-height: 1.5;">
+                        <strong>Not you?</strong> If this login was not authorized, immediately change the admin password, revoke all sessions, and investigate for unauthorized access.
+                    </p>
+                </div>
+
+                <div style="text-align: center; margin: 25px 0 10px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/system-users" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #dc2626, #991b1b); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                        Review Admin Access
+                    </a>
+                </div>
+
+                <br>
+                <p style="margin: 0; color: #64748b; font-size: 13px;">This is an automated security notification.<br><strong style="color: #0f172a;">Ufriends Security System</strong></p>
+            </div>
+            <div style="background-color: #f8fafc; padding: 18px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                &copy; ${new Date().getFullYear()} Ufriends. All rights reserved.
+            </div>
+        </div>
+    `;
+    return sendEmail(process.env.ADMIN_EMAIL, subject, html);
+}
+
+/**
+ * Send Wallet Credit Alert — notifies admin when a user account receives funds
+ */
+async function sendWalletCreditAlert(user, creditDetails) {
+    if (!process.env.ADMIN_EMAIL) return;
+
+    const {
+        amount,
+        source,       // 'webhook_monnify', 'webhook_paymentpoint', 'admin_fund', 'p2p_transfer', 'refund'
+        reference,
+        oldBalance,
+        newBalance,
+        additionalInfo
+    } = creditDetails;
+
+    const numAmount = parseFloat(amount || 0);
+    const amountStr = Math.abs(numAmount).toLocaleString();
+    const timeStr = formatNigerianTime(new Date());
+
+    const sourceLabels = {
+        'webhook_monnify': 'Monnify Virtual Account',
+        'MONNIFY_WEBHOOK': 'Monnify Virtual Account',
+        'webhook_paymentpoint': 'PaymentPoint Virtual Account',
+        'PAYMENTPOINT_WEBHOOK': 'PaymentPoint Virtual Account',
+        'admin_fund': '🔴 Admin Manual Funding',
+        'p2p_transfer': 'P2P Transfer (Received)',
+        'airtime_to_cash': 'Airtime to Cash',
+        'referral_withdrawal': 'Referral Bonus Withdrawal',
+        'refund': 'Refund'
+    };
+    const sourceLabel = sourceLabels[source] || source;
+
+    // Flag high-risk sources with red styling or if amount >= 10,000 (HALT) or >= 5,000 (SURVEILLANCE)
+    const isCritical = numAmount >= 10000;
+    const isWarning = numAmount >= 5000;
+    const isHighRisk = source === 'admin_fund' || isCritical;
+    const headerBg = isCritical ? 'linear-gradient(135deg, #dc2626, #991b1b)' : isWarning ? 'linear-gradient(135deg, #d97706, #b45309)' : isHighRisk ? 'linear-gradient(135deg, #dc2626, #991b1b)' : 'linear-gradient(135deg, #059669, #047857)';
+    const borderColor = isCritical ? '#fecaca' : isWarning ? '#fde68a' : isHighRisk ? '#fecaca' : '#d1fae5';
+
+    let subjectPrefix = '💰';
+    if (isCritical) subjectPrefix = '🚨 [ACCOUNT HALTED - >=₦10k]';
+    else if (isWarning) subjectPrefix = '⚠️ [HIGH RISK - >=₦5k]';
+    else if (isHighRisk) subjectPrefix = '🚨 [ADMIN FUND]';
+
+    const subject = `${subjectPrefix} Wallet Credit: ₦${amountStr} → ${user.firstName} ${user.lastName}`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background: ${headerBg}; padding: 25px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">
+                    ${isCritical ? '🚨 Wallet Credit Alert — Account Halted' : 'Wallet Credit Notification'}
+                </h1>
+            </div>
+            <div style="padding: 30px;">
+                ${isCritical ? `
+                <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; text-align: center; color: #991b1b; font-weight: bold; font-size: 13px;">
+                    ⚠️ Single credit ≥ ₦10,000 threshold reached. Account automatically halted until admin notice.
+                </div>
+                ` : isWarning ? `
+                <div style="background-color: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; text-align: center; color: #92400e; font-weight: bold; font-size: 13px;">
+                    ⚠️ Single credit ≥ ₦5,000 threshold reached. Account under active surveillance.
+                </div>
+                ` : ''}
+
+                <div style="text-align: center; margin-bottom: 25px;">
+                    <span style="font-size: 36px; font-weight: 800; color: ${isCritical ? '#dc2626' : isWarning ? '#d97706' : '#059669'};">₦${amountStr}</span>
+                    <p style="color: #64748b; margin: 5px 0 0 0; font-size: 13px;">credited to user account</p>
+                </div>
+
+                <div style="background-color: #f8fafc; border: 1px solid ${borderColor}; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; width: 35%;">User:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 700;">${user.firstName} ${user.lastName}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Email:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${user.email}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Phone:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${user.phone}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">User ID:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">#${user.id}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Source:</td>
+                            <td style="padding: 8px 0; color: ${isHighRisk ? '#dc2626' : '#0f172a'}; font-weight: 700; border-top: 1px solid #f1f5f9;">${sourceLabel}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Reference:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9; font-family: monospace; font-size: 12px;">${reference || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Previous Balance:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">₦${parseFloat(oldBalance || 0).toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">New Balance:</td>
+                            <td style="padding: 8px 0; color: #059669; font-weight: 700; border-top: 1px solid #f1f5f9;">₦${parseFloat(newBalance || 0).toLocaleString()}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Date & Time:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${timeStr}</td>
+                        </tr>
+                        ${additionalInfo ? `
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #f1f5f9;">Note:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #f1f5f9;">${additionalInfo}</td>
+                        </tr>
+                        ` : ''}
+                    </table>
+                </div>
+
+                <div style="text-align: center; margin: 25px 0 10px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/wallet-credits" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                        View Credit Logs
+                    </a>
+                </div>
+
+                <br>
+                <p style="margin: 0; color: #64748b; font-size: 13px;">This is an automated notification.<br><strong style="color: #0f172a;">Ufriends Security System</strong></p>
+            </div>
+            <div style="background-color: #f8fafc; padding: 18px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                &copy; ${new Date().getFullYear()} Ufriends. All rights reserved.
+            </div>
+        </div>
+    `;
+    return sendEmail(process.env.ADMIN_EMAIL, subject, html);
+}
+
+/**
+ * Send Fraud Alert — notifies admin when suspicious activity is detected
+ */
+async function sendFraudAlert(details) {
+    if (!process.env.ADMIN_EMAIL) return;
+
+    const { userId, userName, userEmail, userPhone, ruleTriggered, description, severity, actionTaken } = details;
+    const timeStr = formatNigerianTime(new Date());
+
+    const severityColors = { critical: '#dc2626', high: '#ea580c', medium: '#d97706', low: '#2563eb' };
+    const color = severityColors[severity] || '#dc2626';
+
+    const subject = `🚨 FRAUD ALERT [${severity?.toUpperCase()}]: ${ruleTriggered}`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 2px solid ${color}; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background-color: ${color}; padding: 25px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">🚨 Fraud Detection Alert</h1>
+            </div>
+            <div style="padding: 30px;">
+                <div style="background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 10px; padding: 20px; margin: 0 0 25px 0;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; width: 35%;">Severity:</td>
+                            <td style="padding: 8px 0; color: ${color}; font-weight: 800; text-transform: uppercase;">${severity}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Rule Triggered:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 700; border-top: 1px solid #fee2e2;">${ruleTriggered}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">User:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 700; border-top: 1px solid #fee2e2;">${userName} (#${userId})</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Email:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${userEmail}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Phone:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${userPhone}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Description:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${description}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Action Taken:</td>
+                            <td style="padding: 8px 0; color: ${actionTaken === 'Account held' ? '#dc2626' : '#d97706'}; font-weight: 800; border-top: 1px solid #fee2e2;">${actionTaken}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #fee2e2;">Timestamp:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #fee2e2;">${timeStr}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="text-align: center; margin: 25px 0 10px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/users" style="display: inline-block; padding: 12px 28px; background-color: ${color}; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                        Investigate User
+                    </a>
+                </div>
+
+                <br>
+                <p style="margin: 0; color: #64748b; font-size: 13px;">Automated fraud detection by<br><strong style="color: #0f172a;">Ufriends Security System</strong></p>
+            </div>
+            <div style="background-color: #fef2f2; padding: 18px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #fecaca;">
+                &copy; ${new Date().getFullYear()} Ufriends. All rights reserved.
+            </div>
+        </div>
+    `;
+    return sendEmail(process.env.ADMIN_EMAIL, subject, html);
+}
+
+/**
+ * Send Admin New Account Alert — notifies admin on every new user registration/account increase
+ */
+async function sendAdminNewAccountAlert(user, reqOrMeta) {
+    if (!process.env.ADMIN_EMAIL) return;
+
+    let rawUserAgent = '';
+    let ip = null;
+    let reqHeaders = {};
+
+    if (reqOrMeta && typeof reqOrMeta === 'object') {
+        if (reqOrMeta.headers) {
+            rawUserAgent = reqOrMeta.headers['user-agent'] || '';
+            reqHeaders = reqOrMeta.headers;
+            ip = reqOrMeta.headers['cf-connecting-ip'] ||
+                 reqOrMeta.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+                 reqOrMeta.headers['x-real-ip'] ||
+                 reqOrMeta.ip;
+        } else {
+            rawUserAgent = reqOrMeta.userAgent || '';
+            reqHeaders = reqOrMeta.headers || {};
+            ip = reqOrMeta.ip;
+        }
+    }
+
+    const device = parseDevice(rawUserAgent);
+    const location = await resolveLocation(ip, reqHeaders);
+    const timeStr = formatNigerianTime(new Date());
+    const displayIp = ip && !isPrivateIp(ip) ? ip.replace(/^::ffff:/, '') : null;
+
+    let totalUsersCount = null;
+    try {
+        const prisma = require('../prisma');
+        totalUsersCount = await prisma.user.count();
+    } catch (e) {
+        // Non-blocking
+    }
+
+    const subject = `👤 New User Registered: ${user.firstName} ${user.lastName} (#${user.id})`;
+    const html = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
+            <div style="background: linear-gradient(135deg, #004687, #1E90FF); padding: 25px; text-align: center;">
+                <h1 style="color: #ffffff; margin: 0; font-size: 20px;">👤 New User Account Registered</h1>
+            </div>
+            <div style="padding: 30px;">
+                <p style="color: #475569; font-size: 14px; line-height: 1.6; margin-top: 0;">
+                    A new customer account has just been registered on <strong>Ufriends</strong>.
+                </p>
+
+                <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 10px; padding: 20px; margin: 20px 0;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; width: 35%;">User ID:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 700;">#${user.id}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Full Name:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${user.firstName} ${user.lastName}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Email:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${user.email}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Phone:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${user.phone}</td>
+                        </tr>
+                        ${user.state ? `
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">State:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${user.state}</td>
+                        </tr>
+                        ` : ''}
+                        ${totalUsersCount ? `
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Total Platform Users:</td>
+                            <td style="padding: 8px 0; color: #059669; font-weight: 700; border-top: 1px solid #dcfce7;">${totalUsersCount.toLocaleString()} accounts</td>
+                        </tr>
+                        ` : ''}
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Device:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${device}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Location:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${location}</td>
+                        </tr>
+                        ${displayIp ? `
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">IP Address:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 700; border-top: 1px solid #dcfce7; font-family: monospace;">${displayIp}</td>
+                        </tr>
+                        ` : ''}
+                        <tr>
+                            <td style="padding: 8px 0; color: #64748b; font-weight: 500; border-top: 1px solid #dcfce7;">Date & Time:</td>
+                            <td style="padding: 8px 0; color: #0f172a; font-weight: 600; border-top: 1px solid #dcfce7;">${timeStr}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div style="text-align: center; margin: 25px 0 10px 0;">
+                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/users" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                        Manage User Accounts
+                    </a>
+                </div>
+            </div>
+            <div style="background-color: #f8fafc; padding: 15px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+                Ufriends Security & User Management • Automated System Notification
+            </div>
+        </div>
+    `;
+
+    return sendEmail(process.env.ADMIN_EMAIL, subject, html);
+}
+
 module.exports = {
     sendEmail,
     sendEmailStrict,
@@ -705,6 +1124,10 @@ module.exports = {
     sendSystemUpdateEmail,
     sendResellerConfirmation,
     sendResellerAdminAlert,
-    sendResellerDeploymentReady
+    sendResellerDeploymentReady,
+    sendAdminLoginAlert,
+    sendWalletCreditAlert,
+    sendFraudAlert,
+    sendAdminNewAccountAlert
 };
 

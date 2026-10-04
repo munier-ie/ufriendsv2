@@ -130,6 +130,7 @@ const BankingFinance    = React.lazy(() => import('./pages/dashboard/BankingFina
 const AdminDashboard          = React.lazy(() => import('./pages/dashboard/admin/AdminDashboard'));
 const UserManagement          = React.lazy(() => import('./pages/dashboard/admin/UserManagement'));
 const AdminTransactions       = React.lazy(() => import('./pages/dashboard/admin/AdminTransactions'));
+const WalletCreditLogs        = React.lazy(() => import('./pages/dashboard/admin/WalletCreditLogs'));
 const ServiceManagement       = React.lazy(() => import('./pages/dashboard/admin/ServiceManagement'));
 const ProviderManagement      = React.lazy(() => import('./pages/dashboard/admin/ProviderManagement'));
 const SalesReport             = React.lazy(() => import('./pages/dashboard/admin/SalesReport'));
@@ -264,6 +265,7 @@ export default function App() {
                         <Route index element={<AdminDashboard />} />
                         <Route path="users" element={<UserManagement />} />
                         <Route path="transactions" element={<AdminTransactions />} />
+                        <Route path="wallet-credits" element={<WalletCreditLogs />} />
                         <Route path="services" element={<ServiceManagement />} />
                         <Route path="providers" element={<ProviderManagement />} />
                         <Route path="reports/sales" element={<SalesReport />} />

@@ -1,5 +1,6 @@
-import { Search, MoreVertical, Wallet, Ban, CheckCircle, Loader2, X, User, FileText, History, Plus } from 'lucide-react';
+import { Search, MoreVertical, Wallet, Ban, CheckCircle, Loader2, X, User, FileText, History, Plus, ShieldAlert, ShieldCheck, ArrowUpRight } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
 import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
@@ -9,6 +10,7 @@ import Input from '../../../components/ui/Input';
 import Button from '../../../components/ui/Button';
 
 export default function UserManagement() {
+    const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -192,6 +194,31 @@ export default function UserManagement() {
         }
     };
 
+    const handleToggleSecurityHold = async (user, shouldHold) => {
+        const confirmMsg = shouldHold
+            ? `Are you sure you want to put ${user.firstName} ${user.lastName} on SECURITY HOLD? All active sessions will be revoked and transactions will be blocked.`
+            : `Are you sure you want to release the security hold for ${user.firstName} ${user.lastName}?`;
+        if (!confirm(confirmMsg)) return;
+
+        setSubmitting(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.post(`/api/admin/users/${user.id}/security-hold`, {
+                hold: shouldHold,
+                reason: shouldHold ? 'Manually placed on hold by administrator' : 'Manually released by administrator'
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(shouldHold ? 'User placed on security hold' : 'Security hold released successfully');
+            fetchUserDetail(user.id);
+            fetchUsers();
+        } catch (err) {
+            toast.error(err.response?.data?.error || 'Failed to update security hold status');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -276,10 +303,17 @@ export default function UserManagement() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${user.regStatus === 1 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-                                                }`}>
-                                                {user.regStatus === 1 ? 'Blocked' : 'Active'}
-                                            </span>
+                                            <div className="flex flex-col gap-1 items-start">
+                                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${user.regStatus === 1 ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
+                                                    }`}>
+                                                    {user.regStatus === 1 ? 'Blocked' : 'Active'}
+                                                </span>
+                                                {user.securityHold && (
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                                        SECURITY HOLD
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <button
@@ -446,9 +480,89 @@ export default function UserManagement() {
 
                                         {activeTab === 'wallet' && (
                                             <div className="space-y-6">
-                                                <div className="bg-primary/5 p-6 rounded-xl border border-primary/10">
-                                                    <p className="text-sm text-gray-500 mb-1">Current Balance</p>
-                                                    <p className="text-3xl font-bold text-gray-900">₦{userDetail.wallet?.toLocaleString()}</p>
+                                                {/* Security Hold & Protection Card */}
+                                                <div className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                                                    userDetail.securityHold 
+                                                        ? 'bg-amber-50 border-amber-200 text-amber-900' 
+                                                        : 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                                                }`}>
+                                                    <div className="flex items-center gap-3">
+                                                        {userDetail.securityHold ? <ShieldAlert className="text-amber-600 flex-shrink-0" size={24} /> : <ShieldCheck className="text-emerald-600 flex-shrink-0" size={24} />}
+                                                        <div>
+                                                            <p className="font-bold text-sm flex items-center gap-2">
+                                                                Account Protection: {userDetail.securityHold ? 'SECURITY HOLD (HALTED)' : 'ACTIVE & UNRESTRICTED'}
+                                                            </p>
+                                                            <p className="text-xs opacity-75">
+                                                                {userDetail.securityHold 
+                                                                    ? 'All transactions blocked and active sessions purged until admin release.' 
+                                                                    : `Daily credit limit: ₦${(userDetail.accountLimit || 50000).toLocaleString()}`}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleToggleSecurityHold(userDetail, !userDetail.securityHold)}
+                                                        disabled={submitting}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap ${
+                                                            userDetail.securityHold
+                                                                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                                                                : 'bg-amber-600 hover:bg-amber-700 text-white'
+                                                        }`}
+                                                    >
+                                                        {userDetail.securityHold ? 'Release Hold' : 'Place Security Hold'}
+                                                    </button>
+                                                </div>
+
+                                                <div className="bg-primary/5 p-6 rounded-xl border border-primary/10 flex items-center justify-between">
+                                                    <div>
+                                                        <p className="text-sm text-gray-500 mb-1">Current Balance</p>
+                                                        <p className="text-3xl font-bold text-gray-900">₦{userDetail.wallet?.toLocaleString()}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            setSelectedUser(null);
+                                                            navigate(`/admin/dashboard/wallet-credits?search=${encodeURIComponent(userDetail.phone || userDetail.email || userDetail.id)}`);
+                                                        }}
+                                                        className="px-3 py-2 text-xs font-semibold bg-white border border-gray-200 rounded-lg text-gray-700 hover:text-primary hover:border-primary flex items-center gap-1 shadow-sm"
+                                                    >
+                                                        <ArrowUpRight size={14} className="text-emerald-600" />
+                                                        View Full Credit Logs
+                                                    </button>
+                                                </div>
+
+                                                {/* Recent Wallet Additions (Credits Only) */}
+                                                <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <h3 className="font-bold text-gray-900 text-sm flex items-center gap-2">
+                                                            <ArrowUpRight className="text-emerald-600" size={16} />
+                                                            Recent Wallet Additions (Credits Only)
+                                                        </h3>
+                                                        <button
+                                                            onClick={() => {
+                                                                setSelectedUser(null);
+                                                                navigate(`/admin/dashboard/wallet-credits?search=${encodeURIComponent(userDetail.phone || userDetail.email || userDetail.id)}`);
+                                                            }}
+                                                            className="text-xs text-primary font-semibold hover:underline flex items-center gap-1"
+                                                        >
+                                                            All User Credits →
+                                                        </button>
+                                                    </div>
+                                                    {(!userDetail.walletCreditLogs || userDetail.walletCreditLogs.length === 0) ? (
+                                                        <p className="text-xs text-gray-500 py-3 text-center">No credit additions recorded yet for this user.</p>
+                                                    ) : (
+                                                        <div className="divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                                                            {userDetail.walletCreditLogs.map(log => (
+                                                                <div key={log.id} className="py-2 flex items-center justify-between text-xs">
+                                                                    <div>
+                                                                        <span className="font-bold text-emerald-700">+₦{log.amount?.toLocaleString()}</span>
+                                                                        <span className="ml-2 text-gray-500 font-mono text-[11px]">{log.type}</span>
+                                                                    </div>
+                                                                    <div className="text-gray-400 font-mono text-[11px]">
+                                                                        {new Date(log.createdAt).toLocaleString('en-NG', { dateStyle: 'short', timeStyle: 'short' })}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

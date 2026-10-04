@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { creditReferralBonus } = require('../services/referral.service');
+const { recordWalletCredit } = require('../services/security.service');
 
 // Proof upload dir
 const proofDir = path.join(__dirname, '../uploads/manual-proof');
@@ -211,10 +212,31 @@ router.put('/requests/:id', adminAuth, proofUpload.single('proof'), async (req, 
 
         // If rejected and was still pending, refund the user
         if (updatedStatus === 2 && request.status === 0) {
+            const userBefore = await prisma.user.findUnique({
+                where: { id: request.userId },
+                select: { id: true, wallet: true, firstName: true, lastName: true, email: true, phone: true }
+            });
+            const prevBal = userBefore?.wallet || 0;
+            const newBal = prevBal + request.amount;
+
             await prisma.user.update({
                 where: { id: request.userId },
                 data: { wallet: { increment: request.amount } }
             });
+
+            if (userBefore) {
+                recordWalletCredit(prisma, {
+                    userId: userBefore.id,
+                    amount: request.amount,
+                    type: 'REFUND',
+                    channel: 'MANUAL_SERVICE_REJECTION',
+                    reference: request.reference || `REF_MS_${request.id}`,
+                    previousBalance: prevBal,
+                    newBalance: newBal,
+                    initiatedBy: req.admin?.username || 'ADMIN',
+                    description: `Manual service rejection refund: ${request.serviceType} (${adminNote || 'Rejected'})`
+                }).catch(e => console.error('[MS Refund] Credit log error:', e.message));
+            }
         }
 
         // If approved and was previously pending, credit referral bonus

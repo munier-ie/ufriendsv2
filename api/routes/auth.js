@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { z } = require('zod');
-const { sendWelcomeEmail, sendLoginAlert, sendVerificationOtpEmail, send2FaOtpEmail } = require('../services/email.service');
+const { sendWelcomeEmail, sendLoginAlert, sendVerificationOtpEmail, send2FaOtpEmail, sendAdminNewAccountAlert } = require('../services/email.service');
 const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
 const authenticateUser = require('../middleware/auth');
@@ -134,6 +134,9 @@ router.post('/register', async (req, res) => {
         // Send Welcome Email
         sendWelcomeEmail(user).catch(err => console.error('Email error:', err));
 
+        // Notify Admin on new account creation
+        sendAdminNewAccountAlert(user, req).catch(err => console.error('Admin new account alert error:', err));
+
         // Auto-generate PaymentPoint Virtual Account asynchronously without blocking registration response
         paymentpointService.createVirtualAccount({
             email: user.email,
@@ -182,6 +185,14 @@ router.post('/access', loginRateLimit, async (req, res) => {
             return res.status(400).json({ error: 'Invalid credentials' });
         }
         
+        if (user.securityHold) {
+            return res.status(403).json({ error: 'Account temporarily suspended for security review. Contact support.', code: 'SECURITY_HOLD' });
+        }
+
+        if (user.regStatus === 1) {
+            return res.status(403).json({ error: 'Account blocked. Contact support.' });
+        }
+
         if (user.regStatus === 2) {
             return res.status(403).json({ error: 'Account is terminated.' });
         }

@@ -1,4 +1,4 @@
-import { LayoutDashboard, User, Wallet, ShieldCheck, DollarSign, Grid3x3 as Grid3X3, LogOut, Landmark as Bank, Landmark, Signal, Smartphone, Ban, PhoneCall, FileText, Crown, Users, ShoppingBag, Bell, Send, Wifi, GraduationCap, Megaphone, BarChart2 as BarChart, Tv, Zap, MessageSquare, Banknote, Tag, Book, Activity, Upload, Calculator as CalculatorIcon, Globe, ArrowRightLeft, Smile, FileEdit, Search, Menu, X, Code, Bot, HelpCircle, Printer, ChevronDown, ChevronRight, Shield } from 'lucide-react';
+import { LayoutDashboard, User, Wallet, ShieldCheck, DollarSign, Grid3x3 as Grid3X3, LogOut, Landmark as Bank, Landmark, Signal, Smartphone, Ban, PhoneCall, FileText, Crown, Users, ShoppingBag, Bell, Send, Wifi, GraduationCap, Megaphone, BarChart2 as BarChart, Tv, Zap, MessageSquare, Banknote, Tag, Book, Activity, Upload, Calculator as CalculatorIcon, Globe, ArrowRightLeft, Smile, FileEdit, Search, Menu, X, Code, Bot, HelpCircle, Printer, ChevronDown, ChevronRight, Shield, ShieldAlert } from 'lucide-react';
 /* eslint-disable */
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
@@ -242,6 +242,7 @@ export default function DashboardLayout() {
             items: [
                 { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
                 { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
+                { icon: ShieldAlert, label: 'Wallet Credit Logs', path: '/admin/dashboard/wallet-credits', moduleId: 'transactions' },
                 { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
                 { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
                 { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },

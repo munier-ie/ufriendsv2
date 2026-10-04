@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_native_contact_picker/flutter_native_contact_picker.dart';
+import '../../core/contact_picker_service.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
@@ -230,15 +230,17 @@ class _DataScreenState extends State<DataScreen> {
   }
 
   Future<void> _selectContact() async {
-    final contactPicker = FlutterNativeContactPicker();
-    final contact = await contactPicker.selectContact();
-    if (contact != null) {
-      final phone = (contact.phoneNumbers != null && contact.phoneNumbers!.isNotEmpty) ? contact.phoneNumbers!.first : '';
+    try {
+      final phone = await ContactPickerService.pickPhoneNumber();
+      if (!mounted || phone == null) return;
       final formatted = _formatPhoneNumber(phone);
       setState(() {
         _phoneController.text = formatted;
         _autoSelectNetwork();
       });
+    } catch (_) {
+      if (!mounted) return;
+      AppToast.show(context, message: 'Could not select a contact. Please enter the phone number manually.', type: ToastType.warning);
     }
   }
 

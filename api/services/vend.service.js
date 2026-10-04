@@ -1,4 +1,5 @@
 const prisma = require('../../prisma/client');
+const { recordWalletCredit } = require('./security.service');
 const vtpass = require('../utils/providers/vtpass');
 const basicProvider = require('../utils/providers/basic'); // N3TData, LegitData, etc.
 const topupbox = require('../utils/providers/topupbox');
@@ -49,10 +50,18 @@ function sanitizeVendResult(result) {
 
 
 /**
- * Shared atomic refund helper
+ * Shared atomic refund helper — restores wallet balance and records audit trail + admin alert
  */
 async function refundTransaction(transaction, reason) {
     try {
+        const user = await prisma.user.findUnique({
+            where: { id: transaction.userId },
+            select: { id: true, wallet: true, firstName: true, lastName: true, email: true, phone: true }
+        });
+        const refundAmount = Math.abs(transaction.amount);
+        const prevBal = user?.wallet || 0;
+        const newBal = prevBal + refundAmount;
+
         await prisma.$transaction([
             prisma.transaction.update({
                 where: { id: transaction.id },
@@ -63,10 +72,25 @@ async function refundTransaction(transaction, reason) {
             }),
             prisma.user.update({
                 where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
+                data: { wallet: { increment: refundAmount } }
             })
         ]);
-        console.log(`[Refund] Successfully refunded transaction ${transaction.id} (user: ${transaction.userId}, amount: ${Math.abs(transaction.amount)})`);
+
+        if (user) {
+            recordWalletCredit(prisma, {
+                user,
+                amount: refundAmount,
+                type: 'REFUND',
+                channel: 'VENDING_REFUND',
+                reference: transaction.ref || `REF_${transaction.id}`,
+                previousBalance: prevBal,
+                newBalance: newBal,
+                initiatedBy: 'SYSTEM',
+                description: `Vending refund: ${transaction.description} (${reason})`
+            }).catch(e => console.error('[Vend Refund] Credit log error:', e.message));
+        }
+
+        console.log(`[Refund] Successfully refunded transaction ${transaction.id} (user: ${transaction.userId}, amount: ${refundAmount})`);
     } catch (refErr) {
         console.error(`[Refund Error] Failed to execute atomic refund for transaction ${transaction.id}:`, refErr);
     }
@@ -619,32 +643,14 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
                 data: { status: 0, description: `${transaction.description} [SUCCESS]` } // 0 = Success
             });
         } else if (result.status === 'failed') {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` }
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
+            await refundTransaction(transaction, result.message);
         }
 
         return sanitizeVendResult(result);
 
     } catch (error) {
         console.error('TV Vending Error:', error);
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
+        await refundTransaction(transaction, 'System Error during TV vending');
         return { status: 'failed', message: 'System Error during TV vending' };
     }
 }
@@ -707,32 +713,14 @@ async function vendElectricity(transaction, service, meterNo, phone, baseAmount,
                 data: { status: 0, description: `${transaction.description} [SUCCESS] Token: ${result.token || 'N/A'}` } // 0 = Success
             });
         } else if (result.status === 'failed') {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 2, description: `${transaction.description} [FAILED: ${result.message}]` } // 2 = Failed
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
+            await refundTransaction(transaction, result.message);
         }
 
         return sanitizeVendResult(result);
 
     } catch (error) {
         console.error('Electricity Vending Error:', error);
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
+        await refundTransaction(transaction, 'System Error during electricity vending');
         return { status: 'failed', message: 'System Error during electricity vending' };
     }
 }
@@ -820,32 +808,14 @@ async function vendExam(transaction, service, quantity, phone) {
                 }
             });
         } else if (result.status === 'failed') {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 1, description: `${transaction.description} [FAILED: ${result.message}]` } // 1 = Failed
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
+            await refundTransaction(transaction, result.message);
         }
 
         return sanitizeVendResult(result);
 
     } catch (error) {
         console.error('Exam Vending Error:', error);
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
+        await refundTransaction(transaction, 'System Error during exam vending');
         return { status: 'failed', message: 'System Error during exam vending' };
     }
 }
@@ -909,32 +879,14 @@ async function vendDataPin(transaction, service, quantity, phone, businessName) 
                 }
             });
         } else if (result.status === 'failed') {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 1, description: `${transaction.description} [FAILED: ${result.message}]` } // 1 = Failed
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
+            await refundTransaction(transaction, result.message);
         }
 
         return sanitizeVendResult(result);
 
     } catch (error) {
         console.error('Data Pin Vending Error:', error);
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
+        await refundTransaction(transaction, 'System Error during data pin vending');
         return { status: 'failed', message: 'System Error during data pin vending' };
     }
 }
@@ -991,32 +943,14 @@ async function vendEPin(transaction, service, quantity, phone, businessName) {
                 }
             });
         } else if (result.status === 'failed') {
-            await prisma.$transaction([
-                prisma.transaction.update({
-                    where: { id: transaction.id },
-                    data: { status: 1, description: `${transaction.description} [FAILED: ${result.message}]` } // 1 = Failed
-                }),
-                prisma.user.update({
-                    where: { id: transaction.userId },
-                    data: { wallet: { increment: Math.abs(transaction.amount) } }
-                })
-            ]);
+            await refundTransaction(transaction, result.message);
         }
 
         return sanitizeVendResult(result);
 
     } catch (error) {
         console.error('EPin Vending Error:', error);
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: { status: 2, description: `${transaction.description} [SYSTEM ERROR]` } // 2 = Failed
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: Math.abs(transaction.amount) } }
-            })
-        ]);
+        await refundTransaction(transaction, 'System Error during EPin vending');
         return { status: 'failed', message: 'System Error during EPin vending' };
     }
 }

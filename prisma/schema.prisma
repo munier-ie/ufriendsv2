@@ -27,9 +27,10 @@ model User {
   wallet               Float                  @default(0.0)
   refWallet            Float                  @default(0.0)
   regStatus            Int                    @default(0)
+  securityHold         Boolean                @default(false)
   verCode              Int?
   airtimeLimit         Float                  @default(10000)
-  accountLimit         Float                  @default(500000)
+  accountLimit         Float                  @default(50000)
   transactionPin       String?
   pinEnabled           Boolean                @default(false)
   kycStatus            Boolean                @default(false)
@@ -84,6 +85,7 @@ model User {
   ninReports           NinReport[]            @relation("ninReports")
   resellerRequests     ResellerRequest[]
   userActions          UserAction[]           @relation("userActions")
+  walletCreditLogs     WalletCreditLog[]
   accountDeletion      AccountDeletion?
 }
 
@@ -247,6 +249,7 @@ model ServiceRequest {
 model Transaction {
   id                      Int                       @id @default(autoincrement())
   reference               String                    @unique
+  refundedAmount          Float                     @default(0)
   serviceName             String
   description             String
   amount                  Float
@@ -261,6 +264,110 @@ model Transaction {
   date                    DateTime                  @default(now())
   user                    User                      @relation(fields: [userId], references: [id])
   transactionStatusUpdate TransactionStatusUpdate[]
+}
+
+// Independent, append-only evidence. IDs are snapshots, deliberately not cascading relations.
+model SecurityEvent {
+  id          String   @id @default(uuid())
+  kind        String
+  severity    String   @default("info")
+  userId      Int?
+  adminId     Int?
+  source      String?
+  reference   String?
+  operationId String?  @unique
+  oldBalance  Float?
+  newBalance  Float?
+  amount      Float?
+  metadata    Json     @default("{}")
+  createdAt   DateTime @default(now())
+  @@index([kind, createdAt])
+  @@index([userId, createdAt])
+  @@index([reference])
+}
+
+model SecurityReview {
+  id        String   @id @default(uuid())
+  eventId   String
+  adminId   Int
+  action    String
+  reason    String
+  createdAt DateTime @default(now())
+  @@index([eventId, createdAt])
+}
+
+model SecurityOutbox {
+  id          String    @id @default(uuid())
+  eventId     String    @unique
+  status      String    @default("pending")
+  attempts    Int       @default(0)
+  availableAt DateTime  @default(now())
+  leaseUntil  DateTime?
+  leaseToken  String?
+  acceptedAt  DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+  @@index([status, availableAt])
+}
+
+model LoginChallenge {
+  id          String    @id
+  subjectId   Int
+  subjectType String
+  purpose     String
+  otpHash     String?
+  attempts    Int       @default(0)
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  @@index([subjectType, subjectId, purpose])
+}
+
+model ProviderAttempt {
+  id            String   @id @default(uuid())
+  transactionId Int
+  providerId    Int
+  reference     String
+  status        String   @default("pending")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  @@unique([transactionId, providerId])
+  @@index([status, createdAt])
+}
+
+model PaymentEvent {
+  id           String   @id @default(uuid())
+  provider     String
+  reference    String
+  payloadHash  String
+  status       String
+  userId       Int?
+  amount       Float?
+  account      String?
+  createdAt    DateTime @default(now())
+  @@unique([provider, reference])
+}
+
+model WalletCreditLog {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Float
+  previousBalance Float
+  newBalance      Float
+  type            String    // 'MONNIFY_WEBHOOK', 'PAYMENTPOINT_WEBHOOK', 'ADMIN_FUND', 'P2P_TRANSFER', 'REFUND', 'AIRTIME_TO_CASH', 'REFERRAL_WITHDRAWAL'
+  channel         String?   // 'monnify', 'paymentpoint', 'admin', 'p2p', 'airtime_to_cash', 'system'
+  reference       String?
+  description     String?
+  initiatedBy     String?   // 'webhook', admin username, or user email/phone
+  ipAddress       String?
+  metadata        Json      @default("{}")
+  createdAt       DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([reference])
 }
 
 model UserLogin {

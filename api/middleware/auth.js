@@ -16,6 +16,7 @@ const authenticateUser = async (req, res, next) => {
         const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
         if (!user) return res.status(401).json({ error: 'User not found' });
 
+        if (user.securityHold) return res.status(403).json({ error: 'Account temporarily suspended for security review. Contact support.', code: 'SECURITY_HOLD' });
         if (user.regStatus === 1) return res.status(403).json({ error: 'Account blocked. Contact support.' });
         if (user.regStatus === 2) return res.status(403).json({ error: 'Account is terminated.' });
 

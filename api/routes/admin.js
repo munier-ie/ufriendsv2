@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
+const { recordWalletCredit, hold, unhold } = require('../services/security.service');
+const { findFuzzyUserIds } = require('../utils/fuzzySearch');
 
 // All admin routes require admin authentication
 
@@ -151,7 +153,11 @@ router.get('/users', adminAuth, async (req, res) => {
         }
 
         if (search) {
+            const fuzzyUserIds = await findFuzzyUserIds(search, 100);
+            const isNum = !isNaN(parseInt(search)) && String(parseInt(search)) === search.trim();
             where.OR = [
+                ...(fuzzyUserIds.length > 0 ? [{ id: { in: fuzzyUserIds } }] : []),
+                ...(isNum ? [{ id: parseInt(search) }] : []),
                 { email: { contains: search, mode: 'insensitive' } },
                 { phone: { contains: search, mode: 'insensitive' } },
                 { firstName: { contains: search, mode: 'insensitive' } },
@@ -170,6 +176,8 @@ router.get('/users', adminAuth, async (req, res) => {
                     phone: true,
                     wallet: true,
                     regStatus: true,
+                    securityHold: true,
+                    accountLimit: true,
                     type: true,
                     createdAt: true
                 },
@@ -237,6 +245,10 @@ router.post('/users', adminAuth, async (req, res) => {
             }
         });
 
+        // Notify admin
+        const { sendAdminNewAccountAlert } = require('../services/email.service');
+        sendAdminNewAccountAlert(newUser, req).catch(err => console.error('Admin user alert error:', err));
+
         const { password: _, ...safeUser } = newUser;
 
         res.status(201).json({
@@ -281,6 +293,31 @@ router.post('/users/:id/fund', adminAuth, async (req, res) => {
                     userId: parseInt(id),
                     type: 'funding'
                 }
+            });
+
+            // Log the action for audit trail
+            await tx.userAction.create({
+                data: {
+                    userId: parseInt(id),
+                    action: 'WALLET_FUNDED',
+                    details: JSON.stringify({ amount: parseFloat(amount), description, adminName: req.admin.name }),
+                    adminId: req.admin.id
+                }
+            });
+
+            // Log wallet credit, notify admin via email, and run fraud engine
+            await recordWalletCredit(tx, {
+                user: txUser,
+                amount: parseFloat(amount),
+                previousBalance: txUser.wallet,
+                newBalance: updatedUser.wallet,
+                type: 'admin_fund',
+                channel: 'admin',
+                reference: transaction.reference,
+                description: description || `Admin wallet funding by ${req.admin.name}`,
+                initiatedBy: req.admin.username || req.admin.name,
+                ipAddress: req.ip,
+                metadata: { adminId: req.admin.id, adminName: req.admin.name }
             });
 
             return { updatedUser, transaction };
@@ -637,8 +674,12 @@ router.get('/transactions', adminAuth, async (req, res) => {
         }
 
         if (search) {
+            const fuzzyUserIds = await findFuzzyUserIds(search, 150);
+            const isNum = !isNaN(parseInt(search)) && String(parseInt(search)) === search.trim();
             where.OR = [
-                { reference: { contains: search } },
+                ...(fuzzyUserIds.length > 0 ? [{ userId: { in: fuzzyUserIds } }] : []),
+                ...(isNum ? [{ id: parseInt(search) }, { userId: parseInt(search) }] : []),
+                { reference: { contains: search, mode: 'insensitive' } },
                 { serviceName: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } }
             ];
@@ -864,15 +905,28 @@ router.put('/transactions/:id/status', adminAuth, async (req, res) => {
             }
         });
 
-        // If refunding, credit user wallet
+        // If refunding, credit user wallet and record credit audit log
         if (refund && transaction.status !== 0) {
-            await prisma.user.update({
+            const updatedUser = await prisma.user.update({
                 where: { id: transaction.userId },
                 data: {
                     wallet: {
                         increment: transaction.amount
                     }
                 }
+            });
+
+            await recordWalletCredit(prisma, {
+                user: transaction.user,
+                amount: transaction.amount,
+                previousBalance: transaction.user.wallet,
+                newBalance: updatedUser.wallet,
+                type: 'REFUND',
+                channel: 'admin_refund',
+                reference: `REFUND-${transaction.reference || transaction.id}`,
+                description: `Admin Refund for Transaction #${transaction.id}: ${reason || 'Failed transaction refund'}`,
+                initiatedBy: `admin:${req.admin.id}`,
+                metadata: { transactionId: transaction.id, reason, originalService: transaction.serviceName }
             });
         }
 
@@ -1126,6 +1180,10 @@ router.get('/users/:id', adminAuth, async (req, res) => {
                     take: 10,
                     orderBy: { date: 'desc' }
                 },
+                walletCreditLogs: {
+                    take: 10,
+                    orderBy: { createdAt: 'desc' }
+                },
                 virtualAccounts: true,
                 verifications: {
                     take: 5,
@@ -1176,7 +1234,185 @@ router.put('/users/:id', adminAuth, async (req, res) => {
     }
 });
 
-// GET /api/admin/users/:id/kyc - Get KYC details (Redundant if GET /users/:id returns everything, but good for specific calls)
-// We'll skip for now as GET /users/:id covers it.
+// GET /api/admin/wallet-credits — List all user wallet credit/addition logs with filters & stats
+router.get('/wallet-credits', adminAuth, async (req, res) => {
+    try {
+        const { search, type, startDate, endDate, minAmount, userId, page = 1, limit = 50 } = req.query;
+        const pageNum = Math.max(1, parseInt(page));
+        const limitNum = Math.min(100, Math.max(10, parseInt(limit)));
+        const skip = (pageNum - 1) * limitNum;
+
+        const andClauses = [];
+
+        if (userId) {
+            andClauses.push({ userId: parseInt(userId) });
+        }
+
+        if (type) {
+            andClauses.push({
+                OR: [
+                    { type: { contains: type, mode: 'insensitive' } },
+                    { channel: { contains: type, mode: 'insensitive' } }
+                ]
+            });
+        }
+
+        if (minAmount) {
+            andClauses.push({ amount: { gte: parseFloat(minAmount) } });
+        }
+
+        if (startDate || endDate) {
+            const dateClause = {};
+            if (startDate) dateClause.gte = new Date(startDate);
+            if (endDate) {
+                const end = new Date(endDate);
+                end.setHours(23, 59, 59, 999);
+                dateClause.lte = end;
+            }
+            andClauses.push({ createdAt: dateClause });
+        }
+
+        if (search) {
+            const isNum = !isNaN(parseInt(search)) && String(parseInt(search)) === search.trim();
+            const fuzzyUserIds = await findFuzzyUserIds(search, 150);
+            andClauses.push({
+                OR: [
+                    ...(fuzzyUserIds.length > 0 ? [{ userId: { in: fuzzyUserIds } }] : []),
+                    ...(isNum ? [{ userId: parseInt(search) }] : []),
+                    { reference: { contains: search, mode: 'insensitive' } },
+                    { description: { contains: search, mode: 'insensitive' } },
+                    { initiatedBy: { contains: search, mode: 'insensitive' } },
+                    { user: { phone: { contains: search } } },
+                    { user: { email: { contains: search, mode: 'insensitive' } } },
+                    { user: { firstName: { contains: search, mode: 'insensitive' } } },
+                    { user: { lastName: { contains: search, mode: 'insensitive' } } }
+                ]
+            });
+        }
+
+        const where = andClauses.length > 0 ? { AND: andClauses } : {};
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+
+        const [logs, total, statsAgg, heldCount] = await Promise.all([
+            prisma.walletCreditLog.findMany({
+                where,
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phone: true,
+                            securityHold: true,
+                            regStatus: true,
+                            wallet: true
+                        }
+                    }
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limitNum
+            }),
+            prisma.walletCreditLog.count({ where }),
+            prisma.walletCreditLog.aggregate({
+                where: { createdAt: { gte: todayStart } },
+                _sum: { amount: true },
+                _count: { id: true }
+            }),
+            prisma.user.count({ where: { securityHold: true } })
+        ]);
+
+        res.json({
+            success: true,
+            logs,
+            pagination: {
+                total,
+                page: pageNum,
+                limit: limitNum,
+                pages: Math.ceil(total / limitNum)
+            },
+            stats: {
+                todayTotalAmount: statsAgg._sum.amount || 0,
+                todayCreditCount: statsAgg._count.id || 0,
+                heldUsersCount: heldCount
+            }
+        });
+    } catch (error) {
+        console.error('Fetch wallet credits error:', error);
+        res.status(500).json({ error: 'Failed to fetch wallet credit logs' });
+    }
+});
+
+// POST /api/admin/users/:id/security-hold — Toggle or set security hold status
+router.post('/users/:id/security-hold', adminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { hold: shouldHold, reason } = req.body;
+        const userId = parseInt(id);
+
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) return res.status(404).json({ error: 'User not found' });
+
+        if (shouldHold) {
+            await hold(userId, reason || `Manual hold by admin ${req.admin.name}`, 'admin_manual');
+        } else {
+            await unhold(userId, req.admin.id, reason || `Manual unhold by admin ${req.admin.name}`);
+        }
+
+        // Log admin action
+        await prisma.userAction.create({
+            data: {
+                userId,
+                action: shouldHold ? 'ACCOUNT_SECURITY_HOLD' : 'ACCOUNT_SECURITY_RELEASE',
+                details: JSON.stringify({ reason: reason || 'Manual action', adminName: req.admin.name }),
+                adminId: req.admin.id
+            }
+        });
+
+        const updated = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { id: true, firstName: true, lastName: true, email: true, phone: true, securityHold: true }
+        });
+
+        res.json({
+            success: true,
+            message: shouldHold ? 'User placed on security hold' : 'User security hold released',
+            user: updated
+        });
+    } catch (error) {
+        console.error('Update security hold error:', error);
+        res.status(500).json({ error: 'Failed to update security hold status' });
+    }
+});
+
+// GET /api/admin/security/events — List security events for investigation
+router.get('/security/events', adminAuth, async (req, res) => {
+    try {
+        const { userId, severity, page = 1, limit = 50 } = req.query;
+        const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit));
+
+        const where = {};
+        if (userId) where.userId = parseInt(userId);
+        if (severity) where.severity = severity;
+
+        const [events, total] = await Promise.all([
+            prisma.securityEvent.findMany({
+                where,
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: Math.min(100, parseInt(limit))
+            }),
+            prisma.securityEvent.count({ where })
+        ]);
+
+        res.json({ success: true, events, total });
+    } catch (error) {
+        console.error('Fetch security events error:', error);
+        res.status(500).json({ error: 'Failed to fetch security events' });
+    }
+});
 
 module.exports = router;

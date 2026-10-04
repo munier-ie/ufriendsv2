@@ -5,6 +5,7 @@ const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
 const whatsappService = require('../services/whatsapp.service');
 const airtime2cash = require('../utils/providers/airtime2cash');
+const { recordWalletCredit } = require('../services/security.service');
 
 // Validation Schema
 const requestSchema = z.object({
@@ -105,6 +106,19 @@ router.post('/request', authenticateUser, async (req, res) => {
                         userId: userId,
                         type: 'airtime_cash'
                     }
+                });
+
+                await recordWalletCredit(tx, {
+                    user,
+                    amount: convertedAmount,
+                    previousBalance: user.wallet,
+                    newBalance: user.wallet + convertedAmount,
+                    type: 'airtime_to_cash',
+                    channel: 'airtime_to_cash',
+                    reference,
+                    description: `Converted ₦${amount} ${network.toUpperCase()} airtime to cash (Rate: ${rateData.rate}%)`,
+                    initiatedBy: user.phone,
+                    metadata: { network, originalAmount: amount, rate: rateData.rate }
                 });
 
                 // Create request record (for history)

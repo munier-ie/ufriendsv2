@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { z } = require('zod');
 const adminAuthMiddleware = require('../middleware/adminAuth');
 const { RateLimiterMemory } = require('rate-limiter-flexible');
+const { sendAdminLoginAlert } = require('../services/email.service');
 
 // ─── Rate Limiters ─────────────────────────────────────────────────────────────
 // Per-IP: max 10 attempts per 15 minutes
@@ -181,6 +182,11 @@ router.post('/access', async (req, res) => {
         await prisma.adminLogin.deleteMany({ where: { adminId: admin.id } });
         await prisma.adminLogin.create({ data: { adminId: admin.id, token } });
 
+        // Send admin login notification email with device, browser, location, and IP
+        sendAdminLoginAlert(admin, req).catch(err => {
+            console.error('Failed to send admin login alert email:', err.message);
+        });
+
         console.log('[admin-access] ✓ JWT signed, responding', Date.now() - t0, 'ms');
         clearTimeout(timeout);
         res.json({
@@ -250,6 +256,11 @@ router.post('/verify-2fa', async (req, res) => {
         // [SEC-HIGH-09] Single device admin login — invalidate all previous sessions
         await prisma.adminLogin.deleteMany({ where: { adminId: admin.id } });
         await prisma.adminLogin.create({ data: { adminId: admin.id, token } });
+
+        // Send admin login notification email with device, browser, location, and IP
+        sendAdminLoginAlert(admin, req).catch(err => {
+            console.error('Failed to send admin login alert email:', err.message);
+        });
 
         res.json({
             success: true,
@@ -440,7 +451,7 @@ router.put('/update-pin', adminAuthMiddleware, async (req, res) => {
         res.json({ success: true, message: 'PIN updated successfully' });
     } catch (error) {
         console.error('Update PIN error:', error);
-        res.status(400).json({ error: error.message || 'Failed to update PIN', stack: error.stack, zod: error.errors });
+        res.status(400).json({ error: error.message || 'Failed to update PIN' });
     }
 });
 

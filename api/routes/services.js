@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { creditReferralBonus } = require('../services/referral.service');
 const { sendTransactionReceipt } = require('../services/email.service');
 const { cache } = require('../middleware/cacheMiddleware');
+const { checkVendingVelocity, checkRapidHighValueTransactions } = require('../services/security.service');
 
 // Validation schemas
 const purchaseSchema = z.object({
@@ -366,6 +367,12 @@ router.post('/purchase', authenticateUser, async (req, res) => {
             return res.status(400).json({ error: 'Invalid transaction PIN' });
         }
 
+        // Automated fraud detection: check vending velocity (bot attack prevention)
+        const velocityCheck = await checkVendingVelocity(req.user.id);
+        if (!velocityCheck.allowed) {
+            return res.status(403).json({ error: 'Account suspended for security review due to excessive automated purchase frequency.', code: 'SECURITY_HOLD' });
+        }
+
         // 2. Get Service
         const service = await prisma.service.findUnique({ where: { id: serviceId } });
         if (!service || !service.active) {
@@ -413,6 +420,12 @@ router.post('/purchase', authenticateUser, async (req, res) => {
         // 4. Check Balance
         if (req.user.wallet < finalAmount) {
             return res.status(400).json({ error: `Insufficient wallet balance. You need ₦${finalAmount.toFixed(2)}` });
+        }
+
+        // Automated fraud detection: check rapid high-value transactions (multiple >= ₦2,000 within 5 minutes)
+        const rapidCheck = await checkRapidHighValueTransactions(req.user.id, finalAmount);
+        if (!rapidCheck.allowed) {
+            return res.status(403).json({ error: rapidCheck.reason || 'Account suspended for security review.', code: 'SECURITY_HOLD' });
         }
 
         // 5. Calculate Profit

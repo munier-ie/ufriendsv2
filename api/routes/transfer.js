@@ -3,7 +3,8 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const { z } = require('zod');
 const authenticateUser = require('../middleware/auth');
-const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
+const { recordWalletCredit, checkRapidHighValueTransactions, checkVendingVelocity } = require('../services/security.service');
 
 const transferSchema = z.object({
     recipient: z.string().min(1), // Phone or Email
@@ -98,6 +99,17 @@ router.post('/', authenticateUser, async (req, res) => {
 
         const ref = `TRF-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
+        // Automated fraud detection: check vending velocity and rapid transactions >= ₦2,000
+        const velocityCheck = await checkVendingVelocity(sender.id);
+        if (!velocityCheck.allowed) {
+            return res.status(403).json({ error: velocityCheck.reason || 'Account suspended for security review.', code: 'SECURITY_HOLD' });
+        }
+
+        const rapidCheck = await checkRapidHighValueTransactions(sender.id, amount);
+        if (!rapidCheck.allowed) {
+            return res.status(403).json({ error: rapidCheck.reason || 'Account suspended for security review.', code: 'SECURITY_HOLD' });
+        }
+
         // 5. Atomic Transaction
         const result = await prisma.$transaction(async (tx) => {
             // Re-fetch sender inside the transaction to prevent TOCTOU race condition
@@ -152,6 +164,20 @@ router.post('/', authenticateUser, async (req, res) => {
                     newBalance: updatedRecipient.wallet,
                     type: 'transfer_credit'
                 }
+            });
+
+            await recordWalletCredit(tx, {
+                user: recipient,
+                amount: amount,
+                previousBalance: recipient.wallet,
+                newBalance: updatedRecipient.wallet,
+                type: 'p2p_transfer',
+                channel: 'p2p',
+                reference: `${ref}-R`,
+                description: `P2P Transfer from ${sender.firstName} ${sender.lastName} (#${sender.id})`,
+                initiatedBy: `${sender.phone} (#${sender.id})`,
+                ipAddress: req.ip,
+                metadata: { senderId: sender.id, senderPhone: sender.phone }
             });
 
             // Notifications
