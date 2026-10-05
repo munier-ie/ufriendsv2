@@ -3,6 +3,8 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
 const { z } = require('zod');
+const walletOps = require('../services/wallet.service');
+const { recordWalletCredit } = require('../services/security.service');
 
 // Schema for updating request status
 const updateStatusSchema = z.object({
@@ -82,6 +84,12 @@ router.put('/requests/:id', adminAuth, async (req, res) => {
 
         // Transaction to update request and fund wallet
         const result = await prisma.$transaction(async (tx) => {
+            await walletOps.lockUser(tx, request.userId);
+            const claimed = await tx.airtimeToCashRequest.updateMany({
+                where: { id: request.id, status: 0 },
+                data: { status, adminId, adminNotes, processedAt: new Date() }
+            });
+            if (claimed.count !== 1) throw new Error('Request has already been processed');
             // 1. Update request status
             const updatedRequest = await tx.airtimeToCashRequest.update({
                 where: { id: parseInt(id) },
@@ -95,26 +103,22 @@ router.put('/requests/:id', adminAuth, async (req, res) => {
 
             // 2. If approved, fund user wallet
             if (status === 1) {
-                const oldBalance = request.user.wallet;
-                const newBalance = oldBalance + request.convertedAmount;
-
-                await tx.user.update({
-                    where: { id: request.userId },
-                    data: { wallet: newBalance }
-                });
+                const reference = `ATC-${request.id}`;
+                const creditedUser = await walletOps.credit(tx, request.userId, request.convertedAmount, { source: 'admin_airtime_cash_approval', reference });
+                await recordWalletCredit(tx, { user: request.user, amount: request.convertedAmount, previousBalance: creditedUser.wallet - request.convertedAmount, newBalance: creditedUser.wallet, type: 'airtime_to_cash', channel: 'admin_approval', reference, initiatedBy: `admin:${req.admin.id}` });
 
                 // 3. Create transaction record
                 await tx.transaction.create({
                     data: {
-                        reference: `ATC-${request.id}-${Date.now()}`,
+                        reference,
                         userId: request.userId,
                         amount: request.convertedAmount,
                         type: 'utility',
                         serviceName: 'Airtime to Cash',
                         status: 0, // Success
                         description: `Airtime conversion: ${request.network} ${request.amount} (Rate: ${request.rate}%)`,
-                        oldBalance: oldBalance,
-                        newBalance: newBalance
+                        oldBalance: creditedUser.wallet - request.convertedAmount,
+                        newBalance: creditedUser.wallet
                     }
                 });
             }

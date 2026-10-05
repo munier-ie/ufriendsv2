@@ -7,6 +7,7 @@ const { z } = require('zod');
 
 const authenticateUser = require('../middleware/auth');
 const { creditReferralBonus } = require('../services/referral.service');
+const walletOps = require('../services/wallet.service');
 
 // Validation schemas
 const updateProfileSchema = z.object({
@@ -210,7 +211,7 @@ router.post('/upgrade', authenticateUser, async (req, res) => {
         const upgradeName = `${plan.name} Upgrade`;
 
         // Deduct fee and update type safely with an interactive transaction (Atomic)
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await walletOps.transaction(async (tx) => {
             const user = await tx.user.findUnique({ where: { id: req.user.id } });
             const currentWallet = parseFloat(user.wallet);
 
@@ -218,13 +219,9 @@ router.post('/upgrade', authenticateUser, async (req, res) => {
                 throw new Error(`Insufficient funds. Wallet balance: ₦${currentWallet.toLocaleString()}`);
             }
 
-            const updatedUser = await tx.user.update({
-                where: { id: user.id },
-                data: {
-                    wallet: { decrement: fee },
-                    type: targetType
-                }
-            });
+            const reference = `UPG_${Date.now()}_${user.id}`;
+            const debitedUser = await walletOps.debit(tx, user.id, fee, { source: 'account_upgrade', reference });
+            const updatedUser = await tx.user.update({ where: { id: user.id }, data: { type: targetType } });
 
             if (updatedUser.wallet < 0) {
                 throw new Error('Insufficient funds.'); // Rollback transaction
@@ -238,9 +235,9 @@ router.post('/upgrade', authenticateUser, async (req, res) => {
                     serviceName: 'Account Upgrade',
                     description: `Upgraded to ${plan.name}`,
                     status: 0, // Success
-                    reference: `UPG_${Date.now()}_${user.id}`,
-                    oldBalance: currentWallet,
-                    newBalance: updatedUser.wallet
+                    reference,
+                    oldBalance: debitedUser.wallet + fee,
+                    newBalance: debitedUser.wallet
                 }
             });
 

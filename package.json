@@ -4,10 +4,12 @@
   "description": "",
   "main": "api/index.js",
   "scripts": {
+    "test:security": "bash scripts/test-wallet-security.sh",
+    "check:wallet-security": "node scripts/check-wallet-security.js",
     "dev": "vite --host",
     "build:blog": "node build-blog-json.js",
     "build": "npm run build:blog && vite build && node prerender-script.js",
-    "build:backend": "npx prisma generate && npx prisma db push",
+    "build:backend": "prisma generate && prisma migrate deploy && node scripts/check-wallet-security.js",
     "preview": "vite preview",
     "start": "node api/dev-server.js"
   },

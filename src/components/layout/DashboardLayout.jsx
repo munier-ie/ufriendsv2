@@ -243,6 +243,7 @@ export default function DashboardLayout() {
                 { icon: Users, label: 'Users', path: '/admin/dashboard/users', moduleId: 'users' },
                 { icon: Wallet, label: 'Transactions', path: '/admin/dashboard/transactions', moduleId: 'transactions' },
                 { icon: ShieldAlert, label: 'Wallet Credit Logs', path: '/admin/dashboard/wallet-credits', moduleId: 'transactions' },
+                { icon: ShieldCheck, label: 'Security Events', path: '/admin/dashboard/security-events', moduleId: 'security' },
                 { icon: Users, label: 'System Users', path: '/admin/dashboard/system-users', moduleId: 'system-users' },
                 { icon: Smartphone, label: 'Reseller Requests', path: '/admin/dashboard/reseller-requests', moduleId: 'settings' },
                 { icon: Landmark, label: 'Virtual Accts', path: '/admin/dashboard/virtual-accounts', moduleId: 'users' },

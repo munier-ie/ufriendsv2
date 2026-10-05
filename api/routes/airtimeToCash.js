@@ -6,6 +6,7 @@ const authenticateUser = require('../middleware/auth');
 const whatsappService = require('../services/whatsapp.service');
 const airtime2cash = require('../utils/providers/airtime2cash');
 const { recordWalletCredit } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 
 // Validation Schema
 const requestSchema = z.object({
@@ -87,11 +88,7 @@ router.post('/request', authenticateUser, async (req, res) => {
         if (transferResult.code === 2000) {
             // Success: Credit User Wallet
             const result = await prisma.$transaction(async (tx) => {
-                // Update wallet
-                await tx.user.update({
-                    where: { id: userId },
-                    data: { wallet: { increment: convertedAmount } }
-                });
+                const updatedUser = await walletOps.credit(tx, userId, convertedAmount, { source: 'airtime_to_cash', reference });
 
                 // Create transaction record
                 await tx.transaction.create({
@@ -101,8 +98,8 @@ router.post('/request', authenticateUser, async (req, res) => {
                         description: `Converted ₦${amount} airtime to cash`,
                         amount: convertedAmount,
                         status: 0, // Success
-                        oldBalance: user.wallet,
-                        newBalance: user.wallet + convertedAmount,
+                        oldBalance: updatedUser.wallet - convertedAmount,
+                        newBalance: updatedUser.wallet,
                         userId: userId,
                         type: 'airtime_cash'
                     }
@@ -111,8 +108,8 @@ router.post('/request', authenticateUser, async (req, res) => {
                 await recordWalletCredit(tx, {
                     user,
                     amount: convertedAmount,
-                    previousBalance: user.wallet,
-                    newBalance: user.wallet + convertedAmount,
+                    previousBalance: updatedUser.wallet - convertedAmount,
+                    newBalance: updatedUser.wallet,
                     type: 'airtime_to_cash',
                     channel: 'airtime_to_cash',
                     reference,

@@ -4,6 +4,13 @@ private_seeds/
 
 scripts/
 test/
+!/scripts/
+/scripts/*
+!/scripts/test-wallet-security.sh
+!/scripts/check-wallet-security.js
+!/test/
+/test/*
+!/test/security-wallet.test.js
 *.log
 scratch/
 .skills/

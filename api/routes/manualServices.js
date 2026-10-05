@@ -11,6 +11,7 @@ const fs = require('fs');
 const { creditReferralBonus } = require('../services/referral.service');
 const whatsappService = require('../services/whatsapp.service');
 const bvnService = require('../services/bvn.service');
+const walletOps = require('../services/wallet.service');
 
 // ID Upload directory
 // Uses the local uploads/manual-ids folder on both dev and production server.
@@ -247,11 +248,8 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
         const dateOfBirth = details?.dateOfBirth || null;
 
         // 7. Atomic DB transaction
-        const result = await prisma.$transaction(async (tx) => {
-            await tx.user.update({
-                where: { id: req.user.id },
-                data: { wallet: { decrement: amount } }
-            });
+        const result = await walletOps.transaction(async (tx) => {
+            await walletOps.debit(tx, req.user.id, amount, { source: 'manual_service_request', reference: transRef });
 
             const request = await tx.manualServiceRequest.create({
                 data: {
@@ -482,4 +480,3 @@ router.get('/:id', authenticateUser, async (req, res) => {
 });
 
 module.exports = router;
-

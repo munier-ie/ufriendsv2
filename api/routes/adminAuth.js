@@ -30,7 +30,7 @@ const twoFaLimiter = new RateLimiterMemory({
 });
 
 function getIp(req) {
-    return req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip || 'unknown';
+    return req.ip || req.socket?.remoteAddress || 'unknown';
 }
 
 // Admin login schema

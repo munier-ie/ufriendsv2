@@ -255,6 +255,7 @@ export default function SystemUsers() {
                                             { id: 'services', label: 'Services' },
                                             { id: 'providers', label: 'Providers' },
                                             { id: 'transactions', label: 'Transactions' },
+                                            { id: 'security', label: 'Security Events' },
                                             { id: 'reports', label: 'Sales Reports' },
                                             { id: 'settings', label: 'Settings' },
                                             { id: 'contact', label: 'Messages/Contact' },

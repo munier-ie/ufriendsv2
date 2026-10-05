@@ -129,17 +129,17 @@ class PaymentPointService {
         // Remove duplicates
         const uniqueSecrets = [...new Set(possibleSecrets)];
 
-        console.log(`[Webhook Signature Debug] Received Signature: ${signature}`);
-        console.log(`[Webhook Signature Debug] Testing ${uniqueSecrets.length} unique secret(s) against payload length ${payloadStr.length}...`);
-
-        if (uniqueSecrets.length === 0) {
-            console.error('[Webhook Signature Debug] No API secrets found for signature verification');
+        if (uniqueSecrets.length === 0 || typeof signature !== 'string') {
+            console.error('[Webhook Signature] No configured secret or signature');
             return false;
         }
 
+        const safeEqualHex = (expected, received) => {
+            if (!/^[a-f0-9]+$/i.test(received) || expected.length !== received.length) return false;
+            return crypto.timingSafeEqual(Buffer.from(expected, 'hex'), Buffer.from(received, 'hex'));
+        };
+
         for (const secret of uniqueSecrets) {
-            const maskedSecret = `${secret.substring(0, 4)}...${secret.substring(secret.length - 4)}`;
-            
             // HMAC-SHA256
             const hash256 = crypto
                 .createHmac('sha256', secret)
@@ -152,15 +152,11 @@ class PaymentPointService {
                 .update(payloadStr)
                 .digest('hex');
 
-            console.log(`[Webhook Signature Debug] Testing secret [${maskedSecret}] -> SHA256: ${hash256}`);
-            
-            if (hash256 === signature || hash512 === signature) {
-                console.log(`[Webhook Signature Debug] Signature Matched with secret: [${maskedSecret}]!`);
+            if (safeEqualHex(hash256, signature) || safeEqualHex(hash512, signature)) {
                 return true;
             }
         }
-        
-        console.log('[Webhook Signature Debug] Signature Mismatch across all available keys.');
+        console.warn('[Webhook Signature] Signature mismatch');
         return false;
     }
 

@@ -189,7 +189,7 @@ async function resolveLocation(ip, reqHeaders = {}, userState = null) {
     // 3. Perform fast IP geolocation lookup with 1.5s timeout
     try {
         const cleanIp = ip.replace(/^::ffff:/, '');
-        const response = await axios.get(`http://ip-api.com/json/${cleanIp}?fields=status,country,regionName,city`, { timeout: 1500 });
+        const response = await axios.get(`https://ip-api.com/json/${cleanIp}?fields=status,country,regionName,city`, { timeout: 1500 });
         if (response.data && response.data.status === 'success') {
             const { city, regionName, country } = response.data;
             const parts = [city, regionName || country].filter(Boolean);
@@ -204,6 +204,17 @@ async function resolveLocation(ip, reqHeaders = {}, userState = null) {
     return userState ? `${userState}, Nigeria` : 'Nigeria';
 }
 
+function trustedRequestInfo(req) {
+    const proxyTrust = req.app?.get('trust proxy fn');
+    const peer = req.socket?.remoteAddress;
+    const isTrustedProxy = Boolean(proxyTrust && peer && proxyTrust(peer, 0));
+    return {
+        ip: req.ip || peer || null,
+        // Forwarded geo headers are only considered behind a trusted ingress.
+        headers: isTrustedProxy ? req.headers : {}
+    };
+}
+
 /**
  * Send Login Alert
  */
@@ -216,11 +227,7 @@ async function sendLoginAlert(user, reqOrMeta) {
         if (reqOrMeta.headers) {
             // Express req object
             rawUserAgent = reqOrMeta.headers['user-agent'] || '';
-            reqHeaders = reqOrMeta.headers;
-            ip = reqOrMeta.headers['cf-connecting-ip'] || 
-                 reqOrMeta.headers['x-forwarded-for']?.split(',')[0]?.trim() || 
-                 reqOrMeta.headers['x-real-ip'] || 
-                 reqOrMeta.ip;
+            ({ headers: reqHeaders, ip } = trustedRequestInfo(reqOrMeta));
         } else {
             // Metadata object
             rawUserAgent = reqOrMeta.userAgent || reqOrMeta.device || '';
@@ -704,11 +711,7 @@ async function sendAdminLoginAlert(admin, reqOrMeta) {
     if (reqOrMeta && typeof reqOrMeta === 'object') {
         if (reqOrMeta.headers) {
             rawUserAgent = reqOrMeta.headers['user-agent'] || '';
-            reqHeaders = reqOrMeta.headers;
-            ip = reqOrMeta.headers['cf-connecting-ip'] ||
-                 reqOrMeta.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-                 reqOrMeta.headers['x-real-ip'] ||
-                 reqOrMeta.ip;
+            ({ headers: reqHeaders, ip } = trustedRequestInfo(reqOrMeta));
         } else {
             rawUserAgent = reqOrMeta.userAgent || '';
             reqHeaders = reqOrMeta.headers || {};
@@ -1008,11 +1011,7 @@ async function sendAdminNewAccountAlert(user, reqOrMeta) {
     if (reqOrMeta && typeof reqOrMeta === 'object') {
         if (reqOrMeta.headers) {
             rawUserAgent = reqOrMeta.headers['user-agent'] || '';
-            reqHeaders = reqOrMeta.headers;
-            ip = reqOrMeta.headers['cf-connecting-ip'] ||
-                 reqOrMeta.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
-                 reqOrMeta.headers['x-real-ip'] ||
-                 reqOrMeta.ip;
+            ({ headers: reqHeaders, ip } = trustedRequestInfo(reqOrMeta));
         } else {
             rawUserAgent = reqOrMeta.userAgent || '';
             reqHeaders = reqOrMeta.headers || {};
@@ -1130,4 +1129,3 @@ module.exports = {
     sendFraudAlert,
     sendAdminNewAccountAlert
 };
-

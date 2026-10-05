@@ -4,7 +4,9 @@ const prisma = require('../../prisma/client');
 const { z } = require('zod');
 const authenticateUser = require('../middleware/auth');
 const bcrypt = require('bcryptjs');
-const { recordWalletCredit, checkRapidHighValueTransactions, checkVendingVelocity } = require('../services/security.service');
+const crypto = require('node:crypto');
+const { recordWalletCredit } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 
 const transferSchema = z.object({
     recipient: z.string().min(1), // Phone or Email
@@ -99,19 +101,8 @@ router.post('/', authenticateUser, async (req, res) => {
 
         const ref = `TRF-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
-        // Automated fraud detection: check vending velocity and rapid transactions >= ₦2,000
-        const velocityCheck = await checkVendingVelocity(sender.id);
-        if (!velocityCheck.allowed) {
-            return res.status(403).json({ error: velocityCheck.reason || 'Account suspended for security review.', code: 'SECURITY_HOLD' });
-        }
-
-        const rapidCheck = await checkRapidHighValueTransactions(sender.id, amount);
-        if (!rapidCheck.allowed) {
-            return res.status(403).json({ error: rapidCheck.reason || 'Account suspended for security review.', code: 'SECURITY_HOLD' });
-        }
-
         // 5. Atomic Transaction
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await walletOps.transaction(async (tx) => {
             // Re-fetch sender inside the transaction to prevent TOCTOU race condition
             const freshSender = await tx.user.findUnique({ where: { id: sender.id } });
             if (freshSender.wallet < amount) {
@@ -119,20 +110,14 @@ router.post('/', authenticateUser, async (req, res) => {
             }
 
             // Deduct from sender
-            const updatedSender = await tx.user.update({
-                where: { id: sender.id },
-                data: { wallet: { decrement: amount } }
-            });
+            const updatedSender = await walletOps.debit(tx, sender.id, amount, { source: 'p2p_transfer', reference: `${ref}-S` });
 
             if (updatedSender.wallet < 0) {
                 throw new Error('Insufficient funds');
             }
 
             // Add to recipient
-            const updatedRecipient = await tx.user.update({
-                where: { id: recipient.id },
-                data: { wallet: { increment: amount } }
-            });
+            const updatedRecipient = await walletOps.credit(tx, recipient.id, amount, { source: 'p2p_transfer', reference: `${ref}-R` });
 
             // Sender Debit Log (status 0 = Success)
             await tx.transaction.create({
@@ -169,7 +154,7 @@ router.post('/', authenticateUser, async (req, res) => {
             await recordWalletCredit(tx, {
                 user: recipient,
                 amount: amount,
-                previousBalance: recipient.wallet,
+                previousBalance: updatedRecipient.wallet - amount,
                 newBalance: updatedRecipient.wallet,
                 type: 'p2p_transfer',
                 channel: 'p2p',

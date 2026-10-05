@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
+const walletOps = require('../services/wallet.service');
 const authenticateUser = require('../middleware/auth');
 const { z } = require('zod');
 const crypto = require('crypto');
@@ -50,12 +51,10 @@ router.post('/identity', authenticateUser, async (req, res) => {
         const mockResult = MOCK_DATA[type]?.[number] || { valid: true, firstName: 'Test', lastName: 'User', note: 'Mock Data' };
 
         // 4. Execute Transaction
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await walletOps.transaction(async (tx) => {
+            const reference = crypto.randomUUID();
             // Deduct fee
-            const updatedUser = await tx.user.update({
-                where: { id: req.user.id },
-                data: { wallet: { decrement: COST } }
-            });
+            const updatedUser = await walletOps.debit(tx, req.user.id, COST, { source: 'identity_verification', reference });
 
             // Log Verification
             await tx.verificationLog.create({
@@ -71,7 +70,7 @@ router.post('/identity', authenticateUser, async (req, res) => {
             // Create transaction record
             await tx.transaction.create({
                 data: {
-                    reference: crypto.randomUUID(),
+                    reference,
                     serviceName: `${type.toUpperCase()} Verification`,
                     description: `Identity verification for ${number}`,
                     amount: -COST,

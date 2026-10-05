@@ -3,13 +3,25 @@ const prisma = require('../../prisma/client');
 const emailService = require('./email.service');
 const axios = require('axios');
 
+// Rate-limit map: subject → timestamp of last sent email
+const _alertCooldowns = new Map();
+const ALERT_COOLDOWN_MS = 60 * 60 * 1000; // 1 hour cooldown per subject
+
 /**
- * Send alert email to admin
+ * Send alert email to admin (rate-limited per subject).
+ * The same subject will only be emailed once per ALERT_COOLDOWN_MS window.
  */
 async function sendAdminAlert(subject, message) {
+    const now = Date.now();
+    const lastSent = _alertCooldowns.get(subject);
+    if (lastSent && (now - lastSent) < ALERT_COOLDOWN_MS) {
+        console.log(`[SmartRoutingBot] ALERT SUPPRESSED (cooldown): ${subject}`);
+        return;
+    }
     console.log(`[SmartRoutingBot] ALERT: ${subject} - ${message}`);
     try {
         await emailService.sendAdminAlert(subject, message);
+        _alertCooldowns.set(subject, now);
     } catch (error) {
         console.error('[SmartRoutingBot] Email Alert failed:', error.message);
     }
@@ -409,6 +421,7 @@ async function syncExamPlans(providers) {
 // =============================================================================
 async function runSmartRoutingSwitch(providers) {
     console.log('[SmartRoutingBot] --- Phase 4: Smart Routing Switch ---');
+    const unfundedGroups = []; // Collect unfunded groups to send ONE consolidated alert
 
     // Reload active providers to ensure we evaluate the newly live-synced wallet balances
     const freshProviders = await prisma.apiProvider.findMany({
@@ -505,11 +518,17 @@ async function runSmartRoutingSwitch(providers) {
             }
         } else {
             console.log(`[SmartRoutingBot] No valid/funded provider found for ${network} ${networkType}`);
-            await sendAdminAlert(
-                'CRITICAL: No Funded Provider',
-                `All providers for ${network} ${networkType} have very low wallet balances. Users cannot purchase. Please fund your wallets ASAP.`
-            );
+            unfundedGroups.push(`${network} ${networkType}`);
         }
+    }
+
+    // Send ONE consolidated alert for all unfunded network/dataType groups
+    if (unfundedGroups.length > 0) {
+        const listing = unfundedGroups.map(g => `  • ${g}`).join('\n');
+        await sendAdminAlert(
+            'CRITICAL: No Funded Provider',
+            `The following ${unfundedGroups.length} network/type group(s) have NO funded provider (all wallets below ₦200):\n\n${listing}\n\nUsers cannot purchase data for these groups. Please fund your provider wallets ASAP.`
+        );
     }
 }
 

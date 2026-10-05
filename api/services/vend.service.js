@@ -1,5 +1,6 @@
 const prisma = require('../../prisma/client');
-const { recordWalletCredit } = require('./security.service');
+const walletOps = require('./wallet.service');
+const providerAttempts = require('./providerAttempt.service');
 const vtpass = require('../utils/providers/vtpass');
 const basicProvider = require('../utils/providers/basic'); // N3TData, LegitData, etc.
 const topupbox = require('../utils/providers/topupbox');
@@ -54,45 +55,16 @@ function sanitizeVendResult(result) {
  */
 async function refundTransaction(transaction, reason) {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: transaction.userId },
-            select: { id: true, wallet: true, firstName: true, lastName: true, email: true, phone: true }
-        });
-        const refundAmount = Math.abs(transaction.amount);
-        const prevBal = user?.wallet || 0;
-        const newBal = prevBal + refundAmount;
+        const result = await prisma.$transaction(tx => walletOps.refundInTransaction(
+            tx,
+            transaction.reference,
+            `Vending refund: ${transaction.description} (${reason})`
+        ));
 
-        await prisma.$transaction([
-            prisma.transaction.update({
-                where: { id: transaction.id },
-                data: {
-                    status: 2, // 2 = Failed / Refunded
-                    description: `${transaction.description} [FAILED: ${reason}]`
-                }
-            }),
-            prisma.user.update({
-                where: { id: transaction.userId },
-                data: { wallet: { increment: refundAmount } }
-            })
-        ]);
-
-        if (user) {
-            recordWalletCredit(prisma, {
-                user,
-                amount: refundAmount,
-                type: 'REFUND',
-                channel: 'VENDING_REFUND',
-                reference: transaction.ref || `REF_${transaction.id}`,
-                previousBalance: prevBal,
-                newBalance: newBal,
-                initiatedBy: 'SYSTEM',
-                description: `Vending refund: ${transaction.description} (${reason})`
-            }).catch(e => console.error('[Vend Refund] Credit log error:', e.message));
-        }
-
-        console.log(`[Refund] Successfully refunded transaction ${transaction.id} (user: ${transaction.userId}, amount: ${refundAmount})`);
+        console.log(`[Refund] Processed transaction ${transaction.id} (user: ${transaction.userId}, amount: ${result.amount || 0})`);
     } catch (refErr) {
         console.error(`[Refund Error] Failed to execute atomic refund for transaction ${transaction.id}:`, refErr);
+        throw refErr;
     }
 }
 
@@ -390,15 +362,15 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
             console.log(`[VendAirtime] Attempting vending via ${prov.name}...`);
 
             try {
-                const result = await handler.purchaseAirtime(details, config);
+                const result = await providerAttempts.execute(transaction, prov.id, () => handler.purchaseAirtime(details, config));
 
                 if (result.status === 'success' || result.status === 'pending') {
                     console.log(`[VendAirtime] SUCCESS via ${prov.name}! Status=${result.status}, Ref=${transaction.reference}`);
                     await prisma.transaction.update({
                         where: { id: transaction.id },
                         data: {
-                            status: 0, // 0 = Success
-                            description: `${transaction.description} [SUCCESS via ${prov.name}]`
+                            status: result.status === 'pending' ? 1 : 0, // 0 = Success
+                            description: `${transaction.description} [${result.status.toUpperCase()} via ${prov.name}]`
                         }
                     });
                     return sanitizeVendResult(result);
@@ -408,9 +380,7 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
                     attemptedErrors.push({ provider: prov.name, message: errMsg });
                 }
             } catch (provErr) {
-                const errMsg = provErr.message || 'Connection error';
-                console.warn(`[VendAirtime] Provider ${prov.name} threw exception: ${errMsg}. Attempting fallback...`);
-                attemptedErrors.push({ provider: prov.name, message: errMsg });
+                return providerAttempts.pending(transaction, 'Airtime provider outcome could not be finalized.');
             }
         }
 
@@ -430,8 +400,7 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
 
     } catch (error) {
         console.error('[VendAirtime] System Error:', error);
-        await refundTransaction(transaction, 'System Error during airtime vending');
-        return { status: 'failed', message: 'System Error during airtime vending' };
+        return providerAttempts.pending(transaction, 'System Error during airtime vending');
     }
 }
 
@@ -541,15 +510,15 @@ async function vendData(transaction, service, phone, network) {
             console.log(`[VendData] Attempting vending via ${prov.name}: PlanID=${matchedPlan.planId} (${matchedPlan.dataName}, ${matchedPlan.dataType}, ₦${matchedPlan.apiPrice}, ${matchedPlan.matchType})...`);
 
             try {
-                const result = await handler.purchaseData(details, config);
+                const result = await providerAttempts.execute(transaction, prov.id, () => handler.purchaseData(details, config));
 
                 if (result.status === 'success' || result.status === 'pending') {
                     console.log(`[VendData] SUCCESS via ${prov.name}! Status=${result.status}, Ref=${transaction.reference}`);
                     await prisma.transaction.update({
                         where: { id: transaction.id },
                         data: {
-                            status: 0, // 0 = Success
-                            description: `${transaction.description} [SUCCESS via ${prov.name}]`
+                            status: result.status === 'pending' ? 1 : 0, // 0 = Success
+                            description: `${transaction.description} [${result.status.toUpperCase()} via ${prov.name}]`
                         }
                     });
                     return sanitizeVendResult(result);
@@ -559,9 +528,7 @@ async function vendData(transaction, service, phone, network) {
                     attemptedErrors.push({ provider: prov.name, message: errMsg });
                 }
             } catch (provErr) {
-                const errMsg = provErr.message || 'Connection error';
-                console.warn(`[VendData] Provider ${prov.name} threw exception: ${errMsg}. Attempting fallback...`);
-                attemptedErrors.push({ provider: prov.name, message: errMsg });
+                return providerAttempts.pending(transaction, 'Data provider outcome could not be finalized.');
             }
         }
 
@@ -581,8 +548,7 @@ async function vendData(transaction, service, phone, network) {
 
     } catch (error) {
         console.error('[VendData] System Error:', error);
-        await refundTransaction(transaction, 'System Error during data vending');
-        return { status: 'failed', message: 'System Error during data vending' };
+        return providerAttempts.pending(transaction, 'System Error during data vending');
     }
 }
 
@@ -635,7 +601,7 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
             accessToken // ensure accessToken is passed downward
         };
 
-        const result = await handler.purchaseTV(details, config);
+        const result = await providerAttempts.execute(transaction, apiProvider.id, () => handler.purchaseTV(details, config));
 
         if (result.status === 'success') {
             await prisma.transaction.update({
@@ -650,8 +616,7 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
 
     } catch (error) {
         console.error('TV Vending Error:', error);
-        await refundTransaction(transaction, 'System Error during TV vending');
-        return { status: 'failed', message: 'System Error during TV vending' };
+        return providerAttempts.pending(transaction, 'System Error during TV vending');
     }
 }
 
@@ -705,7 +670,7 @@ async function vendElectricity(transaction, service, meterNo, phone, baseAmount,
             accessToken // ensure accessToken is passed downward
         };
 
-        const result = await handler.purchaseElectricity(details, config);
+        const result = await providerAttempts.execute(transaction, apiProvider.id, () => handler.purchaseElectricity(details, config));
 
         if (result.status === 'success') {
             await prisma.transaction.update({
@@ -720,8 +685,7 @@ async function vendElectricity(transaction, service, meterNo, phone, baseAmount,
 
     } catch (error) {
         console.error('Electricity Vending Error:', error);
-        await refundTransaction(transaction, 'System Error during electricity vending');
-        return { status: 'failed', message: 'System Error during electricity vending' };
+        return providerAttempts.pending(transaction, 'System Error during electricity vending');
     }
 }
 
@@ -796,13 +760,13 @@ async function vendExam(transaction, service, quantity, phone) {
             requestId: transaction.reference
         };
 
-        const result = await handler.purchaseExam(details, config);
+        const result = await providerAttempts.execute(transaction, apiProvider.id, () => handler.purchaseExam(details, config));
 
         if (result.status === 'success') {
             await prisma.transaction.update({
                 where: { id: transaction.id },
                 data: {
-                    status: 0, // 0 = Success
+                    status: result.status === 'pending' ? 1 : 0, // 0 = Success
                     pinContent: result.pin || result.token,
                     description: `${transaction.description} [SUCCESS] PIN: ${result.pin || result.token || 'N/A'}`
                 }
@@ -815,8 +779,7 @@ async function vendExam(transaction, service, quantity, phone) {
 
     } catch (error) {
         console.error('Exam Vending Error:', error);
-        await refundTransaction(transaction, 'System Error during exam vending');
-        return { status: 'failed', message: 'System Error during exam vending' };
+        return providerAttempts.pending(transaction, 'System Error during exam vending');
     }
 }
 
@@ -867,13 +830,13 @@ async function vendDataPin(transaction, service, quantity, phone, businessName) 
             requestId: transaction.reference
         };
 
-        const result = await handler.purchaseDataPin(details, config);
+        const result = await providerAttempts.execute(transaction, apiProvider.id, () => handler.purchaseDataPin(details, config));
 
         if (result.status === 'success') {
             await prisma.transaction.update({
                 where: { id: transaction.id },
                 data: {
-                    status: 0, // 0 = Success
+                    status: result.status === 'pending' ? 1 : 0, // 0 = Success
                     pinContent: result.pin || result.token,
                     description: `${transaction.description} [SUCCESS] PIN: ${result.pin || result.token || 'N/A'}`
                 }
@@ -886,8 +849,7 @@ async function vendDataPin(transaction, service, quantity, phone, businessName) 
 
     } catch (error) {
         console.error('Data Pin Vending Error:', error);
-        await refundTransaction(transaction, 'System Error during data pin vending');
-        return { status: 'failed', message: 'System Error during data pin vending' };
+        return providerAttempts.pending(transaction, 'System Error during data pin vending');
     }
 }
 
@@ -929,7 +891,7 @@ async function vendEPin(transaction, service, quantity, phone, businessName) {
             quantity: quantity
         };
 
-        const result = await handler.purchaseEPin(details, config);
+        const result = await providerAttempts.execute(transaction, apiProvider.id, () => handler.purchaseEPin(details, config));
 
         if (result.status === 'success') {
             const pinContent = result.pins.map(p => `${p.token} (${p.serial})`).join(', ');
@@ -937,7 +899,7 @@ async function vendEPin(transaction, service, quantity, phone, businessName) {
             await prisma.transaction.update({
                 where: { id: transaction.id },
                 data: {
-                    status: 0, // 0 = Success
+                    status: result.status === 'pending' ? 1 : 0, // 0 = Success
                     pinContent: pinContent,
                     description: `${transaction.description} [SUCCESS] Pins: ${pinContent}`
                 }
@@ -950,10 +912,8 @@ async function vendEPin(transaction, service, quantity, phone, businessName) {
 
     } catch (error) {
         console.error('EPin Vending Error:', error);
-        await refundTransaction(transaction, 'System Error during EPin vending');
-        return { status: 'failed', message: 'System Error during EPin vending' };
+        return providerAttempts.pending(transaction, 'System Error during EPin vending');
     }
 }
 
 module.exports = { vendAirtime, vendData, vendCable, vendElectricity, vendExam, vendDataPin, vendEPin };
-

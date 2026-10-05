@@ -41,6 +41,11 @@ export default function RechargeCards() {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
+            if (res.data.status === 'pending') {
+                setFormData(current => ({ ...current, pin: '' }));
+                modal.info(`${res.data.message} Reference: ${res.data.reference}`);
+                return;
+            }
             const pinsList = res.data.pins || [];
             setGeneratedPins(pinsList);
             setFormData({ ...formData, pin: '' }); // Clear PIN

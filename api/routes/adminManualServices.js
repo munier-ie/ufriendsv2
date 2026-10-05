@@ -7,7 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 const { creditReferralBonus } = require('../services/referral.service');
-const { recordWalletCredit } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 
 // Proof upload dir
 const proofDir = path.join(__dirname, '../uploads/manual-proof');
@@ -199,45 +199,27 @@ router.put('/requests/:id', adminAuth, proofUpload.single('proof'), async (req, 
 
         const updatedStatus = status !== undefined ? parseInt(status) : request.status;
 
-        const updated = await prisma.manualServiceRequest.update({
-            where: { id },
-            data: {
-                status: updatedStatus,
-                adminNote: adminNote || request.adminNote,
-                proofUrl: finalProofUrl,
-                adminId: req.admin?.id || null,
-                processedAt: updatedStatus !== 0 ? new Date() : request.processedAt
+        if (![0, 1, 2].includes(updatedStatus)) return res.status(400).json({ error: 'Invalid status' });
+        const updated = await walletOps.transaction(async tx => {
+            await walletOps.lockUser(tx, request.userId);
+            const current = await tx.manualServiceRequest.findUnique({ where: { id } });
+            if (current.status !== request.status || (current.status !== 0 && current.status !== updatedStatus)) {
+                throw new Error('This request has already been processed');
             }
+            if (updatedStatus === 2 && current.status === 0) {
+                await walletOps.refundInTransaction(tx, current.transRef, `Manual service rejection: ${adminNote || 'Rejected by admin'}`);
+            }
+            return tx.manualServiceRequest.update({
+                where: { id },
+                data: {
+                    status: updatedStatus,
+                    adminNote: adminNote || current.adminNote,
+                    proofUrl: finalProofUrl,
+                    adminId: req.admin.id,
+                    processedAt: updatedStatus !== 0 ? new Date() : current.processedAt
+                }
+            });
         });
-
-        // If rejected and was still pending, refund the user
-        if (updatedStatus === 2 && request.status === 0) {
-            const userBefore = await prisma.user.findUnique({
-                where: { id: request.userId },
-                select: { id: true, wallet: true, firstName: true, lastName: true, email: true, phone: true }
-            });
-            const prevBal = userBefore?.wallet || 0;
-            const newBal = prevBal + request.amount;
-
-            await prisma.user.update({
-                where: { id: request.userId },
-                data: { wallet: { increment: request.amount } }
-            });
-
-            if (userBefore) {
-                recordWalletCredit(prisma, {
-                    userId: userBefore.id,
-                    amount: request.amount,
-                    type: 'REFUND',
-                    channel: 'MANUAL_SERVICE_REJECTION',
-                    reference: request.reference || `REF_MS_${request.id}`,
-                    previousBalance: prevBal,
-                    newBalance: newBal,
-                    initiatedBy: req.admin?.username || 'ADMIN',
-                    description: `Manual service rejection refund: ${request.serviceType} (${adminNote || 'Rejected'})`
-                }).catch(e => console.error('[MS Refund] Credit log error:', e.message));
-            }
-        }
 
         // If approved and was previously pending, credit referral bonus
         if (updatedStatus === 1 && request.status === 0) {

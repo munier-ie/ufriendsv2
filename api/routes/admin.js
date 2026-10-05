@@ -3,6 +3,7 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const adminAuth = require('../middleware/adminAuth');
 const { recordWalletCredit, hold, unhold } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 const { findFuzzyUserIds } = require('../utils/fuzzySearch');
 
 // All admin routes require admin authentication
@@ -276,14 +277,12 @@ router.post('/users/:id/fund', adminAuth, async (req, res) => {
             const txUser = await tx.user.findUnique({ where: { id: parseInt(id) } });
             if (!txUser) throw new Error('User not found');
 
-            const updatedUser = await tx.user.update({
-                where: { id: parseInt(id) },
-                data: { wallet: { increment: parseFloat(amount) } }
-            });
+            const reference = `ADMIN-FUND-${Date.now()}`;
+            const updatedUser = await walletOps.credit(tx, parseInt(id), parseFloat(amount), { source: 'admin_fund', reference });
 
             const transaction = await tx.transaction.create({
                 data: {
-                    reference: `ADMIN-FUND-${Date.now()}`,
+                    reference,
                     serviceName: 'Wallet Funding',
                     description: description || 'Admin wallet funding',
                     amount: parseFloat(amount),
@@ -362,10 +361,8 @@ router.post('/users/:id/debit', adminAuth, async (req, res) => {
                 throw new Error(`Insufficient wallet balance. User has ₦${currentWallet.toFixed(2)}`);
             }
 
-            const updatedUser = await tx.user.update({
-                where: { id: parseInt(id) },
-                data: { wallet: { decrement: debitAmount } }
-            });
+            const reference = `ADMIN-DEBIT-${Date.now()}`;
+            const updatedUser = await walletOps.debit(tx, parseInt(id), debitAmount, { source: 'admin_debit', reference });
 
             if (updatedUser.wallet < 0) {
                 throw new Error('Insufficient wallet balance'); // Rolled back automatically
@@ -373,7 +370,7 @@ router.post('/users/:id/debit', adminAuth, async (req, res) => {
 
             const transaction = await tx.transaction.create({
                 data: {
-                    reference: `ADMIN-DEBIT-${Date.now()}`,
+                    reference,
                     serviceName: 'Admin Debit',
                     description: description || 'Admin wallet debit',
                     amount: -debitAmount,
@@ -887,46 +884,23 @@ router.put('/transactions/:id/status', adminAuth, async (req, res) => {
             return res.status(404).json({ error: 'Transaction not found' });
         }
 
-        // Update transaction status
-        const updated = await prisma.transaction.update({
-            where: { id: parseInt(id) },
-            data: { status: parseInt(newStatus) }
-        });
-
-        // Log the status change
-        await prisma.transactionStatusUpdate.create({
-            data: {
-                transactionId: parseInt(id),
-                oldStatus: transaction.status,
-                newStatus: parseInt(newStatus),
-                adminId: req.admin.id,
-                reason,
-                refunded: refund || false
-            }
-        });
-
-        // If refunding, credit user wallet and record credit audit log
+        let updated;
         if (refund && transaction.status !== 0) {
-            const updatedUser = await prisma.user.update({
-                where: { id: transaction.userId },
-                data: {
-                    wallet: {
-                        increment: transaction.amount
-                    }
-                }
+            updated = await prisma.$transaction(async tx => {
+                await walletOps.refundInTransaction(tx, transaction.reference, `Admin refund by ${req.admin.name}: ${reason || 'Failed transaction refund'}`);
+                const refunded = await tx.transaction.findUnique({ where: { id: parseInt(id) } });
+                await tx.transactionStatusUpdate.create({
+                    data: { transactionId: parseInt(id), oldStatus: transaction.status, newStatus: refunded.status, adminId: req.admin.id, reason, refunded: true }
+                });
+                return refunded;
             });
-
-            await recordWalletCredit(prisma, {
-                user: transaction.user,
-                amount: transaction.amount,
-                previousBalance: transaction.user.wallet,
-                newBalance: updatedUser.wallet,
-                type: 'REFUND',
-                channel: 'admin_refund',
-                reference: `REFUND-${transaction.reference || transaction.id}`,
-                description: `Admin Refund for Transaction #${transaction.id}: ${reason || 'Failed transaction refund'}`,
-                initiatedBy: `admin:${req.admin.id}`,
-                metadata: { transactionId: transaction.id, reason, originalService: transaction.serviceName }
+        } else {
+            updated = await prisma.$transaction(async tx => {
+                const changed = await tx.transaction.update({ where: { id: parseInt(id) }, data: { status: parseInt(newStatus) } });
+                await tx.transactionStatusUpdate.create({
+                    data: { transactionId: parseInt(id), oldStatus: transaction.status, newStatus: parseInt(newStatus), adminId: req.admin.id, reason, refunded: false }
+                });
+                return changed;
             });
         }
 
@@ -938,6 +912,47 @@ router.put('/transactions/:id/status', adminAuth, async (req, res) => {
     } catch (error) {
         console.error('Update transaction status error:', error);
         res.status(500).json({ error: 'Failed to update transaction status' });
+    }
+});
+
+// POST /api/admin/transactions/:id/manual-legacy-refund - exceptional audited path
+router.post('/transactions/:id/reconcile', adminAuth, async (req, res) => {
+    const transactionId = Number(req.params.id);
+    if (!Number.isSafeInteger(transactionId) || transactionId < 1) return res.status(400).json({ error: 'Invalid transaction ID' });
+    try {
+        const transaction = await require('../services/providerAttempt.service').reconcile(transactionId, {
+            adminId: req.admin.id, outcome: req.body.outcome, reason: req.body.reason, providerReference: req.body.providerReference
+        });
+        res.json({ success: true, transaction });
+    } catch (error) {
+        res.status(error.code === 'RECONCILIATION_REJECTED' ? 400 : 500).json({ error: error.code === 'RECONCILIATION_REJECTED' ? error.message : 'Reconciliation failed; no changes were committed' });
+    }
+});
+
+router.post('/transactions/:id/manual-legacy-refund', adminAuth, async (req, res) => {
+    try {
+        const id = Number.parseInt(req.params.id, 10);
+        const reason = typeof req.body.reason === 'string' ? req.body.reason.trim() : '';
+        const amount = req.body.amount;
+        if (!Number.isSafeInteger(id) || id < 1) return res.status(400).json({ error: 'Invalid transaction ID' });
+        if (reason.length < 10 || reason.length > 1000) return res.status(400).json({ error: 'Provide an explicit reason of at least 10 characters' });
+        if (amount !== undefined && (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0)) return res.status(400).json({ error: 'Refund amount must be a positive number' });
+        const original = await prisma.transaction.findUnique({ where: { id } });
+        if (!original) return res.status(404).json({ error: 'Transaction not found' });
+        const result = await prisma.$transaction(async tx => {
+            const refund = await walletOps.manualLegacyRefundInTransaction(tx, original.reference, {
+                adminId: req.admin.id, adminName: req.admin.name, reason, amount
+            });
+            const updated = await tx.transaction.findUnique({ where: { id } });
+            await tx.transactionStatusUpdate.create({
+                data: { transactionId: id, oldStatus: original.status, newStatus: updated.status, adminId: req.admin.id, reason: `Manual legacy refund ${refund.refundReference}: ${reason}`, refunded: true }
+            });
+            return { ...refund, transaction: updated };
+        });
+        res.json({ success: true, message: 'Audited manual legacy refund completed', amount: result.amount, refundReference: result.refundReference, transaction: result.transaction });
+    } catch (error) {
+        const known = ['Original transaction not found', 'Manual legacy refund requires an original debit transaction', 'This transaction has audited debit evidence; use the standard refund process', 'Refund exceeds original transaction amount', 'Existing refund amount requires reconciliation', 'No refundable balance remains', 'A reason of at least 10 characters is required', 'Transaction is already marked refunded', 'Only transactions before the audit cutover qualify for a legacy refund', 'Provider delivery must be reconciled before refunding'];
+        res.status(known.includes(error.message) ? 400 : 500).json({ error: known.includes(error.message) ? error.message : 'Manual legacy refund failed' });
     }
 });
 
@@ -980,8 +995,8 @@ router.post('/transactions/:id/retry', adminAuth, async (req, res) => {
             return res.status(404).json({ error: 'Transaction not found' });
         }
 
-        if (transaction.status === 0) {
-            return res.status(400).json({ error: 'Transaction already successful' });
+        if (transaction.status === 0 || transaction.status === 3 || transaction.refundedAmount > 0) {
+            return res.status(400).json({ error: 'Successful or refunded transactions cannot be retried. Create a new paid purchase.' });
         }
 
         // Update status to pending for retry
@@ -1391,24 +1406,30 @@ router.post('/users/:id/security-hold', adminAuth, async (req, res) => {
 // GET /api/admin/security/events — List security events for investigation
 router.get('/security/events', adminAuth, async (req, res) => {
     try {
-        const { userId, severity, page = 1, limit = 50 } = req.query;
-        const skip = (Math.max(1, parseInt(page)) - 1) * Math.min(100, parseInt(limit));
+        const { userId, severity, kind, page = 1, limit = 50 } = req.query;
+        const parsedPage = Number.parseInt(page, 10);
+        const parsedLimit = Number.parseInt(limit, 10);
+        const safePage = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+        const safeLimit = Number.isFinite(parsedLimit) ? Math.min(100, Math.max(1, parsedLimit)) : 50;
+        const skip = (safePage - 1) * safeLimit;
 
         const where = {};
-        if (userId) where.userId = parseInt(userId);
-        if (severity) where.severity = severity;
+        if (userId && Number.isInteger(Number(userId))) where.userId = Number(userId);
+        if (['critical', 'warning', 'high', 'medium', 'low', 'info'].includes(severity)) where.severity = severity;
+        if (typeof kind === 'string' && kind.length <= 80) where.kind = kind;
 
         const [events, total] = await Promise.all([
             prisma.securityEvent.findMany({
                 where,
                 orderBy: { createdAt: 'desc' },
                 skip,
-                take: Math.min(100, parseInt(limit))
+                skip,
+                take: safeLimit
             }),
             prisma.securityEvent.count({ where })
         ]);
 
-        res.json({ success: true, events, total });
+        res.json({ success: true, events, total, page: safePage, limit: safeLimit });
     } catch (error) {
         console.error('Fetch security events error:', error);
         res.status(500).json({ error: 'Failed to fetch security events' });

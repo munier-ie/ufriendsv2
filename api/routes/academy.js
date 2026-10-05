@@ -7,6 +7,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { z } = require('zod');
 const prisma = require('../../prisma/client');
+const walletOps = require('../services/wallet.service');
 const authenticateUser = require('../middleware/auth');
 const { creditReferralBonus } = require('../services/referral.service');
 
@@ -163,33 +164,31 @@ router.post('/:id/purchase', authenticateUser, async (req, res) => {
 
         // Atomic: deduct wallet + create purchase + create transaction record
         const reference = `ACADEMY-${Date.now()}-${req.user.id}`;
-        const [, purchase] = await prisma.$transaction([
-            prisma.user.update({
-                where: { id: req.user.id },
-                data: { wallet: { decrement: content.price } },
-            }),
-            prisma.academyPurchase.create({
+        const purchase = await walletOps.transaction(async tx => {
+            const updatedUser = await walletOps.debit(tx, req.user.id, content.price, { source: 'academy_purchase', reference });
+            const created = await tx.academyPurchase.create({
                 data: {
                     userId: req.user.id,
                     contentId: id,
                     amount: content.price,
                 },
-            }),
-            prisma.transaction.create({
+            });
+            await tx.transaction.create({
                 data: {
                     reference,
                     serviceName: 'Academy Content',
                     description: `Unlocked: ${content.title}`,
                     amount: -content.price,
                     status: 0,
-                    oldBalance: user.wallet,
-                    newBalance: user.wallet - content.price,
-                    profit: content.price, // Academy content is usually 100% platform profit
+                    oldBalance: updatedUser.wallet + content.price,
+                    newBalance: updatedUser.wallet,
+                    profit: content.price,
                     type: 'academy',
                     userId: req.user.id,
                 },
-            }),
-        ]);
+            });
+            return created;
+        });
 
         // Trigger referral bonus
         creditReferralBonus(req.user.id, 'academy', content.referralCommission || 0).catch(err => console.error('Academy Bonus error:', err));

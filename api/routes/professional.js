@@ -11,7 +11,7 @@ const bvnService = require('../services/bvn.service');
 const ninService = require('../services/nin.service');
 const { creditReferralBonus } = require('../services/referral.service');
 const whatsappService = require('../services/whatsapp.service');
-const { recordWalletCredit } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 
 
 // --- Multer config for CAC file uploads ---
@@ -198,13 +198,9 @@ router.post(
             });
 
             // 7. Atomic transaction
-            const result = await prisma.$transaction(async (tx) => {
-                const updatedUser = await tx.user.update({
-                    where: { id: req.user.id },
-                    data: { wallet: { decrement: amount } }
-                });
-
+            const result = await walletOps.transaction(async (tx) => {
                 const transactionRef = `CAC-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+                const updatedUser = await walletOps.debit(tx, req.user.id, amount, { source: 'cac_registration', reference: transactionRef });
 
                 // Create CACRegistration record
                 const cacReg = await tx.cACRegistration.create({
@@ -363,13 +359,9 @@ router.post('/request', authenticateUser, async (req, res) => {
         }
 
         // 4. Atomic Transaction
-        const result = await prisma.$transaction(async (tx) => {
-            const updatedUser = await tx.user.update({
-                where: { id: req.user.id },
-                data: { wallet: { decrement: amount } }
-            });
-
+        const result = await walletOps.transaction(async (tx) => {
             const transactionRef = crypto.randomBytes(16).toString('hex');
+            const updatedUser = await walletOps.debit(tx, req.user.id, amount, { source: 'professional_service', reference: transactionRef });
             const request = await tx.serviceRequest.create({
                 data: {
                     reference: transactionRef,
@@ -439,13 +431,8 @@ router.post('/request', authenticateUser, async (req, res) => {
                             errorMsg = `${errorMsg} (₦100 service charge applied)`;
                         }
 
-                        let refundedBal = 0;
-                        await prisma.$transaction(async (tx) => {
-                            const freshUser = await tx.user.update({
-                                where: { id: req.user.id },
-                                data: { wallet: { increment: refundAmount } }
-                            });
-                            refundedBal = freshUser.wallet;
+                        await walletOps.transaction(async (tx) => {
+                            const refund = await walletOps.refundInTransaction(tx, result.transactionRef, `BVN verification refund: ${errorMsg}`, Math.max(0, refundAmount));
                             await tx.serviceRequest.update({
                                 where: { id: result.request.id },
                                 data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
@@ -454,60 +441,20 @@ router.post('/request', authenticateUser, async (req, res) => {
                                 where: { reference: result.transactionRef },
                                 data: {
                                     status: 2,
-                                    amount: verificationResult.notFound ? -100 : 0,
-                                    newBalance: freshUser.wallet,
-                                    profit: verificationResult.notFound ? 100 : 0,
-                                    description: verificationResult.notFound ? `Failed Request (₦100 service charge)` : `Failed Request (Refunded)`
+                                    newBalance: refund.user.wallet,
+                                    profit: verificationResult.notFound ? Math.min(amount, 100) : 0,
+                                    description: errorMsg
                                 }
                             });
                         });
-                        recordWalletCredit(prisma, {
-                            userId: req.user.id,
-                            amount: refundAmount,
-                            type: 'REFUND',
-                            channel: 'BVN_VERIFICATION_REFUND',
-                            reference: result.transactionRef,
-                            previousBalance: (refundedBal - refundAmount),
-                            newBalance: refundedBal,
-                            initiatedBy: 'SYSTEM',
-                            description: `BVN verification refund (${errorMsg})`
-                        }).catch(e => console.error('[BVN Refund] Credit log error:', e.message));
                     }
                 } catch (error) {
                     console.error('BVN Async Processing Error:', error);
-                    let errRefundedBal = 0;
-                    await prisma.$transaction(async (tx) => {
-                        const freshUser = await tx.user.update({
-                            where: { id: req.user.id },
-                            data: { wallet: { increment: amount } }
-                        });
-                        errRefundedBal = freshUser.wallet;
-                        await tx.serviceRequest.update({
-                            where: { id: result.request.id },
-                            data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during BVN verification' }) }
-                        });
-                        await tx.transaction.update({
-                            where: { reference: result.transactionRef },
-                            data: {
-                                status: 2,
-                                amount: 0,
-                                newBalance: freshUser.wallet,
-                                profit: 0,
-                                description: `Failed Request (Refunded)`
-                            }
-                        });
-                    });
-                    recordWalletCredit(prisma, {
-                        userId: req.user.id,
-                        amount: amount,
-                        type: 'REFUND',
-                        channel: 'BVN_VERIFICATION_REFUND',
-                        reference: result.transactionRef,
-                        previousBalance: (errRefundedBal - amount),
-                        newBalance: errRefundedBal,
-                        initiatedBy: 'SYSTEM',
-                        description: `BVN verification system error refund`
-                    }).catch(e => console.error('[BVN Error Refund] Credit log error:', e.message));
+                    await require('../services/security.service').event(prisma, {
+                        kind: 'provider_reconciliation', severity: 'critical', userId: req.user.id,
+                        source: 'bvn_verification', reference: result.transactionRef,
+                        metadata: { reason: 'Verification or refund could not be finalized. Check provider delivery and debit evidence before refunding.' }
+                    }, true).catch(alertError => console.error('BVN reconciliation alert failed:', alertError.message));
                 }
             });
 
@@ -567,13 +514,8 @@ router.post('/request', authenticateUser, async (req, res) => {
                             errorMsg = `${errorMsg} (₦100 service charge applied)`;
                         }
 
-                        let refundedBal = 0;
-                        await prisma.$transaction(async (tx) => {
-                            const freshUser = await tx.user.update({
-                                where: { id: req.user.id },
-                                data: { wallet: { increment: refundAmount } }
-                            });
-                            refundedBal = freshUser.wallet;
+                        await walletOps.transaction(async (tx) => {
+                            const refund = await walletOps.refundInTransaction(tx, result.transactionRef, `NIN verification refund: ${errorMsg}`, Math.max(0, refundAmount));
                             await tx.serviceRequest.update({
                                 where: { id: result.request.id },
                                 data: { status: finalStatus, details: JSON.stringify({ ...details, error: errorMsg }) }
@@ -582,60 +524,20 @@ router.post('/request', authenticateUser, async (req, res) => {
                                 where: { reference: result.transactionRef },
                                 data: {
                                     status: 2,
-                                    amount: verificationResult.notFound ? -100 : 0,
-                                    newBalance: freshUser.wallet,
-                                    profit: verificationResult.notFound ? 100 : 0,
-                                    description: verificationResult.notFound ? `Failed Request (₦100 service charge)` : `Failed Request (Refunded)`
+                                    newBalance: refund.user.wallet,
+                                    profit: verificationResult.notFound ? Math.min(amount, 100) : 0,
+                                    description: errorMsg
                                 }
                             });
                         });
-                        recordWalletCredit(prisma, {
-                            userId: req.user.id,
-                            amount: refundAmount,
-                            type: 'REFUND',
-                            channel: 'NIN_VERIFICATION_REFUND',
-                            reference: result.transactionRef,
-                            previousBalance: (refundedBal - refundAmount),
-                            newBalance: refundedBal,
-                            initiatedBy: 'SYSTEM',
-                            description: `NIN verification refund (${errorMsg})`
-                        }).catch(e => console.error('[NIN Refund] Credit log error:', e.message));
                     }
                 } catch (error) {
                     console.error('NIN Async Processing Error:', error);
-                    let errRefundedBal = 0;
-                    await prisma.$transaction(async (tx) => {
-                        const freshUser = await tx.user.update({
-                            where: { id: req.user.id },
-                            data: { wallet: { increment: amount } }
-                        });
-                        errRefundedBal = freshUser.wallet;
-                        await tx.serviceRequest.update({
-                            where: { id: result.request.id },
-                            data: { status: 2, details: JSON.stringify({ ...details, error: 'Internal system error during NIN verification' }) }
-                        });
-                        await tx.transaction.update({
-                            where: { reference: result.transactionRef },
-                            data: {
-                                status: 2,
-                                amount: 0,
-                                newBalance: freshUser.wallet,
-                                profit: 0,
-                                description: `Failed Request (Refunded)`
-                            }
-                        });
-                    });
-                    recordWalletCredit(prisma, {
-                        userId: req.user.id,
-                        amount: amount,
-                        type: 'REFUND',
-                        channel: 'NIN_VERIFICATION_REFUND',
-                        reference: result.transactionRef,
-                        previousBalance: (errRefundedBal - amount),
-                        newBalance: errRefundedBal,
-                        initiatedBy: 'SYSTEM',
-                        description: `NIN verification system error refund`
-                    }).catch(e => console.error('[NIN Error Refund] Credit log error:', e.message));
+                    await require('../services/security.service').event(prisma, {
+                        kind: 'provider_reconciliation', severity: 'critical', userId: req.user.id,
+                        source: 'nin_verification', reference: result.transactionRef,
+                        metadata: { reason: 'Verification or refund could not be finalized. Check provider delivery and debit evidence before refunding.' }
+                    }, true).catch(alertError => console.error('NIN reconciliation alert failed:', alertError.message));
                 }
             });
 

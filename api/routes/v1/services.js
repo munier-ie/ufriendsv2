@@ -7,6 +7,7 @@
  */
 
 const express = require('express');
+const walletOps = require('../../services/wallet.service');
 const router = express.Router();
 const prisma = require('../../../prisma/client');
 const { z } = require('zod');
@@ -296,15 +297,13 @@ router.post('/purchase', apiKeyAuth, async (req, res) => {
         }
 
         // 7. Atomic debit + create transaction record
-        const result = await prisma.$transaction(async (tx) => {
-            const updatedUser = await tx.user.update({
-                where: { id: req.user.id },
-                data: { wallet: { decrement: finalAmount } }
-            });
+        const result = await walletOps.transaction(async (tx) => {
+            const reference = crypto.randomUUID();
+            const updatedUser = await walletOps.debit(tx, req.user.id, finalAmount, { source: 'api_service_purchase', reference });
 
             const transaction = await tx.transaction.create({
                 data: {
-                    reference:   crypto.randomUUID(),
+                    reference,
                     serviceName: service.name,
                     description: `[API] ${service.name} for ${recipient}`,
                     amount:      -finalAmount,
@@ -380,6 +379,7 @@ router.post('/purchase', apiKeyAuth, async (req, res) => {
             if (vendResult.pin)   responsePayload.pin   = vendResult.pin;
 
             res.json(responsePayload);
+            if (vendResult.status === 'pending') return;
 
             // Post-processing (non-blocking)
             creditReferralBonus(req.user.id, service.type, service.referralCommission || undefined)

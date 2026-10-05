@@ -142,13 +142,13 @@ class MonnifyService {
      */
     verifyWebhookSignature(signature, payload) {
         const crypto = require('crypto');
+        if (!this.secretKey || typeof signature !== 'string' || !/^[a-f0-9]{128}$/i.test(signature)) return false;
         const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
         const hash = crypto
             .createHmac('sha512', this.secretKey)
             .update(payloadStr)
             .digest('hex');
-
-        return hash === signature;
+        return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(signature, 'hex'));
     }
 }
 

@@ -22,7 +22,7 @@ const ninService = require('../../services/nin.service');
 const { creditReferralBonus }     = require('../../services/referral.service');
 const { sendWebhookNotification } = require('../webhookVendor');
 const { getPresignedUrl, isR2Configured } = require('../../utils/r2');
-const { recordWalletCredit } = require('../../services/security.service');
+const walletOps = require('../../services/wallet.service');
 
 router.use(logApiResponse);
 
@@ -153,11 +153,8 @@ router.post('/bvn', apiKeyAuth, async (req, res) => {
         // 4. Atomic debit + records
         const transactionRef = `BVN-API-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
-        const dbResult = await prisma.$transaction(async (tx) => {
-            const updatedUser = await tx.user.update({
-                where: { id: req.user.id },
-                data:  { wallet: { decrement: amount } }
-            });
+        const dbResult = await walletOps.transaction(async (tx) => {
+            const updatedUser = await walletOps.debit(tx, req.user.id, amount, { source: 'api_bvn_purchase', reference: transactionRef });
 
             const serviceReq = await tx.serviceRequest.create({
                 data: {
@@ -231,32 +228,14 @@ router.post('/bvn', apiKeyAuth, async (req, res) => {
 
         } else {
             // Refund on failure
-            const [_, updatedUser] = await Promise.all([
-                prisma.serviceRequest.update({
+            const refund = await walletOps.transaction(async tx => {
+                const refunded = await walletOps.refundInTransaction(tx, transactionRef, `V1 BVN verification refund: ${verificationResult.message || 'Failed'}`);
+                await tx.serviceRequest.update({
                     where: { id: dbResult.serviceReq.id },
-                    data:  { status: 2, details: JSON.stringify({ bvnNumber: bvn, slipType, error: verificationResult.message }) }
-                }),
-                prisma.user.update({
-                    where: { id: req.user.id },
-                    data:  { wallet: { increment: amount } }
-                }),
-                prisma.transaction.updateMany({
-                    where: { reference: transactionRef, userId: req.user.id },
-                    data:  { status: 2 }
-                })
-            ]);
-
-            recordWalletCredit(prisma, {
-                userId: req.user.id,
-                amount: amount,
-                type: 'REFUND',
-                channel: 'V1_IDENTITY_REFUND',
-                reference: transactionRef,
-                previousBalance: (updatedUser.wallet - amount),
-                newBalance: updatedUser.wallet,
-                initiatedBy: 'SYSTEM',
-                description: `V1 BVN Verification refund: ${verificationResult.message || 'Failed'}`
-            }).catch(e => console.error('[V1 BVN Refund] Credit log error:', e.message));
+                    data: { status: 2, details: JSON.stringify({ bvnNumber: bvn, slipType, error: verificationResult.message }) }
+                });
+                return refunded;
+            });
 
             sendWebhookNotification(req.user.id, 'identity.bvn.failed', {
                 reference: transactionRef,
@@ -267,7 +246,7 @@ router.post('/bvn', apiKeyAuth, async (req, res) => {
                 status:     1,
                 message:    verificationResult.message || 'BVN verification failed',
                 reference:  transactionRef,
-                newBalance: freshUser.wallet  // refunded — back to original
+                newBalance: refund.user.wallet
             });
         }
 
@@ -356,11 +335,8 @@ router.post('/nin', apiKeyAuth, async (req, res) => {
         // 4. Atomic debit + records
         const transactionRef = `NIN-API-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
 
-        const dbResult = await prisma.$transaction(async (tx) => {
-            const updatedUser = await tx.user.update({
-                where: { id: req.user.id },
-                data:  { wallet: { decrement: amount } }
-            });
+        const dbResult = await walletOps.transaction(async (tx) => {
+            const updatedUser = await walletOps.debit(tx, req.user.id, amount, { source: 'api_nin_purchase', reference: transactionRef });
 
             const serviceReq = await tx.serviceRequest.create({
                 data: {
@@ -434,32 +410,14 @@ router.post('/nin', apiKeyAuth, async (req, res) => {
 
         } else {
             // Refund on failure
-            const [_, updatedUser] = await Promise.all([
-                prisma.serviceRequest.update({
+            const refund = await walletOps.transaction(async tx => {
+                const refunded = await walletOps.refundInTransaction(tx, transactionRef, `V1 NIN verification refund: ${verificationResult.message || 'Failed'}`);
+                await tx.serviceRequest.update({
                     where: { id: dbResult.serviceReq.id },
-                    data:  { status: 2, details: JSON.stringify({ nin, phone, lookupMethod, slipType, error: verificationResult.message }) }
-                }),
-                prisma.user.update({
-                    where: { id: req.user.id },
-                    data:  { wallet: { increment: amount } }
-                }),
-                prisma.transaction.updateMany({
-                    where: { reference: transactionRef, userId: req.user.id },
-                    data:  { status: 2 }
-                })
-            ]);
-
-            recordWalletCredit(prisma, {
-                userId: req.user.id,
-                amount: amount,
-                type: 'REFUND',
-                channel: 'V1_IDENTITY_REFUND',
-                reference: transactionRef,
-                previousBalance: (updatedUser.wallet - amount),
-                newBalance: updatedUser.wallet,
-                initiatedBy: 'SYSTEM',
-                description: `V1 NIN Verification refund: ${verificationResult.message || 'Failed'}`
-            }).catch(e => console.error('[V1 NIN Refund] Credit log error:', e.message));
+                    data: { status: 2, details: JSON.stringify({ nin, phone, lookupMethod, slipType, error: verificationResult.message }) }
+                });
+                return refunded;
+            });
 
             sendWebhookNotification(req.user.id, 'identity.nin.failed', {
                 reference: transactionRef,
@@ -470,7 +428,7 @@ router.post('/nin', apiKeyAuth, async (req, res) => {
                 status:     1,
                 message:    verificationResult.message || 'NIN verification failed',
                 reference:  transactionRef,
-                newBalance: freshUser.wallet  // refunded
+                newBalance: refund.user.wallet
             });
         }
 

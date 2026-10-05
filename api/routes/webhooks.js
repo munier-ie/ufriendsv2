@@ -7,6 +7,7 @@ const prisma = require('../../prisma/client');
 const monnifyService = require('../services/monnify.service');
 const paymentpointService = require('../services/paymentpoint.service');
 const { recordWalletCredit } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 
 /**
  * @route   POST /api/webhooks/monnify
@@ -41,6 +42,10 @@ router.post('/monnify', async (req, res) => {
                 product
             } = eventData;
 
+            if (!transactionReference || !product?.reference || !Number.isFinite(Number(amountPaid)) || Number(amountPaid) <= 0) {
+                return res.status(400).json({ error: 'Invalid payment reference, account, or amount' });
+            }
+
             // Extract user ID from payment reference (format: UFRIENDS_{phone}_{userId})
             const accountReference = product.reference;
 
@@ -56,7 +61,7 @@ router.post('/monnify', async (req, res) => {
 
             // Calculate fee and final amount
             // Monnify Rule: 0.5% capped at N50
-            const amount = parseFloat(amountPaid);
+            const amount = Number(amountPaid);
             const feePercentage = parseFloat(process.env.MONNIFY_FEE_PERCENTAGE || 0.5) / 100;
             const feeCap = parseFloat(process.env.MONNIFY_FEE_CAP || 50);
 
@@ -72,6 +77,7 @@ router.post('/monnify', async (req, res) => {
 
             // Check idempotency and increment wallet atomically within transaction
             const result = await prisma.$transaction(async (tx) => {
+                await walletOps.lockUser(tx, user.id);
                 const existing = await tx.transaction.findFirst({
                     where: { reference: transactionReference }
                 });
@@ -80,10 +86,7 @@ router.post('/monnify', async (req, res) => {
                     return { alreadyProcessed: true };
                 }
 
-                const updatedUser = await tx.user.update({
-                    where: { id: user.id },
-                    data: { wallet: { increment: finalAmount } }
-                });
+                const updatedUser = await walletOps.credit(tx, user.id, finalAmount, { source: 'monnify_webhook', reference: transactionReference });
 
                 await tx.transaction.create({
                     data: {
@@ -94,7 +97,7 @@ router.post('/monnify', async (req, res) => {
                         description: `Wallet Funding via Monnify (Fee: ₦${serviceCharge.toFixed(2)})`,
                         status: 0,
                         reference: transactionReference,
-                        oldBalance: user.wallet,
+                        oldBalance: updatedUser.wallet - finalAmount,
                         newBalance: updatedUser.wallet,
                         date: new Date(paidOn)
                     }
@@ -103,7 +106,7 @@ router.post('/monnify', async (req, res) => {
                 await recordWalletCredit(tx, {
                     user,
                     amount: finalAmount,
-                    previousBalance: user.wallet,
+                    previousBalance: updatedUser.wallet - finalAmount,
                     newBalance: updatedUser.wallet,
                     type: 'MONNIFY_WEBHOOK',
                     channel: 'monnify',
@@ -161,9 +164,6 @@ router.post('/paymentpoint', async (req, res) => {
         // Parse payload correctly protecting against modified spacings (prefer req.rawBody)
         const payloadStr = req.rawBody || (Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body));
 
-        // Log incoming webhook to console for tracking since we don't have AuditLog yet
-        console.log(`[PaymentPoint Webhook Debug] Received payload: ${payloadStr.length > 500 ? payloadStr.slice(0, 500) + '...' : payloadStr}`);
-
         // Verify webhook signature with raw string
         const isValid = await paymentpointService.verifyWebhookSignature(signature, payloadStr);
         if (!isValid) {
@@ -194,31 +194,35 @@ router.post('/paymentpoint', async (req, res) => {
                 (Array.isArray(data?.bankAccounts) && data.bankAccounts.length > 0 ? data.bankAccounts[0]?.accountNumber : null) ||
                 payloadObj?.account_number;
 
-            console.log(`[Webhook Debug] Looking up User for ref=${reference} or accountNum=${vaAccountNum} or email=${customerEmail}`);
 
             // Find user robustly using OR condition, preventing matching nulls
-            const user = await prisma.user.findFirst({
-                where: {
-                    OR: [
-                        { email: customerEmail || 'NEVER_MATCH' },
-                        { accountReference: reference || 'NEVER_MATCH' },
-                        { bankNo: String(vaAccountNum || 'NEVER_MATCH') }
-                    ]
-                }
-            });
+            // A payer email is not proof that this payment belongs to a Ufriends
+            // wallet. Credit only the exact virtual account assigned to a user.
+            const accountNumber = String(vaAccountNum || '').replace(/\D/g, '');
+            const user = accountNumber.length >= 10
+                ? await prisma.user.findFirst({
+                    where: {
+                        OR: [
+                            { bankNo: accountNumber },
+                            { virtualAccounts: { some: { accountNumber } } }
+                        ]
+                    }
+                })
+                : null;
 
             if (!user) {
-                console.error(`[Webhook Debug] No user found for ref: ${reference}, email: ${customerEmail}, accountNum: ${vaAccountNum}`);
-                console.warn(`[Webhook Debug] Final Check: Body: ${payloadStr}`);
+                console.error(`[PaymentPoint] No user assigned to supplied virtual account; reference=${String(reference || '').slice(0, 80)}`);
                 // Return 200 ok to stop retry loops
                 return res.status(200).json({ ok: true, message: 'Unmatched user processed silently' });
             }
 
-            console.log(`[Webhook Debug] Found user ${user.id} (${user.email}). Proceeding with credit.`);
 
             // Update user wallet with fee deduction
             // PaymentPoint Rule: 0.5% capped at N100
-            const amountInNaira = parseFloat(amount);
+            const amountInNaira = Number(amount);
+            if (!reference || !Number.isFinite(amountInNaira) || amountInNaira <= 0) {
+                return res.status(400).json({ error: 'Invalid payment reference or amount' });
+            }
             const feePercentage = parseFloat(process.env.PAYMENTPOINT_FEE_PERCENTAGE || 0.5) / 100;
             const feeCap = parseFloat(process.env.PAYMENTPOINT_FEE_CAP || 100);
 
@@ -234,6 +238,7 @@ router.post('/paymentpoint', async (req, res) => {
 
             // Check idempotency and increment wallet atomically within transaction
             const result = await prisma.$transaction(async (tx) => {
+                await walletOps.lockUser(tx, user.id);
                 const existing = await tx.transaction.findFirst({
                     where: { reference }
                 });
@@ -242,10 +247,7 @@ router.post('/paymentpoint', async (req, res) => {
                     return { alreadyProcessed: true };
                 }
 
-                const updatedUser = await tx.user.update({
-                    where: { id: user.id },
-                    data: { wallet: { increment: finalAmount } }
-                });
+                const updatedUser = await walletOps.credit(tx, user.id, finalAmount, { source: 'paymentpoint_webhook', reference });
 
                 await tx.transaction.create({
                     data: {
@@ -256,7 +258,7 @@ router.post('/paymentpoint', async (req, res) => {
                         description: `Wallet Funding via PaymentPoint (Fee: ₦${serviceCharge.toFixed(2)})`,
                         status: 0,
                         reference: reference, // using reference from payload
-                        oldBalance: user.wallet,
+                        oldBalance: updatedUser.wallet - finalAmount,
                         newBalance: updatedUser.wallet,
                         date: paidAt ? new Date(paidAt) : new Date()
                     }
@@ -265,7 +267,7 @@ router.post('/paymentpoint', async (req, res) => {
                 await recordWalletCredit(tx, {
                     user,
                     amount: finalAmount,
-                    previousBalance: user.wallet,
+                    previousBalance: updatedUser.wallet - finalAmount,
                     newBalance: updatedUser.wallet,
                     type: 'PAYMENTPOINT_WEBHOOK',
                     channel: 'paymentpoint',
@@ -279,7 +281,7 @@ router.post('/paymentpoint', async (req, res) => {
             });
 
             if (result.alreadyProcessed) {
-                console.log('[Webhook Debug] Transaction already processed:', reference);
+                console.log('[PaymentPoint] Transaction already processed:', reference);
                 return res.status(200).json({ ok: true, message: 'Transaction already processed' });
             }
 
@@ -302,7 +304,7 @@ router.post('/paymentpoint', async (req, res) => {
         // Acknowledge other event types
         res.status(200).json({ ok: true, message: 'Event acknowledged' });
     } catch (error) {
-        console.error('[Webhook Debug] PaymentPoint webhook error:', error);
+        console.error('[PaymentPoint] Webhook processing error:', error.message);
         sendAdminAlert('PaymentPoint Webhook Failed', error.message).catch(e => console.error(e));
         res.status(500).json({ error: 'Webhook processing failed' });
     }

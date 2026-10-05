@@ -40,7 +40,12 @@ const kycRoutes = require('./routes/kyc'); // Import KYC routes
 const compression = require('compression');
 
 const app = express();
-app.set('trust proxy', 1); // Trust first proxy (Nginx / Cloudflare on VPS)
+const { requestContext } = require('./services/securityContext');
+app.use(requestContext);
+require('./services/securityOutbox.service').start();
+const trustedProxyAddresses = (process.env.TRUSTED_PROXY_ADDRESSES || '').split(',').map(value => value.trim()).filter(Boolean);
+// Only trust forwarded client IP/geo headers when the connecting proxy is explicitly allow-listed.
+app.set('trust proxy', trustedProxyAddresses.length ? trustedProxyAddresses : false);
 app.use(compression());
 
 // Configure helmet to allow PDFs to render inside iframes

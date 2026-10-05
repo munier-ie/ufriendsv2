@@ -8,6 +8,7 @@ const { vendAirtime, vendData, vendCable, vendElectricity } = require('../servic
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const walletOps = require('../services/wallet.service');
 
 /**
  * Bulk Transaction Processing Routes
@@ -268,13 +269,13 @@ async function processBulkJob(jobId, userId, rows) {
 
                 results.push({
                     ...row,
-                    status:    'success',
+                    status:    result.status,
                     reference: result.reference,
                     message:   result.message,
                     token:     result.token || '',
                     pin:       result.pin   || ''
                 });
-                successful++;
+                if (result.status === 'success') successful++;
 
             } catch (error) {
                 results.push({
@@ -381,7 +382,7 @@ async function processBulkTransaction(userId, user, row) {
     const reference = `BULK-${Date.now()}-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
 
     // 5. Atomic debit + transaction record
-    const txResult = await prisma.$transaction(async (tx) => {
+    const txResult = await walletOps.transaction(async (tx) => {
         const freshUser = await tx.user.findUnique({
             where:  { id: userId },
             select: { wallet: true }
@@ -389,12 +390,8 @@ async function processBulkTransaction(userId, user, row) {
 
         if (freshUser.wallet < finalAmount) throw new Error('Insufficient balance');
 
-        const newBalance = freshUser.wallet - finalAmount;
-
-        await tx.user.update({
-            where: { id: userId },
-            data:  { wallet: newBalance }
-        });
+        const updatedUser = await walletOps.debit(tx, userId, finalAmount, { source: 'bulk_service_purchase', reference });
+        const newBalance = updatedUser.wallet;
 
         const transaction = await tx.transaction.create({
             data: {
@@ -461,7 +458,8 @@ async function processBulkTransaction(userId, user, row) {
 
     return {
         reference,
-        message: `${service.name} purchase successful`,
+        status: vendResult.status,
+        message: vendResult.status === 'pending' ? vendResult.message : `${service.name} purchase successful`,
         token:   vendResult.token || null,
         pin:     vendResult.pin   || null
     };

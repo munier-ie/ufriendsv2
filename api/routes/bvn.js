@@ -2,47 +2,9 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const auth = require('../middleware/auth');
-const bvnService = require('../services/bvn.service');
 
-/**
- * POST /api/bvn/verify - Initiate BVN verification (called from professional.js)
- * This is an internal route called after wallet deduction
- */
-router.post('/verify', auth, async (req, res) => {
-    try {
-        const { bvnNumber, transactionRef } = req.body;
-        const userId = req.user.id;
-        const userType = req.user.type || 1;
-
-        if (!bvnNumber || !transactionRef) {
-            return res.status(400).json({ error: 'BVN number and transaction reference are required' });
-        }
-
-        // Process BVN verification
-        const result = await bvnService.processBvnVerification(userId, bvnNumber, transactionRef, userType);
-
-        if (result.success) {
-            const report = result.report ? {
-                ...result.report,
-                pdfUrl: result.report.id ? `/api/slips/bvn/${result.report.id}/download` : result.report.pdfUrl
-            } : null;
-
-            res.json({
-                success: true,
-                message: result.message,
-                report
-            });
-        } else {
-            res.status(400).json({
-                success: false,
-                error: result.message
-            });
-        }
-
-    } catch (error) {
-        console.error('BVN Verification Route Error:', error);
-        res.status(500).json({ error: 'Failed to process BVN verification' });
-    }
+router.post('/verify', auth, (_req, res) => {
+    res.status(410).json({ error: 'Use /api/professional/request to purchase verification with a wallet deduction.', code: 'PAID_REQUEST_REQUIRED' });
 });
 
 /**
@@ -134,6 +96,7 @@ router.get('/reports/:id', auth, async (req, res) => {
  */
 router.get('/pricing', auth, async (req, res) => {
     try {
+        const bvnService = require('../services/bvn.service');
         const userType = req.user.type || 1;
         const [regular, plastic] = await Promise.all([
             bvnService.getBvnPricing(userType, 'regular'),

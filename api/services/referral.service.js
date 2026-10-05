@@ -1,4 +1,5 @@
 const prisma = require('../../prisma/client');
+const walletOps = require('./wallet.service');
 
 /**
  * Credits a referral bonus to the referrer of a user.
@@ -82,27 +83,23 @@ async function performCredit(user, referrer, serviceType, customCommission) {
 
     if (bonusAmount <= 0) return;
 
-    const newRefBalance = referrer.refWallet + bonusAmount;
-
-    await prisma.$transaction([
-        prisma.user.update({
-            where: { id: referrer.id },
-            data: { refWallet: { increment: bonusAmount } }
-        }),
-        prisma.transaction.create({
+    const reference = `REF_BONUS_${Date.now()}_${referrer.id}`;
+    await prisma.$transaction(async tx => {
+        const updated = await walletOps.credit(tx, referrer.id, bonusAmount, { field: 'refWallet', source: 'referral_bonus', reference });
+        await tx.transaction.create({
             data: {
-                reference: `REF_BONUS_${Date.now()}_${referrer.id}`,
+                reference,
                 serviceName: 'Referral Bonus',
                 description: `Bonus for ${user.firstName || 'User'}'s ${serviceType} transaction`,
                 amount: bonusAmount,
                 status: 0, // Success
-                oldBalance: referrer.refWallet,
-                newBalance: newRefBalance,
+                oldBalance: updated.refWallet - bonusAmount,
+                newBalance: updated.refWallet,
                 type: 'referral',
                 userId: referrer.id
             }
-        })
-    ]);
+        });
+    });
 
     console.log(`Referral bonus of N${bonusAmount} credited to user ID ${referrer.id} for ${serviceType}`);
 }

@@ -21,7 +21,7 @@ const authenticateUser = async (req, res, next) => {
         if (user.regStatus === 2) return res.status(403).json({ error: 'Account is terminated.' });
 
         req.user = user;
-        next();
+        return await require('../services/security.service').rejectManipulation(req, res, next);
     } catch (error) {
         res.status(401).json({ error: 'Invalid token' });
     }

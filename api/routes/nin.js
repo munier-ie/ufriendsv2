@@ -2,60 +2,9 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const auth = require('../middleware/auth');
-const ninService = require('../services/nin.service');
 
-/**
- * POST /api/nin/verify - Initiate NIN verification (called from professional.js)
- * This is an internal route called after wallet deduction
- */
-router.post('/verify', auth, async (req, res) => {
-    try {
-        const { ninNumber, slipType, transactionRef } = req.body;
-        const userId = req.user.id;
-        const userType = req.user.type || 1;
-
-        if (!ninNumber || !slipType || !transactionRef) {
-            return res.status(400).json({
-                error: 'NIN number, slip type, and transaction reference are required'
-            });
-        }
-
-        // Validate slip type
-        if (!['regular', 'standard', 'premium', 'vnin'].includes(slipType)) {
-            return res.status(400).json({ error: 'Invalid slip type' });
-        }
-
-        // Process NIN verification
-        const result = await ninService.processNinVerification(
-            userId,
-            ninNumber,
-            slipType,
-            transactionRef,
-            userType
-        );
-
-        if (result.success) {
-            const report = result.report ? {
-                ...result.report,
-                pdfUrl: result.report.id ? `/api/slips/nin/${result.report.id}/download` : result.report.pdfUrl
-            } : null;
-
-            res.json({
-                success: true,
-                message: result.message,
-                report
-            });
-        } else {
-            res.status(400).json({
-                success: false,
-                error: result.message
-            });
-        }
-
-    } catch (error) {
-        console.error('NIN Verification Route Error:', error);
-        res.status(500).json({ error: 'Failed to process NIN verification' });
-    }
+router.post('/verify', auth, (_req, res) => {
+    res.status(410).json({ error: 'Use /api/professional/request to purchase verification with a wallet deduction.', code: 'PAID_REQUEST_REQUIRED' });
 });
 
 /**
@@ -148,6 +97,7 @@ router.get('/reports/:id', auth, async (req, res) => {
  */
 router.get('/pricing', auth, async (req, res) => {
     try {
+        const ninService = require('../services/nin.service');
         const userType = req.user.type || 1;
         const settings = await ninService.getVerificationSettings();
 

@@ -85,6 +85,11 @@ const apiKeyAuth = async (req, res, next) => {
             });
         }
 
+        if (user.securityHold) {
+            await logApiRequest(user.id, req, 403, Date.now() - startTime);
+            return res.status(403).json({ status: 1, message: 'Account temporarily suspended for security review.', errorCode: 4005 });
+        }
+
         // [SEC] Only Vendor accounts (type === 3) may use the external API
         if (user.type !== 3) {
             await logApiRequest(user.id, req, 403, Date.now() - startTime);
@@ -129,7 +134,8 @@ const apiKeyAuth = async (req, res, next) => {
         req.user = user;
         req.apiStartTime = startTime;
 
-        next();
+        if (req.isTest) return next();
+        return await require('../services/security.service').rejectManipulation(req, res, next);
 
     } catch (error) {
         console.error('API Key Auth error:', error);

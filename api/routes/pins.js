@@ -6,6 +6,7 @@ const { z } = require('zod');
 const crypto = require('crypto');
 const vendService = require('../services/vend.service');
 const { creditReferralBonus } = require('../services/referral.service');
+const walletOps = require('../services/wallet.service');
 
 // Schema for purchasing a pin
 const purchasePinSchema = z.object({
@@ -105,15 +106,13 @@ router.post('/purchase', authenticateUser, async (req, res) => {
         const totalApiPrice = service.apiPrice ? (service.apiPrice * quantity) : 0;
         const profit = totalCost - totalApiPrice;
 
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await walletOps.transaction(async (tx) => {
+            const reference = crypto.randomUUID();
             const pinIds = availablePins.map(p => p.id);
             const pinContent = availablePins.map(p => p.content).join(', ');
 
             // Deduct balance
-            const updatedUser = await tx.user.update({
-                where: { id: req.user.id },
-                data: { wallet: { decrement: totalCost } }
-            });
+            const updatedUser = await walletOps.debit(tx, req.user.id, totalCost, { source: 'pin_purchase', reference });
 
             // Mark pins as sold
             await tx.pin.updateMany({
@@ -128,13 +127,13 @@ router.post('/purchase', authenticateUser, async (req, res) => {
             // Create transaction record
             const transaction = await tx.transaction.create({
                 data: {
-                    reference: crypto.randomUUID(),
+                    reference,
                     serviceName: service.name,
                     description: `Purchased ${quantity} ${service.name} PIN(s)`,
                     amount: -totalCost,
                     status: 0, // Success
-                    oldBalance: req.user.wallet,
-                    newBalance: req.user.wallet - totalCost,
+                    oldBalance: updatedUser.wallet + totalCost,
+                    newBalance: updatedUser.wallet,
                     profit: profit,
                     userId: req.user.id,
                     type: 'pin',
@@ -166,25 +165,21 @@ router.post('/purchase', authenticateUser, async (req, res) => {
  */
 async function handleApiPinVending(req, res, service, quantity, totalCost, businessName) {
     // 1. Create Pending Transaction
-    const transaction = await prisma.transaction.create({
-        data: {
-            reference: crypto.randomUUID(),
+    const reference = crypto.randomUUID();
+    const transaction = await walletOps.transaction(async tx => {
+        const updatedUser = await walletOps.debit(tx, req.user.id, totalCost, { source: 'api_pin_purchase', reference });
+        return tx.transaction.create({ data: {
+            reference,
             serviceName: service.name,
             description: `Vending ${quantity} ${service.name} PIN(s)`,
             amount: -totalCost,
             status: 0, // Success (but we might fail later, vendService handles rollback)
-            oldBalance: req.user.wallet,
-            newBalance: req.user.wallet - totalCost,
+            oldBalance: updatedUser.wallet + totalCost,
+            newBalance: updatedUser.wallet,
             profit: totalCost - (service.apiPrice ? (service.apiPrice * quantity) : 0),
             userId: req.user.id,
             type: 'pin'
-        }
-    });
-
-    // 2. Deduct Balance (Pre-emptively)
-    await prisma.user.update({
-        where: { id: req.user.id },
-        data: { wallet: { decrement: totalCost } }
+        } });
     });
 
     // 3. Call Vending Service
@@ -210,7 +205,7 @@ async function handleApiPinVending(req, res, service, quantity, totalCost, busin
         });
 
         // Trigger referral bonus
-        creditReferralBonus(req.user.id, service.type, service.referralCommission || 0).catch(err => console.error('API Pin Bonus error:', err));
+        if (result.status === 'success') creditReferralBonus(req.user.id, service.type, service.referralCommission || 0).catch(err => console.error('API Pin Bonus error:', err));
     } else {
         // vendService handles rollback on failure already (deducts then increments back)
         // BUT wait, vendService might have already failed.

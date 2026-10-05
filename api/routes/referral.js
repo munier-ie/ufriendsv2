@@ -4,6 +4,7 @@ const prisma = require('../../prisma/client');
 const { z } = require('zod');
 const authenticateUser = require('../middleware/auth');
 const { recordWalletCredit } = require('../services/security.service');
+const walletOps = require('../services/wallet.service');
 
 // GET /api/referrals/stats
 router.get('/stats', authenticateUser, async (req, res) => {
@@ -90,30 +91,22 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
         }
 
         // Perform Transfer
-        const newRefBalance = user.refWallet - withdrawAmount;
-        const newMainBalance = user.wallet + withdrawAmount;
-
         const depRef = `REF_DEP_${Date.now()}_${userId}`;
-        await prisma.$transaction(async (tx) => {
-            // Deduct from Ref Wallet
-            await tx.user.update({
-                where: { id: userId },
-                data: {
-                    refWallet: newRefBalance,
-                    wallet: newMainBalance
-                }
-            });
+        const debitRef = `REF_WD_${Date.now()}_${userId}`;
+        await walletOps.transaction(async (tx) => {
+            const debited = await walletOps.debit(tx, userId, withdrawAmount, { field: 'refWallet', source: 'referral_withdrawal', reference: debitRef });
+            const credited = await walletOps.credit(tx, userId, withdrawAmount, { source: 'referral_withdrawal', reference: depRef });
 
             // Record Debit from Ref Wallet
             await tx.transaction.create({
                 data: {
-                    reference: `REF_WD_${Date.now()}_${userId}`,
+                    reference: debitRef,
                     serviceName: 'Referral Withdraw',
                     description: `Withdrew N${withdrawAmount} from Referral Wallet to Main Wallet`,
                     amount: withdrawAmount,
                     status: 0,
-                    oldBalance: user.refWallet,
-                    newBalance: newRefBalance,
+                    oldBalance: debited.refWallet + withdrawAmount,
+                    newBalance: debited.refWallet,
                     type: 'referral_withdraw',
                     userId
                 }
@@ -127,8 +120,8 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
                     description: `Funded N${withdrawAmount} from Referral Wallet`,
                     amount: withdrawAmount,
                     status: 0,
-                    oldBalance: user.wallet,
-                    newBalance: newMainBalance,
+                    oldBalance: credited.wallet - withdrawAmount,
+                    newBalance: credited.wallet,
                     type: 'wallet_fund',
                     userId
                 }
@@ -137,8 +130,8 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
             await recordWalletCredit(tx, {
                 user,
                 amount: withdrawAmount,
-                previousBalance: user.wallet,
-                newBalance: newMainBalance,
+                previousBalance: credited.wallet - withdrawAmount,
+                newBalance: credited.wallet,
                 type: 'referral_withdrawal',
                 channel: 'referral',
                 reference: depRef,

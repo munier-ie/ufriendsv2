@@ -19,6 +19,7 @@ export default function AdminTransactions() {
     // Modal
     const [selectedTx, setSelectedTx] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
+    const [reconciliation, setReconciliation] = useState(null);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -81,6 +82,46 @@ export default function AdminTransactions() {
             fetchTransactions();
         } catch (error) {
             modal.error(error.response?.data?.error || 'Failed to retry transaction');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleManualLegacyRefund = async () => {
+        const reason = window.prompt('Explain why this older transaction is being refunded (minimum 10 characters):');
+        if (reason === null) return;
+        if (reason.trim().length < 10) return modal.error('Please provide a clear reason of at least 10 characters');
+        if (!window.confirm(`Refund ₦${Math.abs(selectedTx.amount).toLocaleString()} through the audited legacy process? This records that the original debit could not be verified.`)) return;
+        setActionLoading(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await axios.post(`/api/admin/transactions/${selectedTx.id}/manual-legacy-refund`, { reason: reason.trim() }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            modal.success(`Manual refund completed. Reference: ${res.data.refundReference}`);
+            setSelectedTx(null);
+            fetchTransactions();
+        } catch (error) {
+            modal.error(error.response?.data?.error || 'Manual legacy refund failed');
+        } finally {
+            setActionLoading(false);
+        }
+    };
+
+    const handleReconcile = async (event) => {
+        event.preventDefault();
+        setActionLoading(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            await axios.post(`/api/admin/transactions/${selectedTx.id}/reconcile`, reconciliation, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            modal.success('Provider outcome recorded and transaction reconciled');
+            setReconciliation(null);
+            setSelectedTx(null);
+            fetchTransactions();
+        } catch (error) {
+            modal.error(error.response?.data?.error || 'Reconciliation failed');
         } finally {
             setActionLoading(false);
         }
@@ -149,7 +190,7 @@ export default function AdminTransactions() {
                                         </td>
                                         <td className="px-6 py-4 text-sm text-gray-500">{new Date(tx.date).toLocaleString()}</td>
                                         <td className="px-6 py-4 text-right">
-                                            <button onClick={() => setSelectedTx(tx)} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+                                            <button onClick={() => { setReconciliation(null); setSelectedTx(tx); }} className="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
                                                 <Eye size={18} />
                                             </button>
                                         </td>
@@ -230,15 +271,44 @@ export default function AdminTransactions() {
                                     <Button onClick={() => handleUpdateStatus(2, false)} variant="outline" icon={AlertTriangle} disabled={actionLoading || selectedTx.status === 2}>
                                         Mark Failed
                                     </Button>
-                                    <Button onClick={() => handleUpdateStatus(3, true)} variant="danger" icon={RefreshCcw} disabled={actionLoading || selectedTx.status === 3 || selectedTx.status === 2}>
+                                    <Button onClick={() => handleUpdateStatus(3, true)} variant="danger" icon={RefreshCcw} disabled={actionLoading || selectedTx.status === 3 || selectedTx.status === 0 || selectedTx.refundedAmount > 0}>
                                         Refund User
                                     </Button>
-                                    {selectedTx.status === 2 && (
-                                        <Button onClick={handleRetry} className="bg-orange-500 hover:bg-orange-600 border-none" icon={RefreshCcw} disabled={actionLoading}>
-                                            Retry Transaction
+                                    <Button onClick={() => setReconciliation({ outcome: 'delivered', reason: '', providerReference: '' })} variant="outline" disabled={actionLoading || selectedTx.refundedAmount > 0}>
+                                        Resolve Provider Outcome
+                                    </Button>
+                                    {selectedTx.status !== 3 && selectedTx.type !== 'refund' && (
+                                        <Button onClick={handleManualLegacyRefund} variant="danger" icon={RefreshCcw} disabled={actionLoading}>
+                                            Audited Legacy Refund
                                         </Button>
                                     )}
+                                    {selectedTx.status === 2 && (
+                                        <>
+                                            <Button onClick={handleRetry} className="bg-orange-500 hover:bg-orange-600 border-none" icon={RefreshCcw} disabled={actionLoading}>
+                                                Retry Transaction
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
+                                {reconciliation ? (
+                                    <form onSubmit={handleReconcile} className="mt-5 space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                        <p className="text-sm text-gray-700">Check the provider portal or contact the provider first. Confirmed failure refunds the original debit once.</p>
+                                        <label className="block text-sm font-medium">Confirmed outcome
+                                            <select required className="mt-1 w-full rounded-lg border p-2" value={reconciliation.outcome} onChange={event => setReconciliation(current => ({ ...current, outcome: event.target.value }))}>
+                                                <option value="delivered">Delivered successfully</option>
+                                                <option value="failed">Failed — refund customer</option>
+                                            </select>
+                                        </label>
+                                        <label className="block text-sm font-medium">Provider reference or support ticket
+                                            <input required maxLength={200} className="mt-1 w-full rounded-lg border p-2" value={reconciliation.providerReference} onChange={event => setReconciliation(current => ({ ...current, providerReference: event.target.value }))} />
+                                        </label>
+                                        <label className="block text-sm font-medium">Reason and evidence
+                                            <textarea required minLength={10} maxLength={1000} className="mt-1 w-full rounded-lg border p-2" value={reconciliation.reason} onChange={event => setReconciliation(current => ({ ...current, reason: event.target.value }))} />
+                                        </label>
+                                        <Button type="submit" disabled={actionLoading}>Confirm Reconciliation</Button>
+                                        <Button type="button" variant="outline" onClick={() => setReconciliation(null)} disabled={actionLoading}>Cancel</Button>
+                                    </form>
+                                ) : null}
                             </div>
                         </div>
                     </div>
