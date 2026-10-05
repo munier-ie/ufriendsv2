@@ -6,11 +6,11 @@ scripts/
 test/
 !/scripts/
 /scripts/*
-!/scripts/test-wallet-security.sh
 !/scripts/check-wallet-security.js
+scripts/test-wallet-security.sh
 !/test/
 /test/*
-!/test/security-wallet.test.js
+test/security-wallet.test.js
 *.log
 scratch/
 .skills/
