@@ -73,8 +73,9 @@ router.post('/monnify', async (req, res) => {
 
             let serviceCharge = amount * feePercentage;
             if (serviceCharge > feeCap) serviceCharge = feeCap;
+            serviceCharge = Math.round(serviceCharge * 100) / 100;
 
-            const finalAmount = amount - serviceCharge;
+            const finalAmount = Math.round((amount - serviceCharge) * 100) / 100;
 
             if (finalAmount <= 0) {
                 console.error(`Monnify: Amount too small after fee deduction. Amount: ${amount}, Fee: ${serviceCharge}`);
@@ -234,8 +235,9 @@ router.post('/paymentpoint', async (req, res) => {
 
             let serviceCharge = amountInNaira * feePercentage;
             if (serviceCharge > feeCap) serviceCharge = feeCap;
+            serviceCharge = Math.round(serviceCharge * 100) / 100;
 
-            const finalAmount = amountInNaira - serviceCharge;
+            const finalAmount = Math.round((amountInNaira - serviceCharge) * 100) / 100;
 
             if (finalAmount <= 0) {
                 console.error(`[Webhook Debug] PaymentPoint: Amount too small after fee deduction. Amount: ${amountInNaira}, Fee: ${serviceCharge}`);

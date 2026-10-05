@@ -49,13 +49,14 @@ async function change(tx, userId, amount, { direction, source, reference = null,
             throw error;
         }
     }
-    const before = user[field];
-    if (!Number.isFinite(before) || (direction === 'debit' && before < 0)) throw new Error('Wallet requires reconciliation');
-    const balanceUnits = Math.round(before * 100);
-    if (!Number.isSafeInteger(balanceUnits) || Math.abs(before * 100 - balanceUnits) > 0.0001) throw new Error('Wallet requires reconciliation');
+    const rawBefore = user[field] == null ? 0 : Number(user[field]);
+    if (!Number.isFinite(rawBefore) || (direction === 'debit' && rawBefore < 0)) throw new Error('Wallet requires reconciliation');
+    const balanceUnits = Math.round((rawBefore + Number.EPSILON) * 100);
+    if (!Number.isSafeInteger(balanceUnits)) throw new Error('Invalid wallet balance');
     if (direction === 'debit' && balanceUnits < units) throw new Error('Insufficient wallet balance');
-    const after = (balanceUnits + (direction === 'credit' ? units : -units)) / 100;
-    if (!Number.isSafeInteger(Math.round(after * 100))) throw new Error('Invalid wallet balance');
+    const afterUnits = balanceUnits + (direction === 'credit' ? units : -units);
+    if (!Number.isSafeInteger(afterUnits)) throw new Error('Invalid wallet balance');
+    const after = afterUnits / 100;
     const meta = metadata();
     const ctx = JSON.stringify({ userId, field, source, reference, operationId, direction, amount: units / 100, adminId: meta.actorType === 'admin' ? meta.actorId : null, metadata: meta });
     await tx.$queryRaw`SELECT set_config('ufriends.wallet_context', ${ctx}, true)`;
