@@ -63,7 +63,7 @@ async function change(tx, userId, amount, { direction, source, reference = null,
     const updated = await tx.user.update({ where: { id: userId }, data: { [field]: after } });
     await tx.$queryRaw`SELECT set_config('ufriends.wallet_context', '', true)`;
     const audit = await tx.securityEvent.findUnique({ where: { operationId } });
-    if (!audit) throw new Error('Wallet audit missing; apply security migrations before accepting transactions');
+    if (!audit) throw new Error('Wallet audit missing; wallet operation aborted. Run npm run check:wallet-security and repair database triggers with npm run install:security-triggers');
     if (direction === 'credit') {
         await tx.securityOutbox.upsert({ where: { eventId: audit.id }, create: { eventId: audit.id }, update: {} });
         if (field === 'wallet') {

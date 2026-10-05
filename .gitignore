@@ -7,6 +7,7 @@ test/
 !/scripts/
 /scripts/*
 !/scripts/check-wallet-security.js
+!/scripts/install-security-triggers.js
 scripts/test-wallet-security.sh
 !/test/
 /test/*

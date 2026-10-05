@@ -13,6 +13,39 @@ The historical migration directory starts with changes to an existing database; 
 
 ## Wallet and purchase behavior
 
+### Repairing “Wallet audit missing” on an existing deployment
+
+This error means the wallet update did not create its required audit event. The
+webhook returns HTTP 500 and its database transaction rolls back, including the
+balance and funding record. Missing or disabled `wallet_audit` triggers are one
+cause, especially after a deployment using only `prisma db push`.
+
+Deploy this checkout, then run these commands from the application directory on
+the VPS, using the same database as PM2 and a database owner/deployment role:
+
+```sh
+npm run check:wallet-security
+npm run install:security-triggers
+npm run check:wallet-security
+```
+
+The first check may fail; the installer is the repair step. It restores all five
+security triggers and their current function definitions in one transaction. It
+preserves wallet balances, audit history and migration history, and can be rerun.
+It does not execute the precision migration's balance updates or manufacture
+historical opening balances. Required security tables/columns must already exist;
+if they do not, deploy the schema migrations first. Installation requires the
+`prisma/migrations` files to be included in the release. A lock timeout or any
+other error rolls back the repair; rerun during a quiet period if locks time out.
+Keep trigger installation as a deployment command, not a webhook action.
+
+After successful repair, request redelivery of failed events from PaymentPoint,
+keeping their original payment references. The webhook checks previously recorded
+references to avoid duplicate funding. Installing triggers alone does not replay
+missed payments. Reconcile provider payments against application transactions if
+redelivery is unavailable. The adjacent “Message sent” log can be the admin failure
+alert; it is not evidence that the wallet was credited.
+
 - Every application wallet mutation goes through the shared wallet service. PostgreSQL rejects changes without matching operation context, and the application rejects operations that produced no audit record.
 - Credits, their audit/outbox records, and funding holds commit together. Failure to evaluate fraud rules aborts the credit.
 - Spending checks run with the account row locked, across web purchases, API purchases, bulk jobs, identity services, orders and transfers. A rejected purchase rolls back; its security hold is then recorded separately so it survives that rollback.

@@ -1,8 +1,8 @@
 require('dotenv').config();
 const prisma = require('../prisma/client');
 
-async function checkWalletSecurity() {
-    const triggers = await prisma.$queryRaw`
+async function checkWalletSecurity(db = prisma) {
+    const triggers = await db.$queryRaw`
         SELECT trigger.tgname AS name, trigger.tgenabled AS enabled,
                relation.relname AS relation
         FROM pg_trigger AS trigger
@@ -15,7 +15,7 @@ async function checkWalletSecurity() {
     };
     const missing = Object.entries(required).filter(([name, relation]) => !triggers.some(trigger => trigger.name === name && trigger.relation === relation && ['O', 'A'].includes(trigger.enabled)));
     if (missing.length) throw new Error(`Missing or disabled security triggers: ${missing.map(([name]) => name).join(', ')}`);
-    const [functions] = await prisma.$queryRaw`
+    const [functions] = await db.$queryRaw`
         SELECT pg_get_functiondef('public.ufriends_wallet_guard()'::regprocedure) AS guard,
                pg_get_functiondef('public.ufriends_user_security_changes()'::regprocedure) AS account`;
     if (!functions.guard.includes('Wallet changes must use an audited wallet operation') || !functions.guard.includes("c->>'direction'")) throw new Error('Wallet enforcement migration is missing');
