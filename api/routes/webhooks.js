@@ -20,16 +20,22 @@ router.post('/monnify', async (req, res) => {
         
         // Parse payload correctly protecting against express.raw buffers
         const rawBody = req.body;
-        const payloadStr = Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : JSON.stringify(rawBody);
+        const payloadStr = Buffer.isBuffer(rawBody) ? rawBody.toString('utf8') : (req.rawBody || JSON.stringify(rawBody));
 
         // Verify webhook signature with raw string
-        const isValid = monnifyService.verifyWebhookSignature(signature, payloadStr);
+        let isValid = monnifyService.verifyWebhookSignature(signature, payloadStr);
+        if (!isValid && !process.env.MONNIFY_SECRET_KEY) {
+            const gw = await prisma.paymentGateway.findUnique({ where: { provider: 'MONNIFY' } });
+            if (gw?.secretKey || gw?.apiKey) {
+                isValid = monnifyService.verifyWebhookSignature(signature, payloadStr, gw.secretKey || gw.apiKey);
+            }
+        }
         if (!isValid) {
             console.error('Invalid Monnify webhook signature');
             return res.status(401).json({ error: 'Invalid signature' });
         }
 
-        const payloadObj = JSON.parse(payloadStr);
+        const payloadObj = typeof rawBody === 'object' && !Buffer.isBuffer(rawBody) ? rawBody : JSON.parse(payloadStr);
         const { eventType, eventData } = payloadObj;
 
         // Only process successful transactions
@@ -161,8 +167,8 @@ router.post('/paymentpoint', async (req, res) => {
                           req.headers['x-signature'] || 
                           req.headers['signature'];
         
-        // Parse payload correctly protecting against modified spacings (prefer req.rawBody)
-        const payloadStr = req.rawBody || (Buffer.isBuffer(req.body) ? req.body.toString('utf8') : JSON.stringify(req.body));
+        // Parse payload correctly protecting against modified spacings (prefer raw buffer or rawBody)
+        const payloadStr = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (req.rawBody || JSON.stringify(req.body));
 
         // Verify webhook signature with raw string
         const isValid = await paymentpointService.verifyWebhookSignature(signature, payloadStr);
@@ -171,7 +177,7 @@ router.post('/paymentpoint', async (req, res) => {
             return res.status(401).json({ error: 'Invalid signature' });
         }
 
-        const payloadObj = JSON.parse(payloadStr);
+        const payloadObj = typeof req.body === 'object' && !Buffer.isBuffer(req.body) ? req.body : JSON.parse(payloadStr);
         const event = (payloadObj.event || payloadObj.status || payloadObj.notification_status || payloadObj.transaction_status || '').toUpperCase();
         const data = payloadObj.data || payloadObj;
 
@@ -316,14 +322,24 @@ router.post('/paymentpoint', async (req, res) => {
  */
 router.post('/paystack', async (req, res) => {
     try {
-        const secret = process.env.PAYSTACK_SECRET_KEY;
-        const hash = crypto.createHmac('sha512', secret).update(JSON.stringify(req.body)).digest('hex');
+        let secret = process.env.PAYSTACK_SECRET_KEY;
+        if (!secret) {
+            const gw = await prisma.paymentGateway.findUnique({ where: { provider: 'PAYSTACK' } });
+            secret = gw?.apiKey?.startsWith('sk_') ? gw.apiKey : (gw?.secretKey || gw?.apiKey);
+        }
+        if (!secret) {
+            console.error('Paystack secret key not configured');
+            return res.status(500).send('Paystack not configured');
+        }
+
+        const payloadStr = Buffer.isBuffer(req.body) ? req.body.toString('utf8') : (req.rawBody || JSON.stringify(req.body));
+        const hash = crypto.createHmac('sha512', secret).update(payloadStr).digest('hex');
         
         if (hash !== req.headers['x-paystack-signature']) {
             return res.status(401).send('Invalid signature');
         }
 
-        const event = req.body;
+        const event = typeof req.body === 'object' && !Buffer.isBuffer(req.body) ? req.body : JSON.parse(payloadStr);
         if (event.event === 'charge.success') {
             const { reference, metadata } = event.data;
 

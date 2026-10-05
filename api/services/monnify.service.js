@@ -137,15 +137,17 @@ class MonnifyService {
     /**
      * Verify webhook signature
      * @param {string} signature - Webhook signature from header
-     * @param {Object} payload - Webhook payload
+     * @param {Object|string} payload - Webhook payload
+     * @param {string} [customSecret] - Optional override secret key
      * @returns {boolean} - Whether signature is valid
      */
-    verifyWebhookSignature(signature, payload) {
+    verifyWebhookSignature(signature, payload, customSecret = null) {
         const crypto = require('crypto');
-        if (!this.secretKey || typeof signature !== 'string' || !/^[a-f0-9]{128}$/i.test(signature)) return false;
+        const secret = customSecret || this.secretKey || process.env.MONNIFY_SECRET_KEY;
+        if (!secret || typeof signature !== 'string' || !/^[a-f0-9]{128}$/i.test(signature)) return false;
         const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
         const hash = crypto
-            .createHmac('sha512', this.secretKey)
+            .createHmac('sha512', secret)
             .update(payloadStr)
             .digest('hex');
         return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(signature, 'hex'));

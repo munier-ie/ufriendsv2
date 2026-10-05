@@ -61,7 +61,7 @@ async function sendEmailStrict(to, subject, html) {
         html,
     });
 
-    console.log('Password reset email sent: %s', info.messageId);
+    console.log('[EmailService] Email sent [%s] to %s: %s', subject, to, info.messageId);
     return info;
 }
 

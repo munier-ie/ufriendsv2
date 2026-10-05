@@ -117,9 +117,8 @@ app.use('/api/v1', (req, res, next) => {
     next();
 });
 
-// [SEC-MED-04] Raw body preservation for webhook signature verification
-app.use('/api/webhooks', express.raw({ type: 'application/json' }));
-app.use('/api/webhook-vendor', express.raw({ type: 'application/json' }));
+// [SEC-MED-04] Raw body preservation for payment gateway webhook signature verification
+app.use('/api/webhooks', express.raw({ type: ['application/json', 'application/*+json', 'text/plain'] }));
 
 app.use(express.json({ 
     limit: '1mb',
