@@ -212,6 +212,15 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
             return res.status(400).json({ error: 'Invalid service type' });
         }
 
+        // Tracking IDs are identifiers: preserve letters, case and leading zeros.
+        // Reject invalid input before any wallet debit; never silently strip it.
+        if (serviceType === 'IPE_CLEARANCE' || serviceType === 'IPE_MODIFICATION') {
+            const trackingId = details?.trackingId;
+            if (typeof trackingId !== 'string' || !/^[A-Za-z0-9]{15}$/.test(trackingId)) {
+                return res.status(400).json({ error: 'Tracking ID must contain exactly 15 letters and/or digits.' });
+            }
+        }
+
         // 2. Get settings
         const settings = await getSettings();
 

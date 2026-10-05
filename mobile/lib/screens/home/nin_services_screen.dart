@@ -121,6 +121,15 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
   Future<void> _submitRequest(String serviceType, String? subType) async {
     if (!await ConnectivityService.ensureOnline(context)) return;
     if (!mounted) return;
+    if (serviceType == 'IPE_CLEARANCE' || serviceType == 'IPE_MODIFICATION') {
+      final trackingId = _formData['trackingId'];
+      if (trackingId is! String || !RegExp(r'^[A-Za-z0-9]{15}$').hasMatch(trackingId)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Tracking ID must contain exactly 15 letters and/or digits.')),
+        );
+        return;
+      }
+    }
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -547,7 +556,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'IPE Clearance requires your 15-digit Tracking ID for processing.',
+                    'IPE Clearance requires your 15-character alphanumeric Tracking ID for processing.',
                     style: TextStyle(fontSize: 13, color: Colors.blue.shade800, height: 1.3),
                   ),
                 ),
@@ -578,9 +587,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           const SizedBox(height: 8),
           _buildTextInput(
             key: 'trackingId',
-            hint: 'Enter 15-digit Tracking ID',
-            maxLength: 15,
-            keyboardType: TextInputType.number,
+            hint: 'Enter 15-character alphanumeric Tracking ID',
+            keyboardType: TextInputType.text,
           ),
           const SizedBox(height: 24),
           GradientButton(
@@ -622,7 +630,7 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'IPE Modification requires your 15-digit Tracking ID for processing.',
+                    'IPE Modification requires your 15-character alphanumeric Tracking ID for processing.',
                     style: TextStyle(fontSize: 13, color: Colors.blue.shade800, height: 1.3),
                   ),
                 ),
@@ -637,9 +645,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
           const SizedBox(height: 8),
           _buildTextInput(
             key: 'trackingId',
-            hint: 'Enter 15-digit Tracking ID',
-            maxLength: 15,
-            keyboardType: TextInputType.number,
+            hint: 'Enter 15-character alphanumeric Tracking ID',
+            keyboardType: TextInputType.text,
           ),
           const SizedBox(height: 24),
           GradientButton(
@@ -1044,6 +1051,8 @@ class _NinServicesScreenState extends State<NinServicesScreen> with SingleTicker
     return TextFormField(
       initialValue: (_formData[key] ?? '').toString(),
       keyboardType: keyboardType,
+      autocorrect: key != 'trackingId',
+      enableSuggestions: key != 'trackingId',
       maxLength: maxLength,
       onChanged: (v) => _formData[key] = v,
       style: TextStyle(color: context.textPrimary, fontSize: 14, fontWeight: FontWeight.normal),

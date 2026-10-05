@@ -722,7 +722,7 @@ export default function ManualServices() {
                 return (
                     <div className="space-y-5">
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                            <strong>Note:</strong> IPE Clearance requires your 15-digit Tracking ID for processing.
+                            <strong>Note:</strong> IPE Clearance requires your 15-character alphanumeric Tracking ID for processing.
                         </div>
                         <div className="space-y-1">
                             <label className="block text-sm font-medium text-gray-700">Clearance Option</label>
@@ -739,12 +739,16 @@ export default function ManualServices() {
                         </div>
                         <Input
                             label="Tracking ID"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Enter 15-digit Tracking ID"
+                            type="text"
+                            inputMode="text"
+                            pattern="[A-Za-z0-9]{15}"
+                            title="Enter exactly 15 letters and/or digits"
+                            autoCapitalize="none"
+                            autoComplete="off"
+                            spellCheck={false}
+                            placeholder="Enter 15-character alphanumeric Tracking ID"
                             value={formData.trackingId || ''}
-                            onChange={e => update('trackingId', e.target.value.replace(/\D/g, ''))}
-                            maxLength={15}
+                            onChange={e => update('trackingId', e.target.value)}
                             required
                         />
                     </div>
@@ -754,16 +758,20 @@ export default function ManualServices() {
                 return (
                     <div className="space-y-5">
                         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-                            <strong>Note:</strong> IPE Modification requires your 15-digit Tracking ID for processing.
+                            <strong>Note:</strong> IPE Modification requires your 15-character alphanumeric Tracking ID for processing.
                         </div>
                         <Input
                             label="Tracking ID"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            placeholder="Enter 15-digit Tracking ID"
+                            type="text"
+                            inputMode="text"
+                            pattern="[A-Za-z0-9]{15}"
+                            title="Enter exactly 15 letters and/or digits"
+                            autoCapitalize="none"
+                            autoComplete="off"
+                            spellCheck={false}
+                            placeholder="Enter 15-character alphanumeric Tracking ID"
                             value={formData.trackingId || ''}
-                            onChange={e => update('trackingId', e.target.value.replace(/\D/g, ''))}
-                            maxLength={15}
+                            onChange={e => update('trackingId', e.target.value)}
                             required
                         />
                     </div>
