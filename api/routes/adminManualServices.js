@@ -207,7 +207,47 @@ router.put('/requests/:id', adminAuth, proofUpload.single('proof'), async (req, 
                 throw new Error('This request has already been processed');
             }
             if (updatedStatus === 2 && current.status === 0) {
-                await walletOps.refundInTransaction(tx, current.transRef, `Manual service rejection: ${adminNote || 'Rejected by admin'}`);
+                const txRecord = await tx.transaction.findUnique({ where: { reference: current.transRef } });
+                if (txRecord) {
+                    await walletOps.refundInTransaction(tx, current.transRef, `Manual service rejection: ${adminNote || 'Rejected by admin'}`, undefined, {
+                        adminId: req.admin.id,
+                        adminName: req.admin.username || req.admin.name,
+                        allowLegacyDebit: true
+                    });
+                } else {
+                    const refundRef = `REFUND-MS-${current.id}-${Date.now()}`;
+                    const user = await walletOps.credit(tx, request.userId, current.amount, {
+                        source: 'admin_manual_service_rejection',
+                        reference: current.transRef,
+                        operationId: refundRef
+                    });
+                    await tx.transaction.create({
+                        data: {
+                            reference: refundRef,
+                            userId: request.userId,
+                            serviceName: 'Manual Service Refund',
+                            description: `Manual service rejection: ${current.serviceType} (${adminNote || 'Rejected by admin'})`,
+                            type: 'refund',
+                            amount: current.amount,
+                            status: 0,
+                            oldBalance: user.wallet - current.amount,
+                            newBalance: user.wallet
+                        }
+                    });
+                    const { recordWalletCredit } = require('../services/security.service');
+                    const fullUser = await tx.user.findUnique({ where: { id: request.userId } });
+                    await recordWalletCredit(tx, {
+                        user: fullUser,
+                        amount: current.amount,
+                        previousBalance: user.wallet - current.amount,
+                        newBalance: user.wallet,
+                        type: 'REFUND',
+                        channel: 'admin_manual_service_rejection',
+                        reference: refundRef,
+                        description: `Manual service rejection: ${adminNote || 'Rejected by admin'}`,
+                        initiatedBy: req.admin.username || req.admin.name || 'ADMIN'
+                    });
+                }
             }
             return tx.manualServiceRequest.update({
                 where: { id },

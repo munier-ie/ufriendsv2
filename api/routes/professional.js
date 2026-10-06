@@ -353,7 +353,33 @@ router.post('/request', authenticateUser, async (req, res) => {
 
         const profit = amount - cost;
 
-        // 3. Check Balance
+        // 3. Pre-validate input details BEFORE debiting the user's wallet
+        if (type === 'BVN_SLIP_SERVICE') {
+            const rawBvn = String(details?.bvnNumber || details?.bvn || '').trim();
+            if (!rawBvn) return res.status(400).json({ error: 'BVN number is required' });
+            if (!/^\d{11}$/.test(rawBvn)) {
+                return res.status(400).json({ error: 'Invalid BVN. BVN must be exactly 11 numeric digits with no spaces or letters.' });
+            }
+        } else if (type === 'NIN_SLIP_SERVICE') {
+            const lookupMethod = details?.lookupMethod || 'nin';
+            const rawNum = String((lookupMethod === 'phone' ? (details?.phoneNumber || details?.phone) : (details?.nin || details?.ninNumber)) || '').trim();
+            if (!rawNum) {
+                const label = lookupMethod === 'phone' ? 'Phone number' : 'NIN number';
+                return res.status(400).json({ error: `${label} is required` });
+            }
+            if (lookupMethod === 'phone') {
+                const cleanPhone = rawNum.replace(/\s+/g, '');
+                if (!/^(0|\+?234)?[789][01]\d{8}$/.test(cleanPhone)) {
+                    return res.status(400).json({ error: 'Invalid phone number format. Please enter a valid 11-digit Nigerian phone number.' });
+                }
+            } else {
+                if (!/^\d{11}$/.test(rawNum)) {
+                    return res.status(400).json({ error: 'Invalid NIN. NIN must be exactly 11 numeric digits with no spaces or letters.' });
+                }
+            }
+        }
+
+        // 4. Check Balance
         if (req.user.wallet < amount) {
             return res.status(400).json({ error: 'Insufficient wallet balance' });
         }

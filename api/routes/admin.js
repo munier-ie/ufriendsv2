@@ -887,7 +887,11 @@ router.put('/transactions/:id/status', adminAuth, async (req, res) => {
         let updated;
         if (refund && transaction.status !== 0) {
             updated = await prisma.$transaction(async tx => {
-                await walletOps.refundInTransaction(tx, transaction.reference, `Admin refund by ${req.admin.name}: ${reason || 'Failed transaction refund'}`);
+                await walletOps.refundInTransaction(tx, transaction.reference, `Admin refund by ${req.admin.name}: ${reason || 'Failed transaction refund'}`, undefined, {
+                    adminId: req.admin.id,
+                    adminName: req.admin.name,
+                    allowLegacyDebit: true
+                });
                 const refunded = await tx.transaction.findUnique({ where: { id: parseInt(id) } });
                 await tx.transactionStatusUpdate.create({
                     data: { transactionId: parseInt(id), oldStatus: transaction.status, newStatus: refunded.status, adminId: req.admin.id, reason, refunded: true }

@@ -201,36 +201,84 @@ function getRouteMetadata(route) {
         const slug = route.replace('/blog/', '');
         const post = blogDb[slug];
         if (post) {
+            const articleSchema = {
+                "@context": "https://schema.org",
+                "@type": "Article",
+                "headline": post.title,
+                "description": post.excerpt,
+                "datePublished": post.publishedAt,
+                "dateModified": post.publishedAt,
+                "author": {
+                    "@type": "Organization",
+                    "name": "Ufriends IT",
+                    "url": "https://www.ufriends.com.ng"
+                },
+                "publisher": {
+                    "@type": "Organization",
+                    "@id": "https://www.ufriends.com.ng/#organization",
+                    "name": "Ufriends IT",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://www.ufriends.com.ng/favicon.svg"
+                    }
+                },
+                "mainEntityOfPage": {
+                    "@type": "WebPage",
+                    "@id": `https://www.ufriends.com.ng/blog/${slug}`
+                }
+            };
+
+            const faqSection = Array.isArray(post.sections) ? post.sections.find(s => s.type === 'faq') : null;
+            const graph = [articleSchema];
+
+            if (post.reviewTarget) {
+                graph.push({
+                    "@type": "Review",
+                    "name": `${post.reviewTarget.name} Review 2026`,
+                    "reviewBody": post.excerpt,
+                    "itemReviewed": {
+                        "@type": "SoftwareApplication",
+                        "name": post.reviewTarget.name,
+                        "operatingSystem": post.reviewTarget.os || "Android, Web",
+                        "applicationCategory": "BusinessApplication",
+                        "url": post.reviewTarget.url
+                    },
+                    "reviewRating": {
+                        "@type": "Rating",
+                        "ratingValue": post.reviewTarget.rating || "4.2",
+                        "bestRating": "5"
+                    },
+                    "author": {
+                        "@type": "Organization",
+                        "name": "Ufriends IT Research Team"
+                    }
+                });
+            }
+
+            if (faqSection && Array.isArray(faqSection.items) && faqSection.items.length > 0) {
+                graph.push({
+                    "@type": "FAQPage",
+                    "mainEntity": faqSection.items.map(item => ({
+                        "@type": "Question",
+                        "name": item.q || item.question,
+                        "acceptedAnswer": {
+                            "@type": "Answer",
+                            "text": item.a || item.answer
+                        }
+                    }))
+                });
+            }
+
+            const finalSchema = graph.length > 1 ? {
+                "@context": "https://schema.org",
+                "@graph": graph
+            } : articleSchema;
+
             return {
                 title: `${post.title} | Ufriends IT Nigeria`,
                 description: post.excerpt || '',
                 canonical: `https://www.ufriends.com.ng/blog/${slug}`,
-                schema: {
-                    "@context": "https://schema.org",
-                    "@type": "Article",
-                    "headline": post.title,
-                    "description": post.excerpt,
-                    "datePublished": post.publishedAt,
-                    "dateModified": post.publishedAt,
-                    "author": {
-                        "@type": "Organization",
-                        "name": "Ufriends IT",
-                        "url": "https://www.ufriends.com.ng"
-                    },
-                    "publisher": {
-                        "@type": "Organization",
-                        "@id": "https://www.ufriends.com.ng/#organization",
-                        "name": "Ufriends IT",
-                        "logo": {
-                            "@type": "ImageObject",
-                            "url": "https://www.ufriends.com.ng/favicon.svg"
-                        }
-                    },
-                    "mainEntityOfPage": {
-                        "@type": "WebPage",
-                        "@id": `https://www.ufriends.com.ng/blog/${slug}`
-                    }
-                }
+                schema: finalSchema
             };
         }
     }
@@ -363,6 +411,33 @@ function getRouteBodyHtml(route) {
                                     </div>
                                 `).join('')}
                             </section>
+                        `;
+                    }
+                    if (sec.type === 'table' && Array.isArray(sec.headers) && Array.isArray(sec.rows)) {
+                        return `
+                            <div style="margin:28px 0;overflow-x:auto;">
+                                <table style="width:100%;border-collapse:collapse;font-size:15px;border:1px solid #e2e8f0;background:#fff;border-radius:12px;">
+                                    <thead>
+                                        <tr style="background:#003570;color:#fff;">
+                                            ${sec.headers.map(h => `<th style="padding:12px 16px;text-align:left;font-weight:700;border:1px solid #e2e8f0;">${escapeHtml(h)}</th>`).join('')}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${sec.rows.map((row, rIdx) => `
+                                            <tr style="background:${rIdx % 2 === 0 ? '#fff' : '#f8fafc'};">
+                                                ${row.map(cell => `<td style="padding:12px 16px;border:1px solid #e2e8f0;color:#334155;">${escapeHtml(cell)}</td>`).join('')}
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        `;
+                    }
+                    if (sec.type === 'callout') {
+                        return `
+                            <div style="margin:24px 0;padding:20px;background:#f0f9ff;border-left:4px solid #0284c7;border-radius:8px;color:#0369a1;font-size:16px;line-height:1.6;">
+                                ${sec.content}
+                            </div>
                         `;
                     }
                     return '';

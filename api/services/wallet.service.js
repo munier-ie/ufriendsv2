@@ -77,7 +77,7 @@ async function change(tx, userId, amount, { direction, source, reference = null,
 const debit = (tx, userId, amount, options) => change(tx, userId, amount, { ...options, direction: 'debit' });
 const credit = (tx, userId, amount, options) => change(tx, userId, amount, { ...options, direction: 'credit' });
 
-async function refundInTransaction(tx, reference, reason, amount) {
+async function refundInTransaction(tx, reference, reason, amount, options = {}) {
     const transaction = await tx.transaction.findUnique({ where: { reference } });
     if (!transaction) throw new Error('Original transaction not found');
     await lockUser(tx, transaction.userId);
@@ -85,10 +85,25 @@ async function refundInTransaction(tx, reference, reason, amount) {
     const original = await tx.transaction.findUnique({ where: { reference } });
     const unresolvedAttempt = await tx.providerAttempt.findFirst({ where: { transactionId: original.id, status: { not: 'failed' } } });
     if (unresolvedAttempt) throw new Error('Provider delivery must be reconciled before refunding');
-    // Refund only a provable debit recorded after the security cutover.
+
+    // Refund provable debit recorded in securityEvent, or allow audited admin-reconciled debit
     const debits = await tx.securityEvent.findMany({ where: { userId: original.userId, reference, kind: 'wallet_debit' } });
-    const paid = debits.reduce((n, e) => n + kobo(-e.amount), 0);
-    if (!paid || original.amount >= 0) throw new Error('No verified debit; manual reconciliation required');
+    let paid = debits.reduce((n, e) => n + kobo(-e.amount), 0);
+
+    const meta = metadata();
+    const isAdmin = Boolean(options.adminId || meta?.actorType === 'admin' || options.allowLegacyDebit);
+    let legacyDebitUnverified = false;
+
+    if (!paid) {
+        if (isAdmin && original.amount < 0) {
+            paid = kobo(Math.abs(original.amount));
+            legacyDebitUnverified = true;
+        } else {
+            throw new Error('No verified debit; manual reconciliation required');
+        }
+    }
+
+    if (original.amount >= 0) throw new Error('No verified debit; manual reconciliation required');
     const already = kobo(original.refundedAmount, { allowZero: true });
     const target = amount === undefined ? paid : kobo(amount, { allowZero: true });
     if (target > paid || target > kobo(Math.abs(original.amount))) throw new Error('Refund exceeds original debit');
@@ -100,8 +115,38 @@ async function refundInTransaction(tx, reference, reason, amount) {
     await tx.transaction.create({ data: { reference: refundRef, userId: original.userId, serviceName: 'Wallet Refund', description: `${reason} (${reference})`, type: 'refund', amount: delta, status: 0, oldBalance: user.wallet - delta, newBalance: user.wallet } });
     const { recordWalletCredit } = require('./security.service');
     const fullUser = await tx.user.findUnique({ where: { id: original.userId } });
-    await recordWalletCredit(tx, { user: fullUser, amount: delta, previousBalance: user.wallet - delta, newBalance: user.wallet, type: 'REFUND', channel: 'refund', reference: refundRef, description: reason, initiatedBy: 'SYSTEM' });
-    return { user, amount: delta };
+    await recordWalletCredit(tx, {
+        user: fullUser,
+        amount: delta,
+        previousBalance: user.wallet - delta,
+        newBalance: user.wallet,
+        type: 'REFUND',
+        channel: legacyDebitUnverified ? 'admin_reconciled_refund' : 'refund',
+        reference: refundRef,
+        description: reason,
+        initiatedBy: options.adminName || (isAdmin ? 'ADMIN' : 'SYSTEM'),
+        metadata: legacyDebitUnverified ? { legacyDebitUnverified: true, adminId: options.adminId || meta?.actorId } : {}
+    });
+
+    if (legacyDebitUnverified) {
+        const secEvent = await tx.securityEvent.create({
+            data: {
+                kind: 'admin_reconciled_refund',
+                severity: 'warning',
+                userId: original.userId,
+                adminId: options.adminId || (meta?.actorType === 'admin' ? meta.actorId : null),
+                source: 'admin_reconciled_refund',
+                reference: refundRef,
+                oldBalance: user.wallet - delta,
+                newBalance: user.wallet,
+                amount: delta,
+                metadata: { ...meta, originalReference: reference, reason, legacyDebitUnverified: true }
+            }
+        });
+        await tx.securityOutbox.upsert({ where: { eventId: secEvent.id }, create: { eventId: secEvent.id }, update: {} });
+    }
+
+    return { user, amount: delta, refundReference: refundRef };
 }
 
 // Exceptional path for pre-ledger transactions. This records that the debit could
@@ -145,5 +190,5 @@ async function manualLegacyRefundInTransaction(tx, reference, { adminId, adminNa
     await tx.securityOutbox.upsert({ where: { eventId: event.id }, create: { eventId: event.id }, update: {} });
     return { user, amount: delta, refundReference: refundRef };
 }
-const refund = (reference, reason, amount) => prisma.$transaction(tx => refundInTransaction(tx, reference, reason, amount));
+const refund = (reference, reason, amount, options) => prisma.$transaction(tx => refundInTransaction(tx, reference, reason, amount, options));
 module.exports = { kobo, money, lockUser, debit, credit, refund, refundInTransaction, manualLegacyRefundInTransaction, transaction };

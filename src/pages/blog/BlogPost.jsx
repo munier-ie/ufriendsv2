@@ -180,6 +180,63 @@ function DynamicArticle({ slug }) {
                                 </div>
                             );
                         }
+                        if (sec.type === 'table') {
+                            return (
+                                <div key={i} className="my-8 overflow-hidden rounded-2xl border border-gray-200 shadow-sm bg-white">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse text-sm">
+                                            <thead>
+                                                <tr className="bg-gradient-to-r from-[#003570] to-[#004687] text-white">
+                                                    {sec.headers.map((h, hIdx) => (
+                                                        <th key={hIdx} className="px-5 py-3.5 font-bold tracking-wide uppercase text-xs border-r border-white/10 last:border-r-0">
+                                                            {h}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 text-gray-700">
+                                                {sec.rows.map((row, rIdx) => (
+                                                    <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-white hover:bg-blue-50/40 transition-colors' : 'bg-gray-50/70 hover:bg-blue-50/40 transition-colors'}>
+                                                        {row.map((cell, cIdx) => (
+                                                            <td key={cIdx} className="px-5 py-3.5 border-r border-gray-100 last:border-r-0 font-medium">
+                                                                {cell}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            );
+                        }
+                        if (sec.type === 'callout') {
+                            const isWarning = sec.style === 'warning';
+                            return (
+                                <div key={i} className={`my-6 p-5 rounded-2xl border ${isWarning ? 'bg-amber-50/80 border-amber-200 text-amber-900' : 'bg-blue-50/80 border-blue-200 text-blue-900'} leading-relaxed text-base flex items-start gap-3.5 shadow-sm`}>
+                                    <span className="flex-shrink-0 text-xl mt-0.5">{isWarning ? '⚠️' : '💡'}</span>
+                                    <div dangerouslySetInnerHTML={{ __html: sec.content }} />
+                                </div>
+                            );
+                        }
+                        if (sec.type === 'faq') {
+                            return (
+                                <div key={i} className="my-10 space-y-4">
+                                    <h2 className="text-2xl md:text-3xl font-bold text-gray-800 mb-6 border-b pb-3 border-gray-200">Frequently Asked Questions</h2>
+                                    <div className="grid gap-4">
+                                        {sec.items.map((item, fIdx) => (
+                                            <div key={fIdx} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:border-primary/30 transition-colors">
+                                                <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-start gap-2.5">
+                                                    <span className="text-primary font-bold">Q.</span>
+                                                    <span>{item.q || item.question}</span>
+                                                </h3>
+                                                <p className="text-base text-gray-600 leading-relaxed pl-6" dangerouslySetInnerHTML={{ __html: item.a || item.answer }} />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        }
                         return null;
                     })}
                 </div>
@@ -249,6 +306,54 @@ export default function BlogPost() {
         keywords: post.keywords.join(', '),
     };
 
+    // Extract FAQ and Review schema if available in post content
+    const postData = allBlogPosts[slug] || post;
+    const faqSection = postData?.sections?.find(s => s.type === 'faq');
+    const graph = [articleSchema];
+
+    if (postData?.reviewTarget) {
+        graph.push({
+            '@type': 'Review',
+            name: `${postData.reviewTarget.name} Review 2026`,
+            reviewBody: post.excerpt,
+            itemReviewed: {
+                '@type': 'SoftwareApplication',
+                name: postData.reviewTarget.name,
+                operatingSystem: postData.reviewTarget.os || 'Android, Web',
+                applicationCategory: 'BusinessApplication',
+                url: postData.reviewTarget.url,
+            },
+            reviewRating: {
+                '@type': 'Rating',
+                ratingValue: postData.reviewTarget.rating || '4.2',
+                bestRating: '5',
+            },
+            author: {
+                '@type': 'Organization',
+                name: 'Ufriends IT Research Team',
+            },
+        });
+    }
+
+    if (faqSection && Array.isArray(faqSection.items) && faqSection.items.length > 0) {
+        graph.push({
+            '@type': 'FAQPage',
+            mainEntity: faqSection.items.map(item => ({
+                '@type': 'Question',
+                name: item.q || item.question,
+                acceptedAnswer: {
+                    '@type': 'Answer',
+                    text: item.a || item.answer
+                }
+            }))
+        });
+    }
+
+    const pageSchema = graph.length > 1 ? {
+        '@context': 'https://schema.org',
+        '@graph': graph
+    } : articleSchema;
+
     const CATEGORY_STYLES = {
         'Government Services': 'bg-primary/10 text-primary',
         'Banking Identity': 'bg-secondary/10 text-secondary',
@@ -269,7 +374,7 @@ export default function BlogPost() {
                 title={post.title}
                 description={post.excerpt}
                 canonical={`https://www.ufriends.com.ng/blog/${slug}`}
-                schema={articleSchema}
+                schema={pageSchema}
             />
 
             <div className="min-h-screen bg-[#f3fcfd]">
@@ -295,6 +400,7 @@ export default function BlogPost() {
                                 <Calendar size={11} aria-hidden="true" />
                                 <time dateTime={post.publishedAt}>{publishedDate}</time>
                             </span>
+                            <span className="text-xs text-gray-400">By Ufriends IT</span>
                             <span className="flex items-center gap-1.5 text-xs text-gray-400">
                                 <Clock size={11} aria-hidden="true" />
                                 {post.readMin} min read
@@ -331,7 +437,7 @@ export default function BlogPost() {
                                 Ready to Try It on Ufriends IT?
                             </h2>
                             <p className="text-white/70 mb-6 text-sm leading-relaxed">
-                                Everything described in this guide is available on your free Ufriends IT account — start in seconds.
+                                Review the relevant Ufriends service, current requirements, live price, and expected processing steps before placing an order.
                             </p>
                             <Link
                                 to="/register"

@@ -1,0 +1,162 @@
+{
+  "slug": "bvn-slip-pdf-sample-with-picture",
+  "title": "BVN Slip PDF Sample: Details, Picture, and Printing Guide",
+  "excerpt": "See what a BVN slip should contain, whether it includes a picture, how to save a clear PDF, and how to print it safely in Nigeria.",
+  "category": "Banking Identity",
+  "readMin": 6,
+  "publishedAt": "2026-10-06",
+  "keywords": [
+    "BVN slip PDF",
+    "BVN slip sample",
+    "how to print BVN slip with picture",
+    "BVN print out online",
+    "print BVN slip"
+  ],
+  "schemaType": "Article",
+  "sections": [
+    {
+      "type": "paragraph",
+      "content": "A BVN slip is a printable record used to show the Bank Verification Number and the identity details returned by the authorised service. The exact layout can vary by provider or format. Before printing, check that the name, BVN, date of birth, and any photograph shown belong to the correct person and are readable."
+    },
+    {
+      "type": "paragraph",
+      "content": "Do not use a random online sample as proof of identity. A sample is useful only for understanding the layout. Your valid document must be generated from your own verified BVN record through a legitimate channel. Treat the PDF as sensitive because it can expose identity information useful to fraudsters."
+    },
+    {
+      "type": "toc",
+      "items": [
+        { "title": "What a BVN slip contains", "id": "contents" },
+        { "title": "Does it include a picture?", "id": "picture" },
+        { "title": "How to get a PDF", "id": "get-pdf" },
+        { "title": "Printing checklist", "id": "printing" },
+        { "title": "Fixing a wrong slip", "id": "wrong-details" },
+        { "title": "Privacy and fraud prevention", "id": "privacy" }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "What Information Appears on a BVN Slip?",
+      "id": "contents"
+    },
+    {
+      "type": "list",
+      "items": [
+        "The customer's Bank Verification Number.",
+        "The name stored on the BVN record.",
+        "Date of birth or other permitted identity fields, depending on the format.",
+        "A photograph when the selected format and source provide one.",
+        "A transaction, verification, or generation reference where applicable.",
+        "The issuing service's layout or security markings."
+      ]
+    },
+    {
+      "type": "paragraph",
+      "content": "A bank, employer, school, or service provider may ask for a particular format or a direct electronic verification instead of a printed slip. Ask what it accepts before paying for a premium or card-style version. A decorative plastic card does not replace a live BVN verification when the receiving organisation requires one."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "Does a BVN Slip Have a Picture?",
+      "id": "picture"
+    },
+    {
+      "type": "paragraph",
+      "content": "Some BVN slip formats show the photograph captured during enrolment, while other verification outputs may focus on the number and demographic details. Choose the format requested by the organisation receiving it. If a slip should contain a photograph but displays a blank space, wrong person, or unclear image, do not edit the PDF yourself. Report the issue to the service that generated it."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "How to Get a BVN Slip as a PDF",
+      "id": "get-pdf"
+    },
+    {
+      "type": "stepper",
+      "steps": [
+        { "title": "Use a trusted service", "content": "Choose your bank's documented route or a traceable service such as Ufriends' <a href=\"/print-bvn-slip-nigeria\">BVN slip page</a>. Confirm the provider, price, format, and delivery method." },
+        { "title": "Enter only required details", "content": "Use the secure form. Never send a banking password, card PIN, or OTP to an agent." },
+        { "title": "Verify the preview", "content": "Check the name, number, date of birth, and photograph before downloading." },
+        { "title": "Save the original PDF", "content": "Download the file directly instead of taking screenshots. Give it a private filename and store it in a protected folder." },
+        { "title": "Print the correct format", "content": "Use A4 or card dimensions according to the generated document and the receiving organisation's requirement." }
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "BVN Slip Printing Checklist",
+      "id": "printing"
+    },
+    {
+      "type": "table",
+      "headers": ["Check", "Good result", "Problem to avoid"],
+      "rows": [
+        ["Text", "Sharp and readable at normal size", "Blurred screenshot or compressed image"],
+        ["Page scale", "No content cut off", "Printer set to crop or enlarge beyond the page"],
+        ["Colour", "Matches the required format", "Dark print that hides a photograph or code"],
+        ["Identity", "All details belong to the applicant", "Another person's cached PDF"],
+        ["File", "Original PDF retained securely", "Only an edited image remains"]
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "What If the BVN Slip Shows Wrong Details?",
+      "id": "wrong-details"
+    },
+    {
+      "type": "paragraph",
+      "content": "Generate a fresh copy once to rule out an old cached file. If the wrong detail remains, confirm the central record with your bank. Do not use PDF-editing software to change a name, date, number, or picture. Submit a proper BVN correction and print a new slip after approval. Start with our <a href=\"/blog/bvn-modification-portal-nigeria-guide\">safe BVN modification guide</a>."
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "Protect Your BVN Slip and PDF",
+      "id": "privacy"
+    },
+    {
+      "type": "list",
+      "items": [
+        "Do not post an unredacted slip on social media or in a public support group.",
+        "Use a trusted print shop and delete the local copy from its computer after printing.",
+        "Send the document only to the verified contact of the organisation that requested it.",
+        "Cover unnecessary fields when a recipient only needs to confirm one detail.",
+        "Do not accept a sample template that asks you to type in identity details manually.",
+        "Keep the original PDF and transaction reference so you can trace how it was generated."
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "BVN Slip PDF Questions",
+      "id": "slip-questions"
+    },
+    {
+      "type": "list",
+      "items": [
+        "<strong>Is a screenshot the same as the original PDF?</strong> No. A screenshot can crop details and lose print quality. Keep the downloaded PDF as the source file.",
+        "<strong>Must every BVN slip contain a picture?</strong> Formats differ. Ask the receiving organisation which output it accepts and choose a legitimate format that contains the requested fields.",
+        "<strong>Can I correct a spelling error inside the PDF?</strong> No. Correct the central BVN record, then generate a new document from the updated data.",
+        "<strong>Is a plastic BVN card always required?</strong> No. Some organisations accept a standard printout or live verification. Confirm the requirement before paying for a premium format.",
+        "<strong>Can a business centre print the file for me?</strong> Yes, but use a trusted operator, remain present, and ask for the downloaded copy to be deleted from the shop's computer afterward."
+      ]
+    },
+    {
+      "type": "heading",
+      "level": 2,
+      "content": "Generate a BVN Slip on Ufriends",
+      "id": "ufriends-slip"
+    },
+    {
+      "type": "paragraph",
+      "content": "If you already know the correct BVN and need a printable copy, use the <a href=\"/print-bvn-slip-nigeria\">Ufriends BVN slip service</a>. Sign in, review the available formats and live price, enter the required details carefully, inspect the result, and download the original PDF. Use modification instead when the central name, date of birth, phone number, or photograph is wrong."
+    },
+    {
+      "type": "paragraph",
+      "content": "This separation improves both usefulness and conversion: visitors who need a document reach the printing service, while visitors with incorrect data reach the modification guide. It avoids charging someone for a fresh copy that simply repeats the same wrong information."
+    },
+    {
+      "type": "paragraph",
+      "content": "For official background on the BVN system, see the CBN <a href=\"https://www.cbn.gov.ng/PaymentsSystem/BVN.html\">Bank Verification Number page</a>. For retrieving the number by phone, use the NIBSS <a href=\"https://nibss-plc.com.ng/ussd-validation-services/\">USSD guidance</a>."
+    }
+  ]
+}

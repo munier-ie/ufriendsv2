@@ -108,24 +108,52 @@ async function recordWalletCredit(db, {
 async function checkFraudRules(user, creditEvent, db = prisma) {
     const userId = user.id;
     const amount = creditEvent.amount;
+    const type = String(creditEvent.type || '').toLowerCase();
+    const REFUND_SOURCES = ['refund', 'manual_legacy_refund', 'admin_manual_service_rejection', 'admin_reconciled_refund'];
+    const isRefund = REFUND_SOURCES.includes(type);
 
     try {
         const tenMinsAgo = new Date(Date.now() - 10 * 60 * 1000);
         const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-        // Fetch recent credits in last 24h
-        const recentCredits = await db.securityEvent.findMany({
+        // System refunds are reversals of previous legitimate debits and are mathematically bounded.
+        // They are not external wallet funding deposits. Handle them with dedicated sanity guards.
+        if (isRefund) {
+            const recentRefundsCount = await db.securityEvent.count({
+                where: {
+                    userId,
+                    kind: 'wallet_credit',
+                    source: { in: REFUND_SOURCES },
+                    createdAt: { gte: tenMinsAgo }
+                }
+            });
+
+            // Normal user retries (e.g., 3-5 failed verifications) are allowed.
+            // Only halt on extreme anomalies indicating an automated bot loop (>= 15 refunds in 10 mins).
+            if (recentRefundsCount >= 15) {
+                const reason = `Excessive Refund Velocity Alert: ${recentRefundsCount} refund events within 10 minutes. Suspicious automated loop halted.`;
+                console.warn(`[FRAUD HALT] User #${userId}: ${reason}`);
+                await hold(userId, reason, 'fraud_excessive_refund_loop', db === prisma ? null : db);
+                return { triggered: true, rule: 'EXCESSIVE_REFUND_HALT', action: 'HALT' };
+            }
+
+            return { triggered: false };
+        }
+
+        // Fetch recent external funding credits in last 24h (excluding internal reversals and refunds)
+        const recentFundingCredits = await db.securityEvent.findMany({
             where: {
                 userId,
                 kind: 'wallet_credit',
                 operationId: { not: null },
                 amount: { gt: 0 },
+                source: { notIn: REFUND_SOURCES },
                 createdAt: { gte: oneDayAgo }
             },
-            select: { amount: true, createdAt: true }
+            select: { amount: true, source: true, createdAt: true }
         });
 
-        const total24h = recentCredits.reduce((s, c) => s + c.amount, 0);
+        const total24h = recentFundingCredits.reduce((s, c) => s + c.amount, 0);
 
         // Rule 1: High-Value Single Credit (>= ₦10,000 -> HALT; >= ₦5,000 -> ALERT)
         if (amount >= 10000) {
@@ -142,7 +170,7 @@ async function checkFraudRules(user, creditEvent, db = prisma) {
         // Rule 2: Exceeded Daily Account Limit (Default ₦50,000)
         const limit = user.accountLimit || 50000;
         if (total24h > limit) {
-            const reason = `Daily Account Limit Exceeded: 24h credits of ₦${total24h.toLocaleString()} exceed configured limit of ₦${limit.toLocaleString()}.`;
+            const reason = `Daily Account Limit Exceeded: 24h external credits of ₦${total24h.toLocaleString()} exceed configured limit of ₦${limit.toLocaleString()}.`;
             console.warn(`[FRAUD HALT] User #${userId}: ${reason}`);
             await hold(userId, reason, 'fraud_daily_limit_exceeded', db === prisma ? null : db);
             return { triggered: true, rule: 'LIMIT_EXCEEDED_HALT', action: 'HALT' };
@@ -153,16 +181,18 @@ async function checkFraudRules(user, creditEvent, db = prisma) {
         const isFreshAccount = accountAgeMs < 24 * 60 * 60 * 1000;
 
         if (isFreshAccount && total24h >= 10000) {
-            const reason = `Fresh Account High Volume: Account registered <24h ago has received ₦${total24h.toLocaleString()} across ${recentCredits.length} credits. Exceeds ₦10,000 new account threshold.`;
+            const reason = `Fresh Account High Volume: Account registered <24h ago has received ₦${total24h.toLocaleString()} across ${recentFundingCredits.length} deposits. Exceeds ₦10,000 new account threshold.`;
             console.warn(`[FRAUD HALT] User #${userId}: ${reason}`);
             await hold(userId, reason, 'fraud_fresh_account_rule', db === prisma ? null : db);
             return { triggered: true, rule: 'FRESH_ACCOUNT_HALT', action: 'HALT' };
         }
 
-        // Rule 4: High Velocity — 3 or more credits in last 10 minutes
-        const creditsLast10Mins = recentCredits.filter(c => c.createdAt >= tenMinsAgo);
-        if (creditsLast10Mins.length >= 3) {
-            const reason = `Rapid Velocity Alert: ${creditsLast10Mins.length} wallet credits within 10 minutes (Total: ₦${creditsLast10Mins.reduce((s, c) => s + c.amount, 0).toLocaleString()}).`;
+        // Rule 4: High Velocity — 5 or more deposits in 10 mins OR 3 or more deposits totaling >= ₦5,000
+        const fundingLast10Mins = recentFundingCredits.filter(c => c.createdAt >= tenMinsAgo);
+        const fundingTotalLast10Mins = fundingLast10Mins.reduce((s, c) => s + c.amount, 0);
+
+        if (fundingLast10Mins.length >= 5 || (fundingLast10Mins.length >= 3 && fundingTotalLast10Mins >= 5000)) {
+            const reason = `Rapid Velocity Alert: ${fundingLast10Mins.length} external wallet deposits within 10 minutes (Total: ₦${fundingTotalLast10Mins.toLocaleString()}).`;
             console.warn(`[FRAUD HALT] User #${userId}: ${reason}`);
             await hold(userId, reason, 'fraud_velocity_rule', db === prisma ? null : db);
             return { triggered: true, rule: 'RAPID_VELOCITY_HALT', action: 'HALT' };
