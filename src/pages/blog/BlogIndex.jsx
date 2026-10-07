@@ -276,6 +276,7 @@ export const BLOG_POSTS = [
         category: 'VTU Comparison',
         readMin: 14,
         publishedAt: '2026-08-08',
+        updatedAt: '2026-10-07',
         keywords: ['alrahuz', 'alrahuz data', 'alrahuz data review', 'alrahuz data pricing', 'alrahuz alternatives', 'alrahuz vs ufriends'],
     },
     {
@@ -285,6 +286,7 @@ export const BLOG_POSTS = [
         category: 'VTU Comparison',
         readMin: 13,
         publishedAt: '2026-08-08',
+        updatedAt: '2026-10-07',
         keywords: ['maskawasub', 'maskawasub data', 'maskawasub review', 'maskawasub app', 'maskawasub alternatives', 'maskawasub vs ufriends'],
     },
     {
@@ -294,6 +296,7 @@ export const BLOG_POSTS = [
         category: 'VTU Comparison',
         readMin: 13,
         publishedAt: '2026-08-08',
+        updatedAt: '2026-10-07',
         keywords: ['subandgain', 'subandgain data', 'subandgain review', 'subandgain login', 'subandgain alternatives', 'subandgain vs ufriends'],
     },
     {
@@ -303,6 +306,7 @@ export const BLOG_POSTS = [
         category: 'VTU Comparison',
         readMin: 14,
         publishedAt: '2026-08-08',
+        updatedAt: '2026-10-07',
         keywords: ['clubkonnect', 'clubkonnect data', 'clubkonnect review', 'clubkonnect login', 'clubkonnect alternatives', 'clubkonnect vs ufriends'],
     },
     {
@@ -312,6 +316,7 @@ export const BLOG_POSTS = [
         category: 'VTU Comparison',
         readMin: 13,
         publishedAt: '2026-08-08',
+        updatedAt: '2026-10-07',
         keywords: ['vtpass', 'vtpass review', 'vtpass charges', 'vtpass bills', 'vtpass alternatives', 'vtpass vs ufriends'],
     }
 ];

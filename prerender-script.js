@@ -207,7 +207,7 @@ function getRouteMetadata(route) {
                 "headline": post.title,
                 "description": post.excerpt,
                 "datePublished": post.publishedAt,
-                "dateModified": post.publishedAt,
+                "dateModified": post.updatedAt || post.publishedAt,
                 "author": {
                     "@type": "Organization",
                     "name": "Ufriends IT",
@@ -449,8 +449,9 @@ function getRouteBodyHtml(route) {
                     <header style="margin-bottom:32px;border-bottom:1px solid #e2e8f0;padding-bottom:24px;">
                         <a href="/blog" style="color:#004687;font-weight:600;text-decoration:none;font-size:14px;">← Back to Blog</a>
                         <h1 style="font-size:36px;font-weight:800;color:#0f172a;line-height:1.25;margin-top:16px;margin-bottom:12px;">${escapeHtml(post.title)}</h1>
-                        <div style="font-size:14px;color:#64748b;display:flex;gap:16px;">
+                        <div style="font-size:14px;color:#64748b;display:flex;gap:16px;flex-wrap:wrap;">
                             <span>Published: ${escapeHtml(post.publishedAt || '2026')}</span>
+                            ${post.updatedAt ? `<span style="color:#0284c7;font-weight:600;">Updated: ${escapeHtml(post.updatedAt)}</span>` : ''}
                             <span>By Ufriends IT Editorial Team</span>
                         </div>
                     </header>

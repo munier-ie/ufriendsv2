@@ -282,7 +282,9 @@ export default function BlogPost() {
 
     if (!post) return <Navigate to="/blog" replace />;
 
+    const postData = allBlogPosts[slug] || post;
     const publishedDate = new Intl.DateTimeFormat('en-NG', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt));
+    const updatedDate = postData?.updatedAt ? new Intl.DateTimeFormat('en-NG', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(postData.updatedAt)) : null;
 
     const articleSchema = {
         '@context': 'https://schema.org',
@@ -290,7 +292,7 @@ export default function BlogPost() {
         headline: post.title,
         description: post.excerpt,
         datePublished: post.publishedAt,
-        dateModified: post.publishedAt,
+        dateModified: postData?.updatedAt || post.publishedAt,
         author: {
             '@type': 'Organization',
             name: 'Ufriends IT',
@@ -307,7 +309,6 @@ export default function BlogPost() {
     };
 
     // Extract FAQ and Review schema if available in post content
-    const postData = allBlogPosts[slug] || post;
     const faqSection = postData?.sections?.find(s => s.type === 'faq');
     const graph = [articleSchema];
 
@@ -400,10 +401,15 @@ export default function BlogPost() {
                                 <Calendar size={11} aria-hidden="true" />
                                 <time dateTime={post.publishedAt}>{publishedDate}</time>
                             </span>
+                            {updatedDate && (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full font-semibold border border-blue-100">
+                                    Updated {updatedDate}
+                                </span>
+                            )}
                             <span className="text-xs text-gray-400">By Ufriends IT</span>
                             <span className="flex items-center gap-1.5 text-xs text-gray-400">
                                 <Clock size={11} aria-hidden="true" />
-                                {post.readMin} min read
+                                <time dateTime={`PT${post.readMin}M`}>{post.readMin} min read</time>
                             </span>
                         </div>
 
