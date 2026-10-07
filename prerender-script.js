@@ -497,7 +497,83 @@ function getRouteBodyHtml(route) {
         `;
     }
 
-    // All other routes (home, auth, about, contact, reseller, privacy, terms):
+    // 4. Contact Us Page
+    if (route === '/contact') {
+        return `
+            <div class="pre-rendered-page contact-page" style="max-width:1000px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
+                <header style="text-align:center;margin-bottom:48px;">
+                    <span style="font-size:13px;color:#004687;font-weight:700;text-transform:uppercase;letter-spacing:1px;">We're Here to Help</span>
+                    <h1 style="font-size:36px;font-weight:800;color:#0f172a;margin-top:8px;margin-bottom:12px;">Contact Ufriends IT Support</h1>
+                    <p style="font-size:17px;color:#475569;max-width:650px;margin:0 auto;line-height:1.6;">Whether you have a transaction issue, a billing question, or need assistance with NIN/BVN services, our dedicated support team is ready to assist you.</p>
+                </header>
+
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:48px;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h3 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">WhatsApp Support</h3>
+                        <p style="font-size:14px;color:#64748b;line-height:1.6;margin-bottom:16px;">Chat directly with our support team on WhatsApp for fast, real-time responses to all account questions.</p>
+                        <a href="https://wa.me/2347026417709" target="_blank" rel="noopener noreferrer" style="color:#004687;font-weight:700;font-size:14px;text-decoration:none;">Chat on WhatsApp →</a>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h3 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">Email Inquiries</h3>
+                        <p style="font-size:14px;color:#64748b;line-height:1.6;margin-bottom:16px;">Send us an email for formal requests, partnership inquiries, API integration support, and business registration.</p>
+                        <a href="mailto:support@ufriends.com.ng" style="color:#004687;font-weight:700;font-size:14px;text-decoration:none;">support@ufriends.com.ng →</a>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h3 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">Fast Resolution</h3>
+                        <p style="font-size:14px;color:#64748b;line-height:1.6;margin-bottom:16px;">Automated wallet debits and transaction refunds are monitored 24/7. Manual requests resolved within 24 hours.</p>
+                        <span style="font-size:14px;color:#059669;font-weight:700;">24/7 Automated Monitoring</span>
+                    </div>
+                </div>
+
+                <section style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:32px;margin-bottom:48px;">
+                    <h2 style="font-size:24px;font-weight:700;color:#0f172a;margin-bottom:20px;text-align:center;">Frequently Asked Support Questions</h2>
+                    <div style="display:grid;gap:16px;">
+                        <div style="background:#fff;padding:20px;border-radius:12px;border:1px solid #e2e8f0;">
+                            <h4 style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:6px;">How fast do you respond to inquiries?</h4>
+                            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0;">We respond to WhatsApp messages within 15–30 minutes during standard business hours and emails within 24 hours.</p>
+                        </div>
+                        <div style="background:#fff;padding:20px;border-radius:12px;border:1px solid #e2e8f0;">
+                            <h4 style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:6px;">What if my data or airtime transaction is pending?</h4>
+                            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0;">Most transactions complete instantly. If network delays occur, our system auto-reconciles or refunds failed debits automatically.</p>
+                        </div>
+                        <div style="background:#fff;padding:20px;border-radius:12px;border:1px solid #e2e8f0;">
+                            <h4 style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:6px;">Where can I get support for NIN or BVN modification?</h4>
+                            <p style="color:#475569;font-size:14px;line-height:1.6;margin:0;">You can message us directly on WhatsApp with your transaction reference or track the status from your Ufriends IT user dashboard.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        `;
+    }
+
+    // 5. About Page
+    if (route === '/about') {
+        return `
+            <div class="pre-rendered-page about-page" style="max-width:1000px;margin:0 auto;padding:48px 20px;font-family:system-ui,-apple-system,sans-serif;color:#1e293b;">
+                <header style="text-align:center;margin-bottom:48px;">
+                    <span style="font-size:13px;color:#004687;font-weight:700;text-transform:uppercase;letter-spacing:1px;">About Ufriends IT</span>
+                    <h1 style="font-size:36px;font-weight:800;color:#0f172a;margin-top:8px;margin-bottom:12px;">Nigeria's Leading VTU & Identity Platform</h1>
+                    <p style="font-size:17px;color:#475569;max-width:700px;margin:0 auto;line-height:1.6;">Ufriends IT combines wholesale telecom services with verified government identity solutions, enabling thousands of individuals, resellers, and businesses to transact seamlessly.</p>
+                </header>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:48px;">
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h3 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">Wholesale VTU Telecommunication</h3>
+                        <p style="font-size:14px;color:#64748b;line-height:1.6;">Direct access to MTN SME/Gifting, Airtel, Glo, and 9mobile data plans, instant airtime, cable TV, and electricity tokens.</p>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h3 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">Identity & Document Retrieval</h3>
+                        <p style="font-size:14px;color:#64748b;line-height:1.6;">Official NIN slip retrieval in 4 formats, BVN verification and slips, demographic corrections, and CAC business registrations.</p>
+                    </div>
+                    <div style="background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:24px;box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+                        <h3 style="font-size:18px;font-weight:700;color:#0f172a;margin-bottom:8px;">Developer API & Reseller Tools</h3>
+                        <p style="font-size:14px;color:#64748b;line-height:1.6;">Developer API v1 with Node.js and PHP SDKs, webhooks, and white-label portals for entrepreneurs to build their own vending apps.</p>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // All other routes (home, auth, reseller, privacy, terms):
     // Retain the branded animated loader spinner so no unwanted text ever flashes
     return LOADER_HTML;
 }
@@ -510,13 +586,19 @@ function generateStaticRoutes(distDir) {
         return;
     }
 
-    const templateHtml = fs.readFileSync(baseIndexPath, 'utf8');
+    let templateHtml = fs.readFileSync(baseIndexPath, 'utf8');
+    // Ensure dist/index.html (homepage) explicitly has its self-referencing canonical
+    if (!templateHtml.includes('rel="canonical"')) {
+        templateHtml = templateHtml.replace(/<head>/i, '<head>\n  <link rel="canonical" href="https://www.ufriends.com.ng/" />');
+        fs.writeFileSync(baseIndexPath, templateHtml, 'utf8');
+    }
+
     console.log(`Starting SSG route generation for ${PUBLIC_ROUTES.length} routes...`);
 
     let generatedCount = 0;
 
     for (const route of PUBLIC_ROUTES) {
-        if (route === '/') continue; // Never overwrite dist/index.html (it retains the branded animated loader)
+        if (route === '/') continue; // dist/index.html is the homepage
 
         const meta = getRouteMetadata(route);
         const bodyContent = getRouteBodyHtml(route);
