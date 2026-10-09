@@ -3,6 +3,9 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const { z } = require('zod');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
+const bcrypt = require('bcryptjs');
 const { recordWalletCredit } = require('../services/security.service');
 const walletOps = require('../services/wallet.service');
 
@@ -51,7 +54,7 @@ router.get('/stats', authenticateUser, async (req, res) => {
 });
 
 // POST /api/referrals/withdraw
-router.post('/withdraw', authenticateUser, async (req, res) => {
+router.post('/withdraw', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const userId = req.user.id;
         const { amount } = req.body;
@@ -64,12 +67,13 @@ router.post('/withdraw', authenticateUser, async (req, res) => {
 
         const { pin } = req.body;
         if (!pin) return res.status(400).json({ error: 'Transaction PIN required' });
+        if (!user.transactionPin) return res.status(400).json({ error: 'No transaction PIN set.' });
 
-        const bcrypt = require('bcrypt');
         const validPin = await bcrypt.compare(pin, user.transactionPin);
         if (!validPin) {
-            return res.status(400).json({ error: 'Incorrect PIN' });
+            return rejectInvalidPin(req, res, { message: 'Incorrect PIN' });
         }
+        await clearPinFailures(req);
 
         if (user.refWallet <= 0) {
             return res.status(400).json({ error: 'Insufficient referral balance' });

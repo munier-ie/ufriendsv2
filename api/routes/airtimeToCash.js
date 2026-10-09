@@ -3,6 +3,8 @@ const router = express.Router();
 const { z } = require('zod');
 const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const whatsappService = require('../services/whatsapp.service');
 const airtime2cash = require('../utils/providers/airtime2cash');
 const { recordWalletCredit } = require('../services/security.service');
@@ -29,7 +31,7 @@ router.post('/generate-otp', authenticateUser, async (req, res) => {
         const result = await airtime2cash.generateOTP(network, phoneNumber);
         res.json(result);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Unable to generate OTP at this time' });
     }
 });
 
@@ -44,7 +46,7 @@ router.post('/verify-otp', authenticateUser, async (req, res) => {
         const result = await airtime2cash.verifyOTP(network, phoneNumber, otp);
         res.json(result);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: 'Unable to verify OTP at this time' });
     }
 });
 
@@ -53,7 +55,7 @@ router.post('/verify-otp', authenticateUser, async (req, res) => {
  * @desc    Request to convert airtime to cash
  * @access  Private
  */
-router.post('/request', authenticateUser, async (req, res) => {
+router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const { network, amount, phoneNumber, pin, transferPin, sessionId } = requestSchema.parse(req.body);
         const userId = req.user.id;
@@ -66,8 +68,9 @@ router.post('/request', authenticateUser, async (req, res) => {
         }
         const valid = await bcrypt.compare(pin, user.transactionPin);
         if (!valid) {
-            return res.status(403).json({ error: 'Invalid transaction PIN' });
+            return rejectInvalidPin(req, res, { status: 403 });
         }
+        await clearPinFailures(req);
 
         // 2. Fetch Rate
         const rateData = await prisma.airtimeToCashRate.findUnique({
@@ -150,7 +153,7 @@ router.post('/request', authenticateUser, async (req, res) => {
             return res.status(400).json({ error: error.errors[0].message });
         }
         console.error('Airtime request error:', error);
-        res.status(500).json({ error: 'Request failed: ' + error.message });
+        res.status(500).json({ error: 'Request failed. Please try again later.' });
     }
 });
 

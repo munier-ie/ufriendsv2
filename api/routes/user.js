@@ -6,6 +6,8 @@ const jwt = require('jsonwebtoken');
 const { z } = require('zod');
 
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const { creditReferralBonus } = require('../services/referral.service');
 const walletOps = require('../services/wallet.service');
 
@@ -134,7 +136,7 @@ router.put('/password', authenticateUser, async (req, res) => {
 });
 
 // Update transaction PIN
-router.put('/pin', authenticateUser, async (req, res) => {
+router.put('/pin', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const validation = updatePinSchema.safeParse(req.body);
         if (!validation.success) {
@@ -150,8 +152,9 @@ router.put('/pin', authenticateUser, async (req, res) => {
             }
             const valid = await bcrypt.compare(currentPin, req.user.transactionPin);
             if (!valid) {
-                return res.status(400).json({ error: 'Current PIN is incorrect' });
+                return rejectInvalidPin(req, res, { message: 'Current PIN is incorrect' });
             }
+            await clearPinFailures(req);
         }
 
         // Hash new PIN

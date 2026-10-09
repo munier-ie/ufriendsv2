@@ -1,6 +1,7 @@
 const prisma = require('../../prisma/client');
 const { randomUUID } = require('node:crypto');
 const { sendEmailStrict } = require('./email.service');
+const { safeError } = require('../utils/safeError');
 
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 let running = false;
@@ -54,17 +55,17 @@ async function drain(limit = 20) {
             } catch (error) {
                 const attempts = row.attempts + 1;
                 const delay = Math.min(3600, 15 * (2 ** Math.min(attempts, 8)));
-                await prisma.securityOutbox.updateMany({ where: { id: row.id, status: 'processing', leaseToken }, data: { status: 'pending', availableAt: new Date(Date.now() + delay * 1000), leaseUntil: null, leaseToken: null, lastError: String(error.message).slice(0, 500) } }).catch(e => console.error('[SecurityOutbox] Failed to schedule retry:', e.message));
-                console.error('[SecurityOutbox] Delivery failed; queued for retry:', error.message);
+                await prisma.securityOutbox.updateMany({ where: { id: row.id, status: 'processing', leaseToken }, data: { status: 'pending', availableAt: new Date(Date.now() + delay * 1000), leaseUntil: null, leaseToken: null, lastError: String(error.code || error.name || 'DELIVERY_FAILED').slice(0, 80) } }).catch(e => console.error('[SecurityOutbox] Failed to schedule retry:', safeError(e)));
+                console.error('[SecurityOutbox] Delivery failed; queued for retry:', safeError(error));
             }
         }
-    } catch (error) { console.error('[SecurityOutbox] Drain failed:', error.message); }
+    } catch (error) { console.error('[SecurityOutbox] Drain failed:', safeError(error)); }
     finally { running = false; }
 }
 
 function start() {
     if (global.__ufriendsSecurityOutboxTimer) return;
-    global.__ufriendsSecurityOutboxTimer = setInterval(() => drain().catch(err => console.error(err)), 5000);
+    global.__ufriendsSecurityOutboxTimer = setInterval(() => drain().catch(err => console.error('[SecurityOutbox] Unexpected drain failure:', safeError(err))), 5000);
     global.__ufriendsSecurityOutboxTimer.unref?.();
     drain();
 }

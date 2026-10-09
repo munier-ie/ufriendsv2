@@ -61,7 +61,7 @@ router.post('/monnify', async (req, res) => {
             });
 
             if (!user) {
-                console.error('User not found for account reference:', accountReference);
+                console.error('Monnify webhook did not match a user account');
                 return res.status(404).json({ error: 'User not found' });
             }
 
@@ -78,7 +78,7 @@ router.post('/monnify', async (req, res) => {
             const finalAmount = Math.round((amount - serviceCharge) * 100) / 100;
 
             if (finalAmount <= 0) {
-                console.error(`Monnify: Amount too small after fee deduction. Amount: ${amount}, Fee: ${serviceCharge}`);
+                console.error('Monnify amount was too small after fee deduction');
                 return res.status(200).json({ message: 'Amount too small after fee' });
             }
 
@@ -127,12 +127,11 @@ router.post('/monnify', async (req, res) => {
             });
 
             if (result.alreadyProcessed) {
-                console.log('Transaction already processed:', transactionReference);
+                console.log('Monnify transaction already processed');
                 return res.status(200).json({ message: 'Transaction already processed' });
             }
 
             const newBalance = result.updatedUser.wallet;
-            console.log(`Monnify: Credited ₦${finalAmount} to user ${user.id}. Fee: ₦${serviceCharge}. New balance: ₦${newBalance}`);
 
             // Send email notification
             sendTransactionReceipt(user, {
@@ -218,7 +217,7 @@ router.post('/paymentpoint', async (req, res) => {
                 : null;
 
             if (!user) {
-                console.error(`[PaymentPoint] No user assigned to supplied virtual account; reference=${String(reference || '').slice(0, 80)}`);
+                console.error('[PaymentPoint] Webhook did not match a user account');
                 // Return 200 ok to stop retry loops
                 return res.status(200).json({ ok: true, message: 'Unmatched user processed silently' });
             }
@@ -240,7 +239,7 @@ router.post('/paymentpoint', async (req, res) => {
             const finalAmount = Math.round((amountInNaira - serviceCharge) * 100) / 100;
 
             if (finalAmount <= 0) {
-                console.error(`[Webhook Debug] PaymentPoint: Amount too small after fee deduction. Amount: ${amountInNaira}, Fee: ${serviceCharge}`);
+                console.error('[PaymentPoint] Amount was too small after fee deduction');
                 return res.status(200).json({ ok: true, message: 'Amount too small after fee' });
             }
 
@@ -289,12 +288,11 @@ router.post('/paymentpoint', async (req, res) => {
             });
 
             if (result.alreadyProcessed) {
-                console.log('[PaymentPoint] Transaction already processed:', reference);
+                console.log('[PaymentPoint] Transaction already processed');
                 return res.status(200).json({ ok: true, message: 'Transaction already processed' });
             }
 
             const newBalance = result.updatedUser.wallet;
-            console.log(`[Webhook Debug] PaymentPoint: Credited ₦${finalAmount} to user ${user.id}. Fee: ₦${serviceCharge}. New balance: ₦${newBalance}`);
 
             // Send email notification
             sendTransactionReceipt(user, {
@@ -354,14 +352,14 @@ router.post('/paystack', async (req, res) => {
                     }
                 });
                 
-                console.log(`Reseller request ${reference} marked as processing.`);
+                console.log('Reseller request marked as processing');
 
                 // ─── Automated Notifications ─────────────────────────────────
                 const { sendResellerConfirmation, sendResellerAdminAlert } = require('../services/email.service');
                 
                 // 1. Notify User with Tracking ID
                 sendResellerConfirmation(request.contactEmail, request.paymentRef)
-                    .catch(e => console.error('Reseller confirmation email failed:', e));
+                    .catch(() => console.error('Reseller confirmation email failed'));
 
                 // 2. Alert Admin
                 sendResellerAdminAlert(request)

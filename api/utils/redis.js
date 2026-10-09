@@ -41,7 +41,7 @@ async function getCache(key) {
     const data = await redisClient.get(key);
     return data ? JSON.parse(data) : null;
   } catch (err) {
-    console.warn(`[Redis] getCache error for key ${key}:`, err.message);
+    console.warn('[Redis] getCache failed:', err.code || err.name || 'operation failed');
     return null;
   }
 }
@@ -60,7 +60,7 @@ async function setCache(key, value, ttlSeconds = 86400) {
     }
     return true;
   } catch (err) {
-    console.warn(`[Redis] setCache error for key ${key}:`, err.message);
+    console.warn('[Redis] setCache failed:', err.code || err.name || 'operation failed');
     return false;
   }
 }
@@ -74,7 +74,7 @@ async function delCache(key) {
     await redisClient.del(key);
     return true;
   } catch (err) {
-    console.warn(`[Redis] delCache error for key ${key}:`, err.message);
+    console.warn('[Redis] delCache failed:', err.code || err.name || 'operation failed');
     return false;
   }
 }
@@ -92,7 +92,7 @@ async function acquireLock(lockKey, ttlMs = 30000) {
     const acquired = await redisClient.set(lockKey, lockValue, 'PX', ttlMs, 'NX');
     return acquired === 'OK' ? lockValue : null;
   } catch (err) {
-    console.warn(`[Redis] acquireLock error for ${lockKey}:`, err.message);
+    console.warn('[Redis] acquireLock failed:', err.code || err.name || 'operation failed');
     return null;
   }
 }
@@ -113,7 +113,7 @@ async function releaseLock(lockKey, lockValue) {
     await redisClient.eval(luaScript, 1, lockKey, lockValue);
     return true;
   } catch (err) {
-    console.warn(`[Redis] releaseLock error for ${lockKey}:`, err.message);
+    console.warn('[Redis] releaseLock failed:', err.code || err.name || 'operation failed');
     return false;
   }
 }

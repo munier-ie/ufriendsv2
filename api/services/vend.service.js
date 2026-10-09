@@ -61,7 +61,7 @@ async function refundTransaction(transaction, reason) {
             `Vending refund: ${transaction.description} (${reason})`
         ));
 
-        console.log(`[Refund] Processed transaction ${transaction.id} (user: ${transaction.userId}, amount: ${result.amount || 0})`);
+        console.log('[Refund] Transaction refund processed');
     } catch (refErr) {
         console.error(`[Refund Error] Failed to execute atomic refund for transaction ${transaction.id}:`, refErr);
         throw refErr;
@@ -365,7 +365,7 @@ async function vendAirtime(transaction, service, phone, network, airtimeType = '
                 const result = await providerAttempts.execute(transaction, prov.id, () => handler.purchaseAirtime(details, config));
 
                 if (result.status === 'success' || result.status === 'pending') {
-                    console.log(`[VendAirtime] SUCCESS via ${prov.name}! Status=${result.status}, Ref=${transaction.reference}`);
+                    console.log(`[VendAirtime] Successful via ${prov.name}`);
                     await prisma.transaction.update({
                         where: { id: transaction.id },
                         data: {
@@ -513,7 +513,7 @@ async function vendData(transaction, service, phone, network) {
                 const result = await providerAttempts.execute(transaction, prov.id, () => handler.purchaseData(details, config));
 
                 if (result.status === 'success' || result.status === 'pending') {
-                    console.log(`[VendData] SUCCESS via ${prov.name}! Status=${result.status}, Ref=${transaction.reference}`);
+                    console.log(`[VendData] Successful via ${prov.name}`);
                     await prisma.transaction.update({
                         where: { id: transaction.id },
                         data: {
@@ -563,7 +563,7 @@ async function vendData(transaction, service, phone, network) {
  */
 async function vendCable(transaction, service, iuc, phone, subscriptionType = 'change', accessToken = null) {
     try {
-        console.log(`Attempting to vend TV for ${iuc} using ${service.provider}`);
+        console.log(`Attempting TV vending via ${service.provider}`);
 
         let apiProvider = null;
         if (service.apiProviderId) {
@@ -632,7 +632,7 @@ async function vendCable(transaction, service, iuc, phone, subscriptionType = 'c
  */
 async function vendElectricity(transaction, service, meterNo, phone, baseAmount, meterType = 'prepaid', accessToken = null) {
     try {
-        console.log(`Attempting to vend Electricity for ${meterNo} using ${service.provider}`);
+        console.log(`Attempting electricity vending via ${service.provider}`);
 
         let apiProvider = null;
         if (service.apiProviderId) {

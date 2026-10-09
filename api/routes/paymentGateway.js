@@ -139,7 +139,7 @@ router.post('/test-connection', adminAuth, async (req, res) => {
 
     } catch (error) {
         console.error('Test connection error:', error);
-        res.status(400).json({ success: false, error: 'Connection failed: ' + error.message });
+        res.status(400).json({ success: false, error: 'Connection test failed' });
     }
 });
 

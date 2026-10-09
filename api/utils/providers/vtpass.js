@@ -46,7 +46,6 @@ async function purchaseAirtime(details, config) {
         const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
 
         // Log response (in a real app, use a logger)
-        console.log('VTPass Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -73,7 +72,7 @@ async function purchaseAirtime(details, config) {
         }
 
     } catch (error) {
-        console.error('VTPass Error:', error.response?.data || error.message);
+        console.error('VTPass Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -120,7 +119,6 @@ async function purchaseData(details, config) {
         };
 
         const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
-        console.log('VTPass Data Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -147,7 +145,7 @@ async function purchaseData(details, config) {
         }
 
     } catch (error) {
-        console.error('VTPass Data Error:', error.response?.data || error.message);
+        console.error('VTPass Data Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -179,7 +177,6 @@ async function verifyTV(details, config) {
         };
 
         const response = await axios.post(`${baseUrl}/merchant-verify`, payload, { headers });
-        console.log('VTPass TV Verify Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -196,7 +193,7 @@ async function verifyTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('VTPass TV Verify Error:', error.response?.data || error.message);
+        console.error('VTPass TV Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -231,7 +228,6 @@ async function purchaseTV(details, config) {
         };
 
         const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
-        console.log('VTPass TV Purchase Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -257,7 +253,7 @@ async function purchaseTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('VTPass TV Error:', error.response?.data || error.message);
+        console.error('VTPass TV Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -291,7 +287,6 @@ async function verifyElectricity(details, config) {
         };
 
         const response = await axios.post(`${baseUrl}/merchant-verify`, payload, { headers });
-        console.log('VTPass Electricity Verify Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -308,7 +303,7 @@ async function verifyElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('VTPass Electricity Verify Error:', error.response?.data || error.message);
+        console.error('VTPass Electricity Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -344,7 +339,6 @@ async function purchaseElectricity(details, config) {
         };
 
         const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
-        console.log('VTPass Electricity Purchase Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -371,7 +365,7 @@ async function purchaseElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('VTPass Electricity Error:', error.response?.data || error.message);
+        console.error('VTPass Electricity Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -409,7 +403,6 @@ async function purchaseExam(details, config) {
         };
 
         const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
-        console.log('VTPass Exam Purchase Response:', response.data);
 
         const { code, content } = response.data;
 
@@ -438,7 +431,7 @@ async function purchaseExam(details, config) {
             };
         }
     } catch (error) {
-        console.error('VTPass Exam Error:', error.response?.data || error.message);
+        console.error('VTPass Exam Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',

@@ -3,6 +3,9 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const walletOps = require('../services/wallet.service');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
+const bcrypt = require('bcryptjs');
 const { z } = require('zod');
 const crypto = require('crypto');
 
@@ -25,7 +28,7 @@ const MOCK_DATA = {
 };
 
 // POST /api/verify/identity
-router.post('/identity', authenticateUser, async (req, res) => {
+router.post('/identity', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const validation = verifySchema.safeParse(req.body);
         if (!validation.success) {
@@ -35,9 +38,12 @@ router.post('/identity', authenticateUser, async (req, res) => {
         const { type, number, pin } = validation.data;
 
         // 1. Verify PIN (Service usually costs money)
-        if (req.user.pin !== pin) {
-            return res.status(400).json({ error: 'Invalid transaction PIN' });
+        if (!req.user.transactionPin) {
+            return res.status(400).json({ error: 'No transaction PIN set.' });
         }
+        const validPin = await bcrypt.compare(pin, req.user.transactionPin);
+        if (!validPin) return rejectInvalidPin(req, res);
+        await clearPinFailures(req);
 
         const COST = 50; // Flat fee for verification
 

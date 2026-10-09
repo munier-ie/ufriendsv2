@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
@@ -14,6 +13,7 @@ import '../../core/auth_service.dart';
 import '../../core/constants.dart';
 import '../../core/app_theme.dart';
 import '../../core/api_service.dart';
+import '../../core/http_client.dart' as http;
 
 class SlipPreviewScreen extends StatefulWidget {
   final Map<String, dynamic> report;

@@ -82,6 +82,14 @@ For an uncertain provider response, use **Resolve Provider Outcome** after check
 
 Leave `TRUSTED_PROXY_ADDRESSES` empty when Node receives requests directly. Use `loopback` only when a trusted proxy on the same VPS connects over localhost. Otherwise configure the actual proxy addresses seen by Node, with forwarded headers correctly controlled by that proxy. The Azure VPS public IP is not automatically the correct value.
 
+## Rate limiting
+
+Authentication and API limits are layered across the trusted client IP and a random first-party installation ID (`X-Device-ID`). Login and signup also keep a hashed account-target limit as a secondary defense against distributed attacks. Raw IP addresses, device IDs, phone numbers, usernames, and emails are never stored in limiter keys.
+
+Production must provide a shared `REDIS_URL` so limits survive restarts and apply across every API process. Set a dedicated `RATE_LIMIT_KEY_SECRET` (or the existing `JWT_SECRET` is used). Never enable `RATE_LIMIT_STORE=memory` in production; that option exists for isolated tests only. Configure `TRUSTED_PROXY_ADDRESSES` correctly or every customer may appear to come from the reverse proxy.
+
+Defaults can be tuned through `RATE_LIMIT_API_IP`, `RATE_LIMIT_API_DEVICE`, `RATE_LIMIT_LOGIN_IP`, `RATE_LIMIT_LOGIN_DEVICE`, `RATE_LIMIT_LOGIN_ACCOUNT`, `RATE_LIMIT_ADMIN_LOGIN_IP`, `RATE_LIMIT_ADMIN_LOGIN_DEVICE`, `RATE_LIMIT_ADMIN_LOGIN_ACCOUNT`, `RATE_LIMIT_SIGNUP_IP`, `RATE_LIMIT_SIGNUP_DEVICE`, `RATE_LIMIT_SIGNUP_ACCOUNT`, `RATE_LIMIT_OTP_IP`, `RATE_LIMIT_OTP_DEVICE`, `RATE_LIMIT_OTP_ACCOUNT`, `RATE_LIMIT_RECOVERY_IP`, `RATE_LIMIT_RECOVERY_DEVICE`, `RATE_LIMIT_RECOVERY_ACCOUNT`, `RATE_LIMIT_ACTION_IP`, and `RATE_LIMIT_ACTION_DEVICE`.
+
 ## Verification
 
 Run `npm run test:security`. It requires local PostgreSQL tools (`initdb`, `pg_ctl`, `createdb`, `psql`) and installed Node dependencies. Run as a non-root user. The script creates a temporary local cluster, bootstraps the current schema, installs the actual security trigger SQL, runs the integration checks, and stops the cluster. It never selects the production database from `.env`.

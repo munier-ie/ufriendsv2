@@ -188,7 +188,7 @@ router.put('/settings', adminAuth, async (req, res) => {
         });
     } catch (error) {
         console.error('Update settings error:', error);
-        res.status(500).json({ error: 'Failed to update settings: ' + error.message });
+        res.status(500).json({ error: 'Failed to update settings' });
     }
 });
 

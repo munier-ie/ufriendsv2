@@ -282,7 +282,7 @@ router.put('/requests/:id', adminAuth, proofUpload.single('proof'), async (req, 
         const whatsappService = require('../services/whatsapp.service');
         
         sendManualServiceUpdateNotification(request.user, request.serviceType, updatedStatus, request.transRef, updated.adminNote)
-            .catch(err => console.error('Failed to send user email notification:', err));
+            .catch(() => console.error('Failed to send user email notification'));
             
         whatsappService.notifyManualServiceUpdate(request.user, request.serviceType, updatedStatus, request.transRef, updated.adminNote)
             .catch(err => console.error('Failed to send user whatsapp notification:', err));

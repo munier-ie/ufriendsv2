@@ -9,6 +9,8 @@ const { z } = require('zod');
 const prisma = require('../../prisma/client');
 const walletOps = require('../services/wallet.service');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const { creditReferralBonus } = require('../services/referral.service');
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -112,7 +114,7 @@ const purchaseSchema = z.object({
     transactionPin: z.string().min(4).max(6),
 });
 
-router.post('/:id/purchase', authenticateUser, async (req, res) => {
+router.post('/:id/purchase', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) return res.status(400).json({ error: 'Invalid content ID' });
@@ -142,8 +144,9 @@ router.post('/:id/purchase', authenticateUser, async (req, res) => {
         }
         const pinMatch = await bcrypt.compare(parsed.data.transactionPin, user.transactionPin);
         if (!pinMatch) {
-            return res.status(403).json({ error: 'Incorrect transaction PIN' });
+            return rejectInvalidPin(req, res, { message: 'Incorrect transaction PIN', status: 403 });
         }
+        await clearPinFailures(req);
 
         // Balance check
         if (user.wallet < content.price) {

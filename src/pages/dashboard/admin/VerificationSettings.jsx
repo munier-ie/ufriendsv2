@@ -45,8 +45,6 @@ export default function VerificationSettings() {
             // Filter out database-generated fields
             const { id, createdAt, updatedAt, ...settingsToSave } = settings;
 
-            console.log('Saving settings:', settingsToSave);
-
             const res = await axios.put('/api/admin/verification/settings', settingsToSave, {
                 headers: { Authorization: `Bearer ${token}` }
             });

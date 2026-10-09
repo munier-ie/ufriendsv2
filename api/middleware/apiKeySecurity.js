@@ -1,5 +1,6 @@
 const { RateLimiterMemory } = require('rate-limiter-flexible');
 const prisma = require('../../prisma/client');
+const { safeError } = require('../utils/safeError');
 
 /**
  * API Key Security Middleware
@@ -138,7 +139,7 @@ const apiKeyAuth = async (req, res, next) => {
         return await require('../services/security.service').rejectManipulation(req, res, next);
 
     } catch (error) {
-        console.error('API Key Auth error:', error);
+        console.error('API Key Auth error:', safeError(error));
         res.status(500).json({
             status: 1,
             message: 'Authentication failed',
@@ -166,7 +167,7 @@ const logApiRequest = async (userId, req, statusCode, responseTime) => {
             }
         });
     } catch (error) {
-        console.error('API logging error:', error);
+        console.error('API logging error:', safeError(error));
     }
 };
 

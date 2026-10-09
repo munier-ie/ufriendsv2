@@ -45,7 +45,7 @@ async function checkBalance(config) {
             };
         }
     } catch (error) {
-        console.error('Prembly Balance Error:', error.response?.data || error.message);
+        console.error('Prembly Balance Error:', error.response?.status || error.code || 'request failed');
         return { 
             success: false, 
             message: error.response?.data?.message || 'Connection Error or Forbidden' 

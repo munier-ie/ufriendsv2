@@ -122,7 +122,7 @@ router.put('/settings', adminAuth, async (req, res) => {
         console.error('Update verification settings error:', error);
         if (error.code) console.error('Prisma Error Code:', error.code);
         if (error.meta) console.error('Prisma Error Meta:', error.meta);
-        res.status(500).json({ error: 'Failed to update settings', details: error.message });
+        res.status(500).json({ error: 'Failed to update settings' });
     }
 });
 
@@ -152,10 +152,6 @@ router.post('/test-connection', adminAuth, async (req, res) => {
         }
 
         try {
-            console.log('Test Connection Request:');
-            console.log('URL:', testUrl);
-            console.log('Payload:', { number_nin: '12345678901' });
-
             const response = await axios.post(
                 testUrl,
                 {
@@ -199,7 +195,7 @@ router.post('/test-connection', adminAuth, async (req, res) => {
     } catch (error) {
         console.error('Test connection error:', error);
         res.status(500).json({
-            error: error.message || 'Failed to test connection'
+            error: 'Failed to test connection'
         });
     }
 });

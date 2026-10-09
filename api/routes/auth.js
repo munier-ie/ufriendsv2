@@ -9,13 +9,20 @@ const { sendWelcomeEmail, sendLoginAlert, sendVerificationOtpEmail, send2FaOtpEm
 const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
 const authenticateUser = require('../middleware/auth');
-const loginRateLimit = require('../middleware/loginRateLimit');
 const pinRateLimit = require('../middleware/pinRateLimit');
+const { safeError } = require('../utils/safeError');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 
 // Per-phone OTP email rate limit (3 emails per phone per 10 minutes)
 const otpEmailAttempts = new Map(); // phone -> { count, resetAt }
 const OTP_EMAIL_MAX = 3;
 const OTP_EMAIL_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+async function rejectInvalidLogin(req, res) {
+    const result = await req.credentialRateLimit?.recordFailure();
+    if (result?.locked) return req.credentialRateLimit.sendLocked(result);
+    return res.status(400).json({ error: 'Invalid credentials' });
+}
 
 function checkOtpEmailLimit(phone) {
     const now = Date.now();
@@ -154,21 +161,21 @@ router.post('/register', async (req, res) => {
                         accountReference: `PP_${user.phone}_${user.id}`
                     }
                 });
-                console.log(`Auto-generated PaymentPoint virtual account for user ID ${user.id}`);
+                console.log('Auto-generated PaymentPoint virtual account');
             }
         }).catch(err => {
-            console.error(`Failed to auto-generate PaymentPoint virtual account for ${user.email}:`, err.message);
+            console.error('Failed to auto-generate PaymentPoint virtual account');
         });
 
         res.status(201).json({ message: 'User created successfully', userId: user.id });
     } catch (error) {
-        console.error('Registration Error:', error);
+        console.error('Registration Error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 // Login (renamed to access to bypass WAF rules on /login and /signin paths)
-router.post('/access', loginRateLimit, async (req, res) => {
+router.post('/access', async (req, res) => {
     try {
         // Validate input
         const validation = loginSchema.safeParse(req.body);
@@ -181,8 +188,7 @@ router.post('/access', loginRateLimit, async (req, res) => {
         // Find user
         const user = await prisma.user.findUnique({ where: { phone } });
         if (!user) {
-            if (req._recordLoginFailure) req._recordLoginFailure();
-            return res.status(400).json({ error: 'Invalid credentials' });
+            return rejectInvalidLogin(req, res);
         }
         
         if (user.securityHold) {
@@ -200,16 +206,11 @@ router.post('/access', loginRateLimit, async (req, res) => {
         // Strict Bcrypt check only
         const valid = await bcrypt.compare(password, user.password);
         if (!valid) {
-            const result = req._recordLoginFailure ? req._recordLoginFailure() : { count: 0, waitSeconds: 0 };
-            let errorMsg = 'Invalid credentials';
-            if (result.waitSeconds > 0) {
-                const mins = Math.floor(result.waitSeconds / 60);
-                const secs = result.waitSeconds % 60;
-                const timeStr = mins > 0 ? `${mins}m ${secs > 0 ? secs + 's' : ''}`.trim() : `${secs}s`;
-                errorMsg = `Invalid credentials. Too many failed attempts — try again in ${timeStr}.`;
-            }
-            return res.status(400).json({ error: errorMsg, retryAfter: result.waitSeconds || 0 });
+            return rejectInvalidLogin(req, res);
         }
+
+        // A valid password clears failure history for this IP/device/account.
+        await req.credentialRateLimit?.reset();
 
         // Email Verification Check (First Login)
         if (user.emailVerified === false) {
@@ -231,7 +232,7 @@ router.post('/access', loginRateLimit, async (req, res) => {
             });
             
             sendVerificationOtpEmail(user, otpCode).catch(err => {
-                console.error("Failed to send OTP email", err);
+                console.error('Failed to send OTP email:', safeError(err));
             });
 
             return res.json({ 
@@ -253,7 +254,7 @@ router.post('/access', loginRateLimit, async (req, res) => {
                     data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry } // reuse columns for 2fa
                 });
                 send2FaOtpEmail(user, otpCode).catch(err => {
-                    console.error("Failed to send 2FA email", err);
+                    console.error('Failed to send 2FA email:', safeError(err));
                 });
             }
 
@@ -265,9 +266,6 @@ router.post('/access', loginRateLimit, async (req, res) => {
                 message: 'Two-factor authentication required.'
             });
         }
-
-        // Clear login rate limit on successful authentication
-        loginRateLimit.onSuccess(phone);
 
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
@@ -315,17 +313,17 @@ router.post('/access', loginRateLimit, async (req, res) => {
                                 accountReference: `PP_${user.phone}_${user.id}`
                             }
                         });
-                        console.log(`Auto-generated virtual account on login for user ID ${user.id}`);
+                        console.log('Auto-generated virtual account on login');
                     }
                 }
             }).catch(err => {
-                console.error(`Failed to auto-generate virtual account on login for ${user.email}:`, err.message);
+                console.error('Failed to auto-generate virtual account on login');
             });
         }
 
         res.json({ token, user: { id: user.id, name: `${user.firstName} ${user.lastName}` } });
     } catch (error) {
-        console.error(error);
+        console.error('Login error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -379,7 +377,7 @@ async function completeLoginProcess(user, req, res) {
                     });
                 }
             }
-        }).catch(err => console.error(`Failed to auto-generate virtual account on login for ${user.email}:`, err.message));
+        }).catch(() => console.error('Failed to auto-generate virtual account on login'));
     }
 
     return res.json({ token, user: { id: user.id, name: `${user.firstName} ${user.lastName}` } });
@@ -423,7 +421,7 @@ router.post('/verify-email', async (req, res) => {
                     data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
                 });
                 send2FaOtpEmail(updatedUser, otpCode).catch(err => {
-                    console.error("Failed to send 2FA email during verify email flow", err);
+                    console.error('Failed to send 2FA email during verify email flow:', safeError(err));
                 });
             }
 
@@ -439,7 +437,7 @@ router.post('/verify-email', async (req, res) => {
         // Finish login
         return completeLoginProcess(updatedUser, req, res);
     } catch (error) {
-        console.error(error);
+        console.error('Email verification error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -484,7 +482,7 @@ router.post('/verify-2fa', async (req, res) => {
         // Finish login
         return completeLoginProcess(user, req, res);
     } catch (error) {
-        console.error(error);
+        console.error('2FA verification error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -549,7 +547,7 @@ router.get('/profile', authenticateUser, async (req, res) => {
             totalReferrals
         });
     } catch (error) {
-        console.error(error);
+        console.error('Profile request error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -588,7 +586,7 @@ router.put('/update-password', authenticateUser, async (req, res) => {
 
         res.json({ message: 'Password updated successfully' });
     } catch (error) {
-        console.error(error);
+        console.error('PIN verification error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -628,7 +626,7 @@ router.post('/pin/toggle', authenticateUser, pinRateLimit, async (req, res) => {
                 }
             });
 
-            pinRateLimit.onSuccess(req.user.id);
+            await clearPinFailures(req);
             res.json({ message: 'PIN enabled successfully' });
         } else if (action === 'disable') {
             if (!currentPin) {
@@ -641,11 +639,10 @@ router.post('/pin/toggle', authenticateUser, pinRateLimit, async (req, res) => {
 
             const validPin = await bcrypt.compare(currentPin, user.transactionPin);
             if (!validPin) {
-                if (req._recordPinFailure) req._recordPinFailure();
-                return res.status(400).json({ error: 'Incorrect PIN' });
+                return rejectInvalidPin(req, res, { message: 'Incorrect PIN' });
             }
 
-            pinRateLimit.onSuccess(req.user.id);
+            await clearPinFailures(req);
             await prisma.user.update({
                 where: { id: req.user.id },
                 data: { pinEnabled: false }
@@ -656,7 +653,7 @@ router.post('/pin/toggle', authenticateUser, pinRateLimit, async (req, res) => {
             res.status(400).json({ error: 'Invalid action' });
         }
     } catch (error) {
-        console.error(error);
+        console.error('PIN update error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -685,11 +682,10 @@ router.post('/pin/reset', authenticateUser, pinRateLimit, async (req, res) => {
 
         const validPin = await bcrypt.compare(currentPin, user.transactionPin);
         if (!validPin) {
-            if (req._recordPinFailure) req._recordPinFailure();
-            return res.status(400).json({ error: 'Incorrect current PIN' });
+            return rejectInvalidPin(req, res, { message: 'Incorrect current PIN' });
         }
 
-        pinRateLimit.onSuccess(req.user.id);
+        await clearPinFailures(req);
         const hashedPin = await bcrypt.hash(newPin, 10);
         await prisma.user.update({
             where: { id: req.user.id },
@@ -698,7 +694,7 @@ router.post('/pin/reset', authenticateUser, pinRateLimit, async (req, res) => {
 
         res.json({ message: 'Transaction PIN changed successfully' });
     } catch (error) {
-        console.error(error);
+        console.error('PIN reset request error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -719,13 +715,13 @@ router.post('/pin/forgot', authenticateUser, async (req, res) => {
         });
 
         sendVerificationOtpEmail({ firstName: user.firstName, email: user.email }, otpCode).catch(err => {
-            console.error("Failed to send PIN reset email", err);
+            console.error('Failed to send PIN reset email:', safeError(err));
             return res.status(500).json({ error: 'Failed to send OTP email' });
         });
 
         res.json({ message: 'OTP sent to your email successfully.' });
     } catch (error) {
-        console.error(error);
+        console.error('PIN reset error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -770,7 +766,7 @@ router.post('/pin/reset-with-otp', authenticateUser, async (req, res) => {
 
         res.json({ message: 'Transaction PIN reset successfully' });
     } catch (error) {
-        console.error(error);
+        console.error('Password recovery error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -836,7 +832,7 @@ router.post('/forgot-password-otp', async (req, res) => {
 
         res.json({ message: 'OTP sent to your email successfully.' });
     } catch (error) {
-        console.error('Forgot password OTP error:', error);
+        console.error('Forgot password OTP error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -877,7 +873,7 @@ router.post('/reset-password-otp', async (req, res) => {
 
         res.json({ message: 'Password has been reset successfully. You can now login.' });
     } catch (error) {
-        console.error('Reset password OTP error:', error);
+        console.error('Reset password OTP error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -918,7 +914,7 @@ router.post('/reset-password', async (req, res) => {
 
         res.json({ message: 'Password has been reset successfully. You can now login.' });
     } catch (error) {
-        console.error('Reset password error:', error);
+        console.error('Reset password error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -950,7 +946,7 @@ router.get('/api-key', authenticateUser, async (req, res) => {
                 : 'Upgrade to a Vendor account for higher rate limits and full API access.'
         });
     } catch (error) {
-        console.error('Get API key error:', error);
+        console.error('Get API key error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -978,7 +974,7 @@ router.post('/api-key/regenerate', authenticateUser, async (req, res) => {
             testApiKey: newTestApiKey
         });
     } catch (error) {
-        console.error('API Key regenerate error:', error);
+        console.error('API Key regenerate error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -988,7 +984,7 @@ router.post('/api-key/regenerate', authenticateUser, async (req, res) => {
  * Vendors only. Requires transaction PIN.
  * New integrations should use POST /api/auth/api-key/regenerate instead.
  */
-router.post('/generate-api-key', authenticateUser, async (req, res) => {
+router.post('/generate-api-key', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({ where: { id: req.user.id } });
         if (!user || user.type !== 3) {
@@ -997,10 +993,11 @@ router.post('/generate-api-key', authenticateUser, async (req, res) => {
 
         const { pin } = req.body;
         if (!pin) return res.status(400).json({ error: 'Transaction PIN required' });
+        if (!user.transactionPin) return res.status(400).json({ error: 'No transaction PIN set.' });
 
-        const bcryptLib = require('bcrypt');
-        const validPin  = await bcryptLib.compare(pin, user.transactionPin);
-        if (!validPin) return res.status(400).json({ error: 'Incorrect PIN' });
+        const validPin = await bcrypt.compare(pin, user.transactionPin);
+        if (!validPin) return rejectInvalidPin(req, res, { message: 'Incorrect PIN' });
+        await clearPinFailures(req);
 
         const newApiKey = 'sk_live_' + crypto.randomBytes(24).toString('hex');
         const newTestApiKey = 'sk_test_' + crypto.randomBytes(24).toString('hex');
@@ -1008,7 +1005,7 @@ router.post('/generate-api-key', authenticateUser, async (req, res) => {
 
         res.json({ message: 'API Keys generated successfully', apiKey: newApiKey, testApiKey: newTestApiKey });
     } catch (error) {
-        console.error('API Key generation error:', error);
+        console.error('API Key generation error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -1035,10 +1032,9 @@ router.post('/api-ips', authenticateUser, async (req, res) => {
             apiIps: safeIps
         });
     } catch (error) {
-        console.error('API IP Update Error:', error);
+        console.error('API IP Update Error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
 
 module.exports = router;
-

@@ -2,6 +2,18 @@ import React, { Suspense, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import axios from 'axios';
 import { isCacheable, getCache, setCache } from './lib/apiCache';
+import { getDeviceId } from './lib/deviceId';
+
+// Stable random installation ID. This is not a hardware fingerprint and does
+// not contain personal data; the API combines it with a mandatory IP limit.
+axios.interceptors.request.use((config) => {
+    if (typeof config.headers?.set === 'function') {
+        config.headers.set('X-Device-ID', getDeviceId());
+    } else {
+        config.headers = { ...config.headers, 'X-Device-ID': getDeviceId() };
+    }
+    return config;
+});
 
 // ─── Session Expiry: 401 Interceptor ─────────────────────────────────────────
 axios.interceptors.response.use(

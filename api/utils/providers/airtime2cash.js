@@ -92,7 +92,7 @@ async function transferAirtime(networkName, sender, amount, reference, pin, sess
 
         return response.data;
     } catch (error) {
-        console.error('Airtime2Cash Transfer Error:', error.response?.data || error.message);
+        console.error('Airtime2Cash Transfer Error:', error.response?.status || error.code || 'request failed');
         throw error;
     }
 }

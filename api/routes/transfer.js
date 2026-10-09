@@ -3,6 +3,8 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const { z } = require('zod');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const bcrypt = require('bcryptjs');
 const crypto = require('node:crypto');
 const { recordWalletCredit } = require('../services/security.service');
@@ -56,7 +58,7 @@ router.get('/recipient/:query', authenticateUser, async (req, res) => {
  * @route POST /api/transfer
  * @desc Perform P2P wallet transfer
  */
-router.post('/', authenticateUser, async (req, res) => {
+router.post('/', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const validation = transferSchema.safeParse(req.body);
         if (!validation.success) {
@@ -75,8 +77,9 @@ router.post('/', authenticateUser, async (req, res) => {
 
         const validPin = await bcrypt.compare(pin, sender.transactionPin);
         if (!validPin) {
-            return res.status(400).json({ error: 'Invalid transaction PIN' });
+            return rejectInvalidPin(req, res);
         }
+        await clearPinFailures(req);
 
         // 3. Verify Balance
 

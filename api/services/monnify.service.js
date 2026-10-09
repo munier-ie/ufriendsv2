@@ -29,7 +29,7 @@ class MonnifyService {
 
             return response.data.responseBody.accessToken;
         } catch (error) {
-            console.error('Monnify auth error:', error.response?.data || error.message);
+            console.error('Monnify authentication failed:', error.response?.status || error.code || 'request failed');
             throw new Error('Failed to authenticate with Monnify');
         }
     }
@@ -95,7 +95,7 @@ class MonnifyService {
                 throw new Error(response.data.responseMessage || 'Failed to create virtual account');
             }
         } catch (error) {
-            console.error('Monnify virtual account creation error:', error.response?.data || error.message);
+            console.error('Monnify virtual account creation failed:', error.response?.status || error.code || 'request failed');
             throw new Error(error.response?.data?.responseMessage || 'Failed to create virtual account');
         }
     }
@@ -129,7 +129,7 @@ class MonnifyService {
 
             return response.data.requestSuccessful;
         } catch (error) {
-            console.error('Monnify BVN update error:', error.response?.data || error.message);
+            console.error('Monnify BVN update failed:', error.response?.status || error.code || 'request failed');
             throw new Error('Failed to update BVN on Monnify');
         }
     }

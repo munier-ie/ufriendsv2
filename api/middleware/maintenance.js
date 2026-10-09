@@ -1,4 +1,5 @@
 const settingsService = require('../services/settings.service');
+const { safeError } = require('../utils/safeError');
 
 const maintenanceMiddleware = async (req, res, next) => {
     try {
@@ -19,7 +20,7 @@ const maintenanceMiddleware = async (req, res, next) => {
 
         next();
     } catch (error) {
-        console.error('Maintenance middleware error:', error);
+        console.error('Maintenance middleware error:', safeError(error));
         next(); // Proceed anyway if settings check fails to avoid blocking site
     }
 };

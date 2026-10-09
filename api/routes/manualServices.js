@@ -3,6 +3,7 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
 const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const crypto = require('crypto');
 const axios = require('axios');
 const multer = require('multer');
@@ -233,10 +234,9 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
         const pinOk = await verifyTransactionPin(req.user, pin);
         if (pinOk === null) return res.status(400).json({ error: 'No transaction PIN set.' });
         if (!pinOk) {
-            if (req._recordPinFailure) req._recordPinFailure();
-            return res.status(400).json({ error: 'Invalid transaction PIN' });
+            return rejectInvalidPin(req, res);
         }
-        pinRateLimit.onSuccess(req.user.id);
+        await clearPinFailures(req);
 
         // 5. Resolve price
         const { sellingPrice: amount, costPrice } = await resolvePrice(req.user, serviceType, subType);
@@ -311,7 +311,7 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
                     }
 
                     if (retrievedBvn) {
-                        console.log(`[BVN RETRIEVAL] GLOBAL DB Cache HIT for phone ${cleanPhone}. Auto-completing from DB.`);
+                        console.log('[BVN RETRIEVAL] Cache hit; auto-completing request');
                         await prisma.manualServiceRequest.update({
                             where: { id: result.id },
                             data: {
@@ -412,7 +412,7 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
         detailsHtml += '</ul>';
 
         sendAdminServiceRequestNotification(req.user, label, amount, transRef, detailsHtml)
-            .catch(err => console.error('Failed to send admin notification email:', err));
+            .catch(() => console.error('Failed to send admin notification email'));
 
         // 10. Send Notification to Admin via WhatsApp
         whatsappService.notifyAdminNewRequest(req.user, label, amount, transRef)

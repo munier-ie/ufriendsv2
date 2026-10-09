@@ -277,7 +277,7 @@ async function createVirtualAccounts(userId) {
             }
         } catch (error) {
             console.error('Monnify account creation error:', error);
-            results.monnify = { error: error.message };
+            results.monnify = { error: 'Virtual account creation failed' };
         }
     } else {
         results.monnify = { error: 'BVN is required for Monnify accounts' };
@@ -312,7 +312,7 @@ async function createVirtualAccounts(userId) {
             }
         } catch (error) {
             console.error('PaymentPoint account creation error during KYC:', error.message);
-            results.paymentpoint = { error: error.message };
+            results.paymentpoint = { error: 'Virtual account creation failed' };
         }
     }
 

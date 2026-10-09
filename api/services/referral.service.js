@@ -101,7 +101,7 @@ async function performCredit(user, referrer, serviceType, customCommission) {
         });
     });
 
-    console.log(`Referral bonus of N${bonusAmount} credited to user ID ${referrer.id} for ${serviceType}`);
+    console.log(`Referral bonus processed for ${serviceType}`);
 }
 
 module.exports = { creditReferralBonus };

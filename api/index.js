@@ -1,3 +1,9 @@
+const path = require('node:path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+if (!process.env.NODE_ENV && process.env.API_NODE_ENV) {
+    process.env.NODE_ENV = process.env.API_NODE_ENV;
+}
+
 const app = require('./app');
 
 if (require.main === module) {

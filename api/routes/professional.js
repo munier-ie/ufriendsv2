@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const crypto = require('crypto');
 const multer = require('multer');
 const path = require('path');
@@ -119,6 +121,7 @@ router.get('/cac-history', authenticateUser, async (req, res) => {
 router.post(
     '/cac-register',
     authenticateUser,
+    pinRateLimit,
     cacUpload.fields([
         { name: 'directorIdCard', maxCount: 1 },
         { name: 'passportPhoto', maxCount: 1 }
@@ -169,7 +172,8 @@ router.post(
             // 3. Verify PIN
             const pinResult = await verifyTransactionPin(req.user, data.pin);
             if (pinResult === null) return res.status(400).json({ error: 'No transaction PIN set.' });
-            if (!pinResult) return res.status(400).json({ error: 'Invalid transaction PIN' });
+            if (!pinResult) return rejectInvalidPin(req, res);
+            await clearPinFailures(req);
 
             // 4. Get pricing
             const cacSettings = await prisma.cACSettings.findFirst();
@@ -280,7 +284,7 @@ router.post(
             detailsHtml += '</ul>';
 
             sendAdminServiceRequestNotification(req.user, 'CAC Registration', amount, result.transactionRef, detailsHtml)
-                .catch(err => console.error('Failed to send admin CAC notification email:', err));
+                .catch(() => console.error('Failed to send admin CAC notification email'));
 
             // Send WhatsApp notification
             const whatsappMessage = `*New CAC Registration*\n\n` +
@@ -303,7 +307,7 @@ router.post(
                 return res.status(400).json({ error: error.message });
             }
             console.error('CAC registration error:', error);
-            res.status(500).json({ error: error.message || 'Failed to submit CAC registration' });
+            res.status(500).json({ error: 'Failed to submit CAC registration' });
         }
     }
 );
@@ -312,14 +316,15 @@ router.post(
 // POST /api/professional/request
 // Create a professional service request (NIN, BVN)
 // ============================================================
-router.post('/request', authenticateUser, async (req, res) => {
+router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const { type, details, pin } = req.body;
 
         // 1. Verify Transaction PIN
         const pinResult = await verifyTransactionPin(req.user, pin);
         if (pinResult === null) return res.status(400).json({ error: 'No transaction PIN set.' });
-        if (!pinResult) return res.status(400).json({ error: 'Invalid transaction PIN' });
+        if (!pinResult) return rejectInvalidPin(req, res);
+        await clearPinFailures(req);
 
         // 2. Get pricing based on service type
         let amount = 0;

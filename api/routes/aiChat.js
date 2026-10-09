@@ -20,7 +20,7 @@ router.post('/consult', authenticateUser, async (req, res) => {
         res.json({ reply });
     } catch (error) {
         console.error('AI Chat Error:', error);
-        res.status(500).json({ error: error.message || 'AI Consultant is currently unavailable' });
+        res.status(500).json({ error: 'AI Consultant is currently unavailable' });
     }
 });
 

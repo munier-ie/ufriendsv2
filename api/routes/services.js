@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const { z } = require('zod');
 const crypto = require('crypto');
 const { creditReferralBonus } = require('../services/referral.service');
@@ -346,7 +348,7 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
 });
 
 // Purchase service
-router.post('/purchase', authenticateUser, async (req, res) => {
+router.post('/purchase', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const validation = purchaseSchema.safeParse(req.body);
         if (!validation.success) {
@@ -364,8 +366,9 @@ router.post('/purchase', authenticateUser, async (req, res) => {
         const bcrypt = require('bcryptjs');
         const valid = await bcrypt.compare(pin, req.user.transactionPin);
         if (!valid) {
-            return res.status(400).json({ error: 'Invalid transaction PIN' });
+            return rejectInvalidPin(req, res);
         }
+        await clearPinFailures(req);
 
         // 2. Get Service
         const service = await prisma.service.findUnique({ where: { id: serviceId } });
@@ -536,7 +539,7 @@ router.post('/purchase', authenticateUser, async (req, res) => {
     } catch (error) {
         console.error('Purchase error:', error.message);
         console.error('Purchase error stack:', error.stack);
-        res.status(500).json({ error: 'Transaction failed: ' + (error.message || 'Please contact support.') });
+        res.status(500).json({ error: 'Transaction failed. Please contact support.' });
     }
 });
 

@@ -34,10 +34,10 @@ async function sendEmail(to, subject, html) {
             subject,
             html,
         });
-        console.log('Message sent: %s', info.messageId);
+        console.log('Email sent successfully');
         return info;
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Email delivery failed:', error?.code || error?.name || 'unknown error');
     }
 }
 
@@ -61,7 +61,7 @@ async function sendEmailStrict(to, subject, html) {
         html,
     });
 
-    console.log('[EmailService] Email sent [%s] to %s: %s', subject, to, info.messageId);
+    console.log('[EmailService] Email sent successfully');
     return info;
 }
 
@@ -513,7 +513,6 @@ async function sendSystemUpdateEmail(user) {
  * Send Reseller Setup Confirmation to User
  */
 async function sendResellerConfirmation(request) {
-    console.log(`[EmailService] Preparing reseller confirmation for: ${request.contactEmail}`);
     const subject = 'Payment Received - Reseller Portal Setup Started';
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e1e8f0; border-radius: 12px; padding: 0; overflow: hidden; background-color: #ffffff;">
@@ -562,7 +561,6 @@ async function sendResellerAdminAlert(request) {
         console.warn('[EmailService] ADMIN_EMAIL not set, skipping reseller admin alert');
         return;
     }
-    console.log(`[EmailService] Preparing reseller admin alert for ref: ${request.paymentRef}`);
     const subject = 'New PAID Reseller Setup Request';
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #0f172a; border-radius: 12px; padding: 30px;">

@@ -80,7 +80,7 @@ router.post('/create-paymentpoint', authenticateUser, async (req, res) => {
         }
     } catch (error) {
         console.error('PaymentPoint account creation error:', error);
-        res.status(500).json({ error: error.message || 'Failed to create virtual account' });
+        res.status(500).json({ error: 'Failed to create virtual account' });
     }
 });
 

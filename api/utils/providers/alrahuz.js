@@ -115,7 +115,7 @@ async function purchaseAirtime(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz Airtime Error:', error.response?.data || error.message);
+        console.error('Alrahuz Airtime Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         return {
             status: 'failed',
@@ -173,7 +173,7 @@ async function purchaseData(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz Data Error:', error.response?.data || error.message);
+        console.error('Alrahuz Data Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         return {
             status: 'failed',
@@ -278,7 +278,7 @@ async function purchaseTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz TV Error:', error.response?.data || error.message);
+        console.error('Alrahuz TV Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         return {
             status: 'failed',
@@ -393,7 +393,7 @@ async function purchaseElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz Electricity Error:', error.response?.data || error.message);
+        console.error('Alrahuz Electricity Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         return {
             status: 'failed',
@@ -444,7 +444,7 @@ async function purchaseExam(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz Exam Error:', error.response?.data || error.message);
+        console.error('Alrahuz Exam Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         return {
             status: 'failed',
@@ -477,7 +477,7 @@ async function checkBalance(config) {
             balance: parseFloat(balance)
         };
     } catch (error) {
-        console.error('Alrahuz Balance Error:', error.response?.data || error.message);
+        console.error('Alrahuz Balance Error:', error.response?.status || error.code || 'request failed');
         let errorMsg = 'Connection Error';
         if (error.response) {
             const apiError = error.response.data?.error || error.response.data?.message || error.response.data?.detail || null;
@@ -538,7 +538,7 @@ async function purchaseDataPin(details, config) {
             };
         }
     } catch (error) {
-        console.error('Alrahuz DataPin Error:', error.response?.data || error.message);
+        console.error('Alrahuz DataPin Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         return {
             status: 'failed',
@@ -574,7 +574,7 @@ async function fetchDataPlans(config) {
 
         return { success: true, plans };
     } catch (error) {
-        console.error('Alrahuz fetchDataPlans Error:', error.message, error.response?.data);
+        console.error('Alrahuz fetchDataPlans failed:', error.response?.status || error.code || 'request failed');
         return { success: false, message: error.message };
     }
 }
@@ -617,7 +617,7 @@ async function fetchCablePlans(config) {
 
         return { success: true, plans };
     } catch (error) {
-        console.error('Alrahuz fetchCablePlans Error:', error.message, error.response?.data);
+        console.error('Alrahuz fetchCablePlans failed:', error.response?.status || error.code || 'request failed');
         return { success: false, message: error.message };
     }
 }
@@ -659,7 +659,7 @@ async function fetchExamPlans(config) {
 
         return { success: true, plans };
     } catch (error) {
-        console.error('Alrahuz fetchExamPlans Error:', error.message, error.response?.data);
+        console.error('Alrahuz fetchExamPlans failed:', error.response?.status || error.code || 'request failed');
         return { success: false, message: error.message };
     }
 }

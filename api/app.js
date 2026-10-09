@@ -3,29 +3,15 @@ const path = require('path');
 const cors = require('cors');
 const helmet = require('helmet');
 const jwt = require('jsonwebtoken');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
 const { initCron } = require('./services/smartRouting.service');
 const { flushAll, flushByPrefix, getStats } = require('./middleware/cacheMiddleware');
+const { policies: rateLimits } = require('./middleware/rateLimit');
+const { safeError } = require('./utils/safeError');
 
 // Start smart routing bot cron jobs
 initCron();
 
-// [SEC-CRIT-02] Rate limiters — protect auth endpoints from brute-force
-const authLimiter = new RateLimiterMemory({ points: 10, duration: 60 }); // 10 req/min per IP
-const otpLimiter  = new RateLimiterMemory({ points: 5,  duration: 300 }); // 5 OTP attempts per 5 min per IP
-const forgotLimiter = new RateLimiterMemory({ points: 3, duration: 3600 }); // 3 forgot-password per hour
-const actionLimiter = new RateLimiterMemory({ points: 20, duration: 60 }); // 20 actions per minute per IP
-
-const makeRateLimiter = (limiter) => async (req, res, next) => {
-    try {
-        await limiter.consume(req.ip);
-        next();
-    } catch {
-        res.status(429).json({ error: 'Too many requests. Please try again later.' });
-    }
-};
-
-const actionLimiterMiddleware = makeRateLimiter(actionLimiter);
+const actionLimiterMiddleware = rateLimits.action;
 
 const authRoutes = require('./routes/auth');
 const walletRoutes = require('./routes/wallet');
@@ -65,14 +51,19 @@ const buildAllowedOrigins = () => {
     const origins = new Set([
         'http://localhost:5173',
         'http://localhost:3000',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:3000',
+        'https://ufriends.com.ng',
+        'https://www.ufriends.com.ng',
+        'https://api.ufriends.com.ng',
     ]);
 
     // Automatically include both www and non-www for the configured FRONTEND_URL
     const frontendUrl = process.env.FRONTEND_URL;
     if (frontendUrl) {
-        origins.add(frontendUrl);
         try {
             const parsed = new URL(frontendUrl);
+            origins.add(parsed.origin);
             if (parsed.hostname.startsWith('www.')) {
                 // www → also allow bare domain
                 parsed.hostname = parsed.hostname.replace(/^www\./, '');
@@ -85,36 +76,57 @@ const buildAllowedOrigins = () => {
         } catch { /* invalid URL — skip */ }
     }
 
+    for (const configuredOrigin of (process.env.CORS_ALLOWED_ORIGINS || '').split(',')) {
+        const value = configuredOrigin.trim();
+        if (!value) continue;
+        try {
+            origins.add(new URL(value).origin);
+        } catch {
+            console.warn('[CORS] Ignoring an invalid CORS_ALLOWED_ORIGINS entry');
+        }
+    }
+
     return origins;
 };
 
 const allowedOrigins = buildAllowedOrigins();
-
-app.use(cors({
+const sharedCorsOptions = {
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'X-Device-ID']
+};
+const firstPartyCors = cors({
+    ...sharedCorsOptions,
     origin: (origin, callback) => {
         // Allow server-to-server or same-origin requests (no Origin header)
         if (!origin) return callback(null, true);
-        // Allow any origin for /api/v1 (API-key authenticated — no session cookies)
-        // This is detected via the request's path set in a pre-middleware flag,
-        // but since we can't read req here, we use a permissive rule for v1 via
-        // a separate CORS middleware mounted on the v1 router instead.
         if (allowedOrigins.has(origin)) return callback(null, true);
-        callback(new Error('CORS policy: origin not allowed'));
-    },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type']
-}));
+        // Local Vite may select another port when 5173 is occupied.
+        if (process.env.NODE_ENV !== 'production') {
+            try {
+                const parsed = new URL(origin);
+                if (['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+                    return callback(null, true);
+                }
+            } catch { /* handled as a denied origin below */ }
+        }
+        const error = new Error('CORS origin denied');
+        error.status = 403;
+        error.code = 'CORS_ORIGIN_DENIED';
+        callback(error);
+    }
+});
+const developerApiCors = cors({
+    ...sharedCorsOptions,
+    credentials: false,
+    origin: true,
+});
 
-// [SEC-OPEN] /api/v1 is API-key-only (stateless, no cookies).
-// Allow any origin so browser-based third-party SDKs can call it.
-app.use('/api/v1', (req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Authorization, Content-Type');
-    res.header('Access-Control-Max-Age', '86400');
-    if (req.method === 'OPTIONS') return res.sendStatus(204);
-    next();
+app.use((req, res, next) => {
+    if (req.path === '/api/v1' || req.path.startsWith('/api/v1/')) {
+        return developerApiCors(req, res, next);
+    }
+    return firstPartyCors(req, res, next);
 });
 
 // [SEC-MED-04] Raw body preservation for payment gateway webhook signature verification
@@ -175,15 +187,24 @@ app.use('/api/uploads/academy', protectedUploads, express.static(path.join(__dir
 // Legacy static path removed (migrated to Cloudflare R2)
 
 
-// [SEC-CRIT-02] Apply rate limiters to auth endpoints BEFORE mounting the router
-// This correctly intercepts matching paths and either passes or rejects before the route handler fires
-app.post('/api/auth/access',          makeRateLimiter(authLimiter));
-app.post('/api/auth/register',        makeRateLimiter(authLimiter));
-app.post('/api/auth/verify-email',    makeRateLimiter(otpLimiter));
-app.post('/api/auth/verify-2fa',      makeRateLimiter(otpLimiter));
-app.post('/api/auth/forgot-password', makeRateLimiter(forgotLimiter));
-app.post('/api/admin/auth/access',    makeRateLimiter(authLimiter));
-app.post('/api/admin/auth/verify-2fa', makeRateLimiter(otpLimiter));
+// Distributed layered limits: IP is always enforced; first-party clients also
+// carry a persistent installation ID. Payment callbacks are authenticated by
+// signature and excluded so a provider retry burst cannot be dropped here.
+app.use('/api', (req, res, next) => {
+    if (req.path.startsWith('/webhooks/')) return next();
+    return rateLimits.api(req, res, next);
+});
+
+app.post('/api/auth/access',             rateLimits.userLogin, rateLimits.userLoginFailures);
+app.post('/api/auth/register',           rateLimits.signup);
+app.post('/api/auth/verify-email',       rateLimits.otp);
+app.post('/api/auth/verify-2fa',         rateLimits.otp);
+app.post('/api/auth/forgot-password',    rateLimits.passwordRecovery);
+app.post('/api/auth/forgot-password-otp', rateLimits.passwordRecovery);
+app.post('/api/auth/reset-password',     rateLimits.passwordRecovery);
+app.post('/api/auth/reset-password-otp', rateLimits.otp);
+app.post('/api/admin/auth/access',       rateLimits.adminLogin, rateLimits.adminLoginFailures);
+app.post('/api/admin/auth/verify-2fa',   rateLimits.otp);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/wallet', walletRoutes);
@@ -284,7 +305,14 @@ app.get('*', (req, res) => {
 
 // [SEC-MED-16] Global error handler — prevents stack trace leakage
 app.use((err, req, res, next) => {
-    console.error('[Global Error Handler]', err.stack || err);
+    if (err.code === 'CORS_ORIGIN_DENIED') {
+        return res.status(403).json({ error: 'Origin not allowed' });
+    }
+    console.error('[Global Error Handler]', {
+        ...safeError(err),
+        requestId: req.requestId,
+        route: req.originalUrl?.split('?')[0]?.slice(0, 200),
+    });
     if (res.headersSent) return next(err);
     res.status(err.status || 500).json({ error: 'Internal server error' });
 });

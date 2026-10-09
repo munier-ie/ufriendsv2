@@ -94,7 +94,6 @@ async function purchaseAirtime(details, config) {
             }
         });
 
-        console.log('Maskawa Airtime Response:', response.data);
 
         const result = response.data;
         const status = (result.Status || result.status || '').toLowerCase();
@@ -120,7 +119,7 @@ async function purchaseAirtime(details, config) {
         }
     } catch (error) {
         const msg = extractMaskawaError(error);
-        console.error('Maskawa Airtime Error:', error.response?.data || error.message);
+        console.error('Maskawa Airtime Error:', error.response?.status || error.code || 'request failed');
         return { status: 'failed', message: msg, error: error.response?.data || error.message };
     }
 }
@@ -155,7 +154,6 @@ async function purchaseData(details, config) {
             }
         });
 
-        console.log('Maskawa Data Response:', response.data);
 
         const result = response.data;
         const status = (result.Status || result.status || '').toLowerCase();
@@ -181,7 +179,7 @@ async function purchaseData(details, config) {
         }
     } catch (error) {
         const msg = extractMaskawaError(error);
-        console.error('Maskawa Data Error:', error.response?.data || error.message);
+        console.error('Maskawa Data Error:', error.response?.status || error.code || 'request failed');
         return { status: 'failed', message: msg, error: error.response?.data || error.message };
     }
 }
@@ -232,7 +230,7 @@ async function verifyTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('Maskawa TV Verify Error:', error.response?.data || error.message);
+        console.error('Maskawa TV Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -292,7 +290,7 @@ async function purchaseTV(details, config) {
         }
     } catch (error) {
         const msg = extractMaskawaError(error);
-        console.error('Maskawa TV Error:', error.response?.data || error.message);
+        console.error('Maskawa TV Error:', error.response?.status || error.code || 'request failed');
         return { status: 'failed', message: msg, error: error.response?.data || error.message };
     }
 }
@@ -352,7 +350,7 @@ async function verifyElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('Maskawa Electricity Verify Error:', error.response?.data || error.message);
+        console.error('Maskawa Electricity Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -418,7 +416,7 @@ async function purchaseElectricity(details, config) {
         }
     } catch (error) {
         const msg = extractMaskawaError(error);
-        console.error('Maskawa Electricity Error:', error.response?.data || error.message);
+        console.error('Maskawa Electricity Error:', error.response?.status || error.code || 'request failed');
         return { status: 'failed', message: msg, error: error.response?.data || error.message };
     }
 }
@@ -468,7 +466,7 @@ async function purchaseExam(details, config) {
         }
     } catch (error) {
         const msg = extractMaskawaError(error);
-        console.error('Maskawa Exam Error:', error.response?.data || error.message);
+        console.error('Maskawa Exam Error:', error.response?.status || error.code || 'request failed');
         return { status: 'failed', message: msg, error: error.response?.data || error.message };
     }
 }
@@ -497,7 +495,7 @@ async function checkBalance(config) {
             return { success: false, message: 'Invalid balance format returned' };
         }
     } catch (error) {
-        console.error('Maskawa Balance Error Full:', error);
+        console.error('Maskawa Balance Error:', error.response?.status || error.code || 'request failed');
         return { success: false, message: 'Connection Error' };
     }
 }

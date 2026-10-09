@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
     plugins: [
         react({
             jsxRuntime: 'automatic',
@@ -11,6 +11,9 @@ export default defineConfig({
     ],
     esbuild: {
         jsx: 'automatic',
+        // Browser consoles can expose Axios configs, auth headers, and admin
+        // settings. Keep diagnostics in development, strip them in production.
+        drop: mode === 'production' ? ['console', 'debugger'] : [],
     },
     optimizeDeps: {
         include: [
@@ -44,4 +47,4 @@ export default defineConfig({
             }
         }
     }
-});
+}));

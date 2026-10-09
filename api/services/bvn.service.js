@@ -118,7 +118,7 @@ async function findCachedBvnReport(searchVal) {
       const redisCached = await getCache(`REPORT:BVN:${v}`);
       if (redisCached) {
         if (redisCached.notFound) {
-          console.log(`[findCachedBvnReport] REDIS L1 Cache HIT (NOT FOUND) for BVN/phone variation ${v}. Bypassing DB & Prembly.`);
+          console.log('[findCachedBvnReport] Redis negative cache hit');
           return {
             id: 'redis-cache-not-found',
             rawResponse: JSON.stringify(redisCached),
@@ -127,7 +127,7 @@ async function findCachedBvnReport(searchVal) {
             message: redisCached.message || 'No record found for this BVN'
           };
         }
-        console.log(`[findCachedBvnReport] REDIS L1 Cache HIT for BVN/phone variation ${v}. Bypassing DB.`);
+        console.log('[findCachedBvnReport] Redis cache hit');
         return {
           id: 'redis-cache',
           rawResponse: JSON.stringify(redisCached),
@@ -157,7 +157,7 @@ async function findCachedBvnReport(searchVal) {
       try {
         const parsed = JSON.parse(report.rawResponse);
         if (parsed.notFound || report.status === 'NOT_FOUND') {
-          console.log(`[findCachedBvnReport] DB L2 Cache HIT (NOT FOUND) for BVN report ${report.id}. Bypassing Prembly.`);
+          console.log('[findCachedBvnReport] Database negative cache hit');
           for (const v of variations) {
             setCache(`REPORT:BVN:${v}`, { notFound: true, message: parsed.message || 'No record found for this BVN' }, 86400 * 30).catch(() => {});
           }
@@ -232,7 +232,7 @@ async function verifyBvn(bvnNumber) {
 
   // 1. Check in-flight lock (In-Memory)
   if (bvnInFlightLocks.has(lockKey)) {
-    console.log(`[verifyBvn] IN-FLIGHT LOCK HIT for BVN ${cleanBvn}. Waiting for active Prembly call to finish...`);
+    console.log('[verifyBvn] In-flight verification already active');
     try {
       await bvnInFlightLocks.get(lockKey);
     } catch (e) {}
@@ -260,7 +260,7 @@ async function verifyBvn(bvnNumber) {
   // 2. Check Redis Distributed Lock across processes
   redisLockVal = await acquireLock(`LOCK:${lockKey}`, 30000);
   if (!redisLockVal && !bvnInFlightLocks.has(lockKey)) {
-    console.log(`[verifyBvn] REDIS DISTRIBUTED LOCK BUSY for BVN ${cleanBvn}. Waiting 1.5s...`);
+    console.log('[verifyBvn] Distributed verification lock busy');
     await new Promise(r => setTimeout(r, 1500));
     const cachedAfterRedisLock = await findCachedBvnReport(cleanBvn);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
@@ -289,7 +289,7 @@ async function verifyBvn(bvnNumber) {
       try {
         const cachedData = JSON.parse(existing.rawResponse);
         if (existing.notFound || cachedData.notFound || existing.status === 'NOT_FOUND') {
-          console.log(`[verifyBvn] GLOBAL DB/REDIS Cache HIT (NOT FOUND) for BVN ${cleanBvn}. Bypassing Prembly API call.`);
+          console.log('[verifyBvn] Negative cache hit');
           return {
             success: false,
             notFound: true,
@@ -298,7 +298,7 @@ async function verifyBvn(bvnNumber) {
             data: cachedData
           };
         }
-        console.log(`[verifyBvn] GLOBAL DB/REDIS Cache HIT for BVN ${cleanBvn}. Bypassing Prembly API call.`);
+        console.log('[verifyBvn] Cache hit');
         return {
           success: true,
           data: cachedData,
@@ -332,9 +332,6 @@ async function verifyBvn(bvnNumber) {
     const endpoint = baseUrl.includes('verification') ? '/bvn' : '/verification/bvn';
     const fullUrl = `${baseUrl}${endpoint}`;
 
-    console.log('BVN Verification Request:');
-    console.log('URL:', fullUrl);
-    console.log('Payload sent to prembly (BVN redacted)');
 
     const response = await axios.post(
       fullUrl,
@@ -362,7 +359,7 @@ async function verifyBvn(bvnNumber) {
       const errMsg = response.data?.message || 'BVN verification failed';
       const isNotFound = isNotFoundResponse(response.data, errMsg);
       if (isNotFound) {
-        console.log(`[verifyBvn] Prembly returned NOT_FOUND for BVN ${cleanBvn}. Caching NOT_FOUND result.`);
+        console.log('[verifyBvn] Provider returned not found; caching result');
         const variations = getSearchVariations(cleanBvn);
         for (const v of variations) {
           setCache(`REPORT:BVN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
@@ -383,13 +380,13 @@ async function verifyBvn(bvnNumber) {
   try {
     return await verificationPromise;
   } catch (error) {
-    console.error('BVN Verification Error:', error.response?.data || error.message);
+    console.error('BVN verification failed:', error.response?.status || error.code || 'request failed');
 
     if (error.response) {
       const errMsg = error.response.data?.message || 'BVN verification failed';
       const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
       if (isNotFound) {
-        console.log(`[verifyBvn] Prembly error 404/400 NOT_FOUND for BVN ${cleanBvn}. Caching NOT_FOUND result.`);
+        console.log('[verifyBvn] Provider returned a not-found error; caching result');
         const variations = getSearchVariations(cleanBvn);
         for (const v of variations) {
           setCache(`REPORT:BVN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});

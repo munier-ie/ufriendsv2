@@ -32,8 +32,6 @@ async function purchaseAirtime(details, config) {
         });
 
         const result = response.data;
-        console.log('TopupBox Response:', result);
-
         // Version 3 check: if($result->status=='2000' || $result->response <> null)
         if (result.status == '2000' || result.response) {
             return {
@@ -50,7 +48,7 @@ async function purchaseAirtime(details, config) {
         }
 
     } catch (error) {
-        console.error('TopupBox Error:', error.response?.data || error.message);
+        console.error('TopupBox Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',

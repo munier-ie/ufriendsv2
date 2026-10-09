@@ -58,10 +58,10 @@ class WhatsappService {
                 timeout: 10000
             });
 
-            console.log('[WhatsappService] Message sent successfully:', response.data);
+            console.log('[WhatsappService] Message sent successfully');
             return { success: true, data: response.data };
         } catch (error) {
-            console.error('[WhatsappService] Error sending message:', error.response?.data || error.message);
+            console.error('[WhatsappService] Message delivery failed:', error.response?.status || error.code || 'request failed');
             return { success: false, error: error.message };
         }
     }

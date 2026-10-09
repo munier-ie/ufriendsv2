@@ -18,7 +18,7 @@ async function sendAdminAlert(subject, message) {
         console.log(`[SmartRoutingBot] ALERT SUPPRESSED (cooldown): ${subject}`);
         return;
     }
-    console.log(`[SmartRoutingBot] ALERT: ${subject} - ${message}`);
+    console.log('[SmartRoutingBot] Alert queued');
     try {
         await emailService.sendAdminAlert(subject, message);
         _alertCooldowns.set(subject, now);
@@ -556,7 +556,7 @@ async function syncProviderBalances(providers) {
                         });
                     }
                     provider.apiWallet = [{ balance, lastChecked: new Date() }];
-                    console.log(`[SmartRoutingBot] Live balance for ${provider.name}: ₦${balance.toFixed(2)}`);
+                    console.log(`[SmartRoutingBot] Provider balance refreshed for ${provider.name}`);
                 }
             } catch (err) {
                 console.warn(`[SmartRoutingBot] Balance sync failed for ${provider.name}:`, err.message);

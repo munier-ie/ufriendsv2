@@ -55,7 +55,6 @@ async function purchaseAirtime(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain Response:', result);
 
         // Success: {"status":"pending|Approved","trans_id":"...","network":"...","balance":"..."}
         // Error: {"error":"ERR201","description":"..."}
@@ -76,7 +75,7 @@ async function purchaseAirtime(details, config) {
         }
 
     } catch (error) {
-        console.error('Subandgain Error:', error.response?.data || error.message);
+        console.error('Subandgain Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -110,7 +109,6 @@ async function purchaseData(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain Data Response:', result);
 
         if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
             return {
@@ -128,7 +126,7 @@ async function purchaseData(details, config) {
         }
 
     } catch (error) {
-        console.error('Subandgain Data Error:', error.response?.data || error.message);
+        console.error('Subandgain Data Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -151,7 +149,6 @@ async function verifyTV(details, config) {
 
         const mappedCable = CABLE_MAP[String(cableId).toLowerCase()] || String(cableId).toUpperCase();
 
-        console.log(`Subandgain TV Verify: cableId="${cableId}" → service="${mappedCable}", smartNumber="${number}"`);
 
         // API: verify_bills.php?username=****&apiKey=****&service=****&smartNumber=****
         const url = 'https://subandgain.com/api/verify_bills.php';
@@ -165,7 +162,6 @@ async function verifyTV(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain TV Verify Response:', result);
 
         if (result.status && result.status.toLowerCase() === 'success') {
             return {
@@ -180,7 +176,7 @@ async function verifyTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain TV Verify Error:', error.response?.data || error.message);
+        console.error('Subandgain TV Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -213,7 +209,6 @@ async function purchaseTV(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain TV Purchase Response:', result);
 
         if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
             return {
@@ -230,7 +225,7 @@ async function purchaseTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain TV Error:', error.response?.data || error.message);
+        console.error('Subandgain TV Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -254,7 +249,6 @@ async function verifyElectricity(details, config) {
 
         const mappedDisco = DISCO_MAP[String(discoId).toLowerCase()] || String(discoId).toUpperCase();
 
-        console.log(`Subandgain Electricity Verify: discoId="${discoId}" → service="${mappedDisco}", meterNumber="${number}", meterType="${type}"`);
 
         // API: verify_electricity.php?username=****&apiKey=****&service=****&meterNumber=****&meterType=****
         const url = 'https://subandgain.com/api/verify_electricity.php';
@@ -269,7 +263,6 @@ async function verifyElectricity(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain Electricity Verify Response:', result);
 
         if (result.status && result.status.toLowerCase() === 'success') {
             return {
@@ -285,7 +278,7 @@ async function verifyElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain Electricity Verify Error:', error.response?.data || error.message);
+        console.error('Subandgain Electricity Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -322,7 +315,6 @@ async function purchaseElectricity(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain Electricity Purchase Response:', result);
 
         if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
             return {
@@ -340,7 +332,7 @@ async function purchaseElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain Electricity Error:', error.response?.data || error.message);
+        console.error('Subandgain Electricity Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -383,7 +375,6 @@ async function purchaseExam(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain Exam Purchase Response:', result);
 
         if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
             return {
@@ -402,7 +393,7 @@ async function purchaseExam(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain Exam Error:', error.response?.data || error.message);
+        console.error('Subandgain Exam Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -431,7 +422,6 @@ async function purchaseDataPin(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain DataPin Purchase Response:', result);
 
         if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
             return {
@@ -449,7 +439,7 @@ async function purchaseDataPin(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain DataPin Error:', error.response?.data || error.message);
+        console.error('Subandgain DataPin Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -678,7 +668,6 @@ async function purchaseEPin(details, config) {
         const response = await axios.get(url, { params });
         const result = response.data;
 
-        console.log('Subandgain EPin Purchase Response:', result);
 
         if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
             return {
@@ -696,7 +685,7 @@ async function purchaseEPin(details, config) {
             };
         }
     } catch (error) {
-        console.error('Subandgain EPin Error:', error.response?.data || error.message);
+        console.error('Subandgain EPin Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -706,4 +695,3 @@ async function purchaseEPin(details, config) {
 }
 
 module.exports = { purchaseAirtime, purchaseData, verifyTV, purchaseTV, verifyElectricity, purchaseElectricity, purchaseExam, purchaseDataPin, purchaseEPin, checkBalance, fetchDataPlans, fetchCablePlans, fetchExamPlans };
-

@@ -47,7 +47,7 @@ router.patch('/:id', adminAuth, async (req, res) => {
         if (status === 'completed') {
             const { sendResellerDeploymentReady } = require('../services/email.service');
             sendResellerDeploymentReady(updated)
-                .catch(e => console.error('Deployment ready email failed:', e));
+                .catch(() => console.error('Deployment ready email failed'));
         }
 
         res.json(updated);

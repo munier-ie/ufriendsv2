@@ -100,7 +100,7 @@ class PaymentPointService {
                 accounts: response.data.accounts || []
             };
         } catch (error) {
-            console.error('PaymentPoint virtual account creation error:', error.response?.data || error.message);
+            console.error('PaymentPoint virtual account creation failed:', error.response?.status || error.code || 'request failed');
             throw new Error(error.response?.data?.message || 'Failed to create virtual account with PaymentPoint');
         }
     }

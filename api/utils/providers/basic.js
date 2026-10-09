@@ -61,7 +61,6 @@ async function purchaseAirtime(details, config) {
             }
         });
 
-        console.log('BasicProvider Response:', response.data);
 
         // Normalize Response
         const result = response.data;
@@ -89,7 +88,7 @@ async function purchaseAirtime(details, config) {
         }
 
     } catch (error) {
-        console.error('BasicProvider Error:', error.response?.data || error.message);
+        console.error('BasicProvider Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -139,7 +138,6 @@ async function purchaseData(details, config) {
             }
         });
 
-        console.log('BasicProvider Data Response:', response.data);
 
         const result = response.data;
         const status = (result.Status || result.status || '').toLowerCase();
@@ -165,7 +163,7 @@ async function purchaseData(details, config) {
         }
 
     } catch (error) {
-        console.error('BasicProvider Data Error:', error.response?.data || error.message);
+        console.error('BasicProvider Data Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -207,7 +205,7 @@ async function verifyTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('BasicProvider TV Verify Error:', error.response?.data || error.message);
+        console.error('BasicProvider TV Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -274,7 +272,7 @@ async function purchaseTV(details, config) {
             };
         }
     } catch (error) {
-        console.error('BasicProvider TV Error:', error.response?.data || error.message);
+        console.error('BasicProvider TV Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -317,7 +315,7 @@ async function verifyElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('BasicProvider Electricity Verify Error:', error.response?.data || error.message);
+        console.error('BasicProvider Electricity Verify Error:', error.response?.status || error.code || 'request failed');
         return { valid: false, message: 'Provider Connection Error' };
     }
 }
@@ -389,7 +387,7 @@ async function purchaseElectricity(details, config) {
             };
         }
     } catch (error) {
-        console.error('BasicProvider Electricity Error:', error.response?.data || error.message);
+        console.error('BasicProvider Electricity Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -452,7 +450,7 @@ async function purchaseExam(details, config) {
             };
         }
     } catch (error) {
-        console.error('BasicProvider Exam Error:', error.response?.data || error.message);
+        console.error('BasicProvider Exam Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',
@@ -512,7 +510,7 @@ async function purchaseDataPin(details, config) {
             };
         }
     } catch (error) {
-        console.error('BasicProvider DataPin Error:', error.response?.data || error.message);
+        console.error('BasicProvider DataPin Error:', error.response?.status || error.code || 'request failed');
         return {
             status: 'failed',
             message: 'Provider Connection Error',

@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const prisma = require('../../prisma/client'); // [SEC] Use shared singleton — avoids connection pool leak
+const { safeError } = require('../utils/safeError');
 
 async function adminAuth(req, res, next) {
     try {
@@ -72,7 +73,7 @@ async function adminAuth(req, res, next) {
         next();
 
     } catch (error) {
-        console.error('Admin auth error:', error);
+        console.error('Admin auth error:', safeError(error));
         res.status(401).json({ success: false, error: 'Invalid or expired token' });
     }
 }

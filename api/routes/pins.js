@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../../prisma/client');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const { z } = require('zod');
 const crypto = require('crypto');
 const vendService = require('../services/vend.service');
@@ -46,7 +48,7 @@ router.get('/available/:serviceId', authenticateUser, async (req, res) => {
 
 // POST /api/pins/purchase
 // Purchase one or more pins
-router.post('/purchase', authenticateUser, async (req, res) => {
+router.post('/purchase', authenticateUser, pinRateLimit, async (req, res) => {
     try {
         const validation = purchasePinSchema.safeParse(req.body);
         if (!validation.success) {
@@ -63,7 +65,8 @@ router.post('/purchase', authenticateUser, async (req, res) => {
 
         const bcrypt = require('bcryptjs');
         const valid = await bcrypt.compare(pin, req.user.transactionPin);
-        if (!valid) return res.status(400).json({ error: 'Invalid transaction PIN' });
+        if (!valid) return rejectInvalidPin(req, res);
+        await clearPinFailures(req);
 
         // 2. Get Service details — all services (including exam) now live in the Service table
         let service = await prisma.service.findUnique({ where: { id: serviceId } });

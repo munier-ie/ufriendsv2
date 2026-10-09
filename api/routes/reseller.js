@@ -103,7 +103,7 @@ router.get('/paystack-config', async (req, res) => {
         }
 
         if (!publicKey) {
-            console.error('[PaystackConfig] No pk_ key found. apiKey starts with:', paystack.apiKey?.substring(0, 10), '| secretKey starts with:', paystack.secretKey?.substring(0, 10));
+            console.error('[PaystackConfig] Public key is not configured');
             return res.status(400).json({ error: 'Paystack Public Key not configured. Please set a pk_ key in payment gateway settings.' });
         }
 
@@ -200,7 +200,7 @@ router.post('/request', async (req, res) => {
                     paymentUrl = response.data.data.authorization_url;
                 }
             } catch (err) {
-                console.error('Paystack initialization error:', err.response?.data || err.message);
+                console.error('Paystack initialization error:', err.response?.status || err.code || 'request failed');
                 // Fallback to manual if payment initiation fails
             }
         }
@@ -256,7 +256,6 @@ router.get('/status/:reference', async (req, res) => {
 router.get('/verify/:reference', async (req, res) => {
     try {
         const { reference } = req.params;
-        console.log(`[ResellerVerify] Verifying reference: ${reference}`);
 
         // 1. Check if it already exists (already verified)
         let request = await prisma.resellerRequest.findUnique({
@@ -264,7 +263,6 @@ router.get('/verify/:reference', async (req, res) => {
         });
 
         if (request && request.paymentStatus === 'paid') {
-            console.log(`[ResellerVerify] Request already verified for: ${reference}`);
             return res.json({ success: true, message: 'Payment already verified', status: request.status });
         }
 
@@ -279,7 +277,6 @@ router.get('/verify/:reference', async (req, res) => {
         }
 
         // 3. Call Paystack Verify API
-        console.log(`[ResellerVerify] Calling Paystack API for: ${reference}`);
         const response = await axios.get(
             `https://api.paystack.co/transaction/verify/${reference}`,
             {
@@ -292,12 +289,10 @@ router.get('/verify/:reference', async (req, res) => {
 
         const data = response.data.data;
         if (response.data.status && data.status === 'success') {
-            console.log(`[ResellerVerify] Paystack success for: ${reference}`);
             
             // Check if record already created (concurrency)
             if (!request) {
                 let metadata = data.metadata;
-                console.log('[ResellerVerify] Metadata raw type:', typeof metadata);
                 
                 // Paystack sometimes stringifies metadata
                 if (typeof metadata === 'string') {
@@ -308,7 +303,6 @@ router.get('/verify/:reference', async (req, res) => {
                     }
                 }
 
-                console.log('[ResellerVerify] Metadata object:', JSON.stringify(metadata));
 
                 if (!metadata || metadata.type !== 'reseller_setup' || !metadata.requestData) {
                     console.error('[ResellerVerify] Invalid or missing metadata. Type:', metadata?.type);
@@ -320,12 +314,11 @@ router.get('/verify/:reference', async (req, res) => {
                 // SECURITY: Validate amount
                 const expectedAmountKobo = Math.round(rd.totalAmount * 100);
                 if (Math.abs(data.amount - expectedAmountKobo) > 1) {
-                    console.error(`[ResellerVerify] Amount mismatch. Got: ${data.amount}, Expected: ${expectedAmountKobo}`);
+                    console.error('[ResellerVerify] Payment amount mismatch');
                     return res.status(400).json({ error: 'Amount mismatch detected' });
                 }
 
                 // Create the record NOW
-                console.log(`[ResellerVerify] Creating DB record for: ${rd.contactEmail}`);
                 request = await prisma.resellerRequest.create({
                     data: {
                         contactEmail: rd.contactEmail,
@@ -344,8 +337,8 @@ router.get('/verify/:reference', async (req, res) => {
 
             // Trigger Notifications
             const { sendResellerConfirmation, sendResellerAdminAlert } = require('../services/email.service');
-            sendResellerConfirmation(request).catch(e => console.error('[ResellerVerify] User email failed:', e));
-            sendResellerAdminAlert(request).catch(e => console.error('[ResellerVerify] Admin email failed:', e));
+            sendResellerConfirmation(request).catch(() => console.error('[ResellerVerify] User email failed'));
+            sendResellerAdminAlert(request).catch(() => console.error('[ResellerVerify] Admin email failed'));
 
             return res.json({ 
                 success: true, 
@@ -360,7 +353,7 @@ router.get('/verify/:reference', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('[ResellerVerify] Critical error:', error.response?.data || error.message);
+        console.error('[ResellerVerify] Critical error:', error.response?.status || error.code || 'request failed');
         res.status(500).json({ error: 'Failed to verify payment' });
     }
 });

@@ -114,14 +114,13 @@ async function streamSlip(res, pdfPathOrKey, filename = 'slip.pdf') {
     // 1. PRIMARY: Try Cloudflare R2 first if configured
     if (isR2Configured()) {
         try {
-            console.log(`[Slips] Fetching slip from Cloudflare R2: ${r2Key}`);
             const { stream, contentLength } = await getSlipStream(r2Key);
             if (contentLength) res.setHeader('Content-Length', contentLength);
             res.setHeader('X-Slip-Source', 'cloudflare-r2');
-            console.log(`[Slips] Successfully streaming from Cloudflare R2: ${r2Key} (${contentLength} bytes)`);
+            console.log('[Slips] Successfully streaming from Cloudflare R2');
             return stream.pipe(res);
         } catch (r2Err) {
-            console.warn(`[Slips] R2 fetch failed for key "${r2Key}": ${r2Err.message}. Checking local disk fallback...`);
+            console.warn('[Slips] R2 fetch failed; checking local fallback');
         }
     } else {
         console.warn('[Slips] R2 credentials not configured. Falling back to local disk.');
@@ -129,7 +128,7 @@ async function streamSlip(res, pdfPathOrKey, filename = 'slip.pdf') {
 
     // 2. FALLBACK: Check local filesystem (legacy unmigrated slips or offline dev)
     if (fs.existsSync(localPath)) {
-        console.log(`[Slips] Serving slip from local disk fallback: ${localPath}`);
+        console.log('[Slips] Serving slip from local fallback');
         const stat = fs.statSync(localPath);
         res.setHeader('Content-Length', stat.size);
         res.setHeader('X-Slip-Source', 'local-disk-fallback');
@@ -137,7 +136,7 @@ async function streamSlip(res, pdfPathOrKey, filename = 'slip.pdf') {
     }
 
     // 3. Not found anywhere
-    console.error(`[Slips] File not found in R2 (${r2Key}) or local disk (${localPath})`);
+    console.error('[Slips] Slip file not found in configured storage');
     if (!res.headersSent) {
         return res.status(404).json({ error: 'Slip document file could not be found' });
     }

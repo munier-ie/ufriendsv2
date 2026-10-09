@@ -82,7 +82,6 @@ function cache(ttlSeconds = 300) {
         try {
             const redisCached = await getCache(key);
             if (redisCached) {
-                console.log(`[REDIS HTTP CACHE HIT] ${key}`);
                 res.setHeader('X-Cache', 'HIT-REDIS');
                 return res.json(redisCached);
             }
@@ -91,13 +90,11 @@ function cache(ttlSeconds = 300) {
         // 2. Fallback to memory store if Redis is unavailable
         const memoryCached = store.get(key);
         if (memoryCached && memoryCached.expiresAt > now) {
-            console.log(`[MEMORY HTTP CACHE HIT] ${key}`);
             res.setHeader('X-Cache', 'HIT-MEMORY');
             return res.json(memoryCached.data);
         }
 
         // Cache MISS — intercept res.json to store the response
-        console.log(`[HTTP CACHE MISS] ${key}`);
         res.setHeader('X-Cache', 'MISS');
 
         const originalJson = res.json.bind(res);

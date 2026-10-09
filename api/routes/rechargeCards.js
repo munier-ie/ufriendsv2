@@ -3,6 +3,8 @@ const router = express.Router();
 const prisma = require('../../prisma/client');
 const walletOps = require('../services/wallet.service');
 const authenticateUser = require('../middleware/auth');
+const pinRateLimit = require('../middleware/pinRateLimit');
+const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const { z } = require('zod');
 const subandgain = require('../utils/providers/subandgain');
 const providerAttempts = require('../services/providerAttempt.service');
@@ -16,7 +18,7 @@ const purchaseSchema = z.object({
     pin: z.string().length(4, "Transaction PIN must be 4 digits")
 });
 
-router.post('/purchase', authenticateUser, async (req, res) => {
+router.post('/purchase', authenticateUser, pinRateLimit, async (req, res) => {
     let chargedTransaction;
     try {
         const { network, denomination, quantity, name, pin } = purchaseSchema.parse(req.body);
@@ -30,8 +32,9 @@ router.post('/purchase', authenticateUser, async (req, res) => {
         }
         const valid = await bcrypt.compare(pin, user.transactionPin);
         if (!valid) {
-            return res.status(403).json({ error: 'Invalid transaction PIN' });
+            return rejectInvalidPin(req, res, { status: 403 });
         }
+        await clearPinFailures(req);
 
         // 2. Calculate Total Amount
         const totalAmount = denomination * quantity;

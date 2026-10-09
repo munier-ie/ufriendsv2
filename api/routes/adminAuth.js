@@ -1,36 +1,18 @@
 const express = require('express');
 const router = express.Router();
+const { safeError } = require('../utils/safeError');
 const prisma = require('../../prisma/client');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { z } = require('zod');
 const adminAuthMiddleware = require('../middleware/adminAuth');
-const { RateLimiterMemory } = require('rate-limiter-flexible');
 const { sendAdminLoginAlert } = require('../services/email.service');
 
-// ─── Rate Limiters ─────────────────────────────────────────────────────────────
-// Per-IP: max 10 attempts per 15 minutes
-const adminLoginLimiterByIp = new RateLimiterMemory({
-    points: 10,
-    duration: 15 * 60,    // 15 minutes
-    blockDuration: 15 * 60,
-});
-// Per-username: max 5 attempts per 15 minutes (extra tight on the credential itself)
-const adminLoginLimiterByUser = new RateLimiterMemory({
-    points: 5,
-    duration: 15 * 60,
-    blockDuration: 30 * 60, // 30-min lockout per username after 5 failures
-});
-// 2FA verify: max 5 attempts per 10 minutes
-const twoFaLimiter = new RateLimiterMemory({
-    points: 5,
-    duration: 10 * 60,
-    blockDuration: 15 * 60,
-});
-
-function getIp(req) {
-    return req.ip || req.socket?.remoteAddress || 'unknown';
+async function rejectInvalidAdminLogin(req, res, error = 'Invalid credentials') {
+    const result = await req.credentialRateLimit?.recordFailure();
+    if (result?.locked) return req.credentialRateLimit.sendLocked(result);
+    return res.status(401).json({ success: false, error });
 }
 
 // Admin login schema
@@ -48,24 +30,6 @@ router.get('/ping', (req, res) => res.json({ ok: true, ts: Date.now() }));
 // Admin login (renamed to access to bypass WAF rules on /login and /signin paths)
 router.post('/access', async (req, res) => {
     const t0 = Date.now();
-    const ip = getIp(req);
-    console.log('[admin-access] ▶ handler entered at', new Date().toISOString());
-
-    // ── Rate limit check ──────────────────────────────────────────────────────
-    try {
-        await adminLoginLimiterByIp.consume(ip);
-        if (req.body?.username) {
-            await adminLoginLimiterByUser.consume(req.body.username.toLowerCase());
-        }
-    } catch (rlErr) {
-        const retrySecs = Math.ceil((rlErr.msBeforeNext ?? 60000) / 1000);
-        console.warn(`[admin-access] ✗ Rate limited — IP: ${ip}, retry in ${retrySecs}s`);
-        return res.status(429).json({
-            success: false,
-            error: `Too many login attempts. Please wait ${retrySecs} seconds before trying again.`,
-            retryAfter: retrySecs
-        });
-    }
 
     // Hard timeout — ensures we ALWAYS respond within 12 seconds
     const timeout = setTimeout(() => {
@@ -77,21 +41,14 @@ router.post('/access', async (req, res) => {
 
     try {
         const { username, password, pin } = adminLoginSchema.parse(req.body);
-        console.log('[admin-access] ✓ zod parsed', Date.now() - t0, 'ms');
-
         // Find admin user
-        console.log('[admin-access] … querying DB for admin user');
         const admin = await prisma.adminUser.findUnique({
             where: { username }
         });
-        console.log('[admin-access] ✓ db query', Date.now() - t0, 'ms, found:', !!admin);
 
         if (!admin) {
             clearTimeout(timeout);
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid credentials'
-            });
+            return rejectInvalidAdminLogin(req, res);
         }
 
         // Check if account is blocked (status 0 = Blocked/Inactive, status 1 = Active)
@@ -104,15 +61,10 @@ router.post('/access', async (req, res) => {
         }
 
         // Verify password
-        console.log('[admin-access] … comparing bcrypt password');
         const validPassword = await bcrypt.compare(password, admin.password);
-        console.log('[admin-access] ✓ bcrypt compared', Date.now() - t0, 'ms, valid:', validPassword);
         if (!validPassword) {
             clearTimeout(timeout);
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid credentials'
-            });
+            return rejectInvalidAdminLogin(req, res);
         }
 
         // Check if PIN is required and configured
@@ -129,12 +81,12 @@ router.post('/access', async (req, res) => {
             const validPin = await bcrypt.compare(String(pin), String(admin.pinToken));
             if (!validPin) {
                 clearTimeout(timeout);
-                return res.status(401).json({
-                    success: false,
-                    error: 'Invalid PIN'
-                });
+                return rejectInvalidAdminLogin(req, res, 'Invalid PIN');
             }
         }
+
+        // Primary credentials are valid; do not carry stale failures forward.
+        await req.credentialRateLimit?.reset();
 
         // 2FA Check
         if (admin.twoFaEnabled) {
@@ -167,10 +119,6 @@ router.post('/access', async (req, res) => {
         }
 
 
-        // Successful login — reset rate limit counters for this IP and username
-        await adminLoginLimiterByIp.delete(ip).catch(() => {});
-        await adminLoginLimiterByUser.delete(username.toLowerCase()).catch(() => {});
-
         // Generate JWT token for normal login
         const token = jwt.sign(
             { id: admin.id, username: admin.username, role: admin.role, isAdmin: true },
@@ -187,7 +135,6 @@ router.post('/access', async (req, res) => {
             console.error('Failed to send admin login alert email:', err.message);
         });
 
-        console.log('[admin-access] ✓ JWT signed, responding', Date.now() - t0, 'ms');
         clearTimeout(timeout);
         res.json({
             success: true,
@@ -199,25 +146,16 @@ router.post('/access', async (req, res) => {
         clearTimeout(timeout);
         if (res.headersSent) return; // timeout already sent response
         if (error instanceof z.ZodError) {
-            console.log('[admin-access] ✗ zod validation error', Date.now() - t0, 'ms');
             const msg = error.errors?.[0]?.message ?? 'Invalid request data';
             return res.status(400).json({ success: false, error: msg });
         }
-        console.error('[admin-access] ✗ unhandled error', Date.now() - t0, 'ms:', error);
+        console.error('[admin-access] unhandled error:', safeError(error));
         res.status(500).json({ success: false, error: 'Internal server error' });
     }
 });
 
 // POST /verify-2fa
 router.post('/verify-2fa', async (req, res) => {
-    const ip = getIp(req);
-    try {
-        await twoFaLimiter.consume(ip);
-    } catch (rlErr) {
-        const retrySecs = Math.ceil((rlErr.msBeforeNext ?? 60000) / 1000);
-        return res.status(429).json({ error: `Too many 2FA attempts. Please wait ${retrySecs} seconds.`, retryAfter: retrySecs });
-    }
-
     try {
         const { adminId, code } = req.body;
         if (!adminId || !code) return res.status(400).json({ error: 'Missing adminId or code' });
@@ -268,7 +206,7 @@ router.post('/verify-2fa', async (req, res) => {
             admin: { id: admin.id, name: admin.name, username: admin.username, role: admin.role, permissions: admin.permissions }
         });
     } catch (error) {
-        console.error('Admin verify 2FA error:', error);
+        console.error('Admin verify 2FA error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -357,7 +295,7 @@ router.post('/setup-2fa', adminAuthMiddleware, async (req, res) => {
             });
         });
     } catch (error) {
-        console.error('2FA setup error:', error);
+        console.error('2FA setup error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -392,7 +330,7 @@ router.post('/enable-2fa', adminAuthMiddleware, async (req, res) => {
         });
         res.json({ success: true, message: '2FA enabled successfully' });
     } catch (error) {
-        console.error('2FA enable error:', error);
+        console.error('2FA enable error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -421,7 +359,7 @@ router.post('/disable-2fa', adminAuthMiddleware, async (req, res) => {
         });
         res.json({ success: true, message: '2FA disabled successfully' });
     } catch (error) {
-        console.error('2FA disable error:', error);
+        console.error('2FA disable error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -450,7 +388,7 @@ router.put('/update-pin', adminAuthMiddleware, async (req, res) => {
 
         res.json({ success: true, message: 'PIN updated successfully' });
     } catch (error) {
-        console.error('Update PIN error:', error);
+        console.error('Update PIN error:', safeError(error));
         res.status(400).json({ error: error.message || 'Failed to update PIN' });
     }
 });
@@ -490,7 +428,7 @@ router.post('/setup-email-2fa', adminAuthMiddleware, async (req, res) => {
 
         res.json({ success: true, message: 'OTP sent to your email.' });
     } catch (error) {
-        console.error('Email 2FA setup error:', error);
+        console.error('Email 2FA setup error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -530,7 +468,7 @@ router.post('/logout', adminAuthMiddleware, async (req, res) => {
         }
         res.json({ success: true, message: 'Logged out successfully' });
     } catch (error) {
-        console.error('Admin logout error:', error);
+        console.error('Admin logout error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
     }
 });
