@@ -204,10 +204,12 @@ class HomeDrawer extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const AcademyScreen()));
                   }),
 
-                  _drawerItem(context, Icons.rocket_launch_outlined, 'Own a VTU App', false, onTap: () async {
+                  _drawerItem(context, Icons.rocket_launch_outlined, 'Own a VTU App / Web', false, onTap: () async {
                     Navigator.pop(context);
-                    final url = Uri.parse('${AppConstants.baseServerUrl.replaceAll(':3000', ':5173')}/reseller');
-                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                    final url = Uri.parse(AppConstants.resellerUrl);
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
                   }),
                   _drawerItem(context, Icons.help_outline_rounded, 'Support Center', false, onTap: () {
                     Navigator.pop(context);

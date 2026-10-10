@@ -196,9 +196,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         }
       },
       child: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: context.isDark
-            ? AppTheme.darkSystemUiOverlay
-            : AppTheme.lightSystemUiOverlay,
+        value: context.systemOverlay,
         child: Scaffold(
           backgroundColor: context.scaffoldBg,
           resizeToAvoidBottomInset: false,

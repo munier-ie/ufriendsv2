@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'core/app_theme.dart';
 
 class ThemeState extends ChangeNotifier {
   Color primaryColor = const Color(0xFF004687);
@@ -44,6 +46,7 @@ class ThemeState extends ChangeNotifier {
       backgroundColor = const Color(0xFF121212);
       surfaceColor = const Color(0xFF1E1E1E);
     }
+    SystemChrome.setSystemUIOverlayStyle(AppTheme.systemUiOverlay(isDark: isDarkMode));
     notifyListeners();
   }
 
@@ -56,6 +59,7 @@ class ThemeState extends ChangeNotifier {
       backgroundColor = const Color(0xFFF3F4F6);
       surfaceColor = const Color(0xFFFFFFFF);
     }
+    SystemChrome.setSystemUIOverlayStyle(AppTheme.systemUiOverlay(isDark: isDarkMode));
     notifyListeners();
     // Persist the preference
     final prefs = await SharedPreferences.getInstance();
@@ -129,6 +133,12 @@ class ThemeState extends ChangeNotifier {
     return ThemeData(
       useMaterial3: true,
       brightness: isDarkMode ? Brightness.dark : Brightness.light,
+      appBarTheme: AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        systemOverlayStyle: AppTheme.systemUiOverlay(isDark: isDarkMode),
+      ),
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: isDarkMode ? Brightness.dark : Brightness.light,

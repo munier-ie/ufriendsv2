@@ -34,7 +34,7 @@ class _StartingScreenState extends State<StartingScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: AppTheme.lightSystemUiOverlay,
+      value: context.systemOverlay,
       child: Scaffold(
         backgroundColor: context.surfaceColor, // Premium clean white background
         body: SafeArea(

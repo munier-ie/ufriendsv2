@@ -18,19 +18,26 @@ class AppTheme {
   static const double spacingMultiplier = 0.5;
   static const String fontFamily = 'Poppins';
 
-  // Android 15+ owns system-bar colors in edge-to-edge mode. Only request
-  // readable icons so Flutter does not send deprecated color parameters.
-  static const SystemUiOverlayStyle lightSystemUiOverlay = SystemUiOverlayStyle(
-    statusBarBrightness: Brightness.light,
-    statusBarIconBrightness: Brightness.dark,
-    systemNavigationBarIconBrightness: Brightness.dark,
-  );
+  /// Generates a dynamic [SystemUiOverlayStyle] ensuring top status bar icons
+  /// (battery tray, network bars, wifi, clock) and bottom navigation icons are
+  /// always readable against the screen background.
+  static SystemUiOverlayStyle systemUiOverlay({required bool isDark}) {
+    return SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      // iOS: Brightness.light => dark icons; Brightness.dark => light icons
+      statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+      // Android: Brightness.dark => dark icons; Brightness.light => light icons
+      statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+      systemStatusBarContrastEnforced: false,
+      systemNavigationBarContrastEnforced: false,
+    );
+  }
 
-  static const SystemUiOverlayStyle darkSystemUiOverlay = SystemUiOverlayStyle(
-    statusBarBrightness: Brightness.dark,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarIconBrightness: Brightness.light,
-  );
+  static SystemUiOverlayStyle get lightSystemUiOverlay => systemUiOverlay(isDark: false);
+  static SystemUiOverlayStyle get darkSystemUiOverlay => systemUiOverlay(isDark: true);
 
   static LinearGradient get primaryGradient => const LinearGradient(
         colors: [primaryColor, secondaryColor],
@@ -155,6 +162,9 @@ class AppTheme {
 extension AppThemeContext on BuildContext {
   ThemeState get _ts => Provider.of<ThemeState>(this, listen: true);
   bool get isDark => _ts.isDarkMode;
+
+  /// Dynamic overlay style matching the current theme mode
+  SystemUiOverlayStyle get systemOverlay => AppTheme.systemUiOverlay(isDark: isDark);
 
   // ── Surfaces ──────────────────────────────────────────────────────────────
   Color get cardColor => isDark ? const Color(0xFF1E1E1E) : Colors.white;

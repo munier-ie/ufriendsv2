@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'screens/auth/splash_screen.dart';
 import 'package:provider/provider.dart';
 import 'theme_state.dart';
+import 'core/app_theme.dart';
 import 'core/connectivity_service.dart';
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -61,6 +63,12 @@ void main() async {
   final themeState = ThemeState();
   await themeState.init();
 
+  // Set initial edge-to-edge system UI overlay style
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(
+    AppTheme.systemUiOverlay(isDark: themeState.isDarkMode),
+  );
+
   runApp(
     ChangeNotifierProvider.value(
       value: themeState,
@@ -90,16 +98,24 @@ class UfriendsApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeState>(
       builder: (context, themeState, child) {
-        return MaterialApp(
-          title: 'Ufriends',
-          navigatorKey: navigatorKey,
-          debugShowCheckedModeBanner: false,
-          scrollBehavior: UfriendsScrollBehavior(),
-          theme: themeState.themeData,
-          builder: (context, child) {
-            return OfflineBannerWrapper(child: child ?? const SizedBox());
-          },
-          home: const SplashScreen(),
+        final overlayStyle = AppTheme.systemUiOverlay(isDark: themeState.isDarkMode);
+
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: overlayStyle,
+          child: MaterialApp(
+            title: 'Ufriends',
+            navigatorKey: navigatorKey,
+            debugShowCheckedModeBanner: false,
+            scrollBehavior: const UfriendsScrollBehavior(),
+            theme: themeState.themeData,
+            builder: (context, child) {
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: overlayStyle,
+                child: OfflineBannerWrapper(child: child ?? const SizedBox()),
+              );
+            },
+            home: const SplashScreen(),
+          ),
         );
       },
     );
