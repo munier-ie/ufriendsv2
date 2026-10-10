@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Keep the branded square inside Android 12's OEM splash mask safe zone. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="32dp"
+    android:insetTop="32dp"
+    android:insetRight="32dp"
+    android:insetBottom="32dp">
+    <bitmap
+        android:gravity="center"
+        android:src="@drawable/android12splash" />
+</inset>

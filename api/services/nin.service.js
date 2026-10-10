@@ -9,6 +9,11 @@ const QRCode = require('qrcode');
 const { getChromePath } = require('../utils/chrome');
 const { getCache, setCache, acquireLock, releaseLock } = require('../utils/redis');
 const { uploadSlip, isR2Configured } = require('../utils/r2');
+const {
+  getProviderFailure,
+  cacheProviderFailure,
+  isCacheableHttpFailure
+} = require('./identityFailureCache');
 
 function escapeHtml(unsafe) {
   if (typeof unsafe !== 'string') return unsafe;
@@ -282,12 +287,17 @@ async function verifyNin(ninNumber) {
   const lockKey = `NIN:${cleanNin}`;
   let redisLockVal = null;
 
+  const cachedProviderFailure = await getProviderFailure('nin', cleanNin);
+  if (cachedProviderFailure) return cachedProviderFailure;
+
   // 1. Check in-flight lock (In-Memory)
   if (ninInFlightLocks.has(lockKey)) {
     console.log('[verifyNin] In-flight verification already active');
     try {
       await ninInFlightLocks.get(lockKey);
     } catch (e) {}
+    const failureAfterLock = await getProviderFailure('nin', cleanNin);
+    if (failureAfterLock) return failureAfterLock;
     const cachedAfterLock = await findCachedNinReport(cleanNin);
     if (cachedAfterLock && cachedAfterLock.rawResponse) {
       try {
@@ -314,6 +324,8 @@ async function verifyNin(ninNumber) {
   if (!redisLockVal && !ninInFlightLocks.has(lockKey)) {
     console.log('[verifyNin] Distributed verification lock busy');
     await new Promise(r => setTimeout(r, 1500));
+    const failureAfterRedisLock = await getProviderFailure('nin', cleanNin);
+    if (failureAfterRedisLock) return failureAfterRedisLock;
     const cachedAfterRedisLock = await findCachedNinReport(cleanNin);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
       try {
@@ -336,6 +348,9 @@ async function verifyNin(ninNumber) {
   }
 
   const executeVerification = async () => {
+    const cachedFailure = await getProviderFailure('nin', cleanNin);
+    if (cachedFailure) return cachedFailure;
+
     const existing = await findCachedNinReport(cleanNin);
     if (existing && existing.rawResponse) {
       try {
@@ -418,6 +433,8 @@ async function verifyNin(ninNumber) {
         for (const v of variations) {
           setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
         }
+      } else {
+        return cacheProviderFailure('nin', cleanNin, errMsg, 'NIN verification failed');
       }
       return {
         success: false,
@@ -438,13 +455,15 @@ async function verifyNin(ninNumber) {
 
     if (error.response) {
       const errMsg = error.response.data?.message || 'NIN verification failed';
-      const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
+      const isNotFound = error.response.status === 404 || isNotFoundResponse(error.response.data, errMsg);
       if (isNotFound) {
         console.log('[verifyNin] Provider returned a not-found error; caching result');
         const variations = getSearchVariations(cleanNin);
         for (const v of variations) {
           setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
         }
+      } else if (isCacheableHttpFailure(error.response.status)) {
+        return cacheProviderFailure('nin', cleanNin, errMsg, 'NIN verification failed');
       }
       return {
         success: false,
@@ -476,11 +495,16 @@ async function verifyNinByPhone(phoneNumber) {
   const lockKey = `NIN_PHONE:${cleanPhone}`;
   let redisLockVal = null;
 
+  const cachedProviderFailure = await getProviderFailure('nin-phone', cleanPhone);
+  if (cachedProviderFailure) return cachedProviderFailure;
+
   if (ninInFlightLocks.has(lockKey)) {
     console.log('[verifyNinByPhone] In-flight verification already active');
     try {
       await ninInFlightLocks.get(lockKey);
     } catch (e) {}
+    const failureAfterLock = await getProviderFailure('nin-phone', cleanPhone);
+    if (failureAfterLock) return failureAfterLock;
     const cachedAfterLock = await findCachedNinReport(cleanPhone);
     if (cachedAfterLock && cachedAfterLock.rawResponse) {
       try {
@@ -506,6 +530,8 @@ async function verifyNinByPhone(phoneNumber) {
   if (!redisLockVal && !ninInFlightLocks.has(lockKey)) {
     console.log('[verifyNinByPhone] Distributed verification lock busy');
     await new Promise(r => setTimeout(r, 1500));
+    const failureAfterRedisLock = await getProviderFailure('nin-phone', cleanPhone);
+    if (failureAfterRedisLock) return failureAfterRedisLock;
     const cachedAfterRedisLock = await findCachedNinReport(cleanPhone);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
       try {
@@ -528,6 +554,9 @@ async function verifyNinByPhone(phoneNumber) {
   }
 
   const executeVerification = async () => {
+    const cachedFailure = await getProviderFailure('nin-phone', cleanPhone);
+    if (cachedFailure) return cachedFailure;
+
     const existing = await findCachedNinReport(cleanPhone);
     if (existing && existing.rawResponse) {
       try {
@@ -603,6 +632,8 @@ async function verifyNinByPhone(phoneNumber) {
         for (const v of variations) {
           setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
         }
+      } else {
+        return cacheProviderFailure('nin-phone', cleanPhone, errMsg, 'Phone number verification failed');
       }
       return {
         success: false,
@@ -623,13 +654,15 @@ async function verifyNinByPhone(phoneNumber) {
 
     if (error.response) {
       const errMsg = error.response.data?.message || 'Phone number verification failed';
-      const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
+      const isNotFound = error.response.status === 404 || isNotFoundResponse(error.response.data, errMsg);
       if (isNotFound) {
         console.log('[verifyNinByPhone] Provider returned a not-found error; caching result');
         const variations = getSearchVariations(cleanPhone);
         for (const v of variations) {
           setCache(`REPORT:NIN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
         }
+      } else if (isCacheableHttpFailure(error.response.status)) {
+        return cacheProviderFailure('nin-phone', cleanPhone, errMsg, 'Phone number verification failed');
       }
       return {
         success: false,

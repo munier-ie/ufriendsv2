@@ -71,7 +71,7 @@ class _LockScreenState extends State<LockScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: AppTheme.lightSystemUiOverlay,
       child: Scaffold(
         backgroundColor: context.cardColor,
         body: SafeArea(

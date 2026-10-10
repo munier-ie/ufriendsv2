@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../theme_state.dart';
@@ -16,6 +17,20 @@ class AppTheme {
   static const double baseFontSize = 14.0;
   static const double spacingMultiplier = 0.5;
   static const String fontFamily = 'Poppins';
+
+  // Android 15+ owns system-bar colors in edge-to-edge mode. Only request
+  // readable icons so Flutter does not send deprecated color parameters.
+  static const SystemUiOverlayStyle lightSystemUiOverlay = SystemUiOverlayStyle(
+    statusBarBrightness: Brightness.light,
+    statusBarIconBrightness: Brightness.dark,
+    systemNavigationBarIconBrightness: Brightness.dark,
+  );
+
+  static const SystemUiOverlayStyle darkSystemUiOverlay = SystemUiOverlayStyle(
+    statusBarBrightness: Brightness.dark,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarIconBrightness: Brightness.light,
+  );
 
   static LinearGradient get primaryGradient => const LinearGradient(
         colors: [primaryColor, secondaryColor],

@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
@@ -27,7 +25,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
 
   Future<void> _loadData() async {
     setState(() => _loading = true);
-    
+
     final responses = await Future.wait([
       ApiService.getProfile(),
       ApiService.fetchUpgradePlans(),
@@ -48,7 +46,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   }
 
   Future<void> _handleUpgrade(dynamic tier) async {
-    final targetType = tier['type'];
+    final targetType = _tierNumber(tier['type']);
     final typeName = tier['name'];
     final price = tier['price'];
 
@@ -56,7 +54,9 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Upgrade to $typeName?'),
-        content: Text('A one-time fee of ₦${price.toString()} will be deducted from your wallet to upgrade to the $typeName plan.'),
+        content: Text(
+          'A one-time fee of ₦${price.toString()} will be deducted from your wallet to upgrade to the $typeName plan.',
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
@@ -67,9 +67,14 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppTheme.primaryColor,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
-            child: const Text('Continue', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Continue',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -91,24 +96,25 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
 
     if (result != null && mounted) {
       if (result['success'] == true) {
-        AppToast.show(context, message: result['message'] ?? 'Account upgraded successfully!', type: ToastType.success);
-        
-        // Update local user
+        AppToast.show(
+          context,
+          message: result['message'] ?? 'Account upgraded successfully!',
+          type: ToastType.success,
+        );
+
+        // Reflect the confirmed server result immediately while the fresh
+        // profile request runs below.
         if (_user != null) {
-          _user!['type'] = targetType;
-          final prefs = await SharedPreferences.getInstance();
-          final userStr = prefs.getString('user');
-          if (userStr != null) {
-            try {
-              final Map<String, dynamic> localUser = jsonDecode(userStr);
-              localUser['type'] = targetType;
-              await prefs.setString('user', jsonEncode(localUser));
-            } catch (_) {}
-          }
+          _user!['type'] = result['newType'] ?? targetType;
+          _user!['wallet'] = result['newBalance'] ?? _user!['wallet'];
         }
         _loadData();
       } else {
-        AppToast.show(context, message: result['error'] ?? 'Upgrade failed', type: ToastType.error);
+        AppToast.show(
+          context,
+          message: result['error'] ?? 'Upgrade failed',
+          type: ToastType.error,
+        );
       }
     }
   }
@@ -150,10 +156,17 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
   }
 
   Widget _buildBody() {
-    final balance = _user != null ? double.tryParse(_user!['balance']?.toString() ?? '0') ?? 0 : 0.0;
-    
+    final balance = _user != null
+        ? double.tryParse(
+                (_user!['wallet'] ?? _user!['balance'] ?? 0).toString(),
+              ) ??
+              0
+        : 0.0;
+
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(24, 76, 24, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -164,12 +177,27 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               color: Colors.amber.shade100,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.workspace_premium_rounded, size: 48, color: Colors.amber.shade700),
+            child: Icon(
+              Icons.workspace_premium_rounded,
+              size: 48,
+              color: Colors.amber.shade700,
+            ),
           ),
           const SizedBox(height: 16),
-          Text('Unlock Premium Features', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.textPrimary)),
+          Text(
+            'Unlock Premium Features',
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: context.textPrimary,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('Upgrade your account tier to enjoy exclusive discounts on all services.', textAlign: TextAlign.center, style: TextStyle(fontSize: 14, color: context.textSecondary)),
+          Text(
+            'Upgrade your account tier to enjoy exclusive discounts on all services.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 14, color: context.textSecondary),
+          ),
           const SizedBox(height: 20),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -177,34 +205,38 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               color: context.dividerColor,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text('Current Balance: ₦${balance.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            child: Text(
+              'Current Balance: ₦${balance.toStringAsFixed(0)}',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
           ),
           const SizedBox(height: 32),
-          
+
           if (_tiers.isEmpty)
-             const Text('No upgrade plans available at the moment.')
+            const Text('No upgrade plans available at the moment.')
           else
-             ..._tiers.map((tier) => _buildTierCard(tier)),
+            ..._tiers.map((tier) => _buildTierCard(tier)),
         ],
       ),
     );
   }
 
   Widget _buildTierCard(dynamic tier) {
-    final currentType = _user?['type'] ?? 1;
-    final isCurrent = currentType == tier['type'];
-    final isLower = currentType > tier['type'];
+    final currentType = _tierNumber(_user?['type'] ?? _user?['accountType']);
+    final tierType = _tierNumber(tier['type']);
+    final isCurrent = currentType == tierType;
+    final isLower = currentType > tierType;
     final canUpgrade = !isCurrent && !isLower;
 
     Color badgeColor;
     Color iconBgColor;
     Color buttonColor;
-    
-    if (tier['type'] == 1) {
+
+    if (tierType == 1) {
       badgeColor = Colors.grey.shade600;
       iconBgColor = Colors.grey.shade100;
       buttonColor = AppTheme.primaryColor;
-    } else if (tier['type'] == 2) {
+    } else if (tierType == 2) {
       badgeColor = Colors.blue.shade600;
       iconBgColor = Colors.blue.shade50;
       buttonColor = Colors.blue.shade700;
@@ -228,7 +260,7 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
             color: Colors.black.withValues(alpha: isCurrent ? 0.05 : 0.02),
             blurRadius: 15,
             offset: const Offset(0, 8),
-          )
+          ),
         ],
       ),
       child: Stack(
@@ -241,16 +273,27 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
               right: 0,
               child: Center(
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: badgeColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Text('CURRENT PLAN', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                  child: const Text(
+                    'CURRENT PLAN',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
                 ),
               ),
             ),
-            
+
           Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
@@ -264,21 +307,46 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                         color: iconBgColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Icon(Icons.workspace_premium_rounded, color: badgeColor, size: 28),
+                      child: Icon(
+                        Icons.workspace_premium_rounded,
+                        color: badgeColor,
+                        size: 28,
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(tier['name'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          Text(
+                            tier['name'],
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const SizedBox(height: 4),
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(tier['price'] == 0 ? 'Free' : '₦${tier['price']}', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: context.textPrimary)),
+                              Text(
+                                tier['price'] == 0
+                                    ? 'Free'
+                                    : '₦${tier['price']}',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: context.textPrimary,
+                                ),
+                              ),
                               if (tier['price'] > 0)
-                                const Text(' / one-time', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                const Text(
+                                  ' / one-time',
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 12,
+                                  ),
+                                ),
                             ],
                           ),
                         ],
@@ -287,36 +355,62 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                
+
                 if (tier['features'] != null && tier['features'] is List)
-                  ...((tier['features'] as List).map((f) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Icon(Icons.check_circle_rounded, color: Colors.green, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(child: Text(f.toString(), style: TextStyle(color: Colors.grey.shade700))),
-                      ],
+                  ...((tier['features'] as List).map(
+                    (f) => Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            Icons.check_circle_rounded,
+                            color: Colors.green,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              f.toString(),
+                              style: TextStyle(color: Colors.grey.shade700),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ))),
-                
+                  )),
+
                 const SizedBox(height: 24),
-                
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: canUpgrade && !_upgrading ? () => _handleUpgrade(tier) : null,
+                    onPressed: canUpgrade && !_upgrading
+                        ? () => _handleUpgrade(tier)
+                        : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: isCurrent ? Colors.grey.shade200 : (isLower ? Colors.grey.shade100 : buttonColor),
-                      foregroundColor: (isCurrent || isLower) ? Colors.grey.shade500 : Colors.white,
+                      backgroundColor: isCurrent
+                          ? Colors.grey.shade200
+                          : (isLower ? Colors.grey.shade100 : buttonColor),
+                      foregroundColor: (isCurrent || isLower)
+                          ? Colors.grey.shade500
+                          : Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                       elevation: canUpgrade ? 2 : 0,
                     ),
                     child: Text(
-                      isCurrent ? 'Active Plan' : (isLower ? 'Unlocked' : 'Upgrade to ${tier['name']}'),
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      isCurrent
+                          ? 'Active Plan'
+                          : (isLower
+                                ? 'Unlocked'
+                                : 'Upgrade to ${tier['name']}'),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                   ),
                 ),
@@ -326,5 +420,20 @@ class _UpgradeScreenState extends State<UpgradeScreen> {
         ],
       ),
     );
+  }
+
+  int _tierNumber(dynamic value) {
+    if (value is num) return value.toInt();
+    final numeric = int.tryParse(value?.toString() ?? '');
+    if (numeric != null) return numeric;
+
+    switch (value?.toString().trim().toLowerCase()) {
+      case 'agent':
+        return 2;
+      case 'vendor':
+        return 3;
+      default:
+        return 1;
+    }
   }
 }

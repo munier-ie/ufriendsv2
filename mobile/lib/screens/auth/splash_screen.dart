@@ -90,7 +90,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark,
+      value: AppTheme.lightSystemUiOverlay,
       child: Scaffold(
         backgroundColor: context.cardColor,
         body: Stack(

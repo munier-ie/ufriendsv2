@@ -7,6 +7,11 @@ const { getChromePath } = require('../utils/chrome');
 const crypto = require('crypto');
 const { getCache, setCache, acquireLock, releaseLock } = require('../utils/redis');
 const { uploadSlip, isR2Configured } = require('../utils/r2');
+const {
+  getProviderFailure,
+  cacheProviderFailure,
+  isCacheableHttpFailure
+} = require('./identityFailureCache');
 
 /**
  * Get Verification Settings from database
@@ -230,12 +235,17 @@ async function verifyBvn(bvnNumber) {
   const lockKey = `BVN:${cleanBvn}`;
   let redisLockVal = null;
 
+  const cachedProviderFailure = await getProviderFailure('bvn', cleanBvn);
+  if (cachedProviderFailure) return cachedProviderFailure;
+
   // 1. Check in-flight lock (In-Memory)
   if (bvnInFlightLocks.has(lockKey)) {
     console.log('[verifyBvn] In-flight verification already active');
     try {
       await bvnInFlightLocks.get(lockKey);
     } catch (e) {}
+    const failureAfterLock = await getProviderFailure('bvn', cleanBvn);
+    if (failureAfterLock) return failureAfterLock;
     const cachedAfterLock = await findCachedBvnReport(cleanBvn);
     if (cachedAfterLock && cachedAfterLock.rawResponse) {
       try {
@@ -262,6 +272,8 @@ async function verifyBvn(bvnNumber) {
   if (!redisLockVal && !bvnInFlightLocks.has(lockKey)) {
     console.log('[verifyBvn] Distributed verification lock busy');
     await new Promise(r => setTimeout(r, 1500));
+    const failureAfterRedisLock = await getProviderFailure('bvn', cleanBvn);
+    if (failureAfterRedisLock) return failureAfterRedisLock;
     const cachedAfterRedisLock = await findCachedBvnReport(cleanBvn);
     if (cachedAfterRedisLock && cachedAfterRedisLock.rawResponse) {
       try {
@@ -284,6 +296,9 @@ async function verifyBvn(bvnNumber) {
   }
 
   const executeVerification = async () => {
+    const cachedFailure = await getProviderFailure('bvn', cleanBvn);
+    if (cachedFailure) return cachedFailure;
+
     const existing = await findCachedBvnReport(cleanBvn);
     if (existing && existing.rawResponse) {
       try {
@@ -364,6 +379,8 @@ async function verifyBvn(bvnNumber) {
         for (const v of variations) {
           setCache(`REPORT:BVN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
         }
+      } else {
+        return cacheProviderFailure('bvn', cleanBvn, errMsg, 'BVN verification failed');
       }
       return {
         success: false,
@@ -384,13 +401,15 @@ async function verifyBvn(bvnNumber) {
 
     if (error.response) {
       const errMsg = error.response.data?.message || 'BVN verification failed';
-      const isNotFound = error.response.status === 404 || error.response.status === 400 || isNotFoundResponse(error.response.data, errMsg);
+      const isNotFound = error.response.status === 404 || isNotFoundResponse(error.response.data, errMsg);
       if (isNotFound) {
         console.log('[verifyBvn] Provider returned a not-found error; caching result');
         const variations = getSearchVariations(cleanBvn);
         for (const v of variations) {
           setCache(`REPORT:BVN:${v}`, { notFound: true, message: errMsg }, 86400 * 30).catch(() => {});
         }
+      } else if (isCacheableHttpFailure(error.response.status)) {
+        return cacheProviderFailure('bvn', cleanBvn, errMsg, 'BVN verification failed');
       }
       return {
         success: false,

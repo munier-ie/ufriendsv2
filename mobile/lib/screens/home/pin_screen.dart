@@ -57,9 +57,7 @@ class _PinScreenState extends State<PinScreen> {
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.transparent,
-      ),
+      value: AppTheme.lightSystemUiOverlay,
       child: Scaffold(
         backgroundColor: context.cardColor,
         body: SafeArea(
