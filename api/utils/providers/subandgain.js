@@ -70,16 +70,21 @@ async function purchaseAirtime(details, config) {
             return {
                 status: 'failed',
                 message: result.description || 'Transaction Failed',
+                hasResponse: true,
+                isConnectionError: false,
                 data: result
             };
         }
 
     } catch (error) {
         console.error('Subandgain Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse,
+            errorCode: error.code
         };
     }
 }
@@ -121,16 +126,21 @@ async function purchaseData(details, config) {
             return {
                 status: 'failed',
                 message: result.description || 'Transaction Failed',
+                hasResponse: true,
+                isConnectionError: false,
                 data: result
             };
         }
 
     } catch (error) {
         console.error('Subandgain Data Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse,
+            errorCode: error.code
         };
     }
 }

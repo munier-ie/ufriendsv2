@@ -73,10 +73,13 @@ async function purchaseAirtime(details, config) {
 
     } catch (error) {
         console.error('VTPass Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse,
+            errorCode: error.code
         };
     }
 }
@@ -146,10 +149,13 @@ async function purchaseData(details, config) {
 
     } catch (error) {
         console.error('VTPass Data Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse,
+            errorCode: error.code
         };
     }
 }

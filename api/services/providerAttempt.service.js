@@ -38,8 +38,13 @@ async function execute(transaction, providerId, send) {
     } catch (error) {
         return pending(transaction, 'Provider connection failed after submission; delivery is unknown.');
     }
-    const uncertain = !result || result.error || !['success', 'failed', 'pending'].includes(result.status)
-        || (result.status === 'failed' && /timeout|timed out|connection|network|socket|unknown|processing|pending/i.test(String(result.message || '')));
+    const isTransportError = Boolean(
+        result.isConnectionError === true ||
+        /ECONNRESET|ETIMEDOUT|ECONNABORTED|ESOCKETTIMEDOUT|ENETUNREACH|EPIPE|EHOSTUNREACH/i.test(String(result.error || result.errorCode || '')) ||
+        (!result.hasResponse && /timeout|timed out|socket hang up|connection refused|connection reset|provider connection error|econnreset|etimedout/i.test(String(result.message || result.error || '')))
+    );
+    const uncertain = !result || !['success', 'failed', 'pending'].includes(result.status)
+        || (result.status === 'failed' && isTransportError);
     if (uncertain) return pending(transaction, 'Provider response did not confirm delivery or rejection.');
     await prisma.providerAttempt.update({ where: { id: attempt.id }, data: { status: result.status } });
     if (result.status === 'pending') return pending(transaction, 'Provider reports that delivery is still pending.');

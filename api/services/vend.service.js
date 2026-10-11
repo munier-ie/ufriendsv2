@@ -120,7 +120,7 @@ function normalizeDataType(str) {
     if (s.includes('CORPORATE') || s.includes('CG') || s.includes('C.G')) return 'CORPORATE GIFTING';
     if (s.includes('COUPON')) return 'DATA COUPONS';
     if (s.includes('SHARE')) return 'DATA SHARE';
-    if (s.includes('AWOOF')) return 'AWOOF GIFTING';
+    if (s.includes('AWOOF')) return 'DATA AWOOF';
     if (s.includes('GIFTING')) return 'GIFTING';
     return 'SME';
 }
@@ -180,8 +180,9 @@ function getTypeRank(planType, requestedType) {
     if (normReq === 'SME2' && normPlan === 'SME') return 2;
     if (normReq === 'CORPORATE GIFTING' && normPlan === 'CORPORATE GIFTING 2') return 2;
     if (normReq === 'CORPORATE GIFTING 2' && normPlan === 'CORPORATE GIFTING') return 2;
-    if (normReq === 'GIFTING' && normPlan === 'AWOOF GIFTING') return 2;
-    if (normReq === 'AWOOF GIFTING' && normPlan === 'GIFTING') return 2;
+    if ((normReq === 'DATA AWOOF' || normReq === 'AWOOF GIFTING') && (normPlan === 'DATA AWOOF' || normPlan === 'AWOOF GIFTING')) return 1;
+    if (normReq === 'GIFTING' && (normPlan === 'AWOOF GIFTING' || normPlan === 'DATA AWOOF')) return 2;
+    if ((normReq === 'AWOOF GIFTING' || normReq === 'DATA AWOOF') && normPlan === 'GIFTING') return 2;
 
     return 3;
 }
@@ -238,19 +239,23 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
  * 
  * Hierarchy:
  * 1. ProviderRouting (Network + NetworkType specific override)
- * 2. ActiveProvider (Generic active default for serviceType)
- * 3. Service directly (service.apiProviderId fallback)
+ * 2. Service directly (service.apiProviderId native provider)
+ * 3. ActiveProvider (Generic active default for serviceType fallback)
  */
 async function resolveProvider(serviceType, network, networkType, service) {
     let apiProviderId = null;
 
     // 1. Check ProviderRouting for Network + NetworkType override
     if (network && networkType) {
+        const variants = [networkType];
+        if (networkType === 'DATA AWOOF') variants.push('AWOOF GIFTING');
+        if (networkType === 'AWOOF GIFTING') variants.push('DATA AWOOF');
+
         let routing = await prisma.providerRouting.findFirst({
             where: {
                 serviceType,
                 network: network.toUpperCase(),
-                networkType: { equals: networkType, mode: 'insensitive' },
+                networkType: { in: variants, mode: 'insensitive' },
                 active: true
             }
         });
@@ -271,17 +276,17 @@ async function resolveProvider(serviceType, network, networkType, service) {
         if (routing) apiProviderId = routing.apiProviderId;
     }
 
-    // 2. Check ActiveProvider (system default for this serviceType)
+    // 2. Fallback to Service's native provider directly if configured
+    if (!apiProviderId && service && service.apiProviderId) {
+        apiProviderId = service.apiProviderId;
+    }
+
+    // 3. Fallback to ActiveProvider generic default for this serviceType
     if (!apiProviderId) {
         const activeProv = await prisma.activeProvider.findUnique({
             where: { serviceType }
         });
         if (activeProv) apiProviderId = activeProv.apiProviderId;
-    }
-
-    // 3. Fallback to Service directly
-    if (!apiProviderId && service && service.apiProviderId) {
-        apiProviderId = service.apiProviderId;
     }
 
     if (!apiProviderId) return null;

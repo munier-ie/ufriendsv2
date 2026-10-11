@@ -120,7 +120,8 @@ async function purchaseAirtime(details, config) {
     } catch (error) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa Airtime Error:', error.response?.status || error.code || 'request failed');
-        return { status: 'failed', message: msg, error: error.response?.data || error.message };
+        const hasResponse = Boolean(error.response);
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse, errorCode: error.code };
     }
 }
 
@@ -180,7 +181,8 @@ async function purchaseData(details, config) {
     } catch (error) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa Data Error:', error.response?.status || error.code || 'request failed');
-        return { status: 'failed', message: msg, error: error.response?.data || error.message };
+        const hasResponse = Boolean(error.response);
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse, errorCode: error.code };
     }
 }
 

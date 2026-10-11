@@ -117,10 +117,15 @@ async function purchaseAirtime(details, config) {
     } catch (error) {
         console.error('Alrahuz Airtime Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
+        const msgStr = Array.isArray(apiError) ? apiError.join(', ') : (apiError ? String(apiError) : null);
+        const hasResponse = Boolean(error.response);
+        const isConnectionError = !hasResponse;
         return {
             status: 'failed',
-            message: sanitizeAlrahuzError(apiError || 'Service Temporarily Unavailable'),
-            error: error.message
+            message: sanitizeAlrahuzError(msgStr || (isConnectionError ? 'Provider Connection Error' : 'Service Temporarily Unavailable')),
+            hasResponse,
+            isConnectionError,
+            errorCode: error.code
         };
     }
 }
@@ -175,10 +180,15 @@ async function purchaseData(details, config) {
     } catch (error) {
         console.error('Alrahuz Data Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
+        const msgStr = Array.isArray(apiError) ? apiError.join(', ') : (apiError ? String(apiError) : null);
+        const hasResponse = Boolean(error.response);
+        const isConnectionError = !hasResponse;
         return {
             status: 'failed',
-            message: sanitizeAlrahuzError(apiError || 'Service Temporarily Unavailable'),
-            error: error.message
+            message: sanitizeAlrahuzError(msgStr || (isConnectionError ? 'Provider Connection Error' : 'Service Temporarily Unavailable')),
+            hasResponse,
+            isConnectionError,
+            errorCode: error.code
         };
     }
 }
