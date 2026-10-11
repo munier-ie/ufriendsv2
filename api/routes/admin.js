@@ -871,12 +871,17 @@ router.get('/reports/sales', adminAuth, async (req, res) => {
 
 // PUT /api/admin/transactions/:id/status - Update transaction status
 router.put('/transactions/:id/status', adminAuth, async (req, res) => {
+    const wantsRefund = req.body.refund === true;
     try {
-        const { id } = req.params;
+        const id = Number.parseInt(req.params.id, 10);
         const { newStatus, reason, refund } = req.body;
 
+        if (!Number.isSafeInteger(id) || id < 1) {
+            return res.status(400).json({ error: 'Invalid transaction ID' });
+        }
+
         const transaction = await prisma.transaction.findUnique({
-            where: { id: parseInt(id) },
+            where: { id },
             include: { user: true }
         });
 
@@ -884,25 +889,46 @@ router.put('/transactions/:id/status', adminAuth, async (req, res) => {
             return res.status(404).json({ error: 'Transaction not found' });
         }
 
+        const cleanReason = typeof reason === 'string' ? reason.trim() : '';
+
+        if (wantsRefund) {
+            if (transaction.status === 0) {
+                return res.status(400).json({ error: 'A successful transaction cannot be refunded until provider delivery is reconciled.' });
+            }
+            if (transaction.status === 3 || transaction.refundedAmount > 0) {
+                return res.status(400).json({ error: 'This transaction has already been refunded or partially refunded.' });
+            }
+            if (!(transaction.amount < 0)) {
+                return res.status(400).json({ error: 'Only an original wallet debit can be refunded.' });
+            }
+            if (cleanReason.length < 10 || cleanReason.length > 1000) {
+                return res.status(400).json({ error: 'Provide a refund reason between 10 and 1000 characters.' });
+            }
+        }
+
         let updated;
-        if (refund && transaction.status !== 0) {
-            updated = await prisma.$transaction(async tx => {
-                await walletOps.refundInTransaction(tx, transaction.reference, `Admin refund by ${req.admin.name}: ${reason || 'Failed transaction refund'}`, undefined, {
+        if (wantsRefund) {
+            updated = await walletOps.transaction(async tx => {
+                await walletOps.refundInTransaction(tx, transaction.reference, `Admin refund by ${req.admin.name}: ${cleanReason}`, undefined, {
                     adminId: req.admin.id,
                     adminName: req.admin.name,
                     allowLegacyDebit: true
                 });
-                const refunded = await tx.transaction.findUnique({ where: { id: parseInt(id) } });
+                const refunded = await tx.transaction.findUnique({ where: { id } });
                 await tx.transactionStatusUpdate.create({
-                    data: { transactionId: parseInt(id), oldStatus: transaction.status, newStatus: refunded.status, adminId: req.admin.id, reason, refunded: true }
+                    data: { transactionId: id, oldStatus: transaction.status, newStatus: refunded.status, adminId: req.admin.id, reason: cleanReason, refunded: true }
                 });
                 return refunded;
             });
         } else {
-            updated = await prisma.$transaction(async tx => {
-                const changed = await tx.transaction.update({ where: { id: parseInt(id) }, data: { status: parseInt(newStatus) } });
+            const status = Number.parseInt(newStatus, 10);
+            if (![0, 1, 2].includes(status)) {
+                return res.status(400).json({ error: 'Invalid transaction status' });
+            }
+            updated = await walletOps.transaction(async tx => {
+                const changed = await tx.transaction.update({ where: { id }, data: { status } });
                 await tx.transactionStatusUpdate.create({
-                    data: { transactionId: parseInt(id), oldStatus: transaction.status, newStatus: parseInt(newStatus), adminId: req.admin.id, reason, refunded: false }
+                    data: { transactionId: id, oldStatus: transaction.status, newStatus: status, adminId: req.admin.id, reason: cleanReason || null, refunded: false }
                 });
                 return changed;
             });
@@ -915,7 +941,21 @@ router.put('/transactions/:id/status', adminAuth, async (req, res) => {
         });
     } catch (error) {
         console.error('Update transaction status error:', error);
-        res.status(500).json({ error: 'Failed to update transaction status' });
+        const actionableRefundErrors = new Set([
+            'Provider delivery must be reconciled before refunding',
+            'No verified debit; manual reconciliation required',
+            'Refund exceeds original debit',
+            'Transaction is already marked refunded',
+            'Wallet audit missing; wallet operation aborted. Run npm run check:wallet-security and repair database triggers with npm run install:security-triggers',
+            'Account blocked or held for security review',
+            'User not found'
+        ]);
+        const message = wantsRefund && actionableRefundErrors.has(error.message)
+            ? error.message
+            : wantsRefund
+                ? 'Refund could not be completed safely. Check the transaction evidence and try again.'
+                : 'Failed to update transaction status';
+        res.status(wantsRefund && actionableRefundErrors.has(error.message) ? 400 : 500).json({ error: message });
     }
 });
 

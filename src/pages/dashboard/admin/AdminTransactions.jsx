@@ -1,4 +1,4 @@
-import { Search, Loader2, Eye, X, AlertTriangle, CheckCircle, RefreshCcw } from 'lucide-react';
+import { Search, Loader2, Eye, X, AlertTriangle, CheckCircle, RefreshCcw, ShieldCheck } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { modal } from '../../../contexts/ModalContext';
 import axios from 'axios';
@@ -46,7 +46,20 @@ export default function AdminTransactions() {
     };
 
     const handleUpdateStatus = async (newStatus, refund = false) => {
-        if (!confirm(`Are you sure you want to change the status to ${newStatus === 0 ? 'Successful' : 'Failed'}${refund ? ' and refund the user' : ''}?`)) return;
+        let reason = 'Admin manual intervention';
+        if (refund) {
+            reason = window.prompt('Explain why this transaction is being refunded (minimum 10 characters):')?.trim();
+            if (!reason) return;
+            if (reason.length < 10) {
+                modal.error('Please provide a clear refund reason of at least 10 characters');
+                return;
+            }
+        }
+
+        const actionLabel = refund
+            ? `refund ₦${Math.abs(selectedTx.amount).toLocaleString()} to this user`
+            : `mark this transaction as ${newStatus === 0 ? 'successful' : 'failed'}`;
+        if (!window.confirm(`Are you sure you want to ${actionLabel}?`)) return;
 
         setActionLoading(true);
         try {
@@ -54,11 +67,11 @@ export default function AdminTransactions() {
             await axios.put(`/api/admin/transactions/${selectedTx.id}/status`, {
                 newStatus,
                 refund,
-                reason: 'Admin manual intervention'
+                reason
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
-            modal.success('Transaction updated successfully');
+            modal.success(refund ? 'Customer refunded successfully' : 'Transaction updated successfully');
             setSelectedTx(null);
             fetchTransactions();
         } catch (error) {
@@ -262,34 +275,53 @@ export default function AdminTransactions() {
                             )}
 
                             {/* Action Buttons */}
-                            <div className="pt-6 border-t border-gray-100">
-                                <p className="font-medium text-gray-900 mb-4">Admin Actions</p>
-                                <div className="flex flex-wrap gap-3">
-                                    <Button onClick={() => handleUpdateStatus(0)} icon={CheckCircle} disabled={actionLoading || selectedTx.status === 0}>
+                            <div className="pt-6 border-t border-gray-100 space-y-4">
+                                <div>
+                                    <p className="font-medium text-gray-900">Admin Actions</p>
+                                    <p className="mt-1 text-sm text-gray-500">Status changes do not move money. Refunds are recorded separately and can only happen once.</p>
+                                </div>
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <Button onClick={() => handleUpdateStatus(0)} disabled={actionLoading || selectedTx.status === 0 || selectedTx.status === 3} className="w-full">
+                                        <CheckCircle className="mr-2 h-4 w-4" aria-hidden="true" />
                                         Mark Successful
                                     </Button>
-                                    <Button onClick={() => handleUpdateStatus(2, false)} variant="outline" icon={AlertTriangle} disabled={actionLoading || selectedTx.status === 2}>
+                                    <Button onClick={() => handleUpdateStatus(2, false)} variant="secondary" disabled={actionLoading || selectedTx.status === 2 || selectedTx.status === 3} className="w-full">
+                                        <AlertTriangle className="mr-2 h-4 w-4" aria-hidden="true" />
                                         Mark Failed
                                     </Button>
-                                    <Button onClick={() => handleUpdateStatus(3, true)} variant="danger" icon={RefreshCcw} disabled={actionLoading || selectedTx.status === 3 || selectedTx.status === 0 || selectedTx.refundedAmount > 0}>
-                                        Refund User
-                                    </Button>
-                                    <Button onClick={() => setReconciliation({ outcome: 'delivered', reason: '', providerReference: '' })} variant="outline" disabled={actionLoading || selectedTx.refundedAmount > 0}>
+                                </div>
+
+                                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                        <div>
+                                            <p className="font-medium text-amber-950">Refund customer</p>
+                                            <p className="mt-1 text-sm text-amber-800">Use only after confirmed non-delivery. A reason is required and the original debit is credited once.</p>
+                                        </div>
+                                        <Button onClick={() => handleUpdateStatus(3, true)} variant="danger" disabled={actionLoading || selectedTx.status === 3 || selectedTx.status === 0 || selectedTx.refundedAmount > 0 || selectedTx.amount >= 0} className="w-full shrink-0 sm:w-auto">
+                                            <RefreshCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            Refund User
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="grid gap-3 sm:grid-cols-2">
+                                    <Button onClick={() => setReconciliation({ outcome: 'delivered', reason: '', providerReference: '' })} variant="secondary" disabled={actionLoading || selectedTx.status === 3 || selectedTx.refundedAmount > 0} className="w-full">
+                                        <ShieldCheck className="mr-2 h-4 w-4" aria-hidden="true" />
                                         Resolve Provider Outcome
                                     </Button>
-                                    {selectedTx.status !== 3 && selectedTx.type !== 'refund' && (
-                                        <Button onClick={handleManualLegacyRefund} variant="danger" icon={RefreshCcw} disabled={actionLoading}>
-                                            Audited Legacy Refund
+                                    {selectedTx.status === 2 ? (
+                                        <Button onClick={handleRetry} className="w-full border-none bg-orange-500 hover:bg-orange-600" disabled={actionLoading}>
+                                            <RefreshCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+                                            Retry Transaction
                                         </Button>
-                                    )}
-                                    {selectedTx.status === 2 && (
-                                        <>
-                                            <Button onClick={handleRetry} className="bg-orange-500 hover:bg-orange-600 border-none" icon={RefreshCcw} disabled={actionLoading}>
-                                                Retry Transaction
-                                            </Button>
-                                        </>
-                                    )}
+                                    ) : null}
                                 </div>
+                                {selectedTx.status !== 3 && selectedTx.type !== 'refund' && (
+                                    <Button onClick={handleManualLegacyRefund} variant="ghost" disabled={actionLoading} className="w-full border border-gray-200">
+                                        <RefreshCcw className="mr-2 h-4 w-4" aria-hidden="true" />
+                                        Audited Legacy Refund
+                                    </Button>
+                                )}
                                 {reconciliation ? (
                                     <form onSubmit={handleReconcile} className="mt-5 space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                         <p className="text-sm text-gray-700">Check the provider portal or contact the provider first. Confirmed failure refunds the original debit once.</p>

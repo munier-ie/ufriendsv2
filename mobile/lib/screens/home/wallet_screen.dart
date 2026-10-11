@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
@@ -28,6 +30,8 @@ class _WalletScreenState extends State<WalletScreen> {
   List<dynamic> _accounts = [];
   bool _isLoading = true;
   bool _hideWallet = true;
+  String? _copiedAccountNumber;
+  Timer? _copyResetTimer;
 
   @override
   void initState() {
@@ -50,9 +54,39 @@ class _WalletScreenState extends State<WalletScreen> {
     }
   }
 
-  void _copyToClipboard(String text) {
-    Clipboard.setData(ClipboardData(text: text));
-    AppToast.show(context, message: 'Copied to clipboard', type: ToastType.success);
+  Future<void> _copyToClipboard(String text) async {
+    final accountNumber = text.trim();
+    if (accountNumber.isEmpty) {
+      AppToast.show(
+        context,
+        message: 'Account number is unavailable',
+        type: ToastType.error,
+      );
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: accountNumber));
+    await HapticFeedback.lightImpact();
+    if (!mounted) return;
+
+    _copyResetTimer?.cancel();
+    setState(() => _copiedAccountNumber = accountNumber);
+    AppToast.show(
+      context,
+      message: 'Account number copied',
+      type: ToastType.success,
+    );
+    _copyResetTimer = Timer(const Duration(seconds: 2), () {
+      if (mounted && _copiedAccountNumber == accountNumber) {
+        setState(() => _copiedAccountNumber = null);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _copyResetTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _goToKycScreen() async {
@@ -76,7 +110,9 @@ class _WalletScreenState extends State<WalletScreen> {
         await widget.onRefresh();
       },
       child: ListView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: EdgeInsets.only(
           top: widget.topPadding,
           bottom: widget.bottomPadding,
@@ -103,7 +139,9 @@ class _WalletScreenState extends State<WalletScreen> {
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: context.isDark ? Colors.black.withValues(alpha: 0.4) : AppTheme.primaryColor.withValues(alpha: 0.3),
+            color: context.isDark
+                ? Colors.black.withValues(alpha: 0.4)
+                : AppTheme.primaryColor.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -121,7 +159,9 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
               IconButton(
                 icon: Icon(
-                  _hideWallet ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                  _hideWallet
+                      ? Icons.visibility_off_rounded
+                      : Icons.visibility_rounded,
                   color: Colors.white70,
                   size: 20,
                 ),
@@ -148,7 +188,11 @@ class _WalletScreenState extends State<WalletScreen> {
           Row(
             children: [
               _actionButton(Icons.outbound_rounded, 'Withdraw', () {
-                AppToast.show(context, message: "Withdrawal's coming soon", type: ToastType.success);
+                AppToast.show(
+                  context,
+                  message: "Withdrawal's coming soon",
+                  type: ToastType.success,
+                );
               }),
             ],
           ),
@@ -175,7 +219,11 @@ class _WalletScreenState extends State<WalletScreen> {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 13),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
@@ -203,7 +251,11 @@ class _WalletScreenState extends State<WalletScreen> {
       children: [
         Text(
           'Virtual Accounts',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: context.textPrimary),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: context.textPrimary,
+          ),
         ),
         const SizedBox(height: 12),
         if (_accounts.isEmpty)
@@ -224,7 +276,11 @@ class _WalletScreenState extends State<WalletScreen> {
       ),
       child: Column(
         children: [
-          const Icon(Icons.account_balance_rounded, color: Colors.blue, size: 40),
+          const Icon(
+            Icons.account_balance_rounded,
+            color: Colors.blue,
+            size: 40,
+          ),
           const SizedBox(height: 12),
           const Text(
             'No Virtual Account Found',
@@ -242,7 +298,9 @@ class _WalletScreenState extends State<WalletScreen> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF1E90FF),
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: const Text('Verify & Generate Account'),
           ),
@@ -252,6 +310,10 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Widget _buildAccountCard(Map<String, dynamic> acc) {
+    final accountNumber = (acc['accountNumber'] ?? '').toString().trim();
+    final copied =
+        _copiedAccountNumber == accountNumber && accountNumber.isNotEmpty;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -260,7 +322,11 @@ class _WalletScreenState extends State<WalletScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: context.dividerColor),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Column(
@@ -271,21 +337,75 @@ class _WalletScreenState extends State<WalletScreen> {
             children: [
               Text(
                 acc['bankName'] ?? 'Bank',
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
-              const Icon(Icons.copy_rounded, size: 18, color: Colors.grey),
             ],
           ),
           const SizedBox(height: 8),
-          GestureDetector(
-            onTap: () => _copyToClipboard(acc['accountNumber'] ?? ''),
-            child: Text(
-              acc['accountNumber'] ?? '0000000000',
-              style: TextStyle(
-                fontSize: 24, 
-                fontWeight: FontWeight.w900, 
-                letterSpacing: 2,
-                color: AppTheme.primaryColor,
+          Semantics(
+            button: true,
+            label: copied ? 'Account number copied' : 'Copy account number',
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _copyToClipboard(accountNumber),
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 4,
+                    horizontal: 2,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          accountNumber.isEmpty
+                              ? 'Account unavailable'
+                              : accountNumber,
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 2,
+                            color: AppTheme.primaryColor,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      AnimatedRotation(
+                        turns: copied ? 0.125 : 0,
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: copied
+                                ? Colors.green.withValues(alpha: 0.14)
+                                : AppTheme.primaryColor.withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(9),
+                          ),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 160),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(scale: animation, child: child),
+                            child: Icon(
+                              copied ? Icons.check_rounded : Icons.copy_rounded,
+                              key: ValueKey(copied),
+                              size: 18,
+                              color: copied
+                                  ? Colors.green.shade700
+                                  : AppTheme.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
@@ -311,14 +431,22 @@ class _WalletScreenState extends State<WalletScreen> {
         children: [
           Text(
             '💡 How to Fund',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: context.textPrimary),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: context.textPrimary,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             '1. Transfer any amount to your virtual account number.\n'
             '2. Your wallet will be credited automatically.\n'
             '3. No fees, instant confirmation.',
-            style: TextStyle(color: context.textSecondary, fontSize: 12, height: 1.5),
+            style: TextStyle(
+              color: context.textSecondary,
+              fontSize: 12,
+              height: 1.5,
+            ),
           ),
         ],
       ),
