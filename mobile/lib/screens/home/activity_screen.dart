@@ -33,6 +33,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
   List<dynamic> _filteredTransactions = [];
   bool _isLoading = true;
   String? _selectedType;
+  bool _sharingReceipt = false;
 
   @override
   void initState() {
@@ -44,7 +45,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
     setState(() => _isLoading = true);
     try {
       // For slip/manual pseudo-filters, fetch all 'professional' from the API
-      final apiType = (_selectedType == 'professional_slip' || _selectedType == 'professional_manual')
+      final apiType =
+          (_selectedType == 'professional_slip' ||
+              _selectedType == 'professional_manual')
           ? 'professional'
           : _selectedType;
 
@@ -91,11 +94,16 @@ class _ActivityScreenState extends State<ActivityScreen> {
     final bool isDebit = (tx['amount'] ?? 0) < 0;
     final bool isSuccess = tx['status'] == 0 || tx['status'] == '0';
     final bool isFailed = tx['status'] == 1 || tx['status'] == '1';
-    final String status = isSuccess ? 'Success' : (isFailed ? 'Failed' : 'Pending');
-    final Color statusColor = isSuccess ? Colors.green : (isFailed ? Colors.red : Colors.orange);
-    final bool isSlipTransaction = (tx['serviceName'] ?? '').toString().toLowerCase().contains('slip') ||
-                                   (tx['serviceName'] ?? '').toString().toLowerCase().contains('bvn') ||
-                                   (tx['serviceName'] ?? '').toString().toLowerCase().contains('nin');
+    final String status = isSuccess
+        ? 'Success'
+        : (isFailed ? 'Failed' : 'Pending');
+    final Color statusColor = isSuccess
+        ? Colors.green
+        : (isFailed ? Colors.red : Colors.orange);
+    final bool isSlipTransaction =
+        (tx['serviceName'] ?? '').toString().toLowerCase().contains('slip') ||
+        (tx['serviceName'] ?? '').toString().toLowerCase().contains('bvn') ||
+        (tx['serviceName'] ?? '').toString().toLowerCase().contains('nin');
 
     showModalBottomSheet(
       context: context,
@@ -129,14 +137,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
               const SizedBox(height: 24),
               _detailRow('Service', tx['serviceName'] ?? 'N/A'),
-              _detailRow('Amount', '${isDebit ? '-' : '+'}₦${formatCurrency((tx['amount'] ?? 0).abs().toDouble())}'),
+              _detailRow(
+                'Amount',
+                '${isDebit ? '-' : '+'}₦${formatCurrency((tx['amount'] ?? 0).abs().toDouble())}',
+              ),
               _detailRow('Status', status, valueColor: statusColor),
               _detailRow('Date', formatDate(tx['date'])),
               _detailRow('Description', tx['description'] ?? 'N/A'),
-              if (tx['pinContent'] != null && tx['pinContent'].toString().trim().isNotEmpty)
+              if (tx['pinContent'] != null &&
+                  tx['pinContent'].toString().trim().isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
-                  child: PinDisplayWidget(pinContent: tx['pinContent'].toString()),
+                  child: PinDisplayWidget(
+                    pinContent: tx['pinContent'].toString(),
+                  ),
                 ),
               const SizedBox(height: 32),
               Row(
@@ -147,8 +161,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         text: 'Download Slip',
                         icon: Icons.download_rounded,
                         onPressed: () async {
-                          AppToast.show(context, message: 'Fetching slip details...', type: ToastType.success);
-                          final res = await ApiService.getTransaction(tx['reference']);
+                          AppToast.show(
+                            context,
+                            message: 'Fetching slip details...',
+                            type: ToastType.success,
+                          );
+                          final res = await ApiService.getTransaction(
+                            tx['reference'],
+                          );
                           if (res['success'] == true) {
                             final fullTx = res['transaction'];
                             if (fullTx['report'] != null && context.mounted) {
@@ -159,15 +179,24 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                   builder: (_) => SlipPreviewScreen(
                                     report: fullTx['report'],
                                     slipType: fullTx['slipType'] ?? 'bvn',
-                                    selectedSlipVariant: fullTx['slipVariant'] ?? 'regular',
+                                    selectedSlipVariant:
+                                        fullTx['slipVariant'] ?? 'regular',
                                   ),
                                 ),
                               );
                             } else if (context.mounted) {
-                              AppToast.show(context, message: 'Slip not found', type: ToastType.error);
+                              AppToast.show(
+                                context,
+                                message: 'Slip not found',
+                                type: ToastType.error,
+                              );
                             }
                           } else if (context.mounted) {
-                            AppToast.show(context, message: res['error'] ?? 'Failed to fetch slip', type: ToastType.error);
+                            AppToast.show(
+                              context,
+                              message: res['error'] ?? 'Failed to fetch slip',
+                              type: ToastType.error,
+                            );
                           }
                         },
                       ),
@@ -199,13 +228,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: context.textSecondary, fontSize: 14)),
+          Text(
+            label,
+            style: TextStyle(color: context.textSecondary, fontSize: 14),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: valueColor),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: valueColor,
+              ),
             ),
           ),
         ],
@@ -215,7 +251,7 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   void _showReceiptDialog(Map<String, dynamic> tx) {
     final GlobalKey receiptKey = GlobalKey();
-    
+
     showDialog(
       context: context,
       builder: (context) {
@@ -232,61 +268,137 @@ class _ActivityScreenState extends State<ActivityScreen> {
               children: [
                 RepaintBoundary(
                   key: receiptKey,
-                  child: Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(8),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'Ufriends',
-                          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.primaryColor),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Transaction Receipt',
-                          style: TextStyle(fontSize: 14, color: context.textSecondary),
-                        ),
-                        const SizedBox(height: 24),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: context.subtleBg,
-                            borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: 360,
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const AppLogo(size: 52),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Ufriends IT',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppTheme.primaryColor,
+                            ),
                           ),
-                          child: Column(
-                            children: [
-                              _receiptRow('Reference', tx['reference'] ?? 'N/A'),
-                              _receiptRow('Service', tx['serviceName'] ?? 'N/A'),
-                              _receiptRow('Amount', '₦${formatCurrency((tx['amount'] ?? 0).abs().toDouble())}'),
-                              _receiptRow('Date', formatDate(tx['date'])),
-                              _receiptRow('Description', tx['description'] ?? 'N/A'),
-                              if (tx['pinContent'] != null && tx['pinContent'].toString().trim().isNotEmpty) ...[
-                                ...parsePinTokens(tx['pinContent'].toString()).asMap().entries.map((entry) {
-                                  final idx = entry.key;
-                                  final tok = entry.value;
-                                  final isMultiple = parsePinTokens(tx['pinContent'].toString()).length > 1;
-                                  final pinLabel = isMultiple ? 'PIN #${idx + 1}' : 'PIN';
-                                  final serialLabel = isMultiple ? 'Serial #${idx + 1}' : 'Serial No';
+                          const SizedBox(height: 3),
+                          const Text(
+                            'TRANSACTION RECEIPT',
+                            style: TextStyle(
+                              fontSize: 11,
+                              letterSpacing: 1.4,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Container(
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: const Color(0xFFE5E7EB),
+                              ),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Column(
+                              children: [
+                                _receiptRow(
+                                  'Reference',
+                                  tx['reference'] ?? 'N/A',
+                                  first: true,
+                                ),
+                                _receiptRow(
+                                  'Service',
+                                  tx['serviceName'] ?? 'N/A',
+                                ),
+                                _receiptRow(
+                                  'Amount',
+                                  '₦${formatCurrency((tx['amount'] ?? 0).abs().toDouble())}',
+                                ),
+                                _receiptRow(
+                                  'Status',
+                                  tx['status'] == 0 || tx['status'] == '0'
+                                      ? 'SUCCESS'
+                                      : tx['status'] == 2 || tx['status'] == '2'
+                                      ? 'FAILED'
+                                      : 'PENDING',
+                                ),
+                                _receiptRow('Date', formatDate(tx['date'])),
+                                _receiptRow(
+                                  'Description',
+                                  tx['description'] ?? 'N/A',
+                                ),
+                                if (tx['pinContent'] != null &&
+                                    tx['pinContent']
+                                        .toString()
+                                        .trim()
+                                        .isNotEmpty) ...[
+                                  ...parsePinTokens(
+                                    tx['pinContent'].toString(),
+                                  ).asMap().entries.map((entry) {
+                                    final idx = entry.key;
+                                    final tok = entry.value;
+                                    final isMultiple =
+                                        parsePinTokens(
+                                          tx['pinContent'].toString(),
+                                        ).length >
+                                        1;
+                                    final pinLabel = isMultiple
+                                        ? 'PIN #${idx + 1}'
+                                        : 'PIN';
+                                    final serialLabel = isMultiple
+                                        ? 'Serial #${idx + 1}'
+                                        : 'Serial No';
 
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      _receiptRow(pinLabel, tok.pin),
-                                      if (tok.serial != null) _receiptRow(serialLabel, tok.serial!),
-                                    ],
-                                  );
-                                }),
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        _receiptRow(pinLabel, tok.pin),
+                                        if (tok.serial != null)
+                                          _receiptRow(serialLabel, tok.serial!),
+                                      ],
+                                    );
+                                  }),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Thank you for using Ufriends!',
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                        ),
-                      ],
+                          const SizedBox(height: 18),
+                          const Divider(height: 1, color: Color(0xFFE5E7EB)),
+                          const SizedBox(height: 12),
+                          const Text(
+                            'Thank you for using Ufriends IT.',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 7),
+                          const Text(
+                            'ufriends.com.ng  •  info@ufriends.com.ng',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          const SizedBox(height: 3),
+                          const Text(
+                            '+234 702 641 7709  •  Support available online',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -298,7 +410,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: const Text('Close'),
                       ),
@@ -307,28 +421,59 @@ class _ActivityScreenState extends State<ActivityScreen> {
                     Expanded(
                       child: GradientButton(
                         text: 'Share',
-                        onPressed: () async {
-                          try {
-                            RenderRepaintBoundary boundary = receiptKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
-                            ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-                            ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-                            Uint8List pngBytes = byteData!.buffer.asUint8List();
+                        onPressed: () {
+                          if (_sharingReceipt) return;
+                          () async {
+                            setState(() => _sharingReceipt = true);
+                            try {
+                              await WidgetsBinding.instance.endOfFrame;
+                              final boundary =
+                                  receiptKey.currentContext?.findRenderObject()
+                                      as RenderRepaintBoundary?;
+                              if (boundary == null) {
+                                throw Exception('Receipt is not ready yet');
+                              }
+                              ui.Image image = await boundary.toImage(
+                                pixelRatio: 3.0,
+                              );
+                              ByteData? byteData = await image.toByteData(
+                                format: ui.ImageByteFormat.png,
+                              );
+                              image.dispose();
+                              if (byteData == null) {
+                                throw Exception(
+                                  'Could not encode receipt image',
+                                );
+                              }
+                              Uint8List pngBytes = byteData.buffer
+                                  .asUint8List();
 
-                            final tempDir = await getTemporaryDirectory();
-                            final file = await File('${tempDir.path}/receipt_${tx['reference'] ?? 'tx'}.png').create();
-                            await file.writeAsBytes(pngBytes);
+                              final tempDir = await getTemporaryDirectory();
+                              final file = await File(
+                                '${tempDir.path}/receipt_${tx['reference'] ?? 'tx'}.png',
+                              ).create();
+                              await file.writeAsBytes(pngBytes);
 
-                            await SharePlus.instance.share(
-                              ShareParams(
-                                files: [XFile(file.path)],
-                                text: 'Ufriends Receipt',
-                              ),
-                            );
-                          } catch (e) {
-                            if (context.mounted) {
-                              AppToast.show(context, message: 'Failed to share image: $e', type: ToastType.error);
+                              await SharePlus.instance.share(
+                                ShareParams(
+                                  files: [XFile(file.path)],
+                                  text: 'Ufriends Receipt',
+                                ),
+                              );
+                            } catch (e) {
+                              if (context.mounted) {
+                                AppToast.show(
+                                  context,
+                                  message: 'Failed to share image: $e',
+                                  type: ToastType.error,
+                                );
+                              }
+                            } finally {
+                              if (mounted) {
+                                setState(() => _sharingReceipt = false);
+                              }
                             }
-                          }
+                          }();
                         },
                       ),
                     ),
@@ -342,19 +487,33 @@ class _ActivityScreenState extends State<ActivityScreen> {
     );
   }
 
-  Widget _receiptRow(String label, String value) {
+  Widget _receiptRow(String label, String value, {bool first = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: EdgeInsets.fromLTRB(12, first ? 12 : 8, 12, 8),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: context.textSecondary, fontSize: 12)),
+          SizedBox(
+            width: 84,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: Colors.black87,
+              ),
             ),
           ),
         ],
@@ -374,22 +533,28 @@ class _ActivityScreenState extends State<ActivityScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1E90FF) : (context.isDark ? Colors.grey.shade800 : Colors.grey[200]),
+          color: isSelected
+              ? const Color(0xFF1E90FF)
+              : (context.isDark ? Colors.grey.shade800 : Colors.grey[200]),
           borderRadius: BorderRadius.circular(20),
-          boxShadow: isSelected ? [
-            BoxShadow(
-              color: const Color(0xFF1E90FF).withValues(alpha: 0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            )
-          ] : null,
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1E90FF).withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             label,
             style: TextStyle(
-              color: isSelected ? Colors.white : (context.isDark ? Colors.grey.shade300 : Colors.black87),
+              color: isSelected
+                  ? Colors.white
+                  : (context.isDark ? Colors.grey.shade300 : Colors.black87),
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               fontSize: 14,
             ),
@@ -410,7 +575,9 @@ class _ActivityScreenState extends State<ActivityScreen> {
       },
       color: AppTheme.primaryColor,
       child: CustomScrollView(
-        physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         slivers: [
           SliverPadding(
             padding: EdgeInsets.fromLTRB(16, widget.topPadding, 16, 8),
@@ -421,73 +588,85 @@ class _ActivityScreenState extends State<ActivityScreen> {
               ),
             ),
           ),
-            SliverToBoxAdapter(
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    _buildFilterChip('All', null),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Airtime', 'airtime'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Data', 'data'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Cable', 'cable'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Electricity', 'electricity'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Cards', 'recharge_card'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('A2C', 'airtime2cash'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Printing', 'professional_slip'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('Manual', 'professional_manual'),
-                    const SizedBox(width: 8),
-                    _buildFilterChip('E-Pins', 'pin'),
-                  ],
-                ),
+          SliverToBoxAdapter(
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  _buildFilterChip('All', null),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Airtime', 'airtime'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Data', 'data'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Cable', 'cable'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Electricity', 'electricity'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Cards', 'recharge_card'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('A2C', 'airtime2cash'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Printing', 'professional_slip'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('Manual', 'professional_manual'),
+                  const SizedBox(width: 8),
+                  _buildFilterChip('E-Pins', 'pin'),
+                ],
               ),
             ),
-            if (_isLoading)
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => const SkeletonListTile(),
-                  childCount: 5,
-                ),
-              )
-            else if (_transactions.isEmpty)
-              SliverFillRemaining(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.history_rounded, size: 64, color: Colors.grey.shade300),
-                    const SizedBox(height: 16),
-                    Text('No transactions yet', style: TextStyle(color: context.textMuted)),
-                  ],
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    final tx = _filteredTransactions[index];
-                    return _buildTransactionItem(tx);
-                  },
-                  childCount: _filteredTransactions.length,
-                ),
+          ),
+          if (_isLoading)
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) => const SkeletonListTile(),
+                childCount: 5,
               ),
-            SliverPadding(padding: EdgeInsets.only(bottom: widget.bottomPadding)),
-          ],
-        ),
-      );
+            )
+          else if (_transactions.isEmpty)
+            SliverFillRemaining(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.history_rounded,
+                    size: 64,
+                    color: Colors.grey.shade300,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No transactions yet',
+                    style: TextStyle(color: context.textMuted),
+                  ),
+                ],
+              ),
+            )
+          else
+            SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
+                final tx = _filteredTransactions[index];
+                return _buildTransactionItem(tx);
+              }, childCount: _filteredTransactions.length),
+            ),
+          SliverPadding(padding: EdgeInsets.only(bottom: widget.bottomPadding)),
+        ],
+      ),
+    );
   }
 
   Widget _buildTransactionItem(Map<String, dynamic> tx) {
     final bool isDebit = (tx['amount'] ?? 0) < 0;
-    final String status = tx['status'] == 0 ? 'Success' : tx['status'] == 1 ? 'Failed' : 'Pending';
-    final Color statusColor = tx['status'] == 0 ? Colors.green : tx['status'] == 1 ? Colors.red : Colors.orange;
+    final String status = tx['status'] == 0
+        ? 'Success'
+        : tx['status'] == 1
+        ? 'Failed'
+        : 'Pending';
+    final Color statusColor = tx['status'] == 0
+        ? Colors.green
+        : tx['status'] == 1
+        ? Colors.red
+        : Colors.orange;
 
     return InkWell(
       onTap: () => _showTransactionDetails(tx),
@@ -510,11 +689,15 @@ class _ActivityScreenState extends State<ActivityScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: (isDebit ? Colors.red : Colors.green).withValues(alpha: 0.1),
+                color: (isDebit ? Colors.red : Colors.green).withValues(
+                  alpha: 0.1,
+                ),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(
-                isDebit ? Icons.arrow_outward_rounded : Icons.arrow_downward_rounded,
+                isDebit
+                    ? Icons.arrow_outward_rounded
+                    : Icons.arrow_downward_rounded,
                 color: isDebit ? Colors.red : Colors.green,
                 size: 24,
               ),
@@ -526,14 +709,20 @@ class _ActivityScreenState extends State<ActivityScreen> {
                 children: [
                   Text(
                     tx['serviceName'] ?? 'Transaction',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     tx['description'] ?? '',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(color: context.textSecondary, fontSize: 12),
+                    style: TextStyle(
+                      color: context.textSecondary,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -552,19 +741,28 @@ class _ActivityScreenState extends State<ActivityScreen> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: isDebit ? Colors.red.shade700 : Colors.green.shade700,
+                    color: isDebit
+                        ? Colors.red.shade700
+                        : Colors.green.shade700,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     status,
-                    style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],

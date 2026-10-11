@@ -71,6 +71,7 @@ router.post('/', adminAuth, superAdminOnly, async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(data.password, 10);
+        const hashedPin = data.pinToken ? await bcrypt.hash(data.pinToken, 10) : null;
 
         const newUser = await prisma.adminUser.create({
             data: {
@@ -79,7 +80,8 @@ router.post('/', adminAuth, superAdminOnly, async (req, res) => {
                 password: hashedPassword,
                 role: data.role,
                 status: data.status,
-                pinToken: data.pinToken || null,
+                pinToken: hashedPin,
+                pinStatus: data.pinToken ? 1 : 0,
                 permissions: data.permissions || {}
             },
             select: {
@@ -119,7 +121,8 @@ router.put('/:id', adminAuth, superAdminOnly, async (req, res) => {
         }
 
         if (data.pinToken) {
-            updateData.pinToken = data.pinToken;
+            updateData.pinToken = await bcrypt.hash(data.pinToken, 10);
+            updateData.pinStatus = 1;
         }
 
         const updatedUser = await prisma.adminUser.update({
@@ -152,8 +155,19 @@ router.delete('/:id', adminAuth, superAdminOnly, async (req, res) => {
             return res.status(400).json({ error: 'Cannot delete your own account' });
         }
 
-        await prisma.adminUser.delete({
-            where: { id: parseInt(id) }
+        const targetId = parseInt(id, 10);
+        if (!Number.isSafeInteger(targetId) || targetId < 1) {
+            return res.status(400).json({ error: 'Invalid admin user ID' });
+        }
+
+        // Keep historical audit rows intact. Their required foreign keys are
+        // reassigned to the authenticated super-admin before the account is
+        // removed, preventing P2003 failures from user_actions and status logs.
+        await prisma.$transaction(async (tx) => {
+            await tx.userAction.updateMany({ where: { adminId: targetId }, data: { adminId: req.admin.id } });
+            await tx.transactionStatusUpdate.updateMany({ where: { adminId: targetId }, data: { adminId: req.admin.id } });
+            await tx.blacklistedNumber.updateMany({ where: { adminId: targetId }, data: { adminId: req.admin.id } });
+            await tx.adminUser.delete({ where: { id: targetId } });
         });
 
         res.json({ success: true, message: 'Admin user deleted successfully' });

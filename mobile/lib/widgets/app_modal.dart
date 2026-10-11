@@ -51,15 +51,19 @@ class AppModal {
         lowerMsg.contains('low balance') ||
         lowerMsg.contains('fund your wallet') ||
         lowerMsg.contains('insufficient funds')) {
-      if (effectiveTitle.isEmpty || effectiveTitle == 'Failed' || effectiveTitle == 'Error') {
+      if (effectiveTitle.isEmpty ||
+          effectiveTitle == 'Failed' ||
+          effectiveTitle == 'Error') {
         effectiveTitle = 'Insufficient Balance';
       }
       if (lowerMsg == 'insufficient wallet balance' ||
           lowerMsg == 'insufficient balance' ||
           lowerMsg == 'insufficient funds') {
-        effectiveMsg = 'Your wallet balance is too low to complete this transaction. Please fund your wallet to continue.';
+        effectiveMsg =
+            'Your wallet balance is too low to complete this transaction. Please fund your wallet to continue.';
       } else if (!lowerMsg.contains('fund') && !lowerMsg.contains('top up')) {
-        effectiveMsg = '${message.replaceAll(RegExp(r'\.\s*$'), '')}. Please fund your wallet to proceed.';
+        effectiveMsg =
+            '${message.replaceAll(RegExp(r'\.\s*$'), '')}. Please fund your wallet to proceed.';
       }
       if (effectivePrimaryBtn == 'Close' || effectivePrimaryBtn == 'Okay') {
         effectivePrimaryBtn = 'Fund Wallet';
@@ -67,9 +71,7 @@ class AppModal {
       effectiveSecondaryBtn ??= 'Cancel';
       effectiveOnPrimary ??= () {
         Navigator.of(context, rootNavigator: true).push(
-          MaterialPageRoute(
-            builder: (_) => WalletScreen(onRefresh: () {}),
-          ),
+          MaterialPageRoute(builder: (_) => WalletScreen(onRefresh: () {})),
         );
       };
     }
@@ -82,7 +84,8 @@ class AppModal {
       if (effectiveTitle.isEmpty || effectiveTitle == 'Failed') {
         effectiveTitle = 'Session Expired';
       }
-      effectiveMsg = 'Your login session has expired for your security. Please log in again to continue.';
+      effectiveMsg =
+          'Your login session has expired for your security. Please log in again to continue.';
       effectivePrimaryBtn = 'Log In';
       effectiveSecondaryBtn ??= 'Dismiss';
     }
@@ -95,7 +98,8 @@ class AppModal {
       if (effectiveTitle.isEmpty || effectiveTitle == 'Failed') {
         effectiveTitle = 'Connection Problem';
       }
-      effectiveMsg = 'Unable to reach the server. Please check your internet connection and try again.';
+      effectiveMsg =
+          'Unable to reach the server. Please check your internet connection and try again.';
       effectivePrimaryBtn = 'Retry';
       effectiveSecondaryBtn ??= 'Dismiss';
     }
@@ -134,7 +138,8 @@ class AppModal {
       effectivePrimaryBtn = 'Check Details';
     }
     // 7. SUCCESS TYPES
-    else if (type == ModalType.success && (effectiveTitle.isEmpty || effectiveTitle == 'Success')) {
+    else if (type == ModalType.success &&
+        (effectiveTitle.isEmpty || effectiveTitle == 'Success')) {
       if (lowerMsg.contains('copied')) {
         effectiveTitle = 'Copied to Clipboard';
       } else if (lowerMsg.contains('saved') || lowerMsg.contains('updated')) {
@@ -146,7 +151,8 @@ class AppModal {
       }
     }
     // 8. ERROR FALLBACK
-    else if (type == ModalType.error && (effectiveTitle.isEmpty || effectiveTitle == 'Failed')) {
+    else if (type == ModalType.error &&
+        (effectiveTitle.isEmpty || effectiveTitle == 'Failed')) {
       effectiveTitle = 'Action Could Not Be Completed';
     }
 
@@ -181,10 +187,7 @@ class AppModal {
         final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
         return ScaleTransition(
           scale: Tween<double>(begin: 0.85, end: 1.0).animate(curve),
-          child: FadeTransition(
-            opacity: anim1,
-            child: child,
-          ),
+          child: FadeTransition(opacity: anim1, child: child),
         );
       },
     );
@@ -300,7 +303,9 @@ class AppModal {
       pageBuilder: (dialogContext, anim1, anim2) {
         return _TransactionModalDialog(
           isSuccess: isSuccess,
-          title: title ?? (isSuccess ? 'Transaction Successful' : 'Transaction Failed'),
+          title:
+              title ??
+              (isSuccess ? 'Transaction Successful' : 'Transaction Failed'),
           message: message,
           amount: amount,
           details: details,
@@ -316,10 +321,7 @@ class AppModal {
         final curve = CurvedAnimation(parent: anim1, curve: Curves.easeOutBack);
         return ScaleTransition(
           scale: Tween<double>(begin: 0.85, end: 1.0).animate(curve),
-          child: FadeTransition(
-            opacity: anim1,
-            child: child,
-          ),
+          child: FadeTransition(opacity: anim1, child: child),
         );
       },
     );
@@ -454,20 +456,11 @@ class _ModalDialogContentState extends State<_ModalDialogContent> {
       return SizedBox(
         width: 150,
         height: 150,
-        child: Center(
-          child: Transform.scale(
-            scale: 1.6,
-            child: lottie,
-          ),
-        ),
+        child: Center(child: Transform.scale(scale: 1.6, child: lottie)),
       );
     }
 
-    return SizedBox(
-      width: 140,
-      height: 140,
-      child: Center(child: lottie),
-    );
+    return SizedBox(width: 140, height: 140, child: Center(child: lottie));
   }
 
   @override
@@ -487,7 +480,9 @@ class _ModalDialogContentState extends State<_ModalDialogContent> {
             border: Border.all(color: context.borderColor, width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: context.isDark ? 0.45 : 0.15),
+                color: Colors.black.withValues(
+                  alpha: context.isDark ? 0.45 : 0.15,
+                ),
                 blurRadius: 28,
                 offset: const Offset(0, 10),
               ),
@@ -508,7 +503,8 @@ class _ModalDialogContentState extends State<_ModalDialogContent> {
                 child: Align(
                   alignment: Alignment.topRight,
                   child: InkWell(
-                    onTap: () => Navigator.of(context, rootNavigator: true).pop(),
+                    onTap: () =>
+                        Navigator.of(context, rootNavigator: true).pop(),
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       padding: const EdgeInsets.all(6),
@@ -616,7 +612,9 @@ class _ModalDialogContentState extends State<_ModalDialogContent> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.28),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.28,
+                              ),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -688,7 +686,8 @@ class _TransactionModalDialog extends StatefulWidget {
   });
 
   @override
-  State<_TransactionModalDialog> createState() => _TransactionModalDialogState();
+  State<_TransactionModalDialog> createState() =>
+      _TransactionModalDialogState();
 }
 
 class _TransactionModalDialogState extends State<_TransactionModalDialog> {
@@ -748,10 +747,20 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                     color: AppTheme.primaryColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.image_rounded, color: AppTheme.primaryColor, size: 22),
+                  child: const Icon(
+                    Icons.image_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 22,
+                  ),
                 ),
-                title: const Text('Share Receipt Image', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                subtitle: const Text('Official styled PNG receipt with logo & details', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Share Receipt Image',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Official styled PNG receipt with logo & details',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _shareReceiptImage();
@@ -766,10 +775,20 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                     color: AppTheme.secondaryColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.text_snippet_rounded, color: AppTheme.secondaryColor, size: 22),
+                  child: const Icon(
+                    Icons.text_snippet_rounded,
+                    color: AppTheme.secondaryColor,
+                    size: 22,
+                  ),
                 ),
-                title: const Text('Share as Text', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                subtitle: const Text('Plain text summary for WhatsApp, SMS or chat', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Share as Text',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Plain text summary for WhatsApp, SMS or chat',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _shareReceiptText();
@@ -784,10 +803,20 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                     color: Colors.green.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.copy_rounded, color: Colors.green, size: 22),
+                  child: const Icon(
+                    Icons.copy_rounded,
+                    color: Colors.green,
+                    size: 22,
+                  ),
                 ),
-                title: const Text('Copy Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                subtitle: const Text('Copy all receipt details to clipboard', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Copy Details',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Copy all receipt details to clipboard',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _copyReceiptDetails();
@@ -806,20 +835,25 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
     setState(() => _sharingImage = true);
 
     try {
-      final boundary = _receiptKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      await WidgetsBinding.instance.endOfFrame;
+      final boundary =
+          _receiptKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) {
         throw Exception('Receipt view not ready for capture');
       }
 
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
       if (byteData == null) {
         throw Exception('Could not encode image');
       }
 
       final pngBytes = byteData.buffer.asUint8List();
       final tempDir = await getTemporaryDirectory();
-      final ref = widget.details?['Reference'] ??
+      final ref =
+          widget.details?['Reference'] ??
           widget.details?['Ref'] ??
           widget.details?['transactionRef'] ??
           'tx_${DateTime.now().millisecondsSinceEpoch}';
@@ -845,17 +879,18 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
   void _shareReceiptText() {
     final buffer = _buildReceiptText();
     SharePlus.instance.share(
-      ShareParams(
-        text: buffer,
-        subject: 'Transaction Receipt - Ufriends IT',
-      ),
+      ShareParams(text: buffer, subject: 'Transaction Receipt - Ufriends IT'),
     );
   }
 
   void _copyReceiptDetails() {
     final buffer = _buildReceiptText();
     Clipboard.setData(ClipboardData(text: buffer));
-    AppModal.success(context, title: 'Copied', message: 'Receipt details copied to clipboard');
+    AppModal.success(
+      context,
+      title: 'Copied',
+      message: 'Receipt details copied to clipboard',
+    );
   }
 
   String _buildReceiptText() {
@@ -903,7 +938,10 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
     // Direct PDF URL download if available
     final pdfUrl = widget.slipDownloadUrl ?? widget.slipReport?['pdfUrl'];
     if (pdfUrl == null || pdfUrl.toString().isEmpty) {
-      AppModal.error(context, message: 'Slip document is not ready yet. Please check Activity later.');
+      AppModal.error(
+        context,
+        message: 'Slip document is not ready yet. Please check Activity later.',
+      );
       return;
     }
 
@@ -976,7 +1014,9 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
             border: Border.all(color: context.borderColor, width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: context.isDark ? 0.5 : 0.18),
+                color: Colors.black.withValues(
+                  alpha: context.isDark ? 0.5 : 0.18,
+                ),
                 blurRadius: 32,
                 offset: const Offset(0, 12),
               ),
@@ -998,7 +1038,10 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: accentColor.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
@@ -1007,7 +1050,9 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isSuccess ? Icons.check_circle_rounded : Icons.cancel_rounded,
+                            isSuccess
+                                ? Icons.check_circle_rounded
+                                : Icons.cancel_rounded,
                             size: 14,
                             color: accentColor,
                           ),
@@ -1037,7 +1082,11 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                           color: context.subtleBg,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.close, size: 18, color: context.textSecondary),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: context.textSecondary,
+                        ),
                       ),
                     ),
                   ],
@@ -1047,81 +1096,95 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
               // Scrollable Details
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22,
+                    vertical: 8,
+                  ),
                   child: Column(
                     children: [
                       // Lottie Animation
-                      Builder(builder: (context) {
-                        final lottie = Lottie.asset(
-                          isSuccess
-                              ? 'assets/illustrations/success.json'
-                              : 'assets/illustrations/failed.json',
-                          width: !isSuccess ? 145 : 130,
-                          height: !isSuccess ? 145 : 130,
-                          fit: BoxFit.contain,
-                          repeat: true,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: accentColor.withValues(alpha: 0.12),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                isSuccess ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                                size: 48,
-                                color: accentColor,
+                      Builder(
+                        builder: (context) {
+                          final lottie = Lottie.asset(
+                            isSuccess
+                                ? 'assets/illustrations/success.json'
+                                : 'assets/illustrations/failed.json',
+                            width: !isSuccess ? 145 : 130,
+                            height: !isSuccess ? 145 : 130,
+                            fit: BoxFit.contain,
+                            repeat: true,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: accentColor.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  isSuccess
+                                      ? Icons.check_circle_rounded
+                                      : Icons.cancel_rounded,
+                                  size: 48,
+                                  color: accentColor,
+                                ),
+                              );
+                            },
+                          );
+
+                          if (!isSuccess) {
+                            return SizedBox(
+                              width: 145,
+                              height: 145,
+                              child: Center(
+                                child: Transform.scale(
+                                  scale: 1.55,
+                                  child: lottie,
+                                ),
                               ),
                             );
-                          },
-                        );
-
-                        if (!isSuccess) {
-                          return SizedBox(
-                            width: 145,
-                            height: 145,
-                            child: Center(
-                              child: Transform.scale(
-                                scale: 1.55,
-                                child: lottie,
-                              ),
-                            ),
-                          );
-                        }
-                        return lottie;
-                      }),
+                          }
+                          return lottie;
+                        },
+                      ),
 
                       const SizedBox(height: 10),
 
                       // Title (Remove duplicate "Transaction Successful")
-                      Builder(builder: (context) {
-                        final lowerTitle = widget.title.trim().toLowerCase();
-                        final isGeneric = lowerTitle == 'transaction successful' ||
-                            lowerTitle == 'transaction failed' ||
-                            lowerTitle == 'successful' ||
-                            lowerTitle == 'failed';
-                        final service = widget.details?['Service'];
-                        final displayTitle = isGeneric ? (service ?? '') : widget.title;
+                      Builder(
+                        builder: (context) {
+                          final lowerTitle = widget.title.trim().toLowerCase();
+                          final isGeneric =
+                              lowerTitle == 'transaction successful' ||
+                              lowerTitle == 'transaction failed' ||
+                              lowerTitle == 'successful' ||
+                              lowerTitle == 'failed';
+                          final service = widget.details?['Service'];
+                          final displayTitle = isGeneric
+                              ? (service ?? '')
+                              : widget.title;
 
-                        if (displayTitle.isEmpty) return const SizedBox.shrink();
+                          if (displayTitle.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
 
-                        return Column(
-                          children: [
-                            Text(
-                              displayTitle,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 19,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: AppTheme.fontFamily,
-                                color: context.textPrimary,
+                          return Column(
+                            children: [
+                              Text(
+                                displayTitle,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 19,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: AppTheme.fontFamily,
+                                  color: context.textPrimary,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 6),
-                          ],
-                        );
-                      }),
+                              const SizedBox(height: 6),
+                            ],
+                          );
+                        },
+                      ),
 
                       // Message
                       Text(
@@ -1144,12 +1207,16 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                           decoration: BoxDecoration(
                             color: context.cardColor,
                             borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: context.borderColor, width: 1.1),
+                            border: Border.all(
+                              color: context.borderColor,
+                              width: 1.1,
+                            ),
                           ),
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Row(
                                     children: [
@@ -1167,9 +1234,14 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                                     ],
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
                                     decoration: BoxDecoration(
-                                      color: accentColor.withValues(alpha: 0.12),
+                                      color: accentColor.withValues(
+                                        alpha: 0.12,
+                                      ),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -1187,43 +1259,57 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                               const SizedBox(height: 10),
                               Divider(color: context.borderColor, height: 1),
                               const SizedBox(height: 10),
-
                               // Amount Highlight
-                              if (widget.amount != null && widget.amount!.isNotEmpty) ...[
+                              if (widget.amount != null &&
+                                  widget.amount!.isNotEmpty) ...[
                                 Text(
                                   widget.amount!,
                                   style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.w800,
                                     fontFamily: AppTheme.fontFamily,
-                                    color: isSuccess ? AppTheme.primaryColor : AppTheme.errorColor,
+                                    color: isSuccess
+                                        ? AppTheme.primaryColor
+                                        : AppTheme.errorColor,
                                   ),
                                 ),
                                 const SizedBox(height: 10),
                               ],
 
                               // Token / PIN Widget if available
-                              if (widget.pinContent != null && widget.pinContent!.trim().isNotEmpty) ...[
-                                PinDisplayWidget(pinContent: widget.pinContent!),
+                              if (widget.pinContent != null &&
+                                  widget.pinContent!.trim().isNotEmpty) ...[
+                                PinDisplayWidget(
+                                  pinContent: widget.pinContent!,
+                                ),
                                 const SizedBox(height: 10),
                               ],
 
                               // Transaction Details Table
-                              if (widget.details != null && widget.details!.isNotEmpty)
+                              if (widget.details != null &&
+                                  widget.details!.isNotEmpty)
                                 Container(
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                     color: context.subtleBg,
                                     borderRadius: BorderRadius.circular(14),
-                                    border: Border.all(color: context.borderColor),
+                                    border: Border.all(
+                                      color: context.borderColor,
+                                    ),
                                   ),
                                   child: Column(
-                                    children: widget.details!.entries.map((entry) {
+                                    children: widget.details!.entries.map((
+                                      entry,
+                                    ) {
                                       return Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 4,
+                                        ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               entry.key,
@@ -1241,7 +1327,8 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                                                 style: TextStyle(
                                                   fontWeight: FontWeight.w600,
                                                   fontSize: 11,
-                                                  fontFamily: AppTheme.fontFamily,
+                                                  fontFamily:
+                                                      AppTheme.fontFamily,
                                                   color: context.textPrimary,
                                                 ),
                                               ),
@@ -1252,33 +1339,73 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                                     }).toList(),
                                   ),
                                 ),
+                              const SizedBox(height: 12),
+                              Divider(color: context.borderColor, height: 1),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Thank you for using Ufriends IT.',
+                                style: TextStyle(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: context.textSecondary,
+                                  fontFamily: AppTheme.fontFamily,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'ufriends.com.ng  •  info@ufriends.com.ng\n+234 702 641 7709',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: context.textSecondary,
+                                  fontFamily: AppTheme.fontFamily,
+                                ),
+                              ),
                             ],
                           ),
                         ),
                       ),
 
                       // Slip Download / Preview Button if Slip Available
-                      if (widget.slipReport != null || widget.slipDownloadUrl != null) ...[
+                      if (widget.slipReport != null ||
+                          widget.slipDownloadUrl != null) ...[
                         const SizedBox(height: 14),
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: _downloadingSlip ? null : _downloadOrViewSlip,
+                            onPressed: _downloadingSlip
+                                ? null
+                                : _downloadOrViewSlip,
                             icon: _downloadingSlip
                                 ? const SizedBox(
                                     width: 16,
                                     height: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
                                   )
-                                : const Icon(Icons.description_rounded, size: 18),
+                                : const Icon(
+                                    Icons.description_rounded,
+                                    size: 18,
+                                  ),
                             label: Text(
-                              _downloadingSlip ? 'Downloading Slip...' : 'View / Download Official Slip',
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                              _downloadingSlip
+                                  ? 'Downloading Slip...'
+                                  : 'View / Download Official Slip',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppTheme.secondaryColor,
-                              side: const BorderSide(color: AppTheme.secondaryColor, width: 1.4),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              side: const BorderSide(
+                                color: AppTheme.secondaryColor,
+                                width: 1.4,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                               padding: const EdgeInsets.symmetric(vertical: 12),
                             ),
                           ),
@@ -1293,7 +1420,10 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
 
               // Bottom Actions (Share Receipt & Done)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
                 child: Row(
                   children: [
                     // Share Receipt Button
@@ -1304,14 +1434,21 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                             ? const SizedBox(
                                 width: 14,
                                 height: 14,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Icon(Icons.share_outlined, size: 17),
-                        label: Text(_sharingImage ? 'Preparing...' : 'Share Receipt', style: const TextStyle(fontSize: 13)),
+                        label: Text(
+                          _sharingImage ? 'Preparing...' : 'Share Receipt',
+                          style: const TextStyle(fontSize: 13),
+                        ),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: context.textPrimary,
                           side: BorderSide(color: context.borderColor),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 13),
                         ),
                       ),
@@ -1325,7 +1462,9 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                           borderRadius: BorderRadius.circular(14),
                           boxShadow: [
                             BoxShadow(
-                              color: AppTheme.primaryColor.withValues(alpha: 0.28),
+                              color: AppTheme.primaryColor.withValues(
+                                alpha: 0.28,
+                              ),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -1339,7 +1478,9 @@ class _TransactionModalDialogState extends State<_TransactionModalDialog> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.transparent,
                             shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                             padding: const EdgeInsets.symmetric(vertical: 13),
                           ),
                           child: const Text(

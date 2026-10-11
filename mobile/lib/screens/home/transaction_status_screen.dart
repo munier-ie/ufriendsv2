@@ -46,7 +46,8 @@ class TransactionStatusScreen extends StatefulWidget {
   });
 
   @override
-  State<TransactionStatusScreen> createState() => _TransactionStatusScreenState();
+  State<TransactionStatusScreen> createState() =>
+      _TransactionStatusScreenState();
 }
 
 class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
@@ -106,10 +107,20 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
                     color: AppTheme.primaryColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.image_rounded, color: AppTheme.primaryColor, size: 22),
+                  child: const Icon(
+                    Icons.image_rounded,
+                    color: AppTheme.primaryColor,
+                    size: 22,
+                  ),
                 ),
-                title: const Text('Share Receipt Image', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                subtitle: const Text('Official styled PNG receipt with logo & details', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Share Receipt Image',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Official styled PNG receipt with logo & details',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _shareReceiptImage();
@@ -124,10 +135,20 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
                     color: AppTheme.secondaryColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.text_snippet_rounded, color: AppTheme.secondaryColor, size: 22),
+                  child: const Icon(
+                    Icons.text_snippet_rounded,
+                    color: AppTheme.secondaryColor,
+                    size: 22,
+                  ),
                 ),
-                title: const Text('Share as Text', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                subtitle: const Text('Plain text summary for WhatsApp, SMS or chat', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Share as Text',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Plain text summary for WhatsApp, SMS or chat',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _shareReceiptText();
@@ -142,10 +163,20 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
                     color: Colors.green.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.copy_rounded, color: Colors.green, size: 22),
+                  child: const Icon(
+                    Icons.copy_rounded,
+                    color: Colors.green,
+                    size: 22,
+                  ),
                 ),
-                title: const Text('Copy Details', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                subtitle: const Text('Copy all receipt details to clipboard', style: TextStyle(fontSize: 12)),
+                title: const Text(
+                  'Copy Details',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                subtitle: const Text(
+                  'Copy all receipt details to clipboard',
+                  style: TextStyle(fontSize: 12),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   _copyReceiptDetails();
@@ -164,20 +195,26 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
     setState(() => _sharingImage = true);
 
     try {
-      final boundary = _receiptKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      // Wait until the branded receipt has completed its layout before capture.
+      await WidgetsBinding.instance.endOfFrame;
+      final boundary =
+          _receiptKey.currentContext?.findRenderObject()
+              as RenderRepaintBoundary?;
       if (boundary == null) {
         throw Exception('Receipt view not ready for capture');
       }
 
       final image = await boundary.toImage(pixelRatio: 3.0);
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      image.dispose();
       if (byteData == null) {
         throw Exception('Could not encode image');
       }
 
       final pngBytes = byteData.buffer.asUint8List();
       final tempDir = await getTemporaryDirectory();
-      final ref = widget.details?['Reference'] ??
+      final ref =
+          widget.details?['Reference'] ??
           widget.details?['Ref'] ??
           widget.details?['transactionRef'] ??
           'tx_${DateTime.now().millisecondsSinceEpoch}';
@@ -203,10 +240,7 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
   void _shareReceiptText() {
     final buffer = _buildReceiptText();
     SharePlus.instance.share(
-      ShareParams(
-        text: buffer,
-        subject: 'Transaction Receipt - Ufriends IT',
-      ),
+      ShareParams(text: buffer, subject: 'Transaction Receipt - Ufriends IT'),
     );
   }
 
@@ -299,7 +333,11 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
 
       if (mounted) {
         setState(() => _downloadingSlip = false);
-        AppToast.success(context, 'Slip saved to Downloads/$fileName', title: 'Slip Downloaded');
+        AppToast.success(
+          context,
+          'Slip saved to Downloads/$fileName',
+          title: 'Slip Downloaded',
+        );
       }
     } catch (e) {
       if (mounted) {
@@ -317,9 +355,9 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const HomeScreen()));
     }
   }
 
@@ -330,15 +368,14 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
 
     // Remove duplicate title: If title is generic "Transaction Successful", use service name or don't repeat
     final lowerTitle = widget.title.trim().toLowerCase();
-    final isGenericTitle = lowerTitle == 'transaction successful' ||
+    final isGenericTitle =
+        lowerTitle == 'transaction successful' ||
         lowerTitle == 'transaction failed' ||
         lowerTitle == 'successful' ||
         lowerTitle == 'failed';
 
     final serviceName = widget.details?['Service'];
-    final displaySubtitle = isGenericTitle
-        ? (serviceName ?? '')
-        : widget.title;
+    final displaySubtitle = isGenericTitle ? (serviceName ?? '') : widget.title;
 
     return PopScope(
       canPop: false,
@@ -352,414 +389,531 @@ class _TransactionStatusScreenState extends State<TransactionStatusScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: Icon(Icons.arrow_back_ios_new_rounded, color: context.textPrimary, size: 20),
+            icon: Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: context.textPrimary,
+              size: 20,
+            ),
             onPressed: _handleBack,
           ),
           actions: [
             IconButton(
-              icon: Icon(Icons.share_outlined, color: context.textPrimary, size: 22),
+              icon: Icon(
+                Icons.share_outlined,
+                color: context.textPrimary,
+                size: 22,
+              ),
               onPressed: _showShareOptions,
               tooltip: 'Share Receipt',
             ),
             const SizedBox(width: 8),
           ],
         ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                child: Column(
-                  children: [
-                    // Lottie Animation (repeating loop)
-                    Center(
-                      child: Builder(builder: (context) {
-                        final lottie = Lottie.asset(
-                          isSuccess
-                              ? 'assets/illustrations/success.json'
-                              : 'assets/illustrations/failed.json',
-                          width: !isSuccess ? 150 : 140,
-                          height: !isSuccess ? 150 : 140,
-                          fit: BoxFit.contain,
-                          repeat: true,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 90,
-                              height: 90,
-                              decoration: BoxDecoration(
-                                color: accentColor.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                isSuccess ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                                color: accentColor,
-                                size: 54,
-                              ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Column(
+                    children: [
+                      // Lottie Animation (repeating loop)
+                      Center(
+                        child: Builder(
+                          builder: (context) {
+                            final lottie = Lottie.asset(
+                              isSuccess
+                                  ? 'assets/illustrations/success.json'
+                                  : 'assets/illustrations/failed.json',
+                              width: !isSuccess ? 150 : 140,
+                              height: !isSuccess ? 150 : 140,
+                              fit: BoxFit.contain,
+                              repeat: true,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  width: 90,
+                                  height: 90,
+                                  decoration: BoxDecoration(
+                                    color: accentColor.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    isSuccess
+                                        ? Icons.check_circle_rounded
+                                        : Icons.cancel_rounded,
+                                    color: accentColor,
+                                    size: 54,
+                                  ),
+                                );
+                              },
                             );
+
+                            if (!isSuccess) {
+                              return SizedBox(
+                                width: 150,
+                                height: 150,
+                                child: Center(
+                                  child: Transform.scale(
+                                    scale: 1.55,
+                                    child: lottie,
+                                  ),
+                                ),
+                              );
+                            }
+                            return lottie;
                           },
-                        );
-
-                        if (!isSuccess) {
-                          return SizedBox(
-                            width: 150,
-                            height: 150,
-                            child: Center(
-                              child: Transform.scale(
-                                scale: 1.55,
-                                child: lottie,
-                              ),
-                            ),
-                          );
-                        }
-                        return lottie;
-                      }),
-                    ),
-
-                    const SizedBox(height: 12),
-
-                    // Status Badge (Sole status text — no duplicate "Transaction Successful" beneath it)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: accentColor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: accentColor.withValues(alpha: 0.3)),
-                      ),
-                      child: Text(
-                        isSuccess ? 'TRANSACTION SUCCESSFUL' : 'TRANSACTION FAILED',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          letterSpacing: 0.8,
-                          color: accentColor,
-                          fontFamily: AppTheme.fontFamily,
                         ),
                       ),
-                    ),
 
-                    // Display Subtitle/Service only if informative (avoid duplicate)
-                    if (displaySubtitle.isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                      const SizedBox(height: 12),
+
+                      // Status Badge (Sole status text — no duplicate "Transaction Successful" beneath it)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: accentColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: accentColor.withValues(alpha: 0.3),
+                          ),
+                        ),
                         child: Text(
-                          displaySubtitle,
-                          textAlign: TextAlign.center,
+                          isSuccess
+                              ? 'TRANSACTION SUCCESSFUL'
+                              : 'TRANSACTION FAILED',
                           style: TextStyle(
-                            fontSize: 19,
+                            fontSize: 12,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: 0.8,
+                            color: accentColor,
                             fontFamily: AppTheme.fontFamily,
-                            color: context.textPrimary,
                           ),
                         ),
                       ),
-                    ],
 
-                    const SizedBox(height: 8),
+                      // Display Subtitle/Service only if informative (avoid duplicate)
+                      if (displaySubtitle.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                          child: Text(
+                            displaySubtitle,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: AppTheme.fontFamily,
+                              color: context.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
 
-                    // Message
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        widget.message,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          height: 1.4,
-                          fontFamily: AppTheme.fontFamily,
-                          color: context.textSecondary,
+                      const SizedBox(height: 8),
+
+                      // Message
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          widget.message,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            height: 1.4,
+                            fontFamily: AppTheme.fontFamily,
+                            color: context.textSecondary,
+                          ),
                         ),
                       ),
-                    ),
 
-                    const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
-                    // Branded RepaintBoundary Receipt Card (Used for high-resolution PNG receipt share)
-                    RepaintBoundary(
-                      key: _receiptKey,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: context.cardColor,
-                          borderRadius: BorderRadius.circular(22),
-                          border: Border.all(color: context.borderColor, width: 1.2),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: context.isDark ? 0.35 : 0.05),
-                              blurRadius: 16,
-                              offset: const Offset(0, 4),
+                      // Branded RepaintBoundary Receipt Card (Used for high-resolution PNG receipt share)
+                      RepaintBoundary(
+                        key: _receiptKey,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 4,
+                          ),
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: context.cardColor,
+                            borderRadius: BorderRadius.circular(22),
+                            border: Border.all(
+                              color: context.borderColor,
+                              width: 1.2,
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Receipt Header
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Row(
-                                  children: [
-                                    const AppLogo(size: 28),
-                                    const SizedBox(width: 8),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Ufriends IT',
-                                          style: TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                            color: AppTheme.primaryColor,
-                                            fontFamily: AppTheme.fontFamily,
-                                          ),
-                                        ),
-                                        Text(
-                                          'Official Receipt',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            color: context.textSecondary,
-                                            fontFamily: AppTheme.fontFamily,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(
+                                  alpha: context.isDark ? 0.35 : 0.05,
                                 ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: accentColor.withValues(alpha: 0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: accentColor.withValues(alpha: 0.3)),
-                                  ),
-                                  child: Text(
-                                    isSuccess ? 'SUCCESS' : 'FAILED',
-                                    style: TextStyle(
-                                      color: accentColor,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: AppTheme.fontFamily,
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 14),
-                            Divider(color: context.borderColor, height: 1),
-                            const SizedBox(height: 14),
-
-                            // Amount Highlight inside receipt
-                            if (widget.amount != null && widget.amount!.isNotEmpty) ...[
-                              Text(
-                                'AMOUNT',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  letterSpacing: 1,
-                                  fontWeight: FontWeight.w600,
-                                  color: context.textSecondary,
-                                  fontFamily: AppTheme.fontFamily,
-                                ),
+                                blurRadius: 16,
+                                offset: const Offset(0, 4),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                widget.amount!,
-                                style: TextStyle(
-                                  fontSize: 26,
-                                  fontWeight: FontWeight.w800,
-                                  fontFamily: AppTheme.fontFamily,
-                                  color: isSuccess ? AppTheme.primaryColor : AppTheme.errorColor,
-                                ),
-                              ),
-                              const SizedBox(height: 14),
                             ],
-
-                            // Dedicated PIN & Serial Display if available
-                            if (widget.pinContent != null && widget.pinContent!.trim().isNotEmpty) ...[
-                              PinDisplayWidget(pinContent: widget.pinContent!),
-                              const SizedBox(height: 14),
-                            ],
-
-                            // Details Table
-                            if (widget.details != null && widget.details!.isNotEmpty)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: context.subtleBg,
-                                  borderRadius: BorderRadius.circular(14),
-                                  border: Border.all(color: context.borderColor),
-                                ),
-                                child: Column(
-                                  children: widget.details!.entries.map((entry) {
-                                    final isCopyable = entry.key.toLowerCase().contains('reference') ||
-                                        entry.key.toLowerCase().contains('token') ||
-                                        entry.key.toLowerCase().contains('meter') ||
-                                        entry.key.toLowerCase().contains('card');
-
-                                    return Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 5),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Receipt Header
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const AppLogo(size: 28),
+                                      const SizedBox(width: 8),
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            entry.key,
+                                            'Ufriends IT',
                                             style: TextStyle(
-                                              color: context.textSecondary,
-                                              fontSize: 12,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppTheme.primaryColor,
                                               fontFamily: AppTheme.fontFamily,
                                             ),
                                           ),
-                                          const SizedBox(width: 14),
-                                          Expanded(
-                                            child: InkWell(
-                                              onTap: isCopyable
-                                                  ? () {
-                                                      Clipboard.setData(ClipboardData(text: entry.value));
-                                                      AppToast.success(context, '${entry.key} copied to clipboard');
-                                                    }
-                                                  : null,
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.end,
-                                                children: [
-                                                  Flexible(
-                                                    child: Text(
-                                                      entry.value,
-                                                      textAlign: TextAlign.end,
-                                                      style: TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        fontSize: 12,
-                                                        fontFamily: AppTheme.fontFamily,
-                                                        color: context.textPrimary,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  if (isCopyable) ...[
-                                                    const SizedBox(width: 4),
-                                                    Icon(
-                                                      Icons.copy_rounded,
-                                                      size: 12,
-                                                      color: AppTheme.secondaryColor,
-                                                    ),
-                                                  ],
-                                                ],
-                                              ),
+                                          Text(
+                                            'Official Receipt',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: context.textSecondary,
+                                              fontFamily: AppTheme.fontFamily,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    );
-                                  }).toList(),
-                                ),
+                                    ],
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: accentColor.withValues(
+                                        alpha: 0.12,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: accentColor.withValues(
+                                          alpha: 0.3,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Text(
+                                      isSuccess ? 'SUCCESS' : 'FAILED',
+                                      style: TextStyle(
+                                        color: accentColor,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: AppTheme.fontFamily,
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
 
-                            const SizedBox(height: 14),
-                            Divider(color: context.borderColor, height: 1),
-                            const SizedBox(height: 10),
+                              const SizedBox(height: 14),
+                              Divider(color: context.borderColor, height: 1),
+                              const SizedBox(height: 14),
 
-                            // Receipt Footer
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
+                              // Amount Highlight inside receipt
+                              if (widget.amount != null &&
+                                  widget.amount!.isNotEmpty) ...[
                                 Text(
-                                  'ufriends.com.ng',
+                                  'AMOUNT',
                                   style: TextStyle(
                                     fontSize: 10,
+                                    letterSpacing: 1,
+                                    fontWeight: FontWeight.w600,
                                     color: context.textSecondary,
                                     fontFamily: AppTheme.fontFamily,
                                   ),
                                 ),
+                                const SizedBox(height: 4),
                                 Text(
-                                  'Thank you for your business',
+                                  widget.amount!,
                                   style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                    color: context.textSecondary,
+                                    fontSize: 26,
+                                    fontWeight: FontWeight.w800,
                                     fontFamily: AppTheme.fontFamily,
+                                    color: isSuccess
+                                        ? AppTheme.primaryColor
+                                        : AppTheme.errorColor,
                                   ),
                                 ),
+                                const SizedBox(height: 14),
                               ],
+
+                              // Dedicated PIN & Serial Display if available
+                              if (widget.pinContent != null &&
+                                  widget.pinContent!.trim().isNotEmpty) ...[
+                                PinDisplayWidget(
+                                  pinContent: widget.pinContent!,
+                                ),
+                                const SizedBox(height: 14),
+                              ],
+
+                              // Details Table
+                              if (widget.details != null &&
+                                  widget.details!.isNotEmpty)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: context.subtleBg,
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: context.borderColor,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: widget.details!.entries.map((
+                                      entry,
+                                    ) {
+                                      final isCopyable =
+                                          entry.key.toLowerCase().contains(
+                                            'reference',
+                                          ) ||
+                                          entry.key.toLowerCase().contains(
+                                            'token',
+                                          ) ||
+                                          entry.key.toLowerCase().contains(
+                                            'meter',
+                                          ) ||
+                                          entry.key.toLowerCase().contains(
+                                            'card',
+                                          );
+
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 5,
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              entry.key,
+                                              style: TextStyle(
+                                                color: context.textSecondary,
+                                                fontSize: 12,
+                                                fontFamily: AppTheme.fontFamily,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 14),
+                                            Expanded(
+                                              child: InkWell(
+                                                onTap: isCopyable
+                                                    ? () {
+                                                        Clipboard.setData(
+                                                          ClipboardData(
+                                                            text: entry.value,
+                                                          ),
+                                                        );
+                                                        AppToast.success(
+                                                          context,
+                                                          '${entry.key} copied to clipboard',
+                                                        );
+                                                      }
+                                                    : null,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.end,
+                                                  children: [
+                                                    Flexible(
+                                                      child: Text(
+                                                        entry.value,
+                                                        textAlign:
+                                                            TextAlign.end,
+                                                        style: TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 12,
+                                                          fontFamily: AppTheme
+                                                              .fontFamily,
+                                                          color: context
+                                                              .textPrimary,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    if (isCopyable) ...[
+                                                      const SizedBox(width: 4),
+                                                      Icon(
+                                                        Icons.copy_rounded,
+                                                        size: 12,
+                                                        color: AppTheme
+                                                            .secondaryColor,
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+
+                              const SizedBox(height: 14),
+                              Divider(color: context.borderColor, height: 1),
+                              const SizedBox(height: 10),
+
+                              // Receipt Footer
+                              Column(
+                                children: [
+                                  Text(
+                                    'Thank you for using Ufriends IT.',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w700,
+                                      color: context.textSecondary,
+                                      fontFamily: AppTheme.fontFamily,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'ufriends.com.ng  •  info@ufriends.com.ng',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: context.textSecondary,
+                                      fontFamily: AppTheme.fontFamily,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '+234 702 641 7709  •  Support available online',
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 9,
+                                      color: context.textSecondary,
+                                      fontFamily: AppTheme.fontFamily,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // Slip Download / Preview Button if applicable
+                      if (widget.slipReport != null ||
+                          widget.slipDownloadUrl != null)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 8,
+                          ),
+                          child: OutlinedButton.icon(
+                            onPressed: _downloadingSlip
+                                ? null
+                                : _handleSlipAction,
+                            icon: _downloadingSlip
+                                ? const SizedBox(
+                                    width: 16,
+                                    height: 16,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.description_rounded,
+                                    size: 20,
+                                  ),
+                            label: Text(
+                              _downloadingSlip
+                                  ? 'Downloading Slip...'
+                                  : 'View / Download Official Slip',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ],
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppTheme.secondaryColor,
+                              side: const BorderSide(
+                                color: AppTheme.secondaryColor,
+                                width: 1.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              minimumSize: const Size(double.infinity, 50),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
+              // Bottom Action Buttons
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: _showShareOptions,
+                        icon: _sharingImage
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.share_outlined, size: 18),
+                        label: Text(
+                          _sharingImage ? 'Preparing...' : 'Share Receipt',
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: context.textPrimary,
+                          side: BorderSide(color: context.borderColor),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                         ),
                       ),
                     ),
-
-                    const SizedBox(height: 12),
-
-                    // Slip Download / Preview Button if applicable
-                    if (widget.slipReport != null || widget.slipDownloadUrl != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                        child: OutlinedButton.icon(
-                          onPressed: _downloadingSlip ? null : _handleSlipAction,
-                          icon: _downloadingSlip
-                              ? const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : const Icon(Icons.description_rounded, size: 20),
-                          label: Text(
-                            _downloadingSlip ? 'Downloading Slip...' : 'View / Download Official Slip',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppTheme.secondaryColor,
-                            side: const BorderSide(color: AppTheme.secondaryColor, width: 1.5),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GradientButton(
+                        text: 'Done',
+                        onPressed: _handleBack,
                       ),
+                    ),
                   ],
                 ),
               ),
-            ),
-
-            // Bottom Action Buttons
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _showShareOptions,
-                      icon: _sharingImage
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.share_outlined, size: 18),
-                      label: Text(_sharingImage ? 'Preparing...' : 'Share Receipt'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: context.textPrimary,
-                        side: BorderSide(color: context.borderColor),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: GradientButton(
-                      text: 'Done',
-                      onPressed: _handleBack,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

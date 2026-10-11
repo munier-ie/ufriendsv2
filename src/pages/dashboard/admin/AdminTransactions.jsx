@@ -1,5 +1,5 @@
 import { Search, Loader2, Eye, X, AlertTriangle, CheckCircle, RefreshCcw, ShieldCheck } from 'lucide-react';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { modal } from '../../../contexts/ModalContext';
 import axios from 'axios';
 
@@ -20,6 +20,14 @@ export default function AdminTransactions() {
     const [selectedTx, setSelectedTx] = useState(null);
     const [actionLoading, setActionLoading] = useState(false);
     const [reconciliation, setReconciliation] = useState(null);
+    const reconciliationRef = useRef(null);
+
+    useEffect(() => {
+        if (!reconciliation) return;
+        requestAnimationFrame(() => {
+            reconciliationRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        });
+    }, [reconciliation]);
 
     useEffect(() => {
         const timeout = setTimeout(() => {
@@ -75,7 +83,13 @@ export default function AdminTransactions() {
             setSelectedTx(null);
             fetchTransactions();
         } catch (error) {
-            modal.error(error.response?.data?.error || 'Failed to update transaction');
+            const message = error.response?.data?.error || 'Failed to update transaction';
+            if (message.toLowerCase().includes('provider delivery must be reconciled')) {
+                setReconciliation({ outcome: 'failed', reason: '', providerReference: '' });
+                modal.info('Confirm the provider outcome below before issuing the refund. The form has been opened for you.');
+            } else {
+                modal.error(message);
+            }
         } finally {
             setActionLoading(false);
         }
@@ -115,7 +129,13 @@ export default function AdminTransactions() {
             setSelectedTx(null);
             fetchTransactions();
         } catch (error) {
-            modal.error(error.response?.data?.error || 'Manual legacy refund failed');
+            const message = error.response?.data?.error || 'Manual legacy refund failed';
+            if (message.toLowerCase().includes('provider delivery must be reconciled')) {
+                setReconciliation({ outcome: 'failed', reason: '', providerReference: '' });
+                modal.info('Confirm the provider outcome below before issuing the refund. The form has been opened for you.');
+            } else {
+                modal.error(message);
+            }
         } finally {
             setActionLoading(false);
         }
@@ -323,7 +343,7 @@ export default function AdminTransactions() {
                                     </Button>
                                 )}
                                 {reconciliation ? (
-                                    <form onSubmit={handleReconcile} className="mt-5 space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
+                                    <form ref={reconciliationRef} onSubmit={handleReconcile} className="mt-5 space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4">
                                         <p className="text-sm text-gray-700">Check the provider portal or contact the provider first. Confirmed failure refunds the original debit once.</p>
                                         <label className="block text-sm font-medium">Confirmed outcome
                                             <select required className="mt-1 w-full rounded-lg border p-2" value={reconciliation.outcome} onChange={event => setReconciliation(current => ({ ...current, outcome: event.target.value }))}>
