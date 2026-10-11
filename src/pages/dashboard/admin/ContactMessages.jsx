@@ -6,7 +6,8 @@ import axios from 'axios';
 import Button from '../../../components/ui/Button';
 
 export default function ContactMessages() {
-        const [stats, setStats] = useState({ total: 0, unread: 0, replied: 0 });
+    const [messages, setMessages] = useState([]);
+    const [stats, setStats] = useState({ total: 0, unread: 0, replied: 0 });
     const [loading, setLoading] = useState(true);
     const [selectedMsg, setSelectedMsg] = useState(null);
     const [replyText, setReplyText] = useState('');

@@ -286,7 +286,7 @@ export default function DashboardLayout() {
             title: 'Portal & Comms',
             items: [
                 { icon: Globe, label: 'Homepage Editor', path: '/admin/dashboard/homepage', moduleId: 'settings' },
-                { icon: Send, label: 'Messages', path: '/admin/dashboard/contact', moduleId: 'contact' },
+                { icon: HelpCircle, label: 'Support Tickets', path: '/admin/dashboard/contact', moduleId: 'contact' },
                 { icon: Megaphone, label: 'Broadcast', path: '/admin/dashboard/broadcast', moduleId: 'contact' },
                 { icon: MessageSquare, label: 'Bulk SMS Log', path: '/admin/dashboard/sms', moduleId: 'contact' },
             ]
