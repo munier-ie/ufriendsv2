@@ -91,7 +91,8 @@ async function purchaseAirtime(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
 
@@ -121,7 +122,8 @@ async function purchaseAirtime(details, config) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa Airtime Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
-        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse, errorCode: error.code };
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse || isTimeout, errorCode: error.code };
     }
 }
 
@@ -152,7 +154,8 @@ async function purchaseData(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
 
@@ -182,7 +185,8 @@ async function purchaseData(details, config) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa Data Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
-        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse, errorCode: error.code };
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse || isTimeout, errorCode: error.code };
     }
 }
 
@@ -265,7 +269,8 @@ async function purchaseTV(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -293,7 +298,9 @@ async function purchaseTV(details, config) {
     } catch (error) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa TV Error:', error.response?.status || error.code || 'request failed');
-        return { status: 'failed', message: msg, error: error.response?.data || error.message };
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse || isTimeout, errorCode: error.code };
     }
 }
 
@@ -390,7 +397,8 @@ async function purchaseElectricity(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -419,7 +427,9 @@ async function purchaseElectricity(details, config) {
     } catch (error) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa Electricity Error:', error.response?.status || error.code || 'request failed');
-        return { status: 'failed', message: msg, error: error.response?.data || error.message };
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse || isTimeout, errorCode: error.code };
     }
 }
 
@@ -446,7 +456,8 @@ async function purchaseExam(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -469,7 +480,9 @@ async function purchaseExam(details, config) {
     } catch (error) {
         const msg = extractMaskawaError(error);
         console.error('Maskawa Exam Error:', error.response?.status || error.code || 'request failed');
-        return { status: 'failed', message: msg, error: error.response?.data || error.message };
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        return { status: 'failed', message: msg, hasResponse, isConnectionError: !hasResponse || isTimeout, errorCode: error.code };
     }
 }
 

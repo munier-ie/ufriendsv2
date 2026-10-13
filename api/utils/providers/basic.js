@@ -24,7 +24,8 @@ async function purchaseAirtime(details, config) {
                 // Determine Authorization header format (Basic vs pure token)
                 // Version 3 uses "Authorization: Basic $apiKey" to get a token
                 const authResponse = await axios.post(userUrl, {}, {
-                    headers: { 'Authorization': `Basic ${apiKey}` }
+                    headers: { 'Authorization': `Basic ${apiKey}` },
+                    timeout: 30000
                 });
 
                 if (authResponse.data && authResponse.data.AccessToken) {
@@ -58,7 +59,8 @@ async function purchaseAirtime(details, config) {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
 
@@ -90,11 +92,12 @@ async function purchaseAirtime(details, config) {
     } catch (error) {
         console.error('BasicProvider Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: hasResponse ? (error.response?.data?.msg || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
             hasResponse,
-            isConnectionError: !hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
             errorCode: error.code
         };
     }
@@ -117,7 +120,8 @@ async function purchaseData(details, config) {
         let token = apiKey;
         if (userUrl) {
             const authResponse = await axios.post(userUrl, {}, {
-                headers: { 'Authorization': `Basic ${apiKey}` }
+                headers: { 'Authorization': `Basic ${apiKey}` },
+                timeout: 30000
             });
             if (authResponse.data && authResponse.data.AccessToken) {
                 token = authResponse.data.AccessToken;
@@ -138,7 +142,8 @@ async function purchaseData(details, config) {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
 
@@ -168,11 +173,12 @@ async function purchaseData(details, config) {
     } catch (error) {
         console.error('BasicProvider Data Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: hasResponse ? (error.response?.data?.msg || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
             hasResponse,
-            isConnectionError: !hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
             errorCode: error.code
         };
     }
@@ -194,7 +200,8 @@ async function verifyTV(details, config) {
 
         // Basic Auth for verification as per Version 3
         const response = await axios.get(`${verifyUrl}?iuc=${number}&cable=${cableId}`, {
-            headers: { 'Authorization': `Basic ${apiKey}` }
+            headers: { 'Authorization': `Basic ${apiKey}` },
+            timeout: 15000
         });
 
         const result = response.data;
@@ -233,7 +240,8 @@ async function purchaseTV(details, config) {
         let token = apiKey;
         if (userUrl) {
             const authResponse = await axios.post(userUrl, {}, {
-                headers: { 'Authorization': `Basic ${apiKey}` }
+                headers: { 'Authorization': `Basic ${apiKey}` },
+                timeout: 30000
             });
             if (authResponse.data && authResponse.data.AccessToken) {
                 token = authResponse.data.AccessToken;
@@ -252,7 +260,8 @@ async function purchaseTV(details, config) {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -279,10 +288,14 @@ async function purchaseTV(details, config) {
         }
     } catch (error) {
         console.error('BasicProvider TV Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.msg || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -304,7 +317,8 @@ async function verifyElectricity(details, config) {
 
         // URL format: verifyUrl?metertype=prepaid&disco=1&meternumber=1234567890
         const response = await axios.get(`${verifyUrl}?meter_type=${type || 'prepaid'}&disco=${discoId}&meter_number=${number}`, {
-            headers: { 'Authorization': `Basic ${apiKey}` }
+            headers: { 'Authorization': `Basic ${apiKey}` },
+            timeout: 15000
         });
 
         const result = response.data;
@@ -345,7 +359,8 @@ async function purchaseElectricity(details, config) {
         let token = apiKey;
         if (userUrl) {
             const authResponse = await axios.post(userUrl, {}, {
-                headers: { 'Authorization': `Basic ${apiKey}` }
+                headers: { 'Authorization': `Basic ${apiKey}` },
+                timeout: 30000
             });
             if (authResponse.data && authResponse.data.AccessToken) {
                 token = authResponse.data.AccessToken;
@@ -366,7 +381,8 @@ async function purchaseElectricity(details, config) {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -394,10 +410,14 @@ async function purchaseElectricity(details, config) {
         }
     } catch (error) {
         console.error('BasicProvider Electricity Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.msg || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -418,7 +438,8 @@ async function purchaseExam(details, config) {
         let token = apiKey;
         if (userUrl) {
             const authResponse = await axios.post(userUrl, {}, {
-                headers: { 'Authorization': `Basic ${apiKey}` }
+                headers: { 'Authorization': `Basic ${apiKey}` },
+                timeout: 30000
             });
             if (authResponse.data && authResponse.data.AccessToken) {
                 token = authResponse.data.AccessToken;
@@ -435,7 +456,8 @@ async function purchaseExam(details, config) {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -457,10 +479,14 @@ async function purchaseExam(details, config) {
         }
     } catch (error) {
         console.error('BasicProvider Exam Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.msg || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -476,7 +502,8 @@ async function purchaseDataPin(details, config) {
         let token = apiKey;
         if (userUrl) {
             const authResponse = await axios.post(userUrl, {}, {
-                headers: { 'Authorization': `Basic ${apiKey}` }
+                headers: { 'Authorization': `Basic ${apiKey}` },
+                timeout: 30000
             });
             if (authResponse.data && authResponse.data.AccessToken) {
                 token = authResponse.data.AccessToken;
@@ -495,7 +522,8 @@ async function purchaseDataPin(details, config) {
             headers: {
                 'Authorization': `Token ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -517,10 +545,14 @@ async function purchaseDataPin(details, config) {
         }
     } catch (error) {
         console.error('BasicProvider DataPin Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.msg || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }

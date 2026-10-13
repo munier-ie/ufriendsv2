@@ -58,6 +58,7 @@ class _DataScreenState extends State<DataScreen> {
     'Data Coupons',
     'Data Share',
     'Data Awoof',
+    'Social Bundles',
   ];
 
   List<dynamic> _beneficiaries = [];
@@ -108,8 +109,46 @@ class _DataScreenState extends State<DataScreen> {
     return value; // in MB
   }
 
+  bool _isSocialPlan(String name) {
+    return RegExp(r'social|tiktok|whatsapp|facebook|insta|instagram|youtube|snapchat|binge|streaming', caseSensitive: false).hasMatch(name);
+  }
+
+  String _cleanPlanName(String raw) {
+    if (raw.isEmpty) return '';
+    String str = raw.trim();
+
+    final isTikTok = RegExp(r'tiktok', caseSensitive: false).hasMatch(str);
+    final isSocial = _isSocialPlan(str);
+    String socialTag = '';
+    if (isTikTok) {
+      socialTag = ' [TikTok Only]';
+    } else if (isSocial) {
+      socialTag = ' [Social Only]';
+    }
+
+    // Strip nested / double parens noise
+    str = str
+        .replaceAll(RegExp(r'\s*\(\(\s*\d+\s*Days?\s*\)\s*Days?\)', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*\(\(\s*\d+\s*\)\)', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*\(\s*\d+\s*\)', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s*Days?\s*\)', caseSensitive: false), ')')
+        .replaceAll(RegExp(r'\{[^}]*\}'), '')
+        .replaceAll(RegExp(r'\(\s*\)'), '')
+        .replaceAll(RegExp(r'\s{2,}'), ' ')
+        .trim();
+
+    if (socialTag.isNotEmpty && !str.contains('[')) {
+      str = '$str$socialTag';
+    }
+    return str;
+  }
+
   bool _matchesDataType(String planName, String? type) {
     if (type == null || type.isEmpty || type == 'All Types') return true;
+    final isSocial = _isSocialPlan(planName);
+    if (type == 'Social Bundles') return isSocial;
+    if (isSocial) return false; // Exclude social plans from regular categories
+
     final nameUpper = planName.toUpperCase();
     if (type == 'SME') return nameUpper.contains('SME');
     if (type == 'Corporate Gifting') return nameUpper.contains('CORPORATE') || nameUpper.contains('C.G') || nameUpper.contains('CG');
@@ -609,8 +648,9 @@ class _DataScreenState extends State<DataScreen> {
                             itemCount: filtered.length,
                             itemBuilder: (context, index) {
                               final plan = filtered[index];
+                              final displayName = _cleanPlanName(plan['name'] ?? 'N/A');
                               return ListTile(
-                                title: Text(plan['name'] ?? 'N/A'),
+                                title: Text(displayName),
                                 subtitle: Text('₦${formatCurrency((plan['price'] ?? 0).toDouble())}'),
                                 trailing: _selectedDataPlan?['id'] == plan['id'] 
                                     ? const Icon(Icons.check_circle, color: Color(0xFF1E90FF))
@@ -818,7 +858,13 @@ class _DataScreenState extends State<DataScreen> {
                 onTap: _isLoadingPlans ? null : _showPlanPicker,
                 child: AbsorbPointer(
                   child: TextField(
-                    controller: TextEditingController(text: _isLoadingPlans ? 'Loading plans...' : (_selectedDataPlan?['name'] ?? 'Select a plan')),
+                    controller: TextEditingController(
+                      text: _isLoadingPlans
+                          ? 'Loading plans...'
+                          : (_selectedDataPlan != null
+                              ? _cleanPlanName(_selectedDataPlan!['name'] ?? '')
+                              : 'Select a plan'),
+                    ),
                     decoration: const InputDecoration(
                       hintText: 'Select a plan',
                       suffixIcon: Icon(Icons.arrow_drop_down),
@@ -826,7 +872,41 @@ class _DataScreenState extends State<DataScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 40),
+              if (_selectedDataPlan != null && (_selectedDataPlan!['isSocial'] == true || _isSocialPlan(_selectedDataPlan!['name'] ?? ''))) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.amber.shade300),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900, size: 20),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'App-Restricted / Social Only Bundle',
+                              style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.amber.shade900),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'This bundle works ONLY on specified social apps (e.g. TikTok, WhatsApp, Facebook). It will NOT work for general browsing or bank apps.',
+                              style: TextStyle(fontSize: 11, color: Colors.amber.shade900),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 32),
               
               GradientButton(
                 text: 'Proceed',

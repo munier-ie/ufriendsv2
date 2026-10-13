@@ -22,6 +22,7 @@ class VerificationScreen extends StatefulWidget {
 class _VerificationScreenState extends State<VerificationScreen> {
   final TextEditingController _pinController = TextEditingController();
   bool _isLoading = false;
+  bool _isResending = false;
 
   @override
   void dispose() {
@@ -32,7 +33,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
   Future<void> _handleVerify() async {
     String code = _pinController.text;
     if (code.length < 6) {
-      AppToast.show(context, message: 'Please enter the 6-digit code', type: ToastType.warning);
+      AppToast.show(
+        context,
+        message: 'Please enter the 6-digit code',
+        type: ToastType.warning,
+      );
       return;
     }
 
@@ -49,7 +54,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      AppToast.show(context, message: 'Verification successful', type: ToastType.success);
+      AppToast.show(
+        context,
+        message: 'Verification successful',
+        type: ToastType.success,
+      );
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),
@@ -71,6 +80,21 @@ class _VerificationScreenState extends State<VerificationScreen> {
     return await ApiService.verify2fa(userId, code);
   }
 
+  Future<void> _handleResend() async {
+    if (widget.type != 'email' || _isResending) return;
+    setState(() => _isResending = true);
+    final result = await ApiService.resendVerification(widget.userId);
+    if (!mounted) return;
+    setState(() => _isResending = false);
+    AppToast.show(
+      context,
+      message: result['success']
+          ? (result['message'] ?? 'A new code has been sent.')
+          : (result['error'] ?? 'Could not resend the code.'),
+      type: result['success'] ? ToastType.success : ToastType.error,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,7 +103,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: AppTheme.primaryColor),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: AppTheme.primaryColor,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -110,7 +137,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   defaultPinTheme: PinTheme(
                     width: 50,
                     height: 60,
-                    textStyle: TextStyle(fontSize: 22, color: context.textPrimary, fontWeight: FontWeight.bold),
+                    textStyle: TextStyle(
+                      fontSize: 22,
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                     decoration: BoxDecoration(
                       color: context.cardColor,
                       border: Border.all(color: Colors.grey.shade300),
@@ -120,10 +151,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   focusedPinTheme: PinTheme(
                     width: 50,
                     height: 60,
-                    textStyle: TextStyle(fontSize: 22, color: context.textPrimary, fontWeight: FontWeight.bold),
+                    textStyle: TextStyle(
+                      fontSize: 22,
+                      color: context.textPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                     decoration: BoxDecoration(
                       color: context.cardColor,
-                      border: Border.all(color: AppTheme.primaryColor, width: 2),
+                      border: Border.all(
+                        color: AppTheme.primaryColor,
+                        width: 2,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -139,13 +177,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
               const SizedBox(height: 24),
               Center(
                 child: TextButton(
-                  onPressed: () {
-                    // Implement resend logic if needed
-                    AppToast.show(context, message: 'OTP resent successfully', type: ToastType.success);
-                  },
-                  child: const Text(
-                    'Resend Code',
-                    style: TextStyle(
+                  onPressed: widget.type == 'email' && !_isResending
+                      ? _handleResend
+                      : null,
+                  child: Text(
+                    _isResending ? 'Sending...' : 'Resend Code',
+                    style: const TextStyle(
                       color: AppTheme.primaryColor,
                       fontWeight: FontWeight.bold,
                     ),

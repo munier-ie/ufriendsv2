@@ -41,6 +41,10 @@ router.get('/public-settings', async (req, res) => {
             }
         });
 
+        const apiNodeEnv = process.env.API_NODE_ENV || process.env.NODE_ENV || 'production';
+        settings.apiNodeEnv = apiNodeEnv;
+        settings.aiWorkspaceEnabled = apiNodeEnv === 'development';
+
         res.json({ success: true, settings });
     } catch (error) {
         console.error('Get public settings error:', error);

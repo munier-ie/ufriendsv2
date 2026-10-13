@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
             <div className="bg-blue-50 rounded-xl p-4 text-sm text-gray-600">
               <strong>Effective Date:</strong> September 4, 2026<br />
               <strong>Company:</strong> UFriends Information Technology<br />
-              <strong>Website:</strong> https://ufriends.com.ng
+              <strong>Website:</strong> https://www.ufriends.com.ng
             </div>
 
             <p>

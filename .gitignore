@@ -1,7 +1,7 @@
 node_modules
 private_seeds/
 .env
-
+docs/Ufriends_AI_Documents
 scripts/
 test/
 !/scripts/

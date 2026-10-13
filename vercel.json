@@ -1,73 +1,87 @@
 {
+    "$schema": "https://openapi.vercel.sh/vercel.json",
+    "cleanUrls": true,
+    "trailingSlash": false,
     "redirects": [
         {
             "source": "/blog/best-vtu-website-nigeria-2025",
-            "destination": "/blog/best-vtu-website-nigeria-2026",
+            "destination": "https://www.ufriends.com.ng/blog/best-vtu-website-nigeria-2026",
             "permanent": true
         },
         {
             "source": "/blog/cheapest-data-plans-nigeria-2025",
-            "destination": "/blog/cheapest-data-plans-nigeria-2026",
+            "destination": "https://www.ufriends.com.ng/blog/cheapest-data-plans-nigeria-2026",
             "permanent": true
         },
         {
             "source": "/blog/buy-cheap-glo-data-plans-nigeria-2025",
-            "destination": "/blog/buy-cheap-glo-data-plans-nigeria-2026",
+            "destination": "https://www.ufriends.com.ng/blog/buy-cheap-glo-data-plans-nigeria-2026",
             "permanent": true
         },
         {
             "source": "/blog/nin-modification-rejected-refund-next-steps",
-            "destination": "/blog/nin-modification-portal-nigeria",
+            "destination": "https://www.ufriends.com.ng/blog/nin-modification-portal-nigeria",
             "permanent": true
         },
         {
             "source": "/blog/how-long-nin-modification-takes-status",
-            "destination": "/blog/nin-modification-portal-nigeria",
+            "destination": "https://www.ufriends.com.ng/blog/nin-modification-portal-nigeria",
             "permanent": true
         },
         {
             "source": "/blog/how-to-retrieve-bvn-without-phone-number",
-            "destination": "/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes",
+            "destination": "https://www.ufriends.com.ng/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes",
             "permanent": true
         },
         {
             "source": "/blog/how-to-print-nin-slip-online-instantly-using-only-your-phone",
-            "destination": "/blog/how-to-print-nin-slip-online-nigeria",
+            "destination": "https://www.ufriends.com.ng/blog/how-to-print-nin-slip-online-nigeria",
             "permanent": true
         },
         {
             "source": "/blog/how-to-retrieve-bvn-with-phone-number-nigeria",
-            "destination": "/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes",
+            "destination": "https://www.ufriends.com.ng/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes",
             "permanent": true
         },
         {
             "source": "/blog/how-to-retrieve-your-bvn-using-your-phone-number-and-link-it-correctly-to-your-accounts",
-            "destination": "/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes",
+            "destination": "https://www.ufriends.com.ng/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes",
             "permanent": true
         },
         {
             "source": "/blog/nin-correction-guide-how-to-fix-wrong-name-phone-number-or-date-of-birth-safely",
-            "destination": "/blog/nin-modification-portal-nigeria",
+            "destination": "https://www.ufriends.com.ng/blog/nin-modification-portal-nigeria",
             "permanent": true
         },
         {
             "source": "/blog/nin-slip-vs-bvn-slip-what-each-one-is-used-for-and-when-you-actually-need-them",
-            "destination": "/blog/nin-vs-bvn-difference-nigeria",
+            "destination": "https://www.ufriends.com.ng/blog/nin-vs-bvn-difference-nigeria",
             "permanent": true
         },
         {
             "source": "/blog/how-to-start-selling-vtu-airtime-data-and-exam-pins-from-one-website-without-big-capital",
-            "destination": "/blog/how-to-start-vtu-business-nigeria",
+            "destination": "https://www.ufriends.com.ng/blog/how-to-start-vtu-business-nigeria",
             "permanent": true
         },
         {
             "source": "/blog/best-way-to-buy-cheap-exam-pins-airtime-and-data-from-one-trusted-vtu-platform",
-            "destination": "/blog/best-vtu-website-nigeria-2026",
+            "destination": "https://www.ufriends.com.ng/blog/best-vtu-website-nigeria-2026",
             "permanent": true
         },
         {
             "source": "/blog/top-7-reasons-your-nin-or-bvn-gets-rejected-during-kyc-and-how-to-fix-each-one",
-            "destination": "/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way",
+            "destination": "https://www.ufriends.com.ng/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way",
+            "permanent": true
+        },
+        {
+            "source": "/(.*)",
+            "has": [
+                {
+                    "type": "host",
+                    "value": "ufriends.com.ng"
+                }
+            ],
+            "destination": "https://www.ufriends.com.ng/$1",
             "permanent": true
         }
     ],

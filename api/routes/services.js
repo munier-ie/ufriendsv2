@@ -10,6 +10,7 @@ const { creditReferralBonus } = require('../services/referral.service');
 const { sendTransactionReceipt } = require('../services/email.service');
 const { cache } = require('../middleware/cacheMiddleware');
 const walletOps = require('../services/wallet.service');
+const { cleanPlanName, isSocialPlan } = require('../utils/planFormatter');
 
 // Validation schemas
 const purchaseSchema = z.object({
@@ -250,6 +251,7 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
 
             function normalizeDataType(name, rawCode = '') {
                 const combined = `${name} ${rawCode}`.toUpperCase();
+                if (isSocialPlan(combined)) return 'SOCIAL';
                 if (combined.includes('CORPORATE') || combined.includes('C.G') || combined.includes('CG')) return 'CORPORATE GIFTING';
                 if (combined.includes('AWOOF')) return 'DATA AWOOF';
                 if (combined.includes('COUPON')) return 'DATA COUPONS';
@@ -259,7 +261,16 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
                 return 'GIFTING';
             }
 
-            function getTargetProviderId(network, category) {
+            function getTargetProviderId(network, category, service) {
+                if (category === 'SOCIAL') {
+                    const socialOverride = routingOverrides.find(r => 
+                        r.network.toUpperCase() === network.toUpperCase() && 
+                        r.networkType.toUpperCase().includes('SOCIAL')
+                    );
+                    if (socialOverride) return socialOverride.apiProviderId;
+                    return service.apiProviderId || activeProviderId;
+                }
+
                 const exact = routingOverrides.find(r => 
                     r.network.toUpperCase() === network.toUpperCase() && 
                     r.networkType.toUpperCase() === category.toUpperCase()
@@ -285,13 +296,15 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
 
                 const network = normalizeNetwork(s.provider || s.name);
                 const category = normalizeDataType(s.name, s.code);
+                const isSocial = isSocialPlan(s.name);
 
                 // 3. Strictly match active routed provider
-                const targetProviderId = getTargetProviderId(network, category);
+                const targetProviderId = getTargetProviderId(network, category, s);
                 if (s.apiProviderId !== targetProviderId) continue;
 
-                // 4. Deduplicate plans of the same capacity (sizeMb) within the same network & category
-                const dedupeKey = `${network}_${category}_${sizeMb}`;
+                // 4. Deduplicate plans of the same capacity (sizeMb) within the same network & category,
+                // keeping social plans completely segregated so they never hide or are hidden by regular plans!
+                const dedupeKey = `${network}_${category}_${sizeMb}_${isSocial ? 'social' : 'regular'}`;
                 const isPromoOrShortTerm = /1day|2day|3day|7day|daily|weekly|social|insta|tiktok|promo/i.test(s.name);
 
                 if (!seenMap.has(dedupeKey)) {
@@ -328,14 +341,22 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
             });
         }
 
-        // Adjust prices based on user type
+        // Adjust prices based on user type & clean plan names
         const adjustedServices = services.map(s => {
             let userPrice = s.price;
             if (userType === 2 && s.agentPrice) userPrice = s.agentPrice;
             if (userType === 3 && s.vendorPrice) userPrice = s.vendorPrice;
 
+            const isSocial = type === 'data' ? isSocialPlan(s.name) : false;
+            const cleanedName = type === 'data' ? cleanPlanName(s.name) : s.name;
+            const dataType = type === 'data' ? (isSocial ? 'SOCIAL' : normalizeDataType(s.name, s.code)) : undefined;
+
             return {
                 ...s,
+                name: cleanedName,
+                rawName: s.name,
+                isSocial,
+                dataType,
                 price: userPrice
             };
         });

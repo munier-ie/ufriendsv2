@@ -277,7 +277,7 @@ router.post(
             const parsedDocs = JSON.parse(documents);
             for (const [key, value] of Object.entries(parsedDocs)) {
                 const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
-                const fullUrl = `${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}${value}`;
+                const fullUrl = `${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}${value}`;
                 const displayValue = `<br><a href="${fullUrl}" target="_blank" style="display:inline-block; margin-top:5px; padding:8px 15px; background:#e9ecef; color:#333; text-decoration:none; border-radius:4px; font-size:12px;">View Document</a>`;
                 detailsHtml += `<li style="margin-bottom: 10px; border-bottom: 1px dashed #eee; padding-bottom: 5px;"><strong>${formattedKey}:</strong> <span style="color: #444;">${displayValue}</span></li>`;
             }

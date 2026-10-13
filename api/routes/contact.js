@@ -65,7 +65,7 @@ router.post('/', async (req, res) => {
                         <p style="margin:0;color:#333;font-size:15px;line-height:1.7;white-space:pre-wrap;">${safeMessage}</p>
                     </div>
                     <div style="margin-top:24px;text-align:center;">
-                        <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/contact"
+                        <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard/contact"
                            style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#004687,#1e90ff);color:#fff;text-decoration:none;border-radius:8px;font-weight:bold;">
                             View in Dashboard
                         </a>

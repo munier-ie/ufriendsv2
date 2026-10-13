@@ -58,24 +58,38 @@ export default function ResetPassword() {
     const location = useLocation();
 
     const [token, setToken] = useState('');
-    const [id, setId] = useState('');
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [verifyingToken, setVerifyingToken] = useState(true);
     const [tokenInvalid, setTokenInvalid] = useState(false);
+    const [tokenInvalidReason, setTokenInvalidReason] = useState('');
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const t = params.get('token');
-        const i = params.get('id');
-        if (t && i) {
-            setToken(t);
-            setId(i);
-        } else {
+        if (!t || !/^[a-f0-9]{64}$/i.test(t.trim())) {
             setTokenInvalid(true);
+            setTokenInvalidReason('This reset link is missing required security parameters or is malformed.');
+            setVerifyingToken(false);
+            return;
         }
+
+        const cleanToken = t.trim();
+        setToken(cleanToken);
+
+        // Pre-flight check: verify token is valid and unexpired before presenting the form
+        axios.get('/api/auth/verify-reset-token', { params: { token: cleanToken } })
+            .then(() => {
+                setVerifyingToken(false);
+            })
+            .catch((err) => {
+                setTokenInvalid(true);
+                setTokenInvalidReason(err.response?.data?.error || 'This reset link is invalid or has expired. Please request a new one.');
+                setVerifyingToken(false);
+            });
     }, [location]);
 
     const handleSubmit = async (e) => {
@@ -86,15 +100,15 @@ export default function ResetPassword() {
             setError('Passwords do not match. Please re-enter them.');
             return;
         }
-        if (newPassword.length < 6) {
-            setError('Password must be at least 6 characters long.');
+        if (newPassword.length < 8) {
+            setError('Password must be at least 8 characters long.');
             return;
         }
 
         setLoading(true);
 
         try {
-            await axios.post('/api/auth/reset-password', { id, token, newPassword });
+            await axios.post('/api/auth/reset-password', { token, newPassword });
             setSuccess(true);
         } catch (err) {
             setError(err.response?.data?.error || 'This reset link is invalid or has expired. Please request a new one.');
@@ -128,7 +142,7 @@ export default function ResetPassword() {
                     <div className="mt-12 flex flex-col gap-4 text-left max-w-xs mx-auto">
                         {[
                             {
-                                text: 'At least 6 characters',
+                                text: 'At least 8 characters',
                                 icon: <svg className="w-4 h-4 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                             },
                             {
@@ -157,7 +171,12 @@ export default function ResetPassword() {
                     </div>
 
                     <div className="bg-white rounded-3xl shadow-xl border border-blue-50 p-8 sm:p-10">
-                        {tokenInvalid ? (
+                        {verifyingToken ? (
+                            <div className="text-center py-8">
+                                <div className="w-10 h-10 border-4 border-blue-200 border-t-[#004687] rounded-full animate-spin mx-auto mb-4" />
+                                <p className="text-gray-600 text-sm font-medium">Verifying reset link...</p>
+                            </div>
+                        ) : tokenInvalid ? (
                             <div className="text-center py-4">
                                 <div
                                     className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -167,8 +186,8 @@ export default function ResetPassword() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-2">Invalid Reset Link</h2>
-                                <p className="text-gray-500 text-sm mb-6">This link is missing required parameters. Please request a fresh reset link.</p>
+                                <h2 className="text-xl font-bold text-gray-900 mb-2">Invalid or Expired Link</h2>
+                                <p className="text-gray-500 text-sm mb-6">{tokenInvalidReason || 'This link is invalid or has expired. Please request a fresh reset link.'}</p>
                                 <button
                                     onClick={() => navigate('/forgot-password')}
                                     className="w-full py-3 rounded-xl font-semibold text-white text-sm"

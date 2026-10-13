@@ -29,7 +29,7 @@ router.get('/', (req, res) => {
         version: '1.0.0',
         status:  'active',
         baseUrl: '/api/v1',
-        access:  'Vendor accounts only. Upgrade at https://ufriends.com.ng/upgrade',
+        access:  'Vendor accounts only. Upgrade at https://www.ufriends.com.ng/upgrade',
         authentication: {
             type:   'Bearer Token',
             header: 'Authorization: Bearer <YOUR_API_KEY>',
@@ -64,7 +64,7 @@ router.get('/', (req, res) => {
             vendor: '300 requests/min'
         },
         webhookEvents: ['transaction.success', 'transaction.failed', 'identity.bvn.success', 'identity.bvn.failed', 'identity.nin.success', 'identity.nin.failed'],
-        support: 'https://ufriends.com.ng/contact'
+        support: 'https://www.ufriends.com.ng/contact'
     });
 });
 

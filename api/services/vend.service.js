@@ -187,10 +187,12 @@ function getTypeRank(planType, requestedType) {
     return 3;
 }
 
+const { isSocialPlan } = require('../utils/planFormatter');
+
 /**
  * Dynamically translate and locate a provider's plan ID for a given network and capacity
  */
-async function findPlanForProvider(providerId, network, capacityMb, dataType, originalCode = null, originalProviderId = null) {
+async function findPlanForProvider(providerId, network, capacityMb, dataType, originalCode = null, originalProviderId = null, service = null) {
     // Direct match if this candidate is the service's native provider
     if (originalProviderId && providerId === originalProviderId && originalCode) {
         const directPlan = await prisma.dataPlan.findFirst({
@@ -207,6 +209,14 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
         }
     }
 
+    // Determine constraints of the original requested service
+    const serviceName = service?.name || '';
+    const originalIsSocial = isSocialPlan(serviceName) || isSocialPlan(dataType);
+    
+    // Check if original plan is a 30-day (monthly) plan
+    const originalIsShortTerm = /1\s*day|2\s*day|3\s*day|7\s*day|weekly|daily/i.test(serviceName);
+    const originalIsMonthly = /30\s*days?|30day|month/i.test(serviceName) || (!originalIsShortTerm && (dataType.includes('CORPORATE') || dataType.includes('SME')));
+
     // Query active plans for this provider & network
     const plans = await prisma.dataPlan.findMany({
         where: { apiProviderId: providerId, network: network, active: true }
@@ -214,6 +224,32 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
 
     const matchingPlans = plans
         .filter(p => parseDataCapacity(p.dataName) === capacityMb)
+        .filter(p => {
+            const candName = p.dataName || '';
+            const candDuration = `${p.duration || ''} ${candName}`.toLowerCase();
+            const candIsSocial = isSocialPlan(candName) || isSocialPlan(p.dataType);
+
+            // [CRIT-GUARD 1] Social Plan mismatch protection:
+            // A regular browsing plan must NEVER be fulfilled with a social plan!
+            if (!originalIsSocial && candIsSocial) return false;
+            // A social plan must not be fulfilled with a regular plan
+            if (originalIsSocial && !candIsSocial) return false;
+
+            // [CRIT-GUARD 2] Validity mismatch protection:
+            // A 30-day/monthly plan must NEVER be fulfilled with a 1-day, 2-day, or 7-day plan!
+            if (originalIsMonthly) {
+                const candIsShort = /1\s*day|2\s*day|3\s*day|7\s*day|weekly|daily/i.test(candDuration);
+                if (candIsShort) return false;
+            }
+
+            // [CRIT-GUARD 3] Type Compatibility protection:
+            // Only allow rank 1 (exact) or rank 2 (compatible variant, e.g. SME <-> SME2, Corporate <-> Corporate 2).
+            // Reject rank 3 (cross-category wild downgrade).
+            const rank = getTypeRank(p.dataType, dataType);
+            if (rank > 2) return false;
+
+            return true;
+        })
         .map(p => ({
             ...p,
             rank: getTypeRank(p.dataType, dataType)
@@ -493,7 +529,8 @@ async function vendData(transaction, service, phone, network) {
                 capacityMb,
                 dataType,
                 service.code,
-                service.apiProviderId
+                service.apiProviderId,
+                service
             );
 
             if (!matchedPlan) {

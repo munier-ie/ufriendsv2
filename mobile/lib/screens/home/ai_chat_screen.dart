@@ -13,6 +13,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final List<Map<String, String>> _messages = [];
+  final String _conversationId =
+      'mobile_${DateTime.now().millisecondsSinceEpoch}';
   bool _isLoading = false;
 
   @override
@@ -20,7 +22,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
     super.initState();
     _messages.add({
       'role': 'assistant',
-      'content': 'Hello! I am your Ufriends AI Consultant. How can I help you today?'
+      'content':
+          'Hello! I am your Ufriends AI assistant. How can I help you today?',
     });
   }
 
@@ -47,13 +50,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
     _messageController.clear();
     _scrollToBottom();
 
-    final history = _messages
-        .where((m) => m['role'] != 'system')
-        .map((m) => {'role': m['role']!, 'content': m['content']!})
-        .toList();
+    final response = await ApiService.sendAiConsult(
+      text,
+      conversationId: _conversationId,
+    );
 
-    final response = await ApiService.sendAiConsult(text, history);
-    
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -62,7 +63,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
         } else {
           _messages.add({
             'role': 'system',
-            'content': 'Error: ${response['error']}'
+            'content': 'Error: ${response['error']}',
           });
         }
       });
@@ -101,7 +102,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
           ),
           border: isUser ? null : Border.all(color: Colors.grey.shade300),
         ),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.75,
+        ),
         child: Text(
           message['content']!,
           style: TextStyle(
@@ -118,23 +121,39 @@ class _AiChatScreenState extends State<AiChatScreen> {
     return Scaffold(
       backgroundColor: context.cardColor,
       appBar: AppBar(
-        title: Text('AI Consultant', style: TextStyle(color: context.textPrimary, fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(
+          'AI workspace',
+          style: TextStyle(
+            color: context.textPrimary,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         backgroundColor: context.cardColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF), size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Color(0xFF1E90FF),
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.cleaning_services_rounded, color: Colors.grey),
-            onPressed: () {
+            icon: const Icon(
+              Icons.cleaning_services_rounded,
+              color: Colors.grey,
+            ),
+            onPressed: () async {
+              await ApiService.resetAiConsult(conversationId: _conversationId);
               setState(() {
                 _messages.clear();
                 _messages.add({
                   'role': 'assistant',
-                  'content': 'Hello! I am your Ufriends AI Consultant. How can I help you today?'
+                  'content':
+                      'Hello! I am your Ufriends AI assistant. How can I help you today?',
                 });
               });
             },
@@ -164,7 +183,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
               ),
             ),
           Container(
-            padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
+            padding: const EdgeInsets.all(
+              16,
+            ).copyWith(bottom: MediaQuery.of(context).padding.bottom + 16),
             decoration: BoxDecoration(
               color: context.cardColor,
               boxShadow: [
@@ -172,7 +193,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   color: Colors.black.withValues(alpha: 0.05),
                   offset: const Offset(0, -4),
                   blurRadius: 16,
-                )
+                ),
               ],
             ),
             child: Row(
@@ -188,7 +209,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
                       ),
                       filled: true,
                       fillColor: Colors.grey.shade100,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 14,
+                      ),
                     ),
                     maxLines: null,
                     textInputAction: TextInputAction.send,
@@ -202,7 +226,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
                     shape: BoxShape.circle,
                   ),
                   child: IconButton(
-                    icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                    icon: const Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                     onPressed: _isLoading ? null : _sendMessage,
                   ),
                 ),

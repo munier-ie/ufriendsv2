@@ -130,6 +130,26 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> resendVerification(int userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/resend-verification'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      }
+      return {
+        'success': false,
+        'error': data['message'] ?? data['error'] ?? 'Failed to resend code',
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
   static Future<Map<String, dynamic>> verify2fa(
     String userId,
     String code,
@@ -211,7 +231,10 @@ class ApiService {
       if (response.statusCode == 200) {
         return {'success': true, 'message': data['message']};
       }
-      return {'success': false, 'error': data['error'] ?? 'Failed to send OTP'};
+      return {
+        'success': false,
+        'error': data['message'] ?? data['error'] ?? 'Failed to send OTP',
+      };
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
     }
@@ -999,9 +1022,9 @@ class ApiService {
   }
 
   static Future<Map<String, dynamic>> sendAiConsult(
-    String message,
-    List<Map<String, String>> history,
-  ) async {
+    String message, {
+    String conversationId = 'mobile_default',
+  }) async {
     try {
       final token = await AuthService.getToken();
       final response = await http.post(
@@ -1010,7 +1033,12 @@ class ApiService {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'message': message, 'history': history}),
+        // Conversation context is kept by the authenticated server session;
+        // never send client-controlled history to the model endpoint.
+        body: jsonEncode({
+          'message': message,
+          'conversationId': conversationId,
+        }),
       );
       if (_handleAuthError(response)) {
         return {'success': false, 'error': 'Session expired'};
@@ -1022,6 +1050,24 @@ class ApiService {
       return {'success': false, 'error': data['error'] ?? 'Failed to reach AI'};
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<void> resetAiConsult({
+    String conversationId = 'mobile_default',
+  }) async {
+    try {
+      final token = await AuthService.getToken();
+      await http.post(
+        Uri.parse('${AppConstants.baseUrl}/ai-chat/reset'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'conversationId': conversationId}),
+      );
+    } catch (_) {
+      // Clearing the local view remains safe if the API is unavailable.
     }
   }
 
@@ -2067,4 +2113,6 @@ class ApiService {
       return {'success': false, 'error': 'Network error occurred'};
     }
   }
+
+  static Future<Map<String, dynamic>> getPublicSettings() => fetchPublicSettings();
 }

@@ -19,6 +19,11 @@ export default function DashboardLayout() {
     const [siteName, setSiteName] = useState('Ufriends');
     const [globalSettings, setGlobalSettings] = useState(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
+
+    // AI workspace is under development: show in development, hide in production (based on API_NODE_ENV from .env)
+    const apiNodeEnv = globalSettings?.apiNodeEnv || import.meta.env.API_NODE_ENV || 'production';
+    const isAiWorkspaceEnabled = apiNodeEnv === 'development';
+    const isWorkspaceActive = isChatOpen && isAiWorkspaceEnabled;
     const [expandedCategories, setExpandedCategories] = useState({
         'Overview': true
     });
@@ -398,7 +403,7 @@ export default function DashboardLayout() {
 
             {/* Sidebar — z-40 so it sits above the overlay on mobile and above topbar always */}
             <aside
-                className={`fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 md:z-auto ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+                className={`${isWorkspaceActive ? 'hidden' : ''} fixed inset-y-0 left-0 z-40 w-64 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out flex flex-col md:relative md:translate-x-0 md:z-auto ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
                     }`}
             >
                 <div className="p-6 flex items-center justify-between">
@@ -477,7 +482,7 @@ export default function DashboardLayout() {
             </aside>
 
             {/* Main Wrapper */}
-            <div className="flex-1 flex flex-col min-w-0 relative">
+            <div className={`${isWorkspaceActive ? 'hidden' : ''} flex-1 flex flex-col min-w-0 relative`}>
                 {/* Background Pattern - Crosshatch Art */}
                 <div
                     className="absolute inset-0 pointer-events-none"
@@ -509,14 +514,18 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <button 
-                            onClick={() => setIsChatOpen(true)} 
-                            className="relative p-2 text-primary hover:bg-primary/10 rounded-full transition-colors"
-                            title="Chat with Ufriends Assistant"
-                        >
-                            <Bot size={24} />
-                            <span className="absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full pointer-events-none animate-pulse"></span>
-                        </button>
+                        {isAiWorkspaceEnabled && (
+                            <button
+                                onClick={() => setIsChatOpen(previous => !previous)}
+                                className="relative inline-flex items-center gap-2 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-primary transition-colors hover:bg-primary/10 cursor-pointer"
+                                title="Switch to AI workspace"
+                                aria-pressed={isChatOpen}
+                            >
+                                <Bot size={19} />
+                                <span className="hidden text-xs font-semibold sm:inline">AI workspace</span>
+                                <span className="absolute right-1 top-1 h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
+                            </button>
+                        )}
                         <Link to="/dashboard/notifications" className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
                             <Bell size={24} />
                             {unreadNotifications > 0 && (
@@ -569,12 +578,15 @@ repeating-linear-gradient(157.5deg, transparent, transparent 2px, rgba(31, 41, 5
                 </main>
             </div>
 
-            {/* Global AI Consultant Modal */}
-            <ChatConsultant
-                isOpen={isChatOpen}
-                onClose={() => setIsChatOpen(false)}
-                whatsappNumber={globalSettings?.contactPhone || '2347026417709'}
-            />
+            {/* Environment switch: AI workspace replaces navigation until the user switches back. */}
+            {isAiWorkspaceEnabled && (
+                <ChatConsultant
+                    isOpen={isChatOpen}
+                    onClose={() => setIsChatOpen(false)}
+                    whatsappNumber={globalSettings?.contactPhone || '2347026417709'}
+                    userName={user?.firstName}
+                />
+            )}
         </div>
     );
 }

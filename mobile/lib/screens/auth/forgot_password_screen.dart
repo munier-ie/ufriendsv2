@@ -14,12 +14,16 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   int _currentStep = 0;
   final TextEditingController _emailController = TextEditingController();
-  final List<TextEditingController> _otpControllers = List.generate(6, (_) => TextEditingController());
+  final List<TextEditingController> _otpControllers = List.generate(
+    6,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _otpFocusNodes = List.generate(6, (_) => FocusNode());
-  
+
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -57,7 +61,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _handleEmailSubmit() async {
     final email = _emailController.text.trim();
     if (email.isEmpty || !email.contains('@')) {
-      AppToast.show(context, message: 'Please enter a valid email address', type: ToastType.error);
+      AppToast.show(
+        context,
+        message: 'Please enter a valid email address',
+        type: ToastType.error,
+      );
       return;
     }
     setState(() => _isLoading = true);
@@ -66,7 +74,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
     if (!mounted) return;
     if (result['success']) {
-      AppToast.show(context, message: result['message'], type: ToastType.success);
+      AppToast.show(
+        context,
+        message: result['message'],
+        type: ToastType.success,
+      );
       _nextStep();
     } else {
       if (!mounted) return;
@@ -77,7 +89,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _handleOtpSubmit() async {
     String otp = _otpControllers.map((c) => c.text).join();
     if (otp.length != 6) {
-      AppToast.show(context, message: 'Please enter the 6-digit OTP', type: ToastType.error);
+      AppToast.show(
+        context,
+        message: 'Please enter the 6-digit OTP',
+        type: ToastType.error,
+      );
       return;
     }
     _nextStep();
@@ -89,15 +105,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final email = _emailController.text.trim();
     final otp = _otpControllers.map((c) => c.text).join();
 
-    if (newPassword.length < 6) {
-      AppToast.show(context, message: 'Password must be at least 6 characters', type: ToastType.error);
+    if (newPassword.length < 8) {
+      AppToast.show(
+        context,
+        message: 'Password must be at least 8 characters',
+        type: ToastType.error,
+      );
       return;
     }
     if (newPassword != confirmPassword) {
-      AppToast.show(context, message: 'Passwords do not match', type: ToastType.error);
+      AppToast.show(
+        context,
+        message: 'Passwords do not match',
+        type: ToastType.error,
+      );
       return;
     }
-    
+
     setState(() => _isLoading = true);
     final result = await ApiService.resetPasswordOtp(email, otp, newPassword);
     setState(() => _isLoading = false);
@@ -158,11 +182,16 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Widget _buildStepContent() {
     switch (_currentStep) {
-      case 0: return _buildEmailStep();
-      case 1: return _buildOtpStep();
-      case 2: return _buildNewPasswordStep();
-      case 3: return _buildSuccessStep();
-      default: return _buildEmailStep();
+      case 0:
+        return _buildEmailStep();
+      case 1:
+        return _buildOtpStep();
+      case 2:
+        return _buildNewPasswordStep();
+      case 3:
+        return _buildSuccessStep();
+      default:
+        return _buildEmailStep();
     }
   }
 
@@ -234,8 +263,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 focusNode: _otpFocusNodes[index],
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                maxLength: index == 0 ? 6 : 1, // Allow 6 chars in first field for paste
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                maxLength: index == 0
+                    ? 6
+                    : 1, // Allow 6 chars in first field for paste
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(index == 0 ? 6 : 1),
@@ -267,7 +301,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             onPressed: _handleEmailSubmit,
             child: const Text(
               'Resend Code',
-              style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: AppTheme.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
@@ -302,8 +339,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             labelText: 'New Password',
             prefixIcon: const Icon(Icons.lock_outline),
             suffixIcon: IconButton(
-              icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+              icon: Icon(
+                _obscurePassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+              ),
+              onPressed: () =>
+                  setState(() => _obscurePassword = !_obscurePassword),
             ),
           ),
         ),
@@ -315,8 +357,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             labelText: 'Confirm Password',
             prefixIcon: const Icon(Icons.lock_reset),
             suffixIcon: IconButton(
-              icon: Icon(_obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-              onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+              icon: Icon(
+                _obscureConfirmPassword
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+              ),
+              onPressed: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              ),
             ),
           ),
         ),
@@ -343,7 +391,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               color: AppTheme.successColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check_circle_rounded, color: AppTheme.successColor, size: 80),
+            child: const Icon(
+              Icons.check_circle_rounded,
+              color: AppTheme.successColor,
+              size: 80,
+            ),
           ),
           const SizedBox(height: 32),
           Text(
@@ -371,4 +423,3 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 }
-

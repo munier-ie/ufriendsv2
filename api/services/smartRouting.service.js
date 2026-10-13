@@ -2,6 +2,7 @@ const cron = require('node-cron');
 const prisma = require('../../prisma/client');
 const emailService = require('./email.service');
 const axios = require('axios');
+const { cleanPlanName } = require('../utils/planFormatter');
 
 // Rate-limit map: subject → timestamp of last sent email
 const _alertCooldowns = new Map();
@@ -162,7 +163,7 @@ async function syncDataPlans(providers) {
                 data: {
                     type: 'data',
                     provider: plan.network,
-                    name: `${plan.network} ${plan.dataName} (${plan.dataType})`,
+                    name: cleanPlanName(`${plan.network} ${plan.dataName} (${plan.dataType})`),
                     code: plan.planId,
                     price: prices.userPrice,
                     agentPrice: prices.agentPrice,

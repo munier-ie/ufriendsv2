@@ -198,9 +198,11 @@ app.use('/api', (req, res, next) => {
 app.post('/api/auth/access',             rateLimits.userLogin, rateLimits.userLoginFailures);
 app.post('/api/auth/register',           rateLimits.signup);
 app.post('/api/auth/verify-email',       rateLimits.otp);
+app.post('/api/auth/resend-verification', rateLimits.otp);
 app.post('/api/auth/verify-2fa',         rateLimits.otp);
 app.post('/api/auth/forgot-password',    rateLimits.passwordRecovery);
 app.post('/api/auth/forgot-password-otp', rateLimits.passwordRecovery);
+app.get('/api/auth/verify-reset-token',   rateLimits.passwordRecovery);
 app.post('/api/auth/reset-password',     rateLimits.passwordRecovery);
 app.post('/api/auth/reset-password-otp', rateLimits.otp);
 app.post('/api/admin/auth/access',       rateLimits.adminLogin, rateLimits.adminLoginFailures);

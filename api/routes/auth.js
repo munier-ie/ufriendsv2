@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { z } = require('zod');
-const { sendWelcomeEmail, sendLoginAlert, sendVerificationOtpEmail, send2FaOtpEmail, sendAdminNewAccountAlert } = require('../services/email.service');
+const { sendEmailStrict, sendWelcomeEmail, sendLoginAlert, sendVerificationOtpEmail, send2FaOtpEmail, sendAdminNewAccountAlert } = require('../services/email.service');
 const paymentpointService = require('../services/paymentpoint.service');
 const { generateUniqueCode } = require('../utils/referral.utils');
 const authenticateUser = require('../middleware/auth');
@@ -17,6 +17,31 @@ const { clearPinFailures, rejectInvalidPin } = require('../utils/pinAttempts');
 const otpEmailAttempts = new Map(); // phone -> { count, resetAt }
 const OTP_EMAIL_MAX = 3;
 const OTP_EMAIL_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+function emailFailureResponse(res, error, fallbackMessage) {
+    const notConfigured = error?.message === 'EMAIL_NOT_CONFIGURED';
+    if (!notConfigured && !error?.isEmailDeliveryError) {
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+    return res.status(503).json({
+        error: notConfigured ? 'EMAIL_NOT_CONFIGURED' : 'EMAIL_SEND_FAILED',
+        message: notConfigured
+            ? 'Email service is currently unavailable. Please try again later or contact support.'
+            : fallbackMessage
+    });
+}
+
+async function issueVerificationOtp(user) {
+    const otpCode = crypto.randomInt(100000, 1000000);
+    const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.user.update({
+        where: { id: user.id },
+        data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+    });
+
+    await sendVerificationOtpEmail(user, otpCode);
+}
 
 async function rejectInvalidLogin(req, res) {
     const result = await req.credentialRateLimit?.recordFailure();
@@ -120,6 +145,8 @@ router.post('/register', async (req, res) => {
 
         const referralCode = await generateUniqueCode(prisma);
 
+        const otpCode = crypto.randomInt(100000, 1000000);
+        const otpExpiry = new Date(Date.now() + 15 * 60 * 1000);
         const user = await prisma.user.create({
             data: {
                 firstName,
@@ -134,12 +161,21 @@ router.post('/register', async (req, res) => {
                 referral: referral,        // Store raw input for legacy tracking
                 referralCode,              // Store new short code
                 type: type || 1,
-                apiKey: require('crypto').randomBytes(32).toString('hex')
+                apiKey: require('crypto').randomBytes(32).toString('hex'),
+                emailVerifyCode: otpCode,
+                emailVerifyExpiry: otpExpiry
             }
         });
 
-        // Send Welcome Email
-        sendWelcomeEmail(user).catch(err => console.error('Email error:', err));
+        // Verification is sent before welcome. The welcome email is only sent
+        // after the address has actually been verified.
+        let verificationEmailSent = true;
+        try {
+            await sendVerificationOtpEmail(user, otpCode);
+        } catch (error) {
+            verificationEmailSent = false;
+            console.error('Registration verification email failed:', safeError(error));
+        }
 
         // Notify Admin on new account creation
         sendAdminNewAccountAlert(user, req).catch(err => console.error('Admin new account alert error:', err));
@@ -167,7 +203,13 @@ router.post('/register', async (req, res) => {
             console.error('Failed to auto-generate PaymentPoint virtual account');
         });
 
-        res.status(201).json({ message: 'User created successfully', userId: user.id });
+        res.status(201).json({
+            message: verificationEmailSent
+                ? 'Account created. A verification code has been sent to your email.'
+                : 'Account created, but the verification email could not be delivered. Please use Resend Code.',
+            userId: user.id,
+            verificationEmailSent
+        });
     } catch (error) {
         console.error('Registration Error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
@@ -224,22 +266,22 @@ router.post('/access', async (req, res) => {
             }
 
             // [SEC-HIGH-04] Use cryptographically secure OTP generator
-            const otpCode = crypto.randomInt(100000, 999999);
-            const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 mins
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
-            });
-            
-            sendVerificationOtpEmail(user, otpCode).catch(err => {
-                console.error('Failed to send OTP email:', safeError(err));
-            });
+            let verificationEmailSent = true;
+            try {
+                await issueVerificationOtp(user);
+            } catch (error) {
+                verificationEmailSent = false;
+                console.error('Login verification email failed:', safeError(error));
+            }
 
             return res.json({ 
                 success: true, 
                 emailVerificationRequired: true, 
                 userId: user.id,
-                message: 'Please verify your email to continue. We have sent an OTP to your email.'
+                verificationEmailSent,
+                message: verificationEmailSent
+                    ? 'Please verify your email to continue. We sent a code to your email.'
+                    : 'Please verify your email to continue. The code could not be delivered; use Resend Code.'
             });
         }
 
@@ -410,6 +452,12 @@ router.post('/verify-email', async (req, res) => {
             data: { emailVerified: true, emailVerifyCode: null, emailVerifyExpiry: null }
         });
 
+        // A welcome message belongs after ownership of the email address has
+        // been confirmed, not immediately after account creation.
+        sendWelcomeEmail(updatedUser).catch(err => {
+            console.error('Welcome email failed:', safeError(err));
+        });
+
         // If they have 2FA enabled, they still need to do 2FA immediately after fixing email verification
         if (updatedUser.twoFaEnabled) {
             if (updatedUser.twoFaMethod === 'email') {
@@ -439,6 +487,31 @@ router.post('/verify-email', async (req, res) => {
     } catch (error) {
         console.error('Email verification error:', safeError(error));
         res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// POST /resend-verification
+router.post('/resend-verification', async (req, res) => {
+    try {
+        const userId = Number.parseInt(req.body?.userId, 10);
+        if (!Number.isSafeInteger(userId) || userId <= 0) {
+            return res.status(400).json({ error: 'A valid userId is required' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || user.emailVerified) {
+            return res.json({ message: 'If verification is still required, a new code has been sent.' });
+        }
+
+        await issueVerificationOtp(user);
+        return res.json({ message: 'A new verification code has been sent to your email.' });
+    } catch (error) {
+        console.error('Resend verification email failed:', safeError(error));
+        return emailFailureResponse(
+            res,
+            error,
+            'We could not deliver the verification email. Please try again in a moment.'
+        );
     }
 });
 
@@ -708,7 +781,7 @@ router.post('/pin/forgot', authenticateUser, async (req, res) => {
         if (!user) return res.status(404).json({ error: 'User not found' });
 
         // Generate OTP
-        const otpCode = crypto.randomInt(100000, 999999);
+        const otpCode = crypto.randomInt(100000, 1000000);
         const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
         await prisma.user.update({
@@ -716,15 +789,16 @@ router.post('/pin/forgot', authenticateUser, async (req, res) => {
             data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
         });
 
-        sendVerificationOtpEmail({ firstName: user.firstName, email: user.email }, otpCode).catch(err => {
-            console.error('Failed to send PIN reset email:', safeError(err));
-            return res.status(500).json({ error: 'Failed to send OTP email' });
-        });
+        await sendVerificationOtpEmail({ firstName: user.firstName, email: user.email }, otpCode);
 
         res.json({ message: 'OTP sent to your email successfully.' });
     } catch (error) {
         console.error('PIN reset error:', safeError(error));
-        res.status(500).json({ error: 'Internal server error' });
+        return emailFailureResponse(
+            res,
+            error,
+            'We could not deliver the PIN reset code. Please try again in a moment.'
+        );
     }
 });
 
@@ -791,10 +865,108 @@ router.get('/pin/status', authenticateUser, async (req, res) => {
     }
 });
 
+// Forgot Password (link-based for Web)
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const email = typeof req.body?.email === 'string'
+            ? req.body.email.trim().toLowerCase()
+            : '';
+        if (!email) return res.status(400).json({ error: 'Email is required' });
+
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        // Keep the response identical for unknown addresses to prevent account
+        // enumeration.
+        if (!user) {
+            return res.json({ message: 'If an account exists, a password reset link has been sent to your email.' });
+        }
+
+        // Generate a 256-bit cryptographically secure random token (CSPRNG)
+        const rawToken = crypto.randomBytes(32).toString('hex');
+
+        // Hash token with environment scope to isolate local development and production
+        const envScope = process.env.API_NODE_ENV || process.env.NODE_ENV || 'production';
+        const hashedToken = crypto.createHash('sha256').update(`${rawToken}:${envScope}`).digest('hex');
+
+        // Explicit 15-minute expiration term
+        const expiry = new Date(Date.now() + 15 * 60 * 1000);
+
+        // Store hashed token and expiry in database — auto-invalidates any previous link
+        await prisma.user.update({
+            where: { id: user.id },
+            data: {
+                passwordResetToken: hashedToken,
+                passwordResetExpires: expiry
+            }
+        });
+
+        // The reset link contains ONLY the raw token — user ID is never exposed or accepted
+        const resetLink = `${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/reset-password?token=${encodeURIComponent(rawToken)}`;
+        const html = `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px;">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <h2 style="color: #004687; margin: 0;">Password Reset Request</h2>
+                </div>
+                <p style="color: #374151;">Hello <strong>${user.firstName}</strong>,</p>
+                <p style="color: #374151;">You requested to reset your Ufriends account password. Click the button below to choose a new password.</p>
+                <p style="color: #6b7280; font-size: 13px;">This link expires in <strong>15 minutes</strong> and can only be used once.</p>
+                <div style="text-align: center; margin: 28px 0;">
+                    <a href="${resetLink}" style="display: inline-block; padding: 12px 28px; background: #004687; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                        Reset My Password
+                    </a>
+                </div>
+                <p style="color: #9ca3af; font-size: 12px; text-align: center;">If you did not request this, you can safely ignore this email. Your password will not change.</p>
+            </div>
+        `;
+
+        await sendEmailStrict(user.email, 'Password Reset Request - Ufriends', html);
+        return res.json({ message: 'If an account exists, a password reset link has been sent to your email.' });
+    } catch (error) {
+        console.error('Forgot password email failed:', safeError(error));
+        return emailFailureResponse(
+            res,
+            error,
+            'We could not deliver the password reset email. Please try again in a moment.'
+        );
+    }
+});
+
+// Verify Reset Token (pre-flight check for Web UX)
+router.get('/verify-reset-token', async (req, res) => {
+    try {
+        const rawToken = typeof req.query?.token === 'string' ? req.query.token.trim() : '';
+        if (!rawToken || !/^[a-f0-9]{64}$/i.test(rawToken)) {
+            return res.status(400).json({ valid: false, error: 'Invalid or malformed reset link.' });
+        }
+
+        const envScope = process.env.API_NODE_ENV || process.env.NODE_ENV || 'production';
+        const hashedToken = crypto.createHash('sha256').update(`${rawToken}:${envScope}`).digest('hex');
+
+        const user = await prisma.user.findFirst({
+            where: {
+                passwordResetToken: hashedToken,
+                passwordResetExpires: { gt: new Date() }
+            },
+            select: { id: true }
+        });
+
+        if (!user) {
+            return res.status(400).json({ valid: false, error: 'This reset link is invalid or has expired. Please request a new one.' });
+        }
+
+        return res.json({ valid: true });
+    } catch (error) {
+        console.error('Verify reset token error:', safeError(error));
+        res.status(500).json({ valid: false, error: 'Internal server error' });
+    }
+});
+
 // Forgot Password (OTP-based for Mobile)
 router.post('/forgot-password-otp', async (req, res) => {
     try {
-        const { email } = req.body;
+        const email = typeof req.body?.email === 'string'
+            ? req.body.email.trim().toLowerCase()
+            : '';
         if (!email) return res.status(400).json({ error: 'Email is required' });
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -812,7 +984,6 @@ router.post('/forgot-password-otp', async (req, res) => {
             data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
         });
 
-        const { sendEmailStrict } = require('../services/email.service');
         const html = `
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 30px; border: 1px solid #e5e7eb; border-radius: 12px;">
                 <div style="text-align: center; margin-bottom: 24px;">
@@ -830,26 +1001,33 @@ router.post('/forgot-password-otp', async (req, res) => {
             </div>
         `;
 
-        await sendEmailStrict(user.email, 'Password Reset OTP – Ufriends', html);
+        await sendEmailStrict(user.email, 'Password Reset OTP - Ufriends', html);
 
         res.json({ message: 'OTP sent to your email successfully.' });
     } catch (error) {
         console.error('Forgot password OTP error:', safeError(error));
-        res.status(500).json({ error: 'Internal server error' });
+        return emailFailureResponse(
+            res,
+            error,
+            'We could not deliver the password reset code. Please try again in a moment.'
+        );
     }
 });
 
 // Reset Password (OTP-based for Mobile)
 router.post('/reset-password-otp', async (req, res) => {
     try {
-        const { email, otp, newPassword } = req.body;
+        const email = typeof req.body?.email === 'string'
+            ? req.body.email.trim().toLowerCase()
+            : '';
+        const { otp, newPassword } = req.body;
 
         if (!email || !otp || !newPassword) {
             return res.status(400).json({ error: 'Email, OTP, and new password are required' });
         }
 
         if (newPassword.length < 8) {
-            return res.status(400).json({ error: 'Password must be at least 8 characters with uppercase, number, and special character' });
+            return res.status(400).json({ error: 'Password must be at least 8 characters' });
         }
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -864,14 +1042,17 @@ router.post('/reset-password-otp', async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { 
-                password: hashedPassword,
-                emailVerifyCode: null,
-                emailVerifyExpiry: null
-            }
-        });
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    password: hashedPassword,
+                    emailVerifyCode: null,
+                    emailVerifyExpiry: null
+                }
+            }),
+            prisma.userLogin.deleteMany({ where: { userId: user.id } })
+        ]);
 
         res.json({ message: 'Password has been reset successfully. You can now login.' });
     } catch (error) {
@@ -881,38 +1062,54 @@ router.post('/reset-password-otp', async (req, res) => {
 });
 
 
-// Reset Password
+// Reset Password (link-based for Web)
 router.post('/reset-password', async (req, res) => {
     try {
-        const { id, token, newPassword } = req.body;
+        const rawToken = typeof req.body?.token === 'string' ? req.body.token.trim() : '';
+        const newPassword = typeof req.body?.newPassword === 'string' ? req.body.newPassword : '';
 
-        if (!id || !token || !newPassword) {
-            return res.status(400).json({ error: 'Invalid request parameters' });
+        if (!rawToken || !newPassword) {
+            return res.status(400).json({ error: 'Token and new password are required' });
         }
-        
+
+        if (!/^[a-f0-9]{64}$/i.test(rawToken)) {
+            return res.status(400).json({ error: 'Invalid or expired reset token. Please request a new one.' });
+        }
+
         if (newPassword.length < 8) {
             return res.status(400).json({ error: 'Password must be at least 8 characters' });
         }
 
-        const user = await prisma.user.findUnique({ where: { id: parseInt(id) } });
-        if (!user) {
-            return res.status(400).json({ error: 'Invalid or expired reset token' });
-        }
+        const envScope = process.env.API_NODE_ENV || process.env.NODE_ENV || 'production';
+        const hashedToken = crypto.createHash('sha256').update(`${rawToken}:${envScope}`).digest('hex');
 
-        const secret = process.env.JWT_SECRET + user.password;
-        
-        try {
-            jwt.verify(token, secret);
-        } catch (err) {
-            // Token is expired or password was already changed (secret changed)
+        // Look up user SOLELY by cryptographic token hash and unexpired timestamp
+        // User ID is NOT accepted from client, completely eliminating IDOR/user switching
+        const user = await prisma.user.findFirst({
+            where: {
+                passwordResetToken: hashedToken,
+                passwordResetExpires: { gt: new Date() }
+            }
+        });
+
+        if (!user) {
             return res.status(400).json({ error: 'Invalid or expired reset token. Please request a new one.' });
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await prisma.user.update({
-            where: { id: user.id },
-            data: { password: hashedPassword }
-        });
+
+        // Atomically update password, invalidate reset token immediately, and terminate all active sessions
+        await prisma.$transaction([
+            prisma.user.update({
+                where: { id: user.id },
+                data: {
+                    password: hashedPassword,
+                    passwordResetToken: null,
+                    passwordResetExpires: null
+                }
+            }),
+            prisma.userLogin.deleteMany({ where: { userId: user.id } })
+        ]);
 
         res.json({ message: 'Password has been reset successfully. You can now login.' });
     } catch (error) {

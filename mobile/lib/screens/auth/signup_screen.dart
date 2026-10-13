@@ -15,11 +15,43 @@ class SignupScreen extends StatefulWidget {
 
 class _SignupScreenState extends State<SignupScreen> {
   static const List<String> _nigerianStates = [
-    'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
-    'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT - Abuja', 'Gombe',
-    'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos',
-    'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto',
-    'Taraba', 'Yobe', 'Zamfara'
+    'Abia',
+    'Adamawa',
+    'Akwa Ibom',
+    'Anambra',
+    'Bauchi',
+    'Bayelsa',
+    'Benue',
+    'Borno',
+    'Cross River',
+    'Delta',
+    'Ebonyi',
+    'Edo',
+    'Ekiti',
+    'Enugu',
+    'FCT - Abuja',
+    'Gombe',
+    'Imo',
+    'Jigawa',
+    'Kaduna',
+    'Kano',
+    'Katsina',
+    'Kebbi',
+    'Kogi',
+    'Kwara',
+    'Lagos',
+    'Nasarawa',
+    'Niger',
+    'Ogun',
+    'Ondo',
+    'Osun',
+    'Oyo',
+    'Plateau',
+    'Rivers',
+    'Sokoto',
+    'Taraba',
+    'Yobe',
+    'Zamfara',
   ];
 
   bool _obscurePassword = true;
@@ -37,7 +69,11 @@ class _SignupScreenState extends State<SignupScreen> {
 
   Future<void> _handleSignup() async {
     if (!_acceptedTerms) {
-      AppToast.show(context, message: 'Please accept the Terms of Service', type: ToastType.warning);
+      AppToast.show(
+        context,
+        message: 'Please accept the Terms of Service',
+        type: ToastType.warning,
+      );
       return;
     }
 
@@ -49,13 +85,25 @@ class _SignupScreenState extends State<SignupScreen> {
     final state = _stateController.text.trim();
     final referral = _referralController.text.trim();
 
-    if (name.isEmpty || email.isEmpty || phone.isEmpty || password.isEmpty || pin.isEmpty) {
-      AppToast.show(context, message: 'Please fill in all required fields', type: ToastType.error);
+    if (name.isEmpty ||
+        email.isEmpty ||
+        phone.isEmpty ||
+        password.isEmpty ||
+        pin.isEmpty) {
+      AppToast.show(
+        context,
+        message: 'Please fill in all required fields',
+        type: ToastType.error,
+      );
       return;
     }
 
     if (pin.length != 4) {
-      AppToast.show(context, message: 'Transaction PIN must be 4 digits', type: ToastType.error);
+      AppToast.show(
+        context,
+        message: 'Transaction PIN must be 4 digits',
+        type: ToastType.error,
+      );
       return;
     }
 
@@ -80,15 +128,23 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _isLoading = false);
 
     if (result['success']) {
-      AppToast.show(context, message: 'Account created successfully! Please verify your email.', type: ToastType.success);
+      AppToast.show(
+        context,
+        message:
+            result['data']['message'] ??
+            'Account created. Please verify your email.',
+        type: result['data']['verificationEmailSent'] == false
+            ? ToastType.warning
+            : ToastType.success,
+      );
       Navigator.pushReplacement(
-        context, 
+        context,
         MaterialPageRoute(
           builder: (_) => VerificationScreen(
             userId: result['data']['userId'],
             type: 'email',
-          )
-        )
+          ),
+        ),
       );
     } else {
       AppToast.show(context, message: result['error'], type: ToastType.error);
@@ -158,7 +214,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       onChanged: (val) {
                         setModalState(() {
                           filteredStates = _nigerianStates
-                              .where((state) => state.toLowerCase().contains(val.toLowerCase()))
+                              .where(
+                                (state) => state.toLowerCase().contains(
+                                  val.toLowerCase(),
+                                ),
+                              )
                               .toList();
                         });
                       },
@@ -172,8 +232,11 @@ class _SignupScreenState extends State<SignupScreen> {
                         final state = filteredStates[index];
                         return ListTile(
                           title: Text(state),
-                          trailing: _stateController.text == state 
-                              ? const Icon(Icons.check_circle, color: Color(0xFF1E90FF))
+                          trailing: _stateController.text == state
+                              ? const Icon(
+                                  Icons.check_circle,
+                                  color: Color(0xFF1E90FF),
+                                )
                               : null,
                           onTap: () {
                             setState(() {
@@ -204,7 +267,10 @@ class _SignupScreenState extends State<SignupScreen> {
         systemOverlayStyle: context.systemOverlay,
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: const Icon(Icons.arrow_back_ios_new, color: Color(0xFF1E90FF)),
+                icon: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: Color(0xFF1E90FF),
+                ),
                 onPressed: () => Navigator.pop(context),
               )
             : null,
@@ -230,7 +296,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 ],
               ),
               const SizedBox(height: 50),
-              
+
               // Title Match
               Text(
                 'Create Account',
@@ -246,7 +312,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 style: TextStyle(color: context.textSecondary, fontSize: 16),
               ),
               const SizedBox(height: 50),
-              
+
               TextField(
                 controller: _nameController,
                 textCapitalization: TextCapitalization.words,
@@ -284,8 +350,13 @@ class _SignupScreenState extends State<SignupScreen> {
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
               ),
@@ -314,7 +385,11 @@ class _SignupScreenState extends State<SignupScreen> {
                   prefixIcon: const Icon(Icons.dialpad),
                   counterText: "",
                   suffixIcon: IconButton(
-                    icon: Icon(_obscurePin ? Icons.visibility_outlined : Icons.visibility_off_outlined),
+                    icon: Icon(
+                      _obscurePin
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                    ),
                     onPressed: () => setState(() => _obscurePin = !_obscurePin),
                   ),
                 ),
@@ -335,21 +410,40 @@ class _SignupScreenState extends State<SignupScreen> {
                     height: 24,
                     child: Checkbox(
                       value: _acceptedTerms,
-                      onChanged: (val) => setState(() => _acceptedTerms = val ?? false),
+                      onChanged: (val) =>
+                          setState(() => _acceptedTerms = val ?? false),
                       activeColor: AppTheme.primaryColor,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: RichText(
                       text: TextSpan(
-                        style: TextStyle(color: context.textSecondary, fontSize: 14, fontFamily: AppTheme.fontFamily),
+                        style: TextStyle(
+                          color: context.textSecondary,
+                          fontSize: 14,
+                          fontFamily: AppTheme.fontFamily,
+                        ),
                         children: const [
                           TextSpan(text: 'I agree to the '),
-                          TextSpan(text: 'Terms of Service', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                          TextSpan(
+                            text: 'Terms of Service',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           TextSpan(text: ' and '),
-                          TextSpan(text: 'Privacy Policy', style: TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.bold)),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: TextStyle(
+                              color: AppTheme.primaryColor,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           TextSpan(text: '.'),
                         ],
                       ),
@@ -357,22 +451,31 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 50),
               GradientButton(
                 text: 'Sign Up',
                 onPressed: _handleSignup,
                 loading: _isLoading,
               ),
-              
+
               const SizedBox(height: 32),
               // Footer Match
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Already have an account? ', style: TextStyle(color: context.textSecondary, fontSize: 16)),
+                  Text(
+                    'Already have an account? ',
+                    style: TextStyle(
+                      color: context.textSecondary,
+                      fontSize: 16,
+                    ),
+                  ),
                   GestureDetector(
-                    onTap: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen())),
+                    onTap: () => Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    ),
                     child: const Text(
                       'Log In',
                       style: TextStyle(

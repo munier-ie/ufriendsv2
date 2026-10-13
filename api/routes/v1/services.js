@@ -17,6 +17,7 @@ const { creditReferralBonus } = require('../../services/referral.service');
 const { sendTransactionReceipt } = require('../../services/email.service');
 const { cache } = require('../../middleware/cacheMiddleware');
 const { sendWebhookNotification } = require('../webhookVendor');
+const { cleanPlanName, isSocialPlan } = require('../../utils/planFormatter');
 
 // ─── Apply logging to every response ────────────────────────────────────────
 router.use(logApiResponse);
@@ -134,7 +135,15 @@ router.get('/:type', apiKeyAuth, cache(300), async (req, res) => {
             let price = s.price;
             if (userType === 2 && s.agentPrice)  price = s.agentPrice;
             if (userType === 3 && s.vendorPrice) price = s.vendorPrice;
-            return { ...s, price };
+            const isSocial = type === 'data' ? isSocialPlan(s.name) : false;
+            const cleanedName = type === 'data' ? cleanPlanName(s.name) : s.name;
+            return {
+                ...s,
+                name: cleanedName,
+                rawName: s.name,
+                isSocial,
+                price
+            };
         });
 
         res.json({ success: true, services });

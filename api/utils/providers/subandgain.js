@@ -52,7 +52,7 @@ async function purchaseAirtime(details, config) {
         // Note: Subandgain uses GET query params based on the docs shown ("https://subandgain.com/api/airtime.php?...")
         // But let's verify if axios.get or post is better. Docs say "API Command: url...". Usually means GET.
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { params, timeout: 30000 });
         const result = response.data;
 
 
@@ -79,11 +79,12 @@ async function purchaseAirtime(details, config) {
     } catch (error) {
         console.error('Subandgain Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
             hasResponse,
-            isConnectionError: !hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
             errorCode: error.code
         };
     }
@@ -111,7 +112,7 @@ async function purchaseData(details, config) {
             dataPlan: planId
         };
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { params, timeout: 30000 });
         const result = response.data;
 
 
@@ -135,11 +136,12 @@ async function purchaseData(details, config) {
     } catch (error) {
         console.error('Subandgain Data Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
             hasResponse,
-            isConnectionError: !hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
             errorCode: error.code
         };
     }
@@ -216,7 +218,7 @@ async function purchaseTV(details, config) {
             smartNumber: number
         };
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { params, timeout: 30000 });
         const result = response.data;
 
 
@@ -236,10 +238,14 @@ async function purchaseTV(details, config) {
         }
     } catch (error) {
         console.error('Subandgain TV Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -322,7 +328,7 @@ async function purchaseElectricity(details, config) {
         // Include accessToken if available (from verification step)
         if (accessToken) params.accessToken = accessToken;
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { params, timeout: 30000 });
         const result = response.data;
 
 
@@ -343,10 +349,14 @@ async function purchaseElectricity(details, config) {
         }
     } catch (error) {
         console.error('Subandgain Electricity Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -382,7 +392,7 @@ async function purchaseExam(details, config) {
             eduType: eduType
         };
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { params, timeout: 30000 });
         const result = response.data;
 
 
@@ -404,10 +414,14 @@ async function purchaseExam(details, config) {
         }
     } catch (error) {
         console.error('Subandgain Exam Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -429,7 +443,7 @@ async function purchaseDataPin(details, config) {
             quantity: quantity || 1
         };
 
-        const response = await axios.get(url, { params });
+        const response = await axios.get(url, { params, timeout: 30000 });
         const result = response.data;
 
 
@@ -450,10 +464,14 @@ async function purchaseDataPin(details, config) {
         }
     } catch (error) {
         console.error('Subandgain DataPin Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }

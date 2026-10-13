@@ -55,6 +55,8 @@ model User {
   emailVerified        Boolean                @default(false)
   emailVerifyCode      Int?
   emailVerifyExpiry    DateTime?
+  passwordResetToken   String?                @unique
+  passwordResetExpires DateTime?
   twoFaEnabled         Boolean                @default(false)
   twoFaMethod          String?
   twoFaSecret          String?

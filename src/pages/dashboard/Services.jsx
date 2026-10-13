@@ -1,4 +1,4 @@
-import { Phone, Wifi, Tv, Zap, Hash, GraduationCap, CheckCircle, AlertCircle, Loader2, UserPlus, Clock, ArrowRight, Copy, XCircle, FileText } from 'lucide-react';
+import { Phone, Wifi, Tv, Zap, Hash, GraduationCap, CheckCircle, AlertCircle, AlertTriangle, Loader2, UserPlus, Clock, ArrowRight, Copy, XCircle, FileText } from 'lucide-react';
 import React, { useState, useEffect, useTransition } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
@@ -342,6 +342,105 @@ export default function Services() {
     const needsVerification = activeTab === 'cable' || activeTab === 'electricity';
     const isPinService = activeTab === 'data_pin' || activeTab === 'exam';
 
+    // Helper: clean plan name to strip ugly brackets and format clearly
+    const cleanPlanName = (rawName) => {
+        if (!rawName) return '';
+        let str = String(rawName).trim();
+
+        // 1. Social tag
+        const isTikTokOnly = /tiktok\s*only/i.test(str);
+        const isTikTok = /tiktok/i.test(str);
+        const isInsta = /insta|instagram/i.test(str);
+        const isYouTube = /youtube/i.test(str);
+        const isWhatsApp = /whatsapp/i.test(str);
+        const isFacebook = /facebook/i.test(str);
+        const isSocial = /social/i.test(str) || isTikTok || isInsta || isYouTube || isWhatsApp || isFacebook;
+
+        let socialTag = '';
+        if (isTikTokOnly) socialTag = ' [TikTok Only]';
+        else if (isTikTok && isInsta && isYouTube) socialTag = ' [Insta/TikTok/YouTube]';
+        else if (isTikTok) socialTag = ' [TikTok Only]';
+        else if (isWhatsApp) socialTag = ' [WhatsApp Only]';
+        else if (isFacebook) socialTag = ' [Facebook Only]';
+        else if (isSocial) socialTag = ' [Social Only]';
+
+        // 2. Bonus perks
+        const perks = [];
+        const airtimeCashMatch = str.match(/(?:\+|plus)\s*N?(\d+)\s*(?:free\s*)?airtime/i) || str.match(/\(\s*\(?\d+\)?\s*\+\s*N?(\d+)\s*(?:free\s*)?airtime/i);
+        if (airtimeCashMatch) perks.push(`+ ₦${airtimeCashMatch[1]} Airtime`);
+        const airtimeMinsMatch = str.match(/(?:\+|plus)\s*(\d+)\s*(?:mins|minutes)\s*(?:airtime|airtim)?/i);
+        if (airtimeMinsMatch && !airtimeCashMatch) perks.push(`+ ${airtimeMinsMatch[1]} Mins Airtime`);
+        const nightMatch = str.match(/(?:\+|plus)\s*(\d+(?:\.\d+)?(?:gb|mb))\s*night/i);
+        if (nightMatch) perks.push(`+ ${nightMatch[1].toUpperCase()} Night`);
+
+        // 3. Extract validity
+        let validity = '';
+        const checkStr = str.replace(/\b(corporate|sme|cg)\s*2\b/gi, '$1_TWO');
+        if (/\b30\s*days?\b|30day|\b1\s*month\b|\bmonthly\b|30\[days\]|\[30days\]|\(\(\s*30\s*[\)\+]|\(\s*30\s*days?\s*\)/i.test(checkStr)) validity = '30 Days';
+        else if (/\b14\s*days?\b|14day/i.test(checkStr)) validity = '14 Days';
+        else if (/\b7\s*days?\b|7day|\bweekly\b|\(\(\s*7\s*[\)\+]|\(\s*7\s*days?\s*\)/i.test(checkStr)) validity = '7 Days';
+        else if (/\b3\s*days?\b|3day|\(\(\s*3\s*[\)\+]|\(\s*3\s*days?\s*\)/i.test(checkStr)) validity = '3 Days';
+        else if (/\b2\s*days?\b|2day|\(\(\s*2\s*[\)\+]|\(\s*2\s*days?\s*\)/i.test(checkStr)) validity = '2 Days';
+        else if (/\b1\s*day\b|1day|\b24hrs\b|\(\(\s*1\s*[\)\+]|\(\s*1\s*day\s*\)/i.test(checkStr)) validity = '1 Day';
+
+        // 4. Network
+        const netMatch = str.match(/^(MTN|AIRTEL|GLO|9MOBILE|SMILE)/i);
+        const network = netMatch ? netMatch[1].toUpperCase() : '';
+
+        // 5. Size
+        const sizeMatch = str.match(/(\d+(?:\.\d+)?)\s*(MB|GB|TB)/i);
+        let sizeStr = '';
+        if (sizeMatch) {
+            let val = parseFloat(sizeMatch[1]);
+            let unit = sizeMatch[2].toUpperCase();
+            if (unit === 'MB' && val >= 1000) {
+                val = val / 1000;
+                unit = 'GB';
+            }
+            sizeStr = `${val % 1 === 0 ? val.toFixed(0) : val}${unit}`;
+        }
+
+        // 6. Plan Type
+        let planType = '';
+        if (/corporate gifting 2|cg 2|corporate 2/i.test(str)) planType = 'Corporate 2';
+        else if (/corporate/i.test(str)) planType = 'Corporate';
+        else if (/sme2/i.test(str)) planType = 'SME2';
+        else if (/sme/i.test(str)) planType = 'SME';
+        else if (/data coupons?|coupon/i.test(str)) planType = 'Data Coupon';
+        else if (/data awoof|awoof/i.test(str)) planType = 'Data Awoof';
+        else if (/data share|share/i.test(str)) planType = 'Data Share';
+        else if (/gifting/i.test(str)) planType = 'Gifting';
+
+        if (!validity) {
+            if (planType.includes('Corporate') || planType.includes('SME')) validity = '30 Days';
+            else if (/monthly|month/i.test(str)) validity = '30 Days';
+            else if (/weekly|week/i.test(str)) validity = '7 Days';
+            else if (/daily|day/i.test(str)) validity = '1 Day';
+        }
+
+        const parts = [];
+        if (network) parts.push(network);
+        if (sizeStr) parts.push(sizeStr);
+        if (planType) parts.push(planType);
+        if (validity) parts.push(`- ${validity}`);
+        if (perks.length > 0) parts.push(perks.join(' '));
+        if (socialTag) parts.push(socialTag);
+
+        if (parts.length === 0) {
+            return str
+                .replace(/\s*\(\(\s*\d+\s*\)\)/g, '')
+                .replace(/\s*\(\s*\d+\s*\)/g, '')
+                .replace(/\s*Days?\s*\)/ig, '')
+                .replace(/\{[^}]*\}/g, '')
+                .replace(/\[[^\]]*\]/g, '')
+                .replace(/\(\s*\)/g, '')
+                .replace(/\s{2,}/g, ' ')
+                .trim();
+        }
+
+        return parts.join(' ').replace(/\s{2,}/g, ' ').trim();
+    };
+
     // Helper: parse a data size string like '25.0MB', '1.5GB', '500MB' -> value in MB
     const parseDataSize = (name) => {
         const match = name.match(/(\d+(\.\d+)?)(MB|GB|TB)/i);
@@ -372,10 +471,18 @@ export default function Services() {
             if (sizeInMb < 500 || sizeInMb > 10240) return false;
         }
 
-        // Data Specific Filtering: match plan type (SME, GIFTING, CORPORATE, CORPORATE2, etc.)
+        // Data Specific Filtering: match plan type (SME, GIFTING, CORPORATE, CORPORATE2, SOCIAL, etc.)
         if (activeTab === 'data' && formData.dataType) {
             const type = formData.dataType.toUpperCase();
             const nameUpper = s.name.toUpperCase();
+            const isSocial = s.isSocial || /social|tiktok|whatsapp|facebook|instagram|insta|youtube|snapchat|binge/i.test(s.name);
+
+            if (type === 'SOCIAL') {
+                return isSocial;
+            }
+
+            // Exclude social plans from regular categories (SME, Corporate, Gifting, etc.)
+            if (isSocial) return false;
 
             if (type === 'CORPORATE') {
                 if (!nameUpper.includes('CORPORATE') && !nameUpper.includes('C.G') && !nameUpper.includes('CG')) return false;
@@ -506,6 +613,7 @@ export default function Services() {
                                     <option value="DATA AWOOF">Data Awoof</option>
                                     <option value="DATA SHARE">Data Share</option>
                                     <option value="DATA COUPONS">Data Coupons</option>
+                                    <option value="SOCIAL">Social Bundles (TikTok, WhatsApp, etc.)</option>
                                 </select>
                             </div>
                         )}
@@ -540,11 +648,9 @@ export default function Services() {
                                 {sortedPlans.map((s) => {
                                     let label;
                                     if (activeTab === 'exam') {
-                                        // API now returns formatted name e.g. "NECO - 1 Token"
                                         label = `${s.name} (₦${s.price?.toLocaleString()})`;
                                     } else {
-                                        // Clean plan name (strip Days etc.)
-                                        const cleanName = s.name.replace(/\s*Days?\s*\)/ig, ')').replace(/\{GIFTING\}/ig, '').trim();
+                                        const cleanName = cleanPlanName(s.name);
                                         label = `${cleanName}${(s.price > 0 && activeTab !== 'airtime') ? ` (₦${s.price?.toLocaleString()})` : ''}`;
                                     }
                                     return (
@@ -554,6 +660,20 @@ export default function Services() {
                                     );
                                 })}
                             </select>
+                            {/* Social plan warning banner */}
+                            {(() => {
+                                const selectedSvc = services.find(s => s.id == formData.serviceId);
+                                const isSocial = selectedSvc && (selectedSvc.isSocial || /social|tiktok|whatsapp|facebook|instagram|twitter|youtube|snapchat|binge|streaming/i.test(selectedSvc.name));
+                                return isSocial ? (
+                                    <div className="flex items-start gap-2.5 bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-3 text-xs mt-2 shadow-sm">
+                                        <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+                                        <div>
+                                            <p className="font-bold text-amber-950 mb-0.5">App-Restricted / Social Only Bundle</p>
+                                            <p>This data bundle works <strong>ONLY on specified social apps</strong> (e.g. TikTok, WhatsApp, Facebook, Instagram). It will <strong>NOT</strong> work for general web browsing, banking apps, or general internet use.</p>
+                                        </div>
+                                    </div>
+                                ) : null;
+                            })()}
                         </div>
 
                         {/* Airtime Specific: Network Type */}

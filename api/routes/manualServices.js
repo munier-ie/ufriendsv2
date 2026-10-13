@@ -399,7 +399,7 @@ router.post('/submit', authenticateUser, pinRateLimit, async (req, res) => {
                 // Format file links nicely
                 let displayValue = value;
                 if (typeof value === 'string' && value.includes('/uploads/')) {
-                    const fullUrl = `${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}${value}`;
+                    const fullUrl = `${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}${value}`;
                     displayValue = `<br><a href="${fullUrl}" target="_blank" style="display:inline-block; margin-top:5px; padding:8px 15px; background:#e9ecef; color:#333; text-decoration:none; border-radius:4px; font-size:12px;">View Document</a>`;
                 }
 

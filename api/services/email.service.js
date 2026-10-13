@@ -24,10 +24,6 @@ async function sendEmail(to, subject, html) {
     }
 
     try {
-        const settingsService = require('./settings.service');
-        const siteName = await settingsService.getSetting('siteName', 'Ufriends');
-        const siteEmail = await settingsService.getSetting('siteEmail', 'info@ufriends.com.ng');
-
         const info = await transporter.sendMail({
             from: process.env.EMAIL_FROM || '"Ufriends Support" <info@ufriends.com.ng>',
             to,
@@ -50,16 +46,20 @@ async function sendEmailStrict(to, subject, html) {
         throw new Error('EMAIL_NOT_CONFIGURED');
     }
 
-    const settingsService = require('./settings.service');
-    const siteName = await settingsService.getSetting('siteName', 'Ufriends');
-    const siteEmail = await settingsService.getSetting('siteEmail', 'info@ufriends.com.ng');
-
-    const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM || '"Ufriends Support" <info@ufriends.com.ng>',
-        to,
-        subject,
-        html,
-    });
+    let info;
+    try {
+        info = await transporter.sendMail({
+            from: process.env.EMAIL_FROM || '"Ufriends Support" <info@ufriends.com.ng>',
+            to,
+            subject,
+            html,
+        });
+    } catch (error) {
+        // Give route handlers a reliable way to distinguish SMTP delivery
+        // failures from database/programming failures in the same try block.
+        error.isEmailDeliveryError = true;
+        throw error;
+    }
 
     console.log('[EmailService] Email sent successfully');
     return info;
@@ -285,7 +285,7 @@ async function sendLoginAlert(user, reqOrMeta) {
                 </div>
 
                 <div style="text-align: center; margin: 30px 0 10px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                         Secure My Account
                     </a>
                 </div>
@@ -400,7 +400,7 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
 
             <br>
             <div style="text-align: center; margin-top: 20px;">
-                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard" style="background-color: #004687; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Review in Dashboard</a>
+                <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard" style="background-color: #004687; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Review in Dashboard</a>
             </div>
         </div>
     `;
@@ -459,7 +459,10 @@ async function sendVerificationOtpEmail(user, otpCode) {
             </p>
         </div>
     `;
-    return sendEmail(user.email, subject, html);
+    // Verification is a required transactional message. Propagate SMTP
+    // failures so the auth API never claims that a code was delivered when it
+    // was not.
+    return sendEmailStrict(user.email, subject, html);
 }
 
 /**
@@ -493,7 +496,7 @@ async function sendSystemUpdateEmail(user) {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
+                <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/login" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px;">
                     Log In To Your Account
                 </a>
             </div>
@@ -540,7 +543,7 @@ async function sendResellerConfirmation(request) {
                 <p>You can track the progress of your setup (Web, Android, iOS) and provide your branding details in real-time using our tracking portal.</p>
                 
                 <div style="text-align: center; margin: 40px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/reseller/status/${request.paymentRef}" style="display: inline-block; padding: 16px 32px; background-color: #004687; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/reseller/status/${request.paymentRef}" style="display: inline-block; padding: 16px 32px; background-color: #004687; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
                         Track My Setup & Submit Branding
                     </a>
                 </div>
@@ -599,7 +602,7 @@ async function sendResellerAdminAlert(request) {
             </table>
 
             <div style="text-align: center; margin-top: 30px;">
-                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/reseller-requests" style="background-color: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Manage in Dashboard</a>
+                <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard/reseller-requests" style="background-color: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Manage in Dashboard</a>
             </div>
         </div>
     `;
@@ -638,7 +641,7 @@ async function sendResellerDeploymentReady(request) {
                 ` : ''}
 
                 <div style="text-align: center; margin: 40px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/reseller/status/${request.paymentRef}" style="display: inline-block; padding: 16px 32px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px;">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/reseller/status/${request.paymentRef}" style="display: inline-block; padding: 16px 32px; background-color: #0f172a; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px;">
                         View Setup Summary
                     </a>
                 </div>
@@ -689,7 +692,7 @@ async function sendManualServiceUpdateNotification(user, serviceType, updatedSta
 
             <br>
             <div style="text-align: center; margin-top: 20px;">
-                <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/dashboard/manual-services" style="background-color: #004687; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View in Dashboard</a>
+                <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/dashboard/manual-services" style="background-color: #004687; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">View in Dashboard</a>
             </div>
         </div>
     `;
@@ -775,7 +778,7 @@ async function sendAdminLoginAlert(admin, reqOrMeta) {
                 </div>
 
                 <div style="text-align: center; margin: 25px 0 10px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/system-users" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #dc2626, #991b1b); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard/system-users" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #dc2626, #991b1b); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                         Review Admin Access
                     </a>
                 </div>
@@ -907,7 +910,7 @@ async function sendWalletCreditAlert(user, creditDetails) {
                 </div>
 
                 <div style="text-align: center; margin: 25px 0 10px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/wallet-credits" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard/wallet-credits" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                         View Credit Logs
                     </a>
                 </div>
@@ -980,7 +983,7 @@ async function sendFraudAlert(details) {
                 </div>
 
                 <div style="text-align: center; margin: 25px 0 10px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/users" style="display: inline-block; padding: 12px 28px; background-color: ${color}; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard/users" style="display: inline-block; padding: 12px 28px; background-color: ${color}; color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                         Investigate User
                     </a>
                 </div>
@@ -1093,7 +1096,7 @@ async function sendAdminNewAccountAlert(user, reqOrMeta) {
                 </div>
 
                 <div style="text-align: center; margin: 25px 0 10px 0;">
-                    <a href="${process.env.FRONTEND_URL || 'https://ufriends.com.ng'}/admin/dashboard/users" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
+                    <a href="${process.env.FRONTEND_URL || 'https://www.ufriends.com.ng'}/admin/dashboard/users" style="display: inline-block; padding: 12px 28px; background: linear-gradient(135deg, #004687, #1E90FF); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 14px;">
                         Manage User Accounts
                     </a>
                 </div>

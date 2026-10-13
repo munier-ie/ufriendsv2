@@ -330,6 +330,16 @@ const policies = {
         accountKey: req => req.body?.email || req.body?.id,
         message: 'Too many password recovery attempts from this device or network. Please try again later.',
     }),
+    ai: createLayeredRateLimiter({
+        name: 'ai_chat',
+        duration: 60 * 60,
+        blockDuration: 60 * 60,
+        ipPoints: positiveInteger(process.env.RATE_LIMIT_AI_IP, 60),
+        devicePoints: positiveInteger(process.env.RATE_LIMIT_AI_DEVICE, 30),
+        accountPoints: positiveInteger(process.env.RATE_LIMIT_AI_ACCOUNT, 20),
+        accountKey: req => req.user?.id,
+        message: 'You have reached the Ufriends AI limit for now. Please try again later.',
+    }),
     action: createLayeredRateLimiter({
         name: 'action',
         duration: 60,

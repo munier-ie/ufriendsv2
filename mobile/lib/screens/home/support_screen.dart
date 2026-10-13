@@ -14,12 +14,24 @@ class SupportScreen extends StatefulWidget {
 
 class _SupportScreenState extends State<SupportScreen> {
   bool _loading = true;
+  bool _aiWorkspaceEnabled = false;
   List<dynamic> _messages = [];
 
   @override
   void initState() {
     super.initState();
     _fetchMessages();
+    _checkAiWorkspaceStatus();
+  }
+
+  Future<void> _checkAiWorkspaceStatus() async {
+    final res = await ApiService.fetchPublicSettings();
+    if (mounted && res['success'] == true && res['settings'] != null) {
+      final s = res['settings'];
+      setState(() {
+        _aiWorkspaceEnabled = s['aiWorkspaceEnabled'] == true || s['apiNodeEnv'] == 'development';
+      });
+    }
   }
 
   Future<void> _fetchMessages() async {
@@ -31,7 +43,11 @@ class _SupportScreenState extends State<SupportScreen> {
         if (result['success']) {
           _messages = result['messages'];
         } else {
-          AppToast.show(context, message: result['error'] ?? 'Failed to load support history', type: ToastType.error);
+          AppToast.show(
+            context,
+            message: result['error'] ?? 'Failed to load support history',
+            type: ToastType.error,
+          );
         }
       });
     }
@@ -58,7 +74,10 @@ class _SupportScreenState extends State<SupportScreen> {
               ),
               decoration: BoxDecoration(
                 color: context.bottomSheetBg,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(24), topRight: Radius.circular(24)),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -80,8 +99,11 @@ class _SupportScreenState extends State<SupportScreen> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 24),
-                  
-                  const Text('Subject', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+
+                  const Text(
+                    'Subject',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: subjectController,
@@ -89,13 +111,19 @@ class _SupportScreenState extends State<SupportScreen> {
                       hintText: 'Briefly summarize your issue',
                       filled: true,
                       fillColor: context.subtleBg,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 16),
-                  
-                  const Text('Message', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+
+                  const Text(
+                    'Message',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: messageController,
@@ -104,35 +132,52 @@ class _SupportScreenState extends State<SupportScreen> {
                       hintText: 'Please provide details about your issue...',
                       filled: true,
                       fillColor: context.subtleBg,
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 24),
                   GradientButton(
                     text: 'Send Message',
                     loading: isSubmitting,
                     onPressed: () async {
-                      if (subjectController.text.trim().isEmpty || messageController.text.trim().isEmpty) {
-                        AppToast.show(context, message: 'Please fill in all fields', type: ToastType.warning);
+                      if (subjectController.text.trim().isEmpty ||
+                          messageController.text.trim().isEmpty) {
+                        AppToast.show(
+                          context,
+                          message: 'Please fill in all fields',
+                          type: ToastType.warning,
+                        );
                         return;
                       }
-                      
+
                       setModalState(() => isSubmitting = true);
                       final result = await ApiService.createSupportMessage(
                         subject: subjectController.text.trim(),
                         message: messageController.text.trim(),
                       );
-                      
+
                       if (!context.mounted) return;
-                      
+
                       if (result['success']) {
                         Navigator.pop(context);
-                        AppToast.show(context, message: 'Your message has been sent to our support team.', type: ToastType.success);
+                        AppToast.show(
+                          context,
+                          message:
+                              'Your message has been sent to our support team.',
+                          type: ToastType.success,
+                        );
                         _fetchMessages();
                       } else {
                         setModalState(() => isSubmitting = false);
-                        AppToast.show(context, message: result['error'] ?? 'Failed to send message', type: ToastType.error);
+                        AppToast.show(
+                          context,
+                          message: result['error'] ?? 'Failed to send message',
+                          type: ToastType.error,
+                        );
                       }
                     },
                   ),
@@ -157,125 +202,196 @@ class _SupportScreenState extends State<SupportScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : _messages.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.support_agent, size: 80, color: Colors.grey.shade300),
-                            const SizedBox(height: 16),
-                            const Text('No support requests yet', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 8),
-                            const Text('Need help? Create a new request and\nour team will assist you.', textAlign: TextAlign.center, style: TextStyle(color: Colors.grey)),
-                          ],
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.support_agent,
+                            size: 80,
+                            color: Colors.grey.shade300,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No support requests yet',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Need help? Create a new request and\nour team will assist you.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+                      edgeOffset: 76,
+                      onRefresh: () async {
+                        _fetchMessages();
+                      },
+                      color: AppTheme.primaryColor,
+                      child: ListView.separated(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
                         ),
-                      )
-                    : RefreshIndicator(
-                        triggerMode: RefreshIndicatorTriggerMode.anywhere,
-                        edgeOffset: 76,
-                        onRefresh: () async {
-                          _fetchMessages();
-                        },
-                        color: AppTheme.primaryColor,
-                        child: ListView.separated(
-                          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-                          padding: const EdgeInsets.fromLTRB(20.0, 76.0, 20.0, 20.0),
-                          itemCount: _messages.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 16),
-                          itemBuilder: (context, index) {
-                            final msg = _messages[index];
-                            final isReplied = msg['status'] == 2;
-                            final date = DateTime.tryParse(msg['createdAt'] ?? '');
-                            final dateStr = date != null ? DateFormat('MMM d, yyyy - h:mm a').format(date) : '';
-                            
-                            return Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: context.cardColor,
-                                borderRadius: BorderRadius.circular(16),
-                                boxShadow: [
-                                  BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 2)),
-                                ],
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          msg['subject'] ?? 'No Subject',
-                                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        padding: const EdgeInsets.fromLTRB(
+                          20.0,
+                          76.0,
+                          20.0,
+                          20.0,
+                        ),
+                        itemCount: _messages.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 16),
+                        itemBuilder: (context, index) {
+                          final msg = _messages[index];
+                          final isReplied = msg['status'] == 2;
+                          final date = DateTime.tryParse(
+                            msg['createdAt'] ?? '',
+                          );
+                          final dateStr = date != null
+                              ? DateFormat('MMM d, yyyy - h:mm a').format(date)
+                              : '';
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: context.cardColor,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.02),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        msg['subject'] ?? 'No Subject',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
                                         ),
                                       ),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: isReplied ? Colors.green.shade50 : Colors.orange.shade50,
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(
-                                              isReplied ? Icons.check_circle : Icons.access_time,
-                                              size: 12,
-                                              color: isReplied ? Colors.green.shade600 : Colors.orange.shade600,
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Text(
-                                              isReplied ? 'Replied' : 'Pending Review',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color: isReplied ? Colors.green.shade600 : Colors.orange.shade600,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(dateStr, style: TextStyle(color: context.iconMuted, fontSize: 11)),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    msg['message'] ?? '',
-                                    style: TextStyle(color: Colors.grey.shade700, fontSize: 13),
-                                  ),
-                                  
-                                  if (isReplied && msg['reply'] != null) ...[
-                                    const SizedBox(height: 16),
+                                    ),
                                     Container(
-                                      padding: const EdgeInsets.all(12),
-                                      decoration: BoxDecoration(
-                                        color: Colors.blue.shade50,
-                                        borderRadius: const BorderRadius.only(
-                                          topRight: Radius.circular(12),
-                                          bottomLeft: Radius.circular(12),
-                                          bottomRight: Radius.circular(12),
-                                        ),
-                                        border: Border(left: BorderSide(color: Colors.blue.shade400, width: 4)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
                                       ),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      decoration: BoxDecoration(
+                                        color: isReplied
+                                            ? Colors.green.shade50
+                                            : Colors.orange.shade50,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          const Text('Response from Support', style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 12)),
-                                          const SizedBox(height: 4),
+                                          Icon(
+                                            isReplied
+                                                ? Icons.check_circle
+                                                : Icons.access_time,
+                                            size: 12,
+                                            color: isReplied
+                                                ? Colors.green.shade600
+                                                : Colors.orange.shade600,
+                                          ),
+                                          const SizedBox(width: 4),
                                           Text(
-                                            msg['reply'],
-                                            style: TextStyle(color: Colors.blue.shade900, fontSize: 13),
+                                            isReplied
+                                                ? 'Replied'
+                                                : 'Pending Review',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.bold,
+                                              color: isReplied
+                                                  ? Colors.green.shade600
+                                                  : Colors.orange.shade600,
+                                            ),
                                           ),
                                         ],
                                       ),
                                     ),
                                   ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  dateStr,
+                                  style: TextStyle(
+                                    color: context.iconMuted,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  msg['message'] ?? '',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontSize: 13,
+                                  ),
+                                ),
+
+                                if (isReplied && msg['reply'] != null) ...[
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: const BorderRadius.only(
+                                        topRight: Radius.circular(12),
+                                        bottomLeft: Radius.circular(12),
+                                        bottomRight: Radius.circular(12),
+                                      ),
+                                      border: Border(
+                                        left: BorderSide(
+                                          color: Colors.blue.shade400,
+                                          width: 4,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          'Response from Support',
+                                          style: TextStyle(
+                                            color: Colors.blue,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          msg['reply'],
+                                          style: TextStyle(
+                                            color: Colors.blue.shade900,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
                                 ],
-                              ),
-                            );
-                          },
-                        ),
+                              ],
+                            ),
+                          );
+                        },
                       ),
+                    ),
             ),
             Positioned(
               top: 0,
@@ -293,20 +409,53 @@ class _SupportScreenState extends State<SupportScreen> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          FloatingActionButton.extended(
-            heroTag: 'ai_chat',
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AiChatScreen())),
-            backgroundColor: Colors.indigo,
-            icon: const Icon(Icons.auto_awesome, color: Colors.white),
-            label: const Text('AI Consultant', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 12),
+          if (_aiWorkspaceEnabled) ...[
+            FloatingActionButton.extended(
+              heroTag: 'ai_chat',
+              onPressed: () => Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (routeContext, animation, secondaryAnimation) =>
+                      const AiChatScreen(),
+                  transitionDuration: const Duration(milliseconds: 420),
+                  transitionsBuilder:
+                      (routeContext, animation, secondaryAnimation, child) =>
+                          FadeTransition(
+                            opacity: animation,
+                            child: ScaleTransition(
+                              scale: Tween<double>(
+                                begin: 0.97,
+                                end: 1,
+                              ).animate(animation),
+                              child: child,
+                            ),
+                          ),
+                ),
+              ),
+              backgroundColor: AppTheme.primaryColor,
+              icon: const Icon(Icons.auto_awesome, color: Colors.white),
+              label: const Text(
+                'AI workspace',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
           FloatingActionButton.extended(
             heroTag: 'human_support',
             onPressed: _showNewRequestDialog,
             backgroundColor: AppTheme.primaryColor,
             icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('New Request', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            label: const Text(
+              'New Request',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),

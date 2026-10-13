@@ -89,7 +89,8 @@ async function purchaseAirtime(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -119,7 +120,8 @@ async function purchaseAirtime(details, config) {
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         const msgStr = Array.isArray(apiError) ? apiError.join(', ') : (apiError ? String(apiError) : null);
         const hasResponse = Boolean(error.response);
-        const isConnectionError = !hasResponse;
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        const isConnectionError = !hasResponse || isTimeout;
         return {
             status: 'failed',
             message: sanitizeAlrahuzError(msgStr || (isConnectionError ? 'Provider Connection Error' : 'Service Temporarily Unavailable')),
@@ -152,7 +154,8 @@ async function purchaseData(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -182,7 +185,8 @@ async function purchaseData(details, config) {
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
         const msgStr = Array.isArray(apiError) ? apiError.join(', ') : (apiError ? String(apiError) : null);
         const hasResponse = Boolean(error.response);
-        const isConnectionError = !hasResponse;
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
+        const isConnectionError = !hasResponse || isTimeout;
         return {
             status: 'failed',
             message: sanitizeAlrahuzError(msgStr || (isConnectionError ? 'Provider Connection Error' : 'Service Temporarily Unavailable')),
@@ -262,7 +266,8 @@ async function purchaseTV(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -290,10 +295,14 @@ async function purchaseTV(details, config) {
     } catch (error) {
         console.error('Alrahuz TV Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: sanitizeAlrahuzError(apiError || 'Service Temporarily Unavailable'),
-            error: error.message
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -376,7 +385,8 @@ async function purchaseElectricity(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -405,10 +415,14 @@ async function purchaseElectricity(details, config) {
     } catch (error) {
         console.error('Alrahuz Electricity Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: sanitizeAlrahuzError(apiError || 'Service Temporarily Unavailable'),
-            error: error.message
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -433,7 +447,8 @@ async function purchaseExam(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -456,10 +471,14 @@ async function purchaseExam(details, config) {
     } catch (error) {
         console.error('Alrahuz Exam Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: sanitizeAlrahuzError(apiError || 'Service Temporarily Unavailable'),
-            error: error.message
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -521,7 +540,8 @@ async function purchaseDataPin(details, config) {
             headers: {
                 'Authorization': `Token ${apiKey}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            timeout: 30000
         });
 
         const result = response.data;
@@ -550,10 +570,14 @@ async function purchaseDataPin(details, config) {
     } catch (error) {
         console.error('Alrahuz DataPin Error:', error.response?.status || error.code || 'request failed');
         const apiError = error.response?.data?.error || error.response?.data?.message || error.response?.data?.detail || null;
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: sanitizeAlrahuzError(apiError || 'Service Temporarily Unavailable'),
-            error: error.message
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }

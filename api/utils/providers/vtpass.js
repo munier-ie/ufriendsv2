@@ -43,7 +43,7 @@ async function purchaseAirtime(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/pay`, payload, { headers, timeout: 30000 });
 
         // Log response (in a real app, use a logger)
 
@@ -74,11 +74,12 @@ async function purchaseAirtime(details, config) {
     } catch (error) {
         console.error('VTPass Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
             hasResponse,
-            isConnectionError: !hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
             errorCode: error.code
         };
     }
@@ -121,7 +122,7 @@ async function purchaseData(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/pay`, payload, { headers, timeout: 30000 });
 
         const { code, content } = response.data;
 
@@ -150,11 +151,12 @@ async function purchaseData(details, config) {
     } catch (error) {
         console.error('VTPass Data Error:', error.response?.status || error.code || 'request failed');
         const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
             message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
             hasResponse,
-            isConnectionError: !hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
             errorCode: error.code
         };
     }
@@ -182,7 +184,7 @@ async function verifyTV(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/merchant-verify`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/merchant-verify`, payload, { headers, timeout: 15000 });
 
         const { code, content } = response.data;
 
@@ -233,7 +235,7 @@ async function purchaseTV(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/pay`, payload, { headers, timeout: 30000 });
 
         const { code, content } = response.data;
 
@@ -260,10 +262,14 @@ async function purchaseTV(details, config) {
         }
     } catch (error) {
         console.error('VTPass TV Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -292,7 +298,7 @@ async function verifyElectricity(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/merchant-verify`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/merchant-verify`, payload, { headers, timeout: 15000 });
 
         const { code, content } = response.data;
 
@@ -344,7 +350,7 @@ async function purchaseElectricity(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/pay`, payload, { headers, timeout: 30000 });
 
         const { code, content } = response.data;
 
@@ -372,10 +378,14 @@ async function purchaseElectricity(details, config) {
         }
     } catch (error) {
         console.error('VTPass Electricity Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }
@@ -408,7 +418,7 @@ async function purchaseExam(details, config) {
             'secret-key': secretKey
         };
 
-        const response = await axios.post(`${baseUrl}/pay`, payload, { headers });
+        const response = await axios.post(`${baseUrl}/pay`, payload, { headers, timeout: 30000 });
 
         const { code, content } = response.data;
 
@@ -438,10 +448,14 @@ async function purchaseExam(details, config) {
         }
     } catch (error) {
         console.error('VTPass Exam Error:', error.response?.status || error.code || 'request failed');
+        const hasResponse = Boolean(error.response);
+        const isTimeout = error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT';
         return {
             status: 'failed',
-            message: 'Provider Connection Error',
-            error: error.message
+            message: hasResponse ? (error.response?.data?.response_description || error.response?.data?.message || 'Transaction Failed') : 'Provider Connection Error',
+            hasResponse,
+            isConnectionError: !hasResponse || isTimeout,
+            errorCode: error.code
         };
     }
 }

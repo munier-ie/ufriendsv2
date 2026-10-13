@@ -100,8 +100,21 @@ const STATIC_PAGES = {
         schema: {
             "@context": "https://schema.org",
             "@type": "ContactPage",
-            "name": "Contact Ufriends IT",
-            "url": "https://www.ufriends.com.ng/contact"
+            "name": "Contact Ufriends IT Support",
+            "url": "https://www.ufriends.com.ng/contact",
+            "publisher": {
+                "@type": "Organization",
+                "name": "Ufriends IT",
+                "url": "https://www.ufriends.com.ng",
+                "logo": "https://www.ufriends.com.ng/favicon.svg"
+            },
+            "contactPoint": {
+                "@type": "ContactPoint",
+                "telephone": "+2347026417709",
+                "contactType": "customer support",
+                "availableLanguage": ["English", "Hausa"],
+                "contactOption": "TollFree"
+            }
         }
     },
     '/reseller': {
@@ -595,6 +608,17 @@ function generateStaticRoutes(distDir) {
 
     console.log(`Starting SSG route generation for ${PUBLIC_ROUTES.length} routes...`);
 
+    // Clean up any legacy flat .html files in distDir (e.g. dist/about.html, dist/contact.html)
+    // so they never conflict with directory index.html files or cause duplicate canonical errors.
+    const rootFiles = fs.readdirSync(distDir);
+    for (const f of rootFiles) {
+        if (f.endsWith('.html') && f !== 'index.html') {
+            try {
+                fs.unlinkSync(path.join(distDir, f));
+            } catch (e) {}
+        }
+    }
+
     let generatedCount = 0;
 
     for (const route of PUBLIC_ROUTES) {
@@ -666,11 +690,6 @@ function generateStaticRoutes(distDir) {
 
         // Write directory index.html
         fs.writeFileSync(path.join(routeDir, 'index.html'), html);
-        
-        // Also write direct .html file for single-level routes (e.g. dist/login.html)
-        if (!cleanRoute.includes('/')) {
-            fs.writeFileSync(path.join(distDir, `${cleanRoute}.html`), html);
-        }
 
         generatedCount++;
     }

@@ -20,6 +20,7 @@ export default function Login() {
         password: ''
     });
     const [loading, setLoading] = useState(false);
+    const [resendLoading, setResendLoading] = useState(false);
     const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [lockoutSeconds, setLockoutSeconds] = useState(0);
@@ -129,6 +130,24 @@ export default function Login() {
             setError(err.response?.data?.error || 'Verification failed. Please check the code.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleResendVerification = async () => {
+        if (!userId || resendLoading) return;
+        setResendLoading(true);
+        setError('');
+        try {
+            const { data } = await axios.post('/api/auth/resend-verification', { userId });
+            setInfoMessage(data.message || 'A new verification code has been sent to your email.');
+        } catch (err) {
+            setError(
+                err.response?.data?.message ||
+                err.response?.data?.error ||
+                'We could not resend the verification code. Please try again.'
+            );
+        } finally {
+            setResendLoading(false);
         }
     };
 
@@ -273,6 +292,15 @@ export default function Login() {
                             Verify Email
                         </Button>
 
+                        <button
+                            type="button"
+                            onClick={handleResendVerification}
+                            disabled={resendLoading}
+                            className="w-full text-center text-sm font-semibold text-primary hover:text-secondary disabled:opacity-60 outline-none"
+                        >
+                            {resendLoading ? 'Sending new code…' : 'Resend Code'}
+                        </button>
+
                         <button 
                             type="button" 
                             onClick={() => { setStep('login'); setVerificationCode(''); setError(''); }}
@@ -320,4 +348,3 @@ export default function Login() {
         </AuthLayout>
     );
 }
-

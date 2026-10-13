@@ -1,14 +1,22 @@
-import { defineConfig } from 'vite';
+import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-    plugins: [
-        react({
-            jsxRuntime: 'automatic',
-        }),
-    ],
+export default defineConfig(({ mode }) => {
+    const env = loadEnv(mode, process.cwd(), '');
+    const apiNodeEnv = env.API_NODE_ENV || process.env.API_NODE_ENV || (mode === 'production' ? 'production' : 'development');
+
+    return {
+        envPrefix: ['VITE_', 'API_'],
+        define: {
+            'import.meta.env.API_NODE_ENV': JSON.stringify(apiNodeEnv),
+        },
+        plugins: [
+            react({
+                jsxRuntime: 'automatic',
+            }),
+        ],
     esbuild: {
         jsx: 'automatic',
         // Browser consoles can expose Axios configs, auth headers, and admin
@@ -47,4 +55,5 @@ export default defineConfig(({ mode }) => ({
             }
         }
     }
-}));
+};
+});
