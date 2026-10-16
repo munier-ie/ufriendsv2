@@ -118,16 +118,14 @@ export default function TransactionModal({
                 </head>
                 <body>
                     ${printContent}
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                            window.onafterprint = function() { window.close(); };
-                        };
-                    </script>
                 </body>
             </html>
         `);
         printWindow.document.close();
+        printWindow.onload = () => {
+            printWindow.print();
+            printWindow.onafterprint = () => printWindow.close();
+        };
     };
 
     const formattedAmount = tx.amount != null

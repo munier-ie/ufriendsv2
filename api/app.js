@@ -46,6 +46,17 @@ app.use(helmet({
     crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+// Disable browser capabilities that the API never needs. Keeping this on the
+// API as well as the Vercel frontend protects direct api.ufriends.com.ng
+// responses and prevents future HTML error pages from gaining these features.
+app.use((req, res, next) => {
+    res.setHeader(
+        'Permissions-Policy',
+        'accelerometer=(), autoplay=(), camera=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), microphone=(), payment=(), picture-in-picture=(), publickey-credentials-get=(), usb=()'
+    );
+    next();
+});
+
 // [SEC-HIGH-02] Strict CORS — only allow configured frontend origins (www + non-www)
 const buildAllowedOrigins = () => {
     const origins = new Set([

@@ -83,6 +83,33 @@
             "permanent": true
         }
     ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Content-Security-Policy",
+                    "value": "default-src 'self'; base-uri 'self'; object-src 'self' blob: data:; frame-ancestors 'self'; form-action 'self'; script-src 'self' https://js.paystack.co; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' https://api.ufriends.com.ng https://*.paystack.co; frame-src 'self' blob: https://api.ufriends.com.ng https://www.youtube.com https://youtube.com https://*.paystack.co; media-src 'self' blob: https://api.ufriends.com.ng; worker-src 'self' blob:; manifest-src 'self'; upgrade-insecure-requests"
+                },
+                {
+                    "key": "X-Frame-Options",
+                    "value": "SAMEORIGIN"
+                },
+                {
+                    "key": "X-Content-Type-Options",
+                    "value": "nosniff"
+                },
+                {
+                    "key": "Referrer-Policy",
+                    "value": "strict-origin-when-cross-origin"
+                },
+                {
+                    "key": "Permissions-Policy",
+                    "value": "accelerometer=(), autoplay=(self \"https://www.youtube.com\"), camera=(), display-capture=(), encrypted-media=(self \"https://www.youtube.com\"), fullscreen=(self \"https://www.youtube.com\"), geolocation=(), gyroscope=(self \"https://www.youtube.com\"), microphone=(), payment=(self \"https://checkout.paystack.com\"), picture-in-picture=(self \"https://www.youtube.com\"), publickey-credentials-get=(self), usb=()"
+                }
+            ]
+        }
+    ],
     "rewrites": [
         {
             "source": "/api/(.*)",

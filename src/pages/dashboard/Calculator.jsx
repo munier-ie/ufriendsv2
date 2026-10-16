@@ -1,6 +1,62 @@
 import { Calculator as CalculatorIcon, Delete } from 'lucide-react';
 import React, { useState } from 'react';
 
+const evaluateExpression = (input) => {
+    const expression = input.replaceAll('x', '*').replaceAll('÷', '/').replace(/\s+/g, '');
+    let position = 0;
+
+    const parseNumber = () => {
+        const start = position;
+        while (/[0-9.]/.test(expression[position] || '')) position += 1;
+        const token = expression.slice(start, position);
+        if (!token || (token.match(/\./g) || []).length > 1) throw new Error('Invalid number');
+        return Number(token);
+    };
+
+    const parseFactor = () => {
+        if (expression[position] === '-') {
+            position += 1;
+            return -parseFactor();
+        }
+        if (expression[position] === '+') {
+            position += 1;
+            return parseFactor();
+        }
+        if (expression[position] === '(') {
+            position += 1;
+            const value = parseExpression();
+            if (expression[position] !== ')') throw new Error('Missing closing parenthesis');
+            position += 1;
+            return value;
+        }
+        return parseNumber();
+    };
+
+    const parseTerm = () => {
+        let value = parseFactor();
+        while (expression[position] === '*' || expression[position] === '/') {
+            const operator = expression[position++];
+            const right = parseFactor();
+            value = operator === '*' ? value * right : value / right;
+        }
+        return value;
+    };
+
+    const parseExpression = () => {
+        let value = parseTerm();
+        while (expression[position] === '+' || expression[position] === '-') {
+            const operator = expression[position++];
+            const right = parseTerm();
+            value = operator === '+' ? value + right : value - right;
+        }
+        return value;
+    };
+
+    const result = parseExpression();
+    if (position !== expression.length || !Number.isFinite(result)) throw new Error('Invalid expression');
+    return result;
+};
+
 export default function Calculator() {
     const [display, setDisplay] = useState('0');
     const [history, setHistory] = useState([]);
@@ -19,8 +75,7 @@ export default function Calculator() {
 
     const handleCalculate = () => {
         try {
-            // eslint-disable-next-line no-eval
-            const result = eval(display.replace('x', '*').replace('÷', '/'));
+            const result = evaluateExpression(display);
             setHistory(prev => [`${display} = ${result}`, ...prev].slice(0, 5));
             setDisplay(String(result));
         } catch (error) {

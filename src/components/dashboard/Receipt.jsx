@@ -52,18 +52,16 @@ export default function Receipt({ transaction, onClose }) {
                     <div id="print-section">
                         ${printContent}
                     </div>
-                    <script>
-                        window.onload = () => {
-                            setTimeout(() => {
-                                window.print();
-                                window.close();
-                            }, 250);
-                        };
-                    </script>
                 </body>
             </html>
         `);
         newWin.document.close();
+        newWin.onload = () => {
+            setTimeout(() => {
+                newWin.print();
+                newWin.close();
+            }, 250);
+        };
     };
 
     if (!transaction) return null;
