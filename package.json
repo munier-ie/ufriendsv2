@@ -7,6 +7,7 @@
     "test:security": "bash scripts/test-wallet-security.sh",
     "check:wallet-security": "node scripts/check-wallet-security.js",
     "install:security-triggers": "node scripts/install-security-triggers.js",
+    "repair:legacy-rapid-holds": "node scripts/release-legacy-rapid-holds.js",
     "dev": "vite --host",
     "build:blog": "node build-blog-json.js",
     "build": "npm run build:blog && vite build && node prerender-script.js",

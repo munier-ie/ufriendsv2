@@ -232,12 +232,19 @@ async function checkVendingVelocity(userId, db = prisma) {
 }
 
 /**
- * Check Rapid High-Value Transactions (>= ₦2,000)
- * Detects multiple transactions of >= ₦2,000 in quick succession within 5 minutes.
+ * Check rapid, repeated high-value transactions.
+ *
+ * A transaction PIN, row-locked wallet debit, and the all-purchase velocity
+ * rule already protect every purchase.  This additional hard hold is therefore
+ * reserved for a genuinely unusual burst: a third purchase of ₦5,000 or more
+ * in five minutes.  Treating a normal second ₦2,000 data purchase as account
+ * takeover was causing legitimate customers to be locked out.
  */
 async function checkRapidHighValueTransactions(userId, currentAmount, db = prisma) {
     const numAmount = parseFloat(currentAmount) || 0;
-    if (numAmount < 2000) {
+    const highValueThreshold = 5000;
+    const allowedHighValuePurchases = 2;
+    if (numAmount < highValueThreshold) {
         return { allowed: true };
     }
 
@@ -247,15 +254,16 @@ async function checkRapidHighValueTransactions(userId, currentAmount, db = prism
             userId,
             kind: 'wallet_debit',
             operationId: { not: null },
-            amount: { lte: -2000 },
+            amount: { lte: -highValueThreshold },
             source: { not: 'admin_debit' },
             createdAt: { gte: fiveMinutesAgo }
         }
     });
 
-    // If there is already at least 1 other >= ₦2,000 transaction in the last 5 minutes, this is rapid drainage
-    if (recentHighValueDebits >= 1) {
-        const reason = `Rapid High-Value Transactions: Multiple transactions >= ₦2,000 attempted within 5 minutes (attempting ₦${numAmount.toLocaleString()}).`;
+    // The third >= ₦5,000 purchase in five minutes is a materially stronger
+    // account-takeover signal than a customer buying data for two lines.
+    if (recentHighValueDebits >= allowedHighValuePurchases) {
+        const reason = `Rapid High-Value Transactions: More than ${allowedHighValuePurchases} transactions >= ₦${highValueThreshold.toLocaleString()} attempted within 5 minutes (attempting ₦${numAmount.toLocaleString()}).`;
         return { allowed: false, reason, source: 'rapid_high_value_transactions' };
     }
 
