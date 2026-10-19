@@ -31,6 +31,24 @@ const providers = {
 const BALANCE_KEYWORDS = ['insufficient', 'low balance', 'wallet', 'low fund', 'no fund',
     'not enough', 'insufficient fund', 'account balance', 'recharge', 'top up', 'topup'];
 
+// A provider balance is useful for routing only while it is fresh.  Do not
+// reject a provider merely because an old, locally recorded balance is low:
+// the provider may have been funded since the last balance check.
+const PROVIDER_BALANCE_FRESHNESS_MS = 15 * 60 * 1000;
+
+function hasFreshInsufficientProviderBalance(provider, requiredAmount) {
+    const wallet = provider?.apiWallet?.[0];
+    if (!wallet || !Number.isFinite(Number(wallet.balance)) || !wallet.lastChecked) return false;
+
+    const checkedAt = new Date(wallet.lastChecked).getTime();
+    if (!Number.isFinite(checkedAt) || Date.now() - checkedAt > PROVIDER_BALANCE_FRESHNESS_MS) return false;
+
+    // A newly created ApiWallet starts at zero before it has ever been
+    // synchronised. Treat that as unknown rather than blocking a provider
+    // that may already have been funded externally.
+    return Number(wallet.balance) > 0 && Number(wallet.balance) < Number(requiredAmount);
+}
+
 function sanitizeVendResult(result) {
     if (result && result.status === 'failed' && result.message) {
         // Ensure message is a string before calling toLowerCase
@@ -108,10 +126,20 @@ function parseDataCapacity(str) {
 
     // Providers use both decimal (10GB = 10,000MB) and binary
     // (10GB = 10,240MB) labels for the same commercial bundle. Normalize
-    // whole binary-GB MB labels before comparing provider catalogs.
+    // binary-GB MB labels (including fractional like 2560MB = 2.5GB -> 2500MB)
+    // before comparing provider catalogs.
     const mb = Math.round(val);
-    if (mb >= 1024 && mb % 1024 === 0) return (mb / 1024) * 1000;
+    if (mb >= 512 && (mb % 256 === 0 || mb % 512 === 0)) {
+        return Math.round((mb / 1024) * 1000);
+    }
     return mb;
+}
+
+function isCapacityMatch(candMb, targetMb) {
+    if (candMb === null || targetMb === null) return false;
+    if (candMb === targetMb) return true;
+    const diff = Math.abs(candMb - targetMb);
+    return diff <= 50 || (diff / targetMb) <= 0.05;
 }
 
 /**
@@ -168,6 +196,9 @@ function resolveDataType(service) {
             if (meta.dataType) return normalizeDataType(meta.dataType);
         } catch {}
     }
+    // Social plans must be detected here so resolveProvider routes them
+    // to the SOCIAL routing override, matching the listing normalizer.
+    if (isSocialPlan(service?.name || '')) return 'SOCIAL';
     return normalizeDataType(service?.name || '');
 }
 
@@ -201,11 +232,19 @@ const { isSocialPlan } = require('../utils/planFormatter');
 async function findPlanForProvider(providerId, network, capacityMb, dataType, originalCode = null, originalProviderId = null, service = null) {
     // Determine constraints of the original requested service
     const serviceName = service?.name || '';
-    const originalIsSocial = isSocialPlan(serviceName) || isSocialPlan(dataType);
+    let serviceDuration = '';
+    if (service?.metadata) {
+        try {
+            const meta = typeof service.metadata === 'string' ? JSON.parse(service.metadata) : service.metadata;
+            serviceDuration = meta.duration || '';
+        } catch {}
+    }
+    const combinedOriginal = `${serviceName} ${serviceDuration}`;
+    const originalIsSocial = isSocialPlan(combinedOriginal) || isSocialPlan(dataType);
     
     // Check if original plan is a 30-day (monthly) plan
-    const originalIsShortTerm = /1\s*day|2\s*day|3\s*day|7\s*day|weekly|daily/i.test(serviceName);
-    const originalIsMonthly = /30\s*days?|30day|month/i.test(serviceName) || (!originalIsShortTerm && (dataType.includes('CORPORATE') || dataType.includes('SME')));
+    const originalIsShortTerm = /1\s*day|2\s*day|3\s*day|7\s*day|weekly|daily/i.test(combinedOriginal);
+    const originalIsMonthly = /30\s*days?|30day|month/i.test(combinedOriginal) || (!originalIsShortTerm && (dataType.includes('CORPORATE') || dataType.includes('SME')));
 
     // Query active plans for this provider & network
     const plans = await prisma.dataPlan.findMany({
@@ -213,11 +252,11 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
     });
 
     const matchingPlans = plans
-        .filter(p => parseDataCapacity(p.dataName) === capacityMb)
+        .filter(p => isCapacityMatch(parseDataCapacity(p.dataName), capacityMb))
         .filter(p => {
             const candName = p.dataName || '';
             const candDuration = `${p.duration || ''} ${candName}`.toLowerCase();
-            const candIsSocial = isSocialPlan(candName) || isSocialPlan(p.dataType);
+            const candIsSocial = isSocialPlan(candName) || isSocialPlan(p.dataType) || isSocialPlan(p.duration || '');
 
             // [CRIT-GUARD 1] Social Plan mismatch protection:
             // A regular browsing plan must NEVER be fulfilled with a social plan!
@@ -227,7 +266,10 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
 
             // [CRIT-GUARD 2] Validity mismatch protection:
             // A 30-day/monthly plan must NEVER be fulfilled with a 1-day, 2-day, or 7-day plan!
-            if (originalIsMonthly) {
+            // Exception: If this candidate is the service's direct native plan (same provider & planId),
+            // do not reject it for duration heuristics.
+            const isDirectNativePlan = originalProviderId === providerId && originalCode && String(p.planId) === String(originalCode);
+            if (originalIsMonthly && !isDirectNativePlan) {
                 const candIsShort = /1\s*day|2\s*day|3\s*day|7\s*day|weekly|daily/i.test(candDuration);
                 if (candIsShort) return false;
             }
@@ -235,23 +277,26 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
             // [CRIT-GUARD 3] Type Compatibility protection:
             // Only allow rank 1 (exact) or rank 2 (compatible variant, e.g. SME <-> SME2, Corporate <-> Corporate 2).
             // Reject rank 3 (cross-category wild downgrade).
-            const rank = getTypeRank(p.dataType, dataType);
+            const rank = (originalIsSocial && candIsSocial) ? 1 : getTypeRank(p.dataType, dataType);
             if (rank > 2) return false;
 
             return true;
         })
-        .map(p => ({
-            ...p,
-            rank: getTypeRank(p.dataType, dataType)
-        }))
+        .map(p => {
+            const candIsSocial = isSocialPlan(p.dataName || '') || isSocialPlan(p.dataType) || isSocialPlan(p.duration || '');
+            const rank = (originalIsSocial && candIsSocial) ? 1 : getTypeRank(p.dataType, dataType);
+            return {
+                ...p,
+                rank
+            };
+        })
         .sort((a, b) => a.rank - b.rank || a.apiPrice - b.apiPrice);
 
     if (matchingPlans.length > 0) {
         // A native plan ID is only safe when its current catalog metadata still
-        // matches the requested network, size, category, and validity. Provider
-        // IDs can be recycled, so never bypass the compatibility guards above.
+        // matches the requested network, size, category, and validity.
         const directPlan = originalProviderId === providerId && originalCode
-            ? matchingPlans.find(plan => plan.planId === String(originalCode))
+            ? matchingPlans.find(plan => String(plan.planId) === String(originalCode))
             : null;
         const best = directPlan || matchingPlans[0];
         return {
@@ -300,6 +345,20 @@ async function resolveProvider(serviceType, network, networkType, service) {
                     serviceType,
                     network: network.toUpperCase(),
                     networkType: { equals: baseType, mode: 'insensitive' },
+                    active: true
+                }
+            });
+        }
+
+        // SOCIAL networkType: look for routing entries with 'SOCIAL' in networkType
+        // This bridges the listing (which uses isSocialPlan -> 'SOCIAL' category)
+        // with the vending layer, ensuring social plans route to the same provider.
+        if (!routing && networkType.toUpperCase() === 'SOCIAL') {
+            routing = await prisma.providerRouting.findFirst({
+                where: {
+                    serviceType,
+                    network: network.toUpperCase(),
+                    networkType: { contains: 'SOCIAL', mode: 'insensitive' },
                     active: true
                 }
             });
@@ -535,6 +594,19 @@ async function vendData(transaction, service, phone, network) {
                 continue;
             }
 
+            // Never send a customer-funded request to a provider whose
+            // *recently verified* wallet cannot pay for this exact bundle.
+            // This replaces the old blanket ₦200 routing threshold, which
+            // allowed a ₦4,375 plan to be attempted from a nearly empty
+            // provider wallet.  Stale balances remain eligible so a recent
+            // funding is not accidentally hidden from customers.
+            if (hasFreshInsufficientProviderBalance(prov, matchedPlan.apiPrice)) {
+                const wallet = prov.apiWallet[0];
+                console.warn(`[VendData] Candidate ${prov.name} skipped: verified provider balance ₦${Number(wallet.balance).toFixed(2)} cannot cover ₦${Number(matchedPlan.apiPrice).toFixed(2)} plan (checked ${wallet.lastChecked.toISOString()}).`);
+                attemptedErrors.push({ provider: prov.name, message: 'Provider wallet is not funded for this plan' });
+                continue;
+            }
+
             const config = getProviderConfig(prov);
             const details = {
                 network: effectiveNetwork,
@@ -578,9 +650,15 @@ async function vendData(transaction, service, phone, network) {
         console.error(`[VendData] All candidates exhausted for tx ${transaction.id}: ${lastErrorSummary}`);
         await refundTransaction(transaction, lastErrorSummary);
 
-        const clientMessage = attemptedErrors.length > 0
-            ? attemptedErrors[attemptedErrors.length - 1].message
-            : 'Service Temporarily Unavailable';
+        // Determine the most descriptive client-facing error message:
+        // Prioritize actual provider API responses over fallback eligibility skips.
+        const actualApiError = attemptedErrors.find(e => 
+            e.message !== 'No matching plan available on provider' && 
+            e.message !== 'Provider wallet is not funded for this plan'
+        );
+        const clientMessage = actualApiError 
+            ? actualApiError.message 
+            : (attemptedErrors[0]?.message || 'Service Temporarily Unavailable');
 
         return sanitizeVendResult({ status: 'failed', message: clientMessage });
 

@@ -252,6 +252,11 @@ router.get('/:type', authenticateUser, cache(300), async (req, res) => {
             function normalizeDataType(name, rawCode = '') {
                 const combined = `${name} ${rawCode}`.toUpperCase();
                 if (isSocialPlan(combined)) return 'SOCIAL';
+                // Check SME2 before SME (SME2 contains SME), and CG2 before CG.
+                // This order MUST match the vend.service.js normalizer so listing
+                // and vending resolve to the same ProviderRouting entry.
+                if (combined.includes('SME2')) return 'SME2';
+                if (combined.includes('CORPORATE GIFTING 2') || combined.includes('CG2') || combined.includes('CG 2')) return 'CORPORATE GIFTING 2';
                 if (combined.includes('CORPORATE') || combined.includes('C.G') || combined.includes('CG')) return 'CORPORATE GIFTING';
                 if (combined.includes('AWOOF')) return 'DATA AWOOF';
                 if (combined.includes('COUPON')) return 'DATA COUPONS';

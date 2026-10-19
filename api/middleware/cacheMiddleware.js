@@ -31,7 +31,7 @@ async function flushRedisCache(pattern = 'HTTP_CACHE:*') {
 function flushByPrefix(prefix) {
     let count = 0;
     for (const key of store.keys()) {
-        if (key.startsWith(prefix)) {
+        if (key.startsWith(prefix) || key.startsWith(`HTTP_CACHE:${prefix}`) || key.includes(prefix)) {
             store.delete(key);
             count++;
         }

@@ -166,13 +166,18 @@ async function syncDataPlans(providers) {
                 data: {
                     type: 'data',
                     provider: plan.network,
-                    name: cleanPlanName(`${plan.network} ${plan.dataName} (${plan.dataType})`),
+                    name: cleanPlanName(`${plan.network} ${plan.dataName} (${plan.dataType}) ${plan.duration || ''}`),
                     code: plan.planId,
                     price: prices.userPrice,
                     agentPrice: prices.agentPrice,
                     vendorPrice: prices.vendorPrice,
                     apiPrice: prices.apiPrice,
                     apiProviderId: plan.apiProviderId,
+                    metadata: JSON.stringify({
+                        dataType: plan.dataType,
+                        duration: plan.duration || '30 days',
+                        network: plan.network
+                    }),
                     active: false
                 }
             });
@@ -210,7 +215,6 @@ async function syncDataPlans(providers) {
                 }
             });
 
-            // Update matching Service entry by planId + apiProviderId
             await prisma.service.updateMany({
                 where: {
                     type: 'data',
@@ -219,11 +223,16 @@ async function syncDataPlans(providers) {
                 },
                 data: {
                     provider: plan.network,
-                    name: cleanPlanName(`${plan.network} ${plan.dataName} (${plan.dataType})`),
+                    name: cleanPlanName(`${plan.network} ${plan.dataName} (${plan.dataType}) ${plan.duration || ''}`),
                     apiPrice: prices.apiPrice,
                     price: prices.userPrice,
                     agentPrice: prices.agentPrice,
-                    vendorPrice: prices.vendorPrice
+                    vendorPrice: prices.vendorPrice,
+                    metadata: JSON.stringify({
+                        dataType: plan.dataType,
+                        duration: plan.duration || '30 days',
+                        network: plan.network
+                    })
                 }
             });
 
@@ -493,8 +502,10 @@ async function runSmartRoutingSwitch(providers) {
             if (!p.apiProviderId || !p.apiPrice || p.apiPrice <= 0) continue;
             const prov = currentProviders.find(pr => pr.id === p.apiProviderId);
             const wallet = prov?.apiWallet?.[0];
-            // Minimum balance threshold: at least ₦200 to route to this provider
-            if (wallet && wallet.balance < 200) continue;
+            // A provider can only be preferred for a plan it can actually
+            // fund. The old flat ₦200 floor could route a ₦4,375 bundle to a
+            // provider that was effectively empty.
+            if (wallet && wallet.balance < p.apiPrice) continue;
 
             const sizeMb = extractMegabytes(p.dataName) || 1024;
             const pricePerGb = (p.apiPrice / sizeMb) * 1024;
@@ -570,9 +581,12 @@ async function runSmartRoutingSwitch(providers) {
         const listing = unfundedGroups.map(g => `  • ${g}`).join('\n');
         await sendAdminAlert(
             'CRITICAL: No Funded Provider',
-            `The following ${unfundedGroups.length} network/type group(s) have NO funded provider (all wallets below ₦200):\n\n${listing}\n\nUsers cannot purchase data for these groups. Please fund your provider wallets ASAP.`
+            `The following ${unfundedGroups.length} network/type group(s) have NO provider with enough balance for an active plan:\n\n${listing}\n\nUsers cannot purchase data for these groups. Please fund your provider wallets ASAP.`
         );
     }
+
+    // Flush services cache so user interface immediately adapts to smart routing switches
+    flushByPrefix('/api/services');
 }
 
 /**
