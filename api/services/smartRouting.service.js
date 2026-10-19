@@ -3,6 +3,7 @@ const prisma = require('../../prisma/client');
 const emailService = require('./email.service');
 const axios = require('axios');
 const { cleanPlanName } = require('../utils/planFormatter');
+const { flushByPrefix } = require('../middleware/cacheMiddleware');
 
 // Rate-limit map: subject → timestamp of last sent email
 const _alertCooldowns = new Map();
@@ -88,6 +89,7 @@ function extractMegabytes(name) {
 async function syncDataPlans(providers) {
     console.log('[SmartRoutingBot] --- Phase 1: Data Plans ---');
     const allFetched = [];
+    const successfullyFetchedProviderIds = new Set();
 
     for (const provider of providers) {
         const { handler, config } = getHandlerAndConfig(provider);
@@ -96,6 +98,7 @@ async function syncDataPlans(providers) {
         try {
             const result = await handler.fetchDataPlans(config);
             if (result.success && result.plans) {
+                successfullyFetchedProviderIds.add(provider.id);
                 result.plans.forEach(p => allFetched.push({
                     ...p,
                     apiProviderId: provider.id,
@@ -179,14 +182,27 @@ async function syncDataPlans(providers) {
                 `New plan found: ${plan.network} ${plan.dataName} (${plan.dataType}) [ID: ${plan.planId}] via ${plan.providerName}. Awaiting your review.`
             );
 
-        } else if (plan.apiPrice !== existingPlan.apiPrice) {
-            // PRICE CHANGE: auto-update all tiers
+        } else {
+            // Providers can recycle a plan ID or change its network/category/name.
+            // Keep both the provider catalog and its customer-facing service in
+            // sync; refreshing only price can send a plan code to the wrong network.
+            const priceChanged = plan.apiPrice !== existingPlan.apiPrice;
+            const catalogChanged = existingPlan.network !== plan.network
+                || existingPlan.dataName !== plan.dataName
+                || existingPlan.dataType !== plan.dataType
+                || existingPlan.duration !== (plan.duration || '30 days');
+            if (!priceChanged && !catalogChanged) continue;
+
             const direction = plan.apiPrice > existingPlan.apiPrice ? 'raised' : 'lowered';
-            console.log(`[SmartRoutingBot] Price ${direction}: ${existingPlan.network} ${existingPlan.dataName} [ID: ${existingPlan.planId}] ${existingPlan.apiPrice} → ${plan.apiPrice}`);
+            console.log(`[SmartRoutingBot] Updating provider catalog: ${existingPlan.network} ${existingPlan.dataName} [ID: ${existingPlan.planId}] via ${plan.providerName}`);
 
             await prisma.dataPlan.update({
                 where: { id: existingPlan.id },
                 data: {
+                    network: plan.network,
+                    dataName: plan.dataName,
+                    dataType: plan.dataType,
+                    duration: plan.duration || '30 days',
                     apiPrice: prices.apiPrice,
                     userPrice: prices.userPrice,
                     agentPrice: prices.agentPrice,
@@ -202,6 +218,8 @@ async function syncDataPlans(providers) {
                     apiProviderId: plan.apiProviderId
                 },
                 data: {
+                    provider: plan.network,
+                    name: cleanPlanName(`${plan.network} ${plan.dataName} (${plan.dataType})`),
                     apiPrice: prices.apiPrice,
                     price: prices.userPrice,
                     agentPrice: prices.agentPrice,
@@ -209,7 +227,7 @@ async function syncDataPlans(providers) {
                 }
             });
 
-            if (direction === 'raised') {
+            if (priceChanged && direction === 'raised') {
                 await sendAdminAlert(
                     'Data Prices Auto-Adjusted (Increase)',
                     `${plan.providerName} raised price of ${existingPlan.network} ${existingPlan.dataName} [ID: ${existingPlan.planId}] from ₦${existingPlan.apiPrice} → ₦${plan.apiPrice}. Selling prices updated automatically.`
@@ -217,6 +235,30 @@ async function syncDataPlans(providers) {
             }
         }
     }
+
+    // A successful provider catalog response is authoritative. Hide plans it
+    // no longer offers so a routing switch cannot keep presenting stale plan IDs.
+    for (const providerId of successfullyFetchedProviderIds) {
+        const currentPlanIds = new Set(allFetched
+            .filter(plan => plan.apiProviderId === providerId)
+            .map(plan => String(plan.planId)));
+        const withdrawnPlans = ourPlans.filter(plan => plan.apiProviderId === providerId
+            && plan.active
+            && !currentPlanIds.has(String(plan.planId)));
+
+        for (const withdrawnPlan of withdrawnPlans) {
+            await prisma.$transaction([
+                prisma.dataPlan.update({ where: { id: withdrawnPlan.id }, data: { active: false } }),
+                prisma.service.updateMany({
+                    where: { type: 'data', code: withdrawnPlan.planId, apiProviderId: providerId, active: true },
+                    data: { active: false }
+                })
+            ]);
+            console.warn(`[SmartRoutingBot] Deactivated withdrawn plan: ${withdrawnPlan.network} ${withdrawnPlan.dataName} [${withdrawnPlan.planId}]`);
+        }
+    }
+
+    flushByPrefix('/api/services');
 }
 
 // =============================================================================

@@ -87,7 +87,9 @@ class _DataScreenState extends State<DataScreen> {
 
   Future<void> _fetchPlans() async {
     setState(() => _isLoadingPlans = true);
-    final result = await ApiService.getServices('data');
+    // Routing can switch data providers while the app is open. Always obtain
+    // the current provider's catalog before allowing a purchase.
+    final result = await ApiService.getServices('data', forceRefresh: true);
     if (mounted) {
       setState(() {
         _isLoadingPlans = false;

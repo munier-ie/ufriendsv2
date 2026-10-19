@@ -193,22 +193,6 @@ const { isSocialPlan } = require('../utils/planFormatter');
  * Dynamically translate and locate a provider's plan ID for a given network and capacity
  */
 async function findPlanForProvider(providerId, network, capacityMb, dataType, originalCode = null, originalProviderId = null, service = null) {
-    // Direct match if this candidate is the service's native provider
-    if (originalProviderId && providerId === originalProviderId && originalCode) {
-        const directPlan = await prisma.dataPlan.findFirst({
-            where: { apiProviderId: providerId, planId: String(originalCode), active: true }
-        });
-        if (directPlan) {
-            return {
-                planId: directPlan.planId,
-                dataName: directPlan.dataName,
-                dataType: directPlan.dataType,
-                apiPrice: directPlan.apiPrice,
-                matchType: 'direct'
-            };
-        }
-    }
-
     // Determine constraints of the original requested service
     const serviceName = service?.name || '';
     const originalIsSocial = isSocialPlan(serviceName) || isSocialPlan(dataType);
@@ -257,13 +241,19 @@ async function findPlanForProvider(providerId, network, capacityMb, dataType, or
         .sort((a, b) => a.rank - b.rank || a.apiPrice - b.apiPrice);
 
     if (matchingPlans.length > 0) {
-        const best = matchingPlans[0];
+        // A native plan ID is only safe when its current catalog metadata still
+        // matches the requested network, size, category, and validity. Provider
+        // IDs can be recycled, so never bypass the compatibility guards above.
+        const directPlan = originalProviderId === providerId && originalCode
+            ? matchingPlans.find(plan => plan.planId === String(originalCode))
+            : null;
+        const best = directPlan || matchingPlans[0];
         return {
             planId: best.planId,
             dataName: best.dataName,
             dataType: best.dataType,
             apiPrice: best.apiPrice,
-            matchType: `rank_${best.rank}`
+            matchType: directPlan ? 'direct_verified' : `rank_${best.rank}`
         };
     }
 

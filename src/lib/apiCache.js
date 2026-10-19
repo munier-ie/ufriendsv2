@@ -32,7 +32,6 @@ const _cache = new Map();
  */
 export const CACHEABLE_PREFIXES = [
     '/api/services/all',
-    '/api/services/data',
     '/api/services/airtime',
     '/api/services/cable',
     '/api/services/electricity',
