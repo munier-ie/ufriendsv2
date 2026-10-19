@@ -27,8 +27,8 @@ jobs:
               npx prisma generate
               npx prisma db push
               npm run build
-              npm run sync:provider-catalog
               npm run repair:legacy-rapid-holds
+              npm run repair:refunded-vending-holds
               pm2 restart all || npm start
             fi
 

@@ -105,7 +105,13 @@ function parseDataCapacity(str) {
     const unit = match[2].toUpperCase();
     if (unit === 'TB') return Math.round(val * 1000000);
     if (unit === 'GB') return Math.round(val * 1000);
-    return Math.round(val);
+
+    // Providers use both decimal (10GB = 10,000MB) and binary
+    // (10GB = 10,240MB) labels for the same commercial bundle. Normalize
+    // whole binary-GB MB labels before comparing provider catalogs.
+    const mb = Math.round(val);
+    if (mb >= 1024 && mb % 1024 === 0) return (mb / 1024) * 1000;
+    return mb;
 }
 
 /**

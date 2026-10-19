@@ -9,6 +9,7 @@
     "install:security-triggers": "node scripts/install-security-triggers.js",
     "repair:legacy-rapid-holds": "node scripts/release-legacy-rapid-holds.js",
     "sync:provider-catalog": "node scripts/sync-provider-catalog.js",
+    "repair:refunded-vending-holds": "node scripts/release-refunded-vending-bot-holds.js",
     "dev": "vite --host",
     "build:blog": "node build-blog-json.js",
     "build": "npm run build:blog && vite build && node prerender-script.js",

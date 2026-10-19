@@ -211,7 +211,7 @@ async function checkFraudRules(user, creditEvent, db = prisma) {
  */
 async function checkVendingVelocity(userId, db = prisma) {
     const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const recentDebits = await db.securityEvent.count({
+    const recentDebits = await db.securityEvent.findMany({
         where: {
             userId,
             kind: 'wallet_debit',
@@ -219,12 +219,23 @@ async function checkVendingVelocity(userId, db = prisma) {
             amount: { lt: 0 },
             source: { not: 'admin_debit' },
             createdAt: { gte: fiveMinutesAgo }
-        }
+        },
+        select: { reference: true }
     });
 
-    // 5 or more transactions in 5 minutes triggers bot protection
-    if (recentDebits >= 5) {
-        const reason = `Automated Vending Bot Detected: ${recentDebits} transactions attempted within 5 minutes.`;
+    // A failed vend that has already been fully refunded is not a spend and
+    // must not turn a customer's recovery retries into a bot accusation.
+    // References without a transaction stay counted conservatively.
+    const references = [...new Set(recentDebits.map(debit => debit.reference).filter(Boolean))];
+    const transactions = references.length
+        ? await db.transaction.findMany({ where: { reference: { in: references } }, select: { reference: true, status: true } })
+        : [];
+    const activeReferences = new Set(transactions.filter(transaction => transaction.status !== 3).map(transaction => transaction.reference));
+    const unreimbursedDebits = recentDebits.filter(debit => !debit.reference || activeReferences.has(debit.reference));
+
+    // 5 or more unreimbursed transactions in 5 minutes triggers bot protection.
+    if (unreimbursedDebits.length >= 5) {
+        const reason = `Automated Vending Bot Detected: ${unreimbursedDebits.length} unreimbursed transactions attempted within 5 minutes.`;
         return { allowed: false, reason, source: 'vending_bot_rule' };
     }
 
