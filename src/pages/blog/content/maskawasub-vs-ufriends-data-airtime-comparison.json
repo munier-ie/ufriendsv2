@@ -28,7 +28,7 @@
     "sections": [
         {
             "type": "paragraph",
-            "content": "MaskawaSub and Ufriends IT are both VTU platforms operating in Nigeria, but they serve slightly different markets. MaskawaSub focuses heavily on data and airtime reselling with competitive prices, while Ufriends IT combines VTU services with government identity features like NIN/BVN slip printing and modification. If you are trying to decide between the two, this honest comparison will help you figure out which one makes more sense for your needs."
+            "content": "MaskawaSub and <a href=\"/buy-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Buy Wholesale Data)</a> are both VTU platforms operating in Nigeria, but they serve slightly different markets. MaskawaSub focuses heavily on data and airtime reselling with competitive prices, while Ufriends IT combines VTU services with government identity features like NIN/BVN slip printing and modification. If you are trying to decide between the two, this honest comparison will help you figure out which one makes more sense for your needs."
         },
         {
             "type": "paragraph",
@@ -37,17 +37,50 @@
         {
             "type": "toc",
             "items": [
-                { "title": "Quick Answer — Which Platform Is Right for You?", "id": "quick-answer" },
-                { "title": "About MaskawaSub", "id": "about-maskawasub" },
-                { "title": "About Ufriends IT", "id": "about-ufriends" },
-                { "title": "Feature Comparison Table", "id": "comparison-table" },
-                { "title": "Data and Airtime Pricing Breakdown", "id": "pricing-breakdown" },
-                { "title": "NIN and BVN Services", "id": "nin-bvn-services" },
-                { "title": "API and Reseller Tools", "id": "api-reseller" },
-                { "title": "Ease of Use and Support", "id": "ease-support" },
-                { "title": "Pros and Cons of Each Platform", "id": "pros-cons" },
-                { "title": "Our Recommendation", "id": "recommendation" },
-                { "title": "Frequently Asked Questions", "id": "faqs" }
+                {
+                    "title": "Quick Answer — Which Platform Is Right for You?",
+                    "id": "quick-answer"
+                },
+                {
+                    "title": "About MaskawaSub",
+                    "id": "about-maskawasub"
+                },
+                {
+                    "title": "About Ufriends IT",
+                    "id": "about-ufriends"
+                },
+                {
+                    "title": "Feature Comparison Table",
+                    "id": "comparison-table"
+                },
+                {
+                    "title": "Data and Airtime Pricing Breakdown",
+                    "id": "pricing-breakdown"
+                },
+                {
+                    "title": "NIN and BVN Services",
+                    "id": "nin-bvn-services"
+                },
+                {
+                    "title": "API and Reseller Tools",
+                    "id": "api-reseller"
+                },
+                {
+                    "title": "Ease of Use and Support",
+                    "id": "ease-support"
+                },
+                {
+                    "title": "Pros and Cons of Each Platform",
+                    "id": "pros-cons"
+                },
+                {
+                    "title": "Our Recommendation",
+                    "id": "recommendation"
+                },
+                {
+                    "title": "Frequently Asked Questions",
+                    "id": "faqs"
+                }
             ]
         },
         {
@@ -88,24 +121,92 @@
         },
         {
             "type": "table",
-            "headers": ["Feature", "MaskawaSub", "Ufriends IT"],
+            "headers": [
+                "Feature",
+                "MaskawaSub",
+                "Ufriends IT"
+            ],
             "rows": [
-                ["Data Bundles (All Networks)", "✅ Yes", "✅ Yes"],
-                ["Airtime Recharge", "✅ Yes", "✅ Yes"],
-                ["Electricity Bills", "✅ Yes", "✅ Yes"],
-                ["Cable TV (DStv, GOtv)", "✅ Yes", "✅ Yes"],
-                ["Exam Pins (WAEC, NECO, JAMB)", "✅ Yes", "✅ Yes"],
-                ["Airtime to Cash", "✅ Yes", "✅ Yes"],
-                ["Bulk SMS", "✅ Yes", "✅ Yes"],
-                ["NIN Slip Printing", "❌ No", "✅ Yes (4 formats)"],
-                ["BVN Slip Generation", "❌ No", "✅ Yes"],
-                ["NIN/BVN Modification", "❌ No", "✅ Yes"],
-                ["BVN Retrieval", "❌ No", "✅ Yes"],
-                ["CAC Registration", "❌ No", "✅ Yes"],
-                ["Developer API", "✅ Basic", "✅ Full (v1 + SDKs + Sandbox)"],
-                ["Affiliate/Reseller Websites", "✅ Yes", "✅ Reseller tiers"],
-                ["Virtual Account Funding", "❌ Manual transfer", "✅ Auto-credit"],
-                ["Mobile App", "✅ Android", "✅ PWA (all devices)"]
+                [
+                    "Data Bundles (All Networks)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime Recharge",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Electricity Bills",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Cable TV (DStv, GOtv)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Exam Pins (WAEC, NECO, JAMB)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime to Cash",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Bulk SMS",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN Slip Printing",
+                    "❌ No",
+                    "✅ Yes (4 formats)"
+                ],
+                [
+                    "BVN Slip Generation",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN/BVN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Retrieval",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "CAC Registration",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "Developer API",
+                    "✅ Basic",
+                    "✅ Full (v1 + SDKs + Sandbox)"
+                ],
+                [
+                    "Affiliate/Reseller Websites",
+                    "✅ Yes",
+                    "✅ Reseller tiers"
+                ],
+                [
+                    "Virtual Account Funding",
+                    "❌ Manual transfer",
+                    "✅ Auto-credit"
+                ],
+                [
+                    "Mobile App",
+                    "✅ Android",
+                    "✅ PWA (all devices)"
+                ]
             ]
         },
         {
@@ -257,6 +358,11 @@
                     "a": "If you only resell data and airtime, both work. If you want to also offer NIN/BVN services to your customers as an additional revenue stream, use Ufriends IT because it provides everything in one dashboard."
                 }
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Experience Superior Uptime & Cheaper Data on Ufriends IT</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Switch to automated data delivery that never fails. Fund wallet with zero hidden charges and resell with high profit margins.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Buy Wholesale Data →</a>\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Join Ufriends Reseller Network</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/alrahuz-vs-ufriends-best-vtu-platform-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Alrahuz Data vs Ufriends IT</a></li><li><a href=\"/blog/subandgain-vs-ufriends-cheapest-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">SubAndGain vs Ufriends IT</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

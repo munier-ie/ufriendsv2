@@ -204,6 +204,22 @@ Object.keys(blogDb).forEach(slug => {
     PUBLIC_ROUTES.push(`/blog/${slug}`);
 });
 
+function formatSeoTitle(title, brandSuffix = ' | Ufriends IT') {
+    if (!title) return 'Ufriends IT — Nigeria Telecom & Identity Portal';
+    // If the title with suffix fits in 58 chars, append suffix
+    if (title.length + brandSuffix.length <= 58) {
+        return `${title}${brandSuffix}`;
+    }
+    // If title alone is under 58 chars, keep title
+    if (title.length <= 58) {
+        return title;
+    }
+    // If title exceeds 58 chars, trim cleanly at word boundary
+    const trimmed = title.substring(0, 54);
+    const lastSpace = trimmed.lastIndexOf(' ');
+    return `${lastSpace > 30 ? trimmed.substring(0, lastSpace) : trimmed}...`;
+}
+
 // ─── 3. Content Generators ──────────────────────────────────────────────────
 function getRouteMetadata(route) {
     if (STATIC_PAGES[route]) {
@@ -221,10 +237,13 @@ function getRouteMetadata(route) {
                 "description": post.excerpt,
                 "datePublished": post.publishedAt,
                 "dateModified": post.updatedAt || post.publishedAt,
+                "articleSection": post.category || "Fintech & Identity",
+                "inLanguage": "en-NG",
                 "author": {
-                    "@type": "Organization",
-                    "name": "Ufriends IT",
-                    "url": "https://www.ufriends.com.ng"
+                    "@type": "Person",
+                    "name": "Engr. Munier & Ufriends Fintech Research Group",
+                    "jobTitle": "Lead Telecom Systems & Identity Specialist",
+                    "url": "https://www.ufriends.com.ng/about"
                 },
                 "publisher": {
                     "@type": "Organization",
@@ -262,8 +281,9 @@ function getRouteMetadata(route) {
                         "bestRating": "5"
                     },
                     "author": {
-                        "@type": "Organization",
-                        "name": "Ufriends IT Research Team"
+                        "@type": "Person",
+                        "name": "Engr. Munier & Ufriends Fintech Research Group",
+                        "url": "https://www.ufriends.com.ng/about"
                     }
                 });
             }
@@ -288,10 +308,14 @@ function getRouteMetadata(route) {
             } : articleSchema;
 
             return {
-                title: `${post.title} | Ufriends IT Nigeria`,
+                title: formatSeoTitle(post.title),
                 description: post.excerpt || '',
                 canonical: `https://www.ufriends.com.ng/blog/${slug}`,
-                schema: finalSchema
+                schema: finalSchema,
+                isArticle: true,
+                publishedAt: post.publishedAt,
+                updatedAt: post.updatedAt,
+                category: post.category
             };
         }
     }
@@ -465,7 +489,7 @@ function getRouteBodyHtml(route) {
                         <div style="font-size:14px;color:#64748b;display:flex;gap:16px;flex-wrap:wrap;">
                             <span>Published: ${escapeHtml(post.publishedAt || '2026')}</span>
                             ${post.updatedAt ? `<span style="color:#0284c7;font-weight:600;">Updated: ${escapeHtml(post.updatedAt)}</span>` : ''}
-                            <span>By Ufriends IT Editorial Team</span>
+                            <span>By Engr. Munier &amp; Ufriends Research Team</span>
                         </div>
                     </header>
                     <div class="blog-body" style="font-size:17px;line-height:1.8;color:#334155;">
@@ -637,6 +661,7 @@ function generateStaticRoutes(distDir) {
         html = html.replace(/<meta property="og:title"[^>]*>/gi, '');
         html = html.replace(/<meta property="og:description"[^>]*>/gi, '');
         html = html.replace(/<meta property="og:url"[^>]*>/gi, '');
+        html = html.replace(/<meta property="og:type"[^>]*>/gi, '');
         html = html.replace(/<meta name="twitter:title"[^>]*>/gi, '');
         html = html.replace(/<meta name="twitter:description"[^>]*>/gi, '');
         html = html.replace(/<script type="application\/ld\+json"[^>]*>[\s\S]*?<\/script>/gi, '');
@@ -652,6 +677,9 @@ function generateStaticRoutes(distDir) {
             `  <meta property="og:title" content="${escapeHtml(meta.title)}" />`,
             `  <meta property="og:description" content="${escapeHtml(meta.description)}" />`,
             `  <meta property="og:url" content="${meta.canonical}" />`,
+            meta.isArticle
+                ? `  <meta property="og:type" content="article" />\n  <meta property="article:published_time" content="${escapeHtml(meta.publishedAt || '2026-05-11')}" />\n  <meta property="article:author" content="Ufriends IT" />${meta.category ? `\n  <meta property="article:section" content="${escapeHtml(meta.category)}" />` : ''}`
+                : `  <meta property="og:type" content="website" />`,
             `  <meta name="twitter:title" content="${escapeHtml(meta.title)}" />`,
             `  <meta name="twitter:description" content="${escapeHtml(meta.description)}" />`
         ];

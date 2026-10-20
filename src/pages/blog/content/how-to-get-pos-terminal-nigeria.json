@@ -183,7 +183,7 @@
         },
         {
             "type": "paragraph",
-            "content": "Ufriends IT is built as a complete digital service center on your phone. Here is the order of services prioritized on the dashboard:"
+            "content": "<a href=\"/reseller\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Agency Banking & Reseller Hub)</a> is built as a complete digital service center on your phone. Here is the order of services prioritized on the dashboard:"
         },
         {
             "type": "list",
@@ -275,6 +275,11 @@
                 "<strong>Does Ufriends IT offer developer APIs for POS settlements?</strong> Yes, software developers can integrate our utility APIs to automate ledger accounting and notifications.",
                 "<strong>Are there daily limits on POS transactions?</strong> For basic personal accounts, limits apply. Upgrading to a CAC-registered business account removes these limitations."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Boost Your Agency Banking Income with Ufriends IT</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Complement your POS business with NIN slip printing, BVN modifications, and wholesale data sales for walk-in customers.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Agency Banking & Reseller Hub →</a>\n            <a href=\"/cac-registration-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Register Your Business with CAC</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/how-to-start-vtu-business-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Start a VTU Business in Nigeria</a></li><li><a href=\"/blog/e-wallet-vs-virtual-account-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">E-Wallet vs Virtual Account in Nigeria</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

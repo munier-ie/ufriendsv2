@@ -294,9 +294,10 @@ export default function BlogPost() {
         datePublished: post.publishedAt,
         dateModified: postData?.updatedAt || post.publishedAt,
         author: {
-            '@type': 'Organization',
-            name: 'Ufriends IT',
-            url: 'https://www.ufriends.com.ng',
+            '@type': 'Person',
+            name: 'Engr. Munier & Ufriends Fintech Research Group',
+            jobTitle: 'Lead Telecom Systems & Identity Specialist',
+            url: 'https://www.ufriends.com.ng/about',
         },
         publisher: {
             '@type': 'Organization',
@@ -406,7 +407,7 @@ export default function BlogPost() {
                                     Updated {updatedDate}
                                 </span>
                             )}
-                            <span className="text-xs text-gray-400">By Ufriends IT</span>
+                            <span className="text-xs text-gray-500 font-medium">By Engr. Munier &amp; Ufriends Research Team</span>
                             <span className="flex items-center gap-1.5 text-xs text-gray-400">
                                 <Clock size={11} aria-hidden="true" />
                                 <time dateTime={`PT${post.readMin}M`}>{post.readMin} min read</time>

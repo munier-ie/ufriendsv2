@@ -22,7 +22,7 @@
         },
         {
             "type": "paragraph",
-            "content": "If you have received an SMS notification or email warning from your bank, or if your account has already been restricted, you must link your NIN immediately. Bypassing bank queues and physical office stress is possible because most financial institutions have built secure online portals and USSD channels to automate the process. This comprehensive guide explains why the mandate is in force, outlines the exact steps to link your NIN to GTBank, Access Bank, First Bank, UBA, and Zenith Bank, and shows you how to resolve name mismatches using Ufriends IT, saving you from administrative delays. We cover the entire pathway, from basic USSD dialing to the complex resolution of demographic details discrepancies, giving you a full roadmap to unblock your account, making compliance simple."
+            "content": "If you have received an SMS notification or email warning from your bank, or if your account has already been restricted, you must link your NIN immediately. Bypassing bank queues and physical office stress is possible because most financial institutions have built secure online portals and USSD channels to automate the process. This comprehensive guide explains why the mandate is in force, outlines the exact steps to link your NIN to GTBank, Access Bank, First Bank, UBA, and Zenith Bank, and shows you how to resolve name mismatches using <a href=\"/bvn-modification-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Resolve BVN Mismatch Online)</a>, saving you from administrative delays. We cover the entire pathway, from basic USSD dialing to the complex resolution of demographic details discrepancies, giving you a full roadmap to unblock your account, making compliance simple."
         },
         {
             "type": "paragraph",
@@ -245,6 +245,11 @@
                 "<strong>How do I check if my NIN is linked?</strong> Log into your banking app and check the 'Account Details' or 'KYC' page. It will show if your status is verified.",
                 "<strong>Does Ufriends IT offer developer APIs for identity verification?</strong> Yes, developers can integrate our search APIs to verify customer details dynamically."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Bank Account Blocked Due to NIN/BVN Mismatch?</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Don’t panic. Check your records and submit an online correction on Ufriends IT to unfreeze your bank account swiftly.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/bvn-modification-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Resolve BVN Mismatch Online →</a>\n            <a href=\"/nin-modification-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">NIN Correction Portal</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Resolving NIN BVN Mismatches</a></li><li><a href=\"/blog/how-to-modify-bvn-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Modify Your BVN Records</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

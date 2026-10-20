@@ -1,143 +1,173 @@
 {
-  "slug": "bvn-modification-portal-nigeria-guide",
-  "title": "BVN Modification Portal: How to Modify BVN Details",
-  "excerpt": "Learn the safe process for correcting BVN details, which changes are permitted, the evidence banks request, and how to avoid fake portals.",
-  "category": "Banking Identity",
-  "readMin": 6,
-  "publishedAt": "2026-10-06",
-  "keywords": [
-    "BVN modification portal",
-    "BVN self service modification",
-    "BVN modification online",
-    "how to modify BVN",
-    "edit BVN details online"
-  ],
-  "schemaType": "Article",
-  "sections": [
-    {
-      "type": "paragraph",
-      "content": "There is no public portal that gives an individual unrestricted access to edit the central BVN database. The Central Bank of Nigeria says access to BVN data is restricted to licensed financial institutions, and BVN changes must follow approved banking procedures with supporting evidence. Be cautious of any website or social-media account that promises an instant database edit without verification."
-    },
-    {
-      "type": "paragraph",
-      "content": "You may begin a request through your bank or an assisted service that submits through an authorised channel, but the change still needs validation. A legitimate process should identify the institution handling the request, explain the documents needed, issue a traceable receipt, and never ask you to reveal a banking PIN or one-time password."
-    },
-    {
-      "type": "toc",
-      "items": [
-        { "title": "What can be changed", "id": "allowed-changes" },
-        { "title": "Safe process", "id": "safe-process" },
-        { "title": "Documents", "id": "documents" },
-        { "title": "Fake portal warning signs", "id": "warning-signs" },
-        { "title": "After the update", "id": "after-update" }
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Which BVN Details Can Be Changed?",
-      "id": "allowed-changes"
-    },
-    {
-      "type": "paragraph",
-      "content": "CBN guidance allows supported changes to customer records, including name changes, date-of-birth correction, and minor corrections caused by errors. The current rules also recognise updates to the phone number linked to a BVN, but CBN announced in 2026 that a BVN-linked phone number may be changed only once. Your BVN number itself is a biometric identifier and should not be replaced merely because a detail is wrong."
-    },
-    {
-      "type": "list",
-      "items": [
-        "Name correction for a spelling error, supported by valid identification.",
-        "Legal name change, supported by documents such as a marriage certificate or affidavit where applicable.",
-        "Date-of-birth correction, subject to supporting evidence and the applicable limit.",
-        "BVN-linked phone-number update through an approved institution, subject to current rules.",
-        "Correction of a record mismatch that prevents bank onboarding or NIN/BVN validation."
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "A Safe BVN Modification Process",
-      "id": "safe-process"
-    },
-    {
-      "type": "stepper",
-      "steps": [
-        { "title": "Confirm the wrong field", "content": "Obtain a current BVN record or ask your bank to identify the mismatch. Do not request a change based only on an error message from an unrelated app." },
-        { "title": "Choose a traceable channel", "content": "Use your bank's documented support route or a service that clearly states how the request reaches an authorised banking channel. Ufriends lists assisted BVN modification at <a href=\"/bvn-modification-nigeria\">its service page</a>." },
-        { "title": "Prepare consistent evidence", "content": "Use original or certified supporting documents. Make sure the proposed detail is identical across the documents and your NIN where matching is required." },
-        { "title": "Review the request", "content": "Check the old detail, new detail, modification type, fee, estimated time, and refund terms. Never sign a blank form." },
-        { "title": "Track and verify", "content": "Keep the reference number. After approval, ask your bank to confirm the central record and obtain a fresh BVN slip or verification result." }
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Documents Commonly Requested",
-      "id": "documents"
-    },
-    {
-      "type": "paragraph",
-      "content": "Requirements vary by change and institution. A minor spelling correction may use a valid ID showing the correct name. A legal surname change may need a marriage certificate or affidavit. A major name change can require additional legal evidence. Date-of-birth correction needs a reliable birth record, while a phone update usually requires identity verification and proof that the replacement line belongs to the customer. Ask the receiving bank for its current checklist before paying."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Warning Signs of a Fake BVN Portal",
-      "id": "warning-signs"
-    },
-    {
-      "type": "list",
-      "items": [
-        "It claims you can change the 11-digit BVN itself in minutes.",
-        "It asks for your mobile-banking password, card PIN, or OTP.",
-        "It accepts payment only to an unrelated personal account and gives no receipt.",
-        "It has no verifiable business identity, privacy notice, support channel, or order history.",
-        "It promises approval before reviewing supporting documents.",
-        "It asks you to send sensitive documents in an open social-media comment or group chat."
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "What to Do After the BVN Update",
-      "id": "after-update"
-    },
-    {
-      "type": "paragraph",
-      "content": "Confirm the new detail at the bank or through a fresh BVN verification. If one bank or wallet still shows old information, ask it to revalidate the central BVN record. The CBN has previously directed banks to resolve supported BVN issues within five working days after receiving all required documents, but the complete end-to-end time can vary when evidence is incomplete or another institution must refresh its customer profile."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "How Ufriends Assists With BVN Modification",
-      "id": "ufriends-assistance"
-    },
-    {
-      "type": "paragraph",
-      "content": "Ufriends provides an assisted request and tracking route for customers who have already identified the incorrect BVN field and gathered supporting evidence. The platform is not the BVN regulator and cannot guarantee approval. The responsible licensed institution reviews the evidence and controls the central update. This distinction protects visitors from mistaking a service dashboard for unrestricted access to the BVN database."
-    },
-    {
-      "type": "paragraph",
-      "content": "If you choose the assisted route, open the <a href=\"/bvn-modification-nigeria\">BVN modification service page</a>, confirm the supported correction type and current requirements, then sign in to view the live price before submitting. Keep the order reference and use the dashboard or official support channel for status questions. Do not send an OTP, banking password, card PIN, or unrequested identity file through social media."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "BVN Modification Portal Questions",
-      "id": "portal-questions"
-    },
-    {
-      "type": "list",
-      "items": [
-        "<strong>Is every website labelled BVN portal official?</strong> No. Verify the operator, privacy terms, payment receipt, support channel, and the licensed institution responsible for the update.",
-        "<strong>Can I edit the database myself?</strong> No. You may prepare or submit a request digitally, but authorised financial institutions control changes to the central record.",
-        "<strong>Can modification remove every bank restriction?</strong> It may resolve a restriction caused by an identity mismatch. It does not remove unrelated compliance, fraud, debt, court, or account-specific restrictions.",
-        "<strong>How do I know the change is complete?</strong> Obtain a fresh BVN verification, compare the corrected field, and ask any affected bank to refresh its local customer profile.",
-        "<strong>Should I create another request when processing is slow?</strong> No. Escalate the existing reference first; duplicate requests can make ownership and tracking less clear."
-      ]
-    },
-    {
-      "type": "paragraph",
-      "content": "Sources: the CBN <a href=\"https://www.cbn.gov.ng/PaymentsSystem/BVN.html\">BVN information page</a>, its <a href=\"https://www.cbn.gov.ng/out/2016/bpsd/bvn%20issues%20circular.pdf\">BVN issues circular</a>, and the CBN <a href=\"https://www.cbn.gov.ng/AboutCBN/Reforms.html\">2026 reforms summary</a>."
-    }
-  ]
+    "slug": "bvn-modification-portal-nigeria-guide",
+    "title": "BVN Modification Portal: How to Modify BVN Details",
+    "excerpt": "Learn the safe process for correcting BVN details, which changes are permitted, the evidence banks request, and how to avoid fake portals.",
+    "category": "Banking Identity",
+    "readMin": 6,
+    "publishedAt": "2026-10-06",
+    "keywords": [
+        "BVN modification portal",
+        "BVN self service modification",
+        "BVN modification online",
+        "how to modify BVN",
+        "edit BVN details online"
+    ],
+    "schemaType": "Article",
+    "sections": [
+        {
+            "type": "paragraph",
+            "content": "There is no public portal that gives an individual unrestricted access to edit the central BVN database. The Central Bank of Nigeria says access to BVN data is restricted to licensed financial institutions, and BVN changes must follow approved banking procedures with supporting evidence. Be cautious of any website or social-media account that promises an instant database edit without verification. Before requesting an update, always confirm your current records by downloading your <a href=\"/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">official BVN slip</a> for your personal records."
+        },
+        {
+            "type": "paragraph",
+            "content": "You may begin a request through your bank or an assisted service that submits through an authorised channel, but the change still needs validation. A legitimate process should identify the institution handling the request, explain the documents needed, issue a traceable receipt, and never ask you to reveal a banking PIN or one-time password."
+        },
+        {
+            "type": "toc",
+            "items": [
+                {
+                    "title": "What can be changed",
+                    "id": "allowed-changes"
+                },
+                {
+                    "title": "Safe process",
+                    "id": "safe-process"
+                },
+                {
+                    "title": "Documents",
+                    "id": "documents"
+                },
+                {
+                    "title": "Fake portal warning signs",
+                    "id": "warning-signs"
+                },
+                {
+                    "title": "After the update",
+                    "id": "after-update"
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Which BVN Details Can Be Changed?",
+            "id": "allowed-changes"
+        },
+        {
+            "type": "paragraph",
+            "content": "CBN guidance allows supported changes to customer records, including name changes, date-of-birth correction, and minor corrections caused by errors. The current rules also recognise updates to the phone number linked to a BVN, but CBN announced in 2026 that a BVN-linked phone number may be changed only once. Your BVN number itself is a biometric identifier and should not be replaced merely because a detail is wrong."
+        },
+        {
+            "type": "list",
+            "items": [
+                "Name correction for a spelling error, supported by valid identification.",
+                "Legal name change, supported by documents such as a marriage certificate or affidavit where applicable.",
+                "Date-of-birth correction, subject to supporting evidence and the applicable limit.",
+                "BVN-linked phone-number update through an approved institution, subject to current rules.",
+                "Correction of a record mismatch that prevents bank onboarding or NIN/BVN validation."
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "A Safe BVN Modification Process",
+            "id": "safe-process"
+        },
+        {
+            "type": "stepper",
+            "steps": [
+                {
+                    "title": "Confirm the wrong field",
+                    "content": "Obtain a current BVN record or ask your bank to identify the mismatch. Do not request a change based only on an error message from an unrelated app."
+                },
+                {
+                    "title": "Choose a traceable channel",
+                    "content": "Use your bank's documented support route or a service that clearly states how the request reaches an authorised banking channel. Ufriends lists assisted BVN modification at <a href=\"/bvn-modification-nigeria\">its service page</a>."
+                },
+                {
+                    "title": "Prepare consistent evidence",
+                    "content": "Use original or certified supporting documents. Make sure the proposed detail is identical across the documents and your NIN where matching is required."
+                },
+                {
+                    "title": "Review the request",
+                    "content": "Check the old detail, new detail, modification type, fee, estimated time, and refund terms. Never sign a blank form."
+                },
+                {
+                    "title": "Track and verify",
+                    "content": "Keep the reference number. After approval, ask your bank to confirm the central record and obtain a fresh BVN slip or verification result."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Documents Commonly Requested",
+            "id": "documents"
+        },
+        {
+            "type": "paragraph",
+            "content": "Requirements vary by change and institution. A minor spelling correction may use a valid ID showing the correct name. A legal surname change may need a marriage certificate or affidavit. A major name change can require additional legal evidence. Date-of-birth correction needs a reliable birth record, while a phone update usually requires identity verification and proof that the replacement line belongs to the customer. Ask the receiving bank for its current checklist before paying."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Warning Signs of a Fake BVN Portal",
+            "id": "warning-signs"
+        },
+        {
+            "type": "list",
+            "items": [
+                "It claims you can change the 11-digit BVN itself in minutes.",
+                "It asks for your mobile-banking password, card PIN, or OTP.",
+                "It accepts payment only to an unrelated personal account and gives no receipt.",
+                "It has no verifiable business identity, privacy notice, support channel, or order history.",
+                "It promises approval before reviewing supporting documents.",
+                "It asks you to send sensitive documents in an open social-media comment or group chat."
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "What to Do After the BVN Update",
+            "id": "after-update"
+        },
+        {
+            "type": "paragraph",
+            "content": "Confirm the new detail at the bank or through a fresh BVN verification. If one bank or wallet still shows old information, ask it to revalidate the central BVN record. The CBN has previously directed banks to resolve supported BVN issues within five working days after receiving all required documents, but the complete end-to-end time can vary when evidence is incomplete or another institution must refresh its customer profile."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "How Ufriends Assists With BVN Modification",
+            "id": "ufriends-assistance"
+        },
+        {
+            "type": "paragraph",
+            "content": "Ufriends provides an assisted request and tracking route for customers who have already identified the incorrect BVN field and gathered supporting evidence. The platform is not the BVN regulator and cannot guarantee approval. The responsible licensed institution reviews the evidence and controls the central update. This distinction protects visitors from mistaking a service dashboard for unrestricted access to the BVN database."
+        },
+        {
+            "type": "paragraph",
+            "content": "If you choose the assisted route, open the <a href=\"/bvn-modification-nigeria\">BVN modification service page</a>, confirm the supported correction type and current requirements, then sign in to view the live price before submitting. Keep the order reference and use the dashboard or official support channel for status questions. Do not send an OTP, banking password, card PIN, or unrequested identity file through social media."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "BVN Modification Portal Questions",
+            "id": "portal-questions"
+        },
+        {
+            "type": "list",
+            "items": [
+                "<strong>Is every website labelled BVN portal official?</strong> No. Verify the operator, privacy terms, payment receipt, support channel, and the licensed institution responsible for the update.",
+                "<strong>Can I edit the database myself?</strong> No. You may prepare or submit a request digitally, but authorised financial institutions control changes to the central record.",
+                "<strong>Can modification remove every bank restriction?</strong> It may resolve a restriction caused by an identity mismatch. It does not remove unrelated compliance, fraud, debt, court, or account-specific restrictions.",
+                "<strong>How do I know the change is complete?</strong> Obtain a fresh BVN verification, compare the corrected field, and ask any affected bank to refresh its local customer profile.",
+                "<strong>Should I create another request when processing is slow?</strong> No. Escalate the existing reference first; duplicate requests can make ownership and tracking less clear."
+            ]
+        },
+        {
+            "type": "paragraph",
+            "content": "Sources: the CBN <a href=\"https://www.cbn.gov.ng/PaymentsSystem/BVN.html\">BVN information page</a>, its <a href=\"https://www.cbn.gov.ng/out/2016/bpsd/bvn%20issues%20circular.pdf\">BVN issues circular</a>, and the CBN <a href=\"https://www.cbn.gov.ng/AboutCBN/Reforms.html\">2026 reforms summary</a>."
+        }
+    ]
 }

@@ -28,7 +28,7 @@
     "sections": [
         {
             "type": "paragraph",
-            "content": "SubAndGain and Ufriends IT both promise cheap data and reliable VTU services in Nigeria, but they are built with different priorities. SubAndGain is a straightforward data and airtime platform, while Ufriends IT bundles VTU with NIN/BVN identity services. This article compares them honestly so you can decide which platform deserves your money."
+            "content": "SubAndGain and <a href=\"/buy-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Wholesale Data Dashboard)</a> both promise cheap data and reliable VTU services in Nigeria, but they are built with different priorities. SubAndGain is a straightforward data and airtime platform, while Ufriends IT bundles VTU with NIN/BVN identity services. This article compares them honestly so you can decide which platform deserves your money."
         },
         {
             "type": "paragraph",
@@ -37,17 +37,50 @@
         {
             "type": "toc",
             "items": [
-                { "title": "The Short Answer", "id": "short-answer" },
-                { "title": "SubAndGain at a Glance", "id": "subandgain-overview" },
-                { "title": "Ufriends IT at a Glance", "id": "ufriends-overview" },
-                { "title": "Feature-by-Feature Comparison", "id": "feature-comparison" },
-                { "title": "Data Pricing — Who Is Actually Cheaper?", "id": "data-pricing" },
-                { "title": "Identity Services — The Deal Breaker", "id": "identity-services" },
-                { "title": "Wallet Funding and Payments", "id": "wallet-funding" },
-                { "title": "Developer API Comparison", "id": "api-comparison" },
-                { "title": "Pros and Cons", "id": "pros-cons" },
-                { "title": "Which Platform Should You Choose?", "id": "which-platform" },
-                { "title": "Frequently Asked Questions", "id": "faqs" }
+                {
+                    "title": "The Short Answer",
+                    "id": "short-answer"
+                },
+                {
+                    "title": "SubAndGain at a Glance",
+                    "id": "subandgain-overview"
+                },
+                {
+                    "title": "Ufriends IT at a Glance",
+                    "id": "ufriends-overview"
+                },
+                {
+                    "title": "Feature-by-Feature Comparison",
+                    "id": "feature-comparison"
+                },
+                {
+                    "title": "Data Pricing — Who Is Actually Cheaper?",
+                    "id": "data-pricing"
+                },
+                {
+                    "title": "Identity Services — The Deal Breaker",
+                    "id": "identity-services"
+                },
+                {
+                    "title": "Wallet Funding and Payments",
+                    "id": "wallet-funding"
+                },
+                {
+                    "title": "Developer API Comparison",
+                    "id": "api-comparison"
+                },
+                {
+                    "title": "Pros and Cons",
+                    "id": "pros-cons"
+                },
+                {
+                    "title": "Which Platform Should You Choose?",
+                    "id": "which-platform"
+                },
+                {
+                    "title": "Frequently Asked Questions",
+                    "id": "faqs"
+                }
             ]
         },
         {
@@ -88,24 +121,92 @@
         },
         {
             "type": "table",
-            "headers": ["Feature", "SubAndGain", "Ufriends IT"],
+            "headers": [
+                "Feature",
+                "SubAndGain",
+                "Ufriends IT"
+            ],
             "rows": [
-                ["Data Bundles (All Networks)", "✅ Yes", "✅ Yes"],
-                ["Airtime Recharge", "✅ Yes", "✅ Yes"],
-                ["Electricity Bills", "✅ Yes", "✅ Yes"],
-                ["Cable TV Subscriptions", "✅ Yes", "✅ Yes"],
-                ["Exam Pins", "❌ Limited", "✅ Yes (WAEC, NECO, JAMB)"],
-                ["Airtime to Cash", "❌ Not confirmed", "✅ Yes"],
-                ["NIN Slip Printing", "❌ No", "✅ Yes (4 formats)"],
-                ["BVN Slip Generation", "❌ No", "✅ Yes (2 formats)"],
-                ["NIN Modification", "❌ No", "✅ Yes"],
-                ["BVN Modification", "❌ No", "✅ Yes"],
-                ["BVN Retrieval", "❌ No", "✅ Yes"],
-                ["CAC Business Registration", "❌ No", "✅ Yes"],
-                ["Developer API", "✅ Available", "✅ Full (v1 + SDKs + Sandbox)"],
-                ["Virtual Account Funding", "✅ Yes (NIN/BVN required)", "✅ Yes (auto-credit)"],
-                ["Mobile App", "✅ iOS", "✅ PWA (all devices)"],
-                ["Reseller Tiers", "✅ Yes", "✅ Yes (Agent, Vendor)"]
+                [
+                    "Data Bundles (All Networks)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime Recharge",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Electricity Bills",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Cable TV Subscriptions",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Exam Pins",
+                    "❌ Limited",
+                    "✅ Yes (WAEC, NECO, JAMB)"
+                ],
+                [
+                    "Airtime to Cash",
+                    "❌ Not confirmed",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN Slip Printing",
+                    "❌ No",
+                    "✅ Yes (4 formats)"
+                ],
+                [
+                    "BVN Slip Generation",
+                    "❌ No",
+                    "✅ Yes (2 formats)"
+                ],
+                [
+                    "NIN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Retrieval",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "CAC Business Registration",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "Developer API",
+                    "✅ Available",
+                    "✅ Full (v1 + SDKs + Sandbox)"
+                ],
+                [
+                    "Virtual Account Funding",
+                    "✅ Yes (NIN/BVN required)",
+                    "✅ Yes (auto-credit)"
+                ],
+                [
+                    "Mobile App",
+                    "✅ iOS",
+                    "✅ PWA (all devices)"
+                ],
+                [
+                    "Reseller Tiers",
+                    "✅ Yes",
+                    "✅ Yes (Agent, Vendor)"
+                ]
             ]
         },
         {
@@ -254,6 +355,11 @@
                     "a": "SubAndGain requires BVN or NIN to generate your virtual bank account details for wallet funding. Ufriends IT also requires identity verification for virtual account generation, which is standard regulatory practice in Nigeria."
                 }
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Upgrade to Ufriends IT: VTU + Identity Services Combined</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Enjoy cheaper data rates plus direct access to NIN/BVN slips, BVN modification, and business registration from one reliable dashboard.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Wholesale Data Dashboard →</a>\n            <a href=\"/print-nin-slip-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">NIN and BVN Slips Portal</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/maskawasub-vs-ufriends-data-airtime-comparison\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">MaskawaSub vs Ufriends IT Review</a></li><li><a href=\"/blog/vtpass-vs-ufriends-best-nin-bvn-slip-platform\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">VTpass vs Ufriends IT Comparison</a></li><li><a href=\"/blog/best-vtu-website-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Best VTU Websites in Nigeria 2026</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

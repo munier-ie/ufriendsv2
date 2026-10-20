@@ -28,7 +28,7 @@
     "sections": [
         {
             "type": "paragraph",
-            "content": "Clubkonnect has been one of the most recognized names in Nigeria's VTU space for years. It is known for competitive reseller pricing, recharge card printing, and a wide range of digital services. Ufriends IT is a newer platform that combines traditional VTU services with government identity features like NIN/BVN slip printing and modification. In this comparison, we will look at what each platform does well, where they fall short, and which one makes more sense for different types of users."
+            "content": "Clubkonnect has been one of the most recognized names in Nigeria's VTU space for years. It is known for competitive reseller pricing, recharge card printing, and a wide range of digital services. <a href=\"/reseller\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Developer API & Reseller Portal)</a> is a newer platform that combines traditional VTU services with government identity features like NIN/BVN slip printing and modification. In this comparison, we will look at what each platform does well, where they fall short, and which one makes more sense for different types of users."
         },
         {
             "type": "paragraph",
@@ -37,17 +37,50 @@
         {
             "type": "toc",
             "items": [
-                { "title": "Quick Summary", "id": "quick-summary" },
-                { "title": "Clubkonnect Overview", "id": "clubkonnect-overview" },
-                { "title": "Ufriends IT Overview", "id": "ufriends-overview" },
-                { "title": "Side-by-Side Feature Table", "id": "feature-table" },
-                { "title": "Pricing and Value Comparison", "id": "pricing-value" },
-                { "title": "NIN and BVN Services", "id": "nin-bvn" },
-                { "title": "Reseller and API Features", "id": "reseller-api" },
-                { "title": "Customer Experience", "id": "customer-experience" },
-                { "title": "Pros and Cons", "id": "pros-cons" },
-                { "title": "Final Verdict", "id": "final-verdict" },
-                { "title": "Frequently Asked Questions", "id": "faqs" }
+                {
+                    "title": "Quick Summary",
+                    "id": "quick-summary"
+                },
+                {
+                    "title": "Clubkonnect Overview",
+                    "id": "clubkonnect-overview"
+                },
+                {
+                    "title": "Ufriends IT Overview",
+                    "id": "ufriends-overview"
+                },
+                {
+                    "title": "Side-by-Side Feature Table",
+                    "id": "feature-table"
+                },
+                {
+                    "title": "Pricing and Value Comparison",
+                    "id": "pricing-value"
+                },
+                {
+                    "title": "NIN and BVN Services",
+                    "id": "nin-bvn"
+                },
+                {
+                    "title": "Reseller and API Features",
+                    "id": "reseller-api"
+                },
+                {
+                    "title": "Customer Experience",
+                    "id": "customer-experience"
+                },
+                {
+                    "title": "Pros and Cons",
+                    "id": "pros-cons"
+                },
+                {
+                    "title": "Final Verdict",
+                    "id": "final-verdict"
+                },
+                {
+                    "title": "Frequently Asked Questions",
+                    "id": "faqs"
+                }
             ]
         },
         {
@@ -88,27 +121,107 @@
         },
         {
             "type": "table",
-            "headers": ["Feature", "Clubkonnect", "Ufriends IT"],
+            "headers": [
+                "Feature",
+                "Clubkonnect",
+                "Ufriends IT"
+            ],
             "rows": [
-                ["Data Bundles (All Networks)", "✅ Yes", "✅ Yes"],
-                ["Airtime Recharge", "✅ Yes", "✅ Yes"],
-                ["Electricity Bills", "✅ Yes", "✅ Yes"],
-                ["Cable TV (DStv, GOtv, Startimes)", "✅ Yes", "✅ Yes"],
-                ["Exam Pins (WAEC, NECO, JAMB)", "✅ Yes", "✅ Yes"],
-                ["Recharge Card Printing", "✅ Yes", "❌ No"],
-                ["Bulk SMS", "✅ Yes", "✅ Yes"],
-                ["Airtime to Cash", "❌ Not available", "✅ Yes"],
-                ["NIN Slip Printing", "❌ No", "✅ Yes (4 formats)"],
-                ["BVN Slip Generation", "❌ No", "✅ Yes (2 formats)"],
-                ["NIN Modification", "❌ No", "✅ Yes"],
-                ["BVN Modification", "❌ No", "✅ Yes"],
-                ["BVN Retrieval", "❌ No", "✅ Yes"],
-                ["CAC Business Registration", "❌ No", "✅ Yes"],
-                ["Developer API", "✅ Yes", "✅ Full (v1 + SDKs + Sandbox)"],
-                ["Mobile App", "✅ Android + iOS", "✅ PWA (all devices)"],
-                ["Referral Program", "✅ Yes (commissions)", "✅ Yes"],
-                ["Reseller Tiers", "✅ Discount tiers", "✅ Agent + Vendor tiers"],
-                ["Virtual Account Funding", "✅ Yes", "✅ Yes (auto-credit)"]
+                [
+                    "Data Bundles (All Networks)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime Recharge",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Electricity Bills",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Cable TV (DStv, GOtv, Startimes)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Exam Pins (WAEC, NECO, JAMB)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Recharge Card Printing",
+                    "✅ Yes",
+                    "❌ No"
+                ],
+                [
+                    "Bulk SMS",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime to Cash",
+                    "❌ Not available",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN Slip Printing",
+                    "❌ No",
+                    "✅ Yes (4 formats)"
+                ],
+                [
+                    "BVN Slip Generation",
+                    "❌ No",
+                    "✅ Yes (2 formats)"
+                ],
+                [
+                    "NIN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Retrieval",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "CAC Business Registration",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "Developer API",
+                    "✅ Yes",
+                    "✅ Full (v1 + SDKs + Sandbox)"
+                ],
+                [
+                    "Mobile App",
+                    "✅ Android + iOS",
+                    "✅ PWA (all devices)"
+                ],
+                [
+                    "Referral Program",
+                    "✅ Yes (commissions)",
+                    "✅ Yes"
+                ],
+                [
+                    "Reseller Tiers",
+                    "✅ Discount tiers",
+                    "✅ Agent + Vendor tiers"
+                ],
+                [
+                    "Virtual Account Funding",
+                    "✅ Yes",
+                    "✅ Yes (auto-credit)"
+                ]
             ]
         },
         {
@@ -254,6 +367,11 @@
                     "a": "If you need NIN/BVN services and identity document management alongside your VTU transactions, switching makes sense. If you only need data and airtime, Clubkonnect continues to work fine. You can also use both platforms side by side."
                 }
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Launch Your VTU Business with Developer API v1</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Integrate Ufriends IT REST API with Node.js and PHP SDKs, webhooks, and sandbox mode. Build your fintech app with confidence.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Developer API & Reseller Portal →</a>\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Wholesale Data Pricing</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/how-to-start-vtu-business-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Start a Highly Profitable VTU Business</a></li><li><a href=\"/blog/best-vtu-website-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Best VTU Websites in Nigeria 2026</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

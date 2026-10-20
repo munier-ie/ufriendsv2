@@ -29,7 +29,84 @@
         },
         {
             "type": "paragraph",
-            "content": "Many users ask: 'Why does bank data cost so much compared to VTU portals?' Banking portals connect directly to standard retail databases, adding service charges and transaction commissions. When you buy 1GB through your bank app, you are paying the premium end-user rate. VTU platforms like Ufriends IT buy data in bulk directly from telecom networks at wholesale rates, passing the discount directly to you, making internet access affordable, helping users stay connected without high costs, eliminating additional fee layers."
+            "content": "Many users ask: 'Why does bank data cost so much compared to VTU portals?' Banking portals connect directly to standard retail databases, adding service charges and transaction commissions. When you buy 1GB through your bank app, you are paying the premium end-user rate. VTU platforms like <a href=\"/buy-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Buy Cheap Data Online)</a> buy data in bulk directly from telecom networks at wholesale rates, passing the discount directly to you, making internet access affordable, helping users stay connected without high costs, eliminating additional fee layers."
+        },
+        {
+            "type": "table",
+            "headers": [
+                "Network Provider",
+                "Plan Size",
+                "Retail USSD Price",
+                "Ufriends Wholesale Price",
+                "Validity",
+                "Delivery Speed"
+            ],
+            "rows": [
+                [
+                    "MTN SME Data",
+                    "1.0 GB",
+                    "₦1,000",
+                    "₦265",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "MTN SME Data",
+                    "2.0 GB",
+                    "₦1,500",
+                    "₦530",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "MTN SME Data",
+                    "5.0 GB",
+                    "₦3,000",
+                    "₦1,325",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "Airtel Corporate",
+                    "1.0 GB",
+                    "₦1,000",
+                    "₦275",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "Airtel Corporate",
+                    "2.0 GB",
+                    "₦1,500",
+                    "₦550",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "Glo SME / Gift",
+                    "1.0 GB",
+                    "₦1,000",
+                    "₦245",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "Glo SME / Gift",
+                    "3.0 GB",
+                    "₦2,000",
+                    "₦735",
+                    "30 Days",
+                    "Instant (5s)"
+                ],
+                [
+                    "9mobile / T2",
+                    "1.5 GB",
+                    "₦1,200",
+                    "₦320",
+                    "30 Days",
+                    "Instant (5s)"
+                ]
+            ]
         },
         {
             "type": "toc",
@@ -247,6 +324,11 @@
                 "<strong>Can I upgrade my account level on Ufriends?</strong> Yes, you can upgrade to Agent or Vendor levels to access lower wholesale prices.",
                 "<strong>Does Ufriends IT offer developer APIs?</strong> Yes, software developers can integrate our API v1 with Node.js/PHP SDKs to automate data sales on their own platforms."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Buy Wholesale Data Bundles at Unbeatable Prices</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Get MTN SME 1GB from ₦265, Airtel 1GB from ₦275, and Glo 1GB from ₦245 with instant automated delivery on Ufriends IT.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Buy Cheap Data Online →</a>\n            <a href=\"/buy-airtime-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Buy Airtime at Wholesale Rates</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/mtn-sme-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">MTN SME Data: Complete Buyer Guide</a></li><li><a href=\"/blog/buy-cheap-airtel-data-online-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Buy Cheap Airtel Data</a></li><li><a href=\"/blog/buy-cheap-glo-data-plans-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Cheap Glo Data Plans Breakdown</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

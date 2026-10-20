@@ -1,143 +1,197 @@
 {
-  "slug": "can-bvn-number-be-changed",
-  "title": "Can a BVN Number Be Changed? What You Can Correct",
-  "excerpt": "Your BVN number and the details linked to it are different. Learn what can be corrected, what cannot be replaced, and the safe next step.",
-  "category": "Banking Identity",
-  "readMin": 5,
-  "publishedAt": "2026-10-06",
-  "keywords": [
-    "can BVN be changed",
-    "can I change my BVN number",
-    "is it possible to change BVN",
-    "can someone change BVN number",
-    "BVN details correction"
-  ],
-  "schemaType": "Article",
-  "sections": [
-    {
-      "type": "paragraph",
-      "content": "You generally do not replace your 11-digit Bank Verification Number because a name, date of birth, or phone number is wrong. A BVN is a unique banking identity connected to your biometric enrolment. The correct remedy is to update the supported personal detail attached to the existing BVN through an approved banking process."
-    },
-    {
-      "type": "paragraph",
-      "content": "Trying to enrol for another BVN can create a duplicate-enrolment problem and may trigger fraud controls. If someone claims they can issue a fresh BVN to erase a mismatch, debt, restriction, or watch-list record, do not proceed. Contact your bank and resolve the underlying record through the documented process."
-    },
-    {
-      "type": "toc",
-      "items": [
-        { "title": "BVN number versus BVN details", "id": "number-vs-details" },
-        { "title": "Details you can correct", "id": "correctable-details" },
-        { "title": "When the number seems wrong", "id": "number-seems-wrong" },
-        { "title": "Duplicate BVN warning", "id": "duplicate-warning" },
-        { "title": "Safe correction steps", "id": "safe-steps" }
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "BVN Number and BVN Details Are Not the Same",
-      "id": "number-vs-details"
-    },
-    {
-      "type": "table",
-      "headers": ["Item", "Meaning", "Normal action"],
-      "rows": [
-        ["BVN number", "The unique 11-digit identifier generated after biometric enrolment", "Retrieve or validate it; do not replace it for a simple error"],
-        ["Name", "The customer's recorded legal name", "Correct with appropriate identification or legal evidence"],
-        ["Date of birth", "The birth date stored on the BVN profile", "Correct with supporting documents, subject to applicable limits"],
-        ["Phone number", "The contact line linked to the BVN", "Update through an approved institution, subject to current rules"],
-        ["Bank account profile", "A bank's own local customer record", "Ask that bank to refresh or correct its profile"]
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Which BVN Details Can Be Corrected?",
-      "id": "correctable-details"
-    },
-    {
-      "type": "paragraph",
-      "content": "CBN guidance recognises name changes, date-of-birth correction, and minor error correction when the customer provides valid supporting documents. The BVN framework also permits controlled updates to the linked phone number. In March 2026, CBN announced an amendment stating that a BVN-linked phone number may be changed only once. Ask your bank to confirm the latest rule and evidence before submitting."
-    },
-    {
-      "type": "list",
-      "items": [
-        "Correct a misspelled name with a valid ID showing the intended spelling.",
-        "Support a legal name change with the applicable certificate, affidavit, or other evidence.",
-        "Correct a date of birth with reliable birth evidence; CBN rules limit this type of change.",
-        "Update a lost or replaced phone line only after strong identity verification.",
-        "Ask a bank to correct its local account record when the central BVN record is already right."
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "What If the BVN Number You Have Seems Wrong?",
-      "id": "number-seems-wrong"
-    },
-    {
-      "type": "paragraph",
-      "content": "First retrieve the BVN through a recognised method instead of guessing. NIBSS says a customer can dial *565*0# from the phone number registered to the BVN. If you no longer have that line, visit your bank with valid identification. A number copied incorrectly from an old form is a retrieval problem, not a reason to create another BVN."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Why Duplicate BVN Enrolment Is Risky",
-      "id": "duplicate-warning"
-    },
-    {
-      "type": "paragraph",
-      "content": "The BVN system uses biometrics to give a bank customer a single identity across the banking system. A second enrolment attempt can look like identity manipulation or fraud. It may delay access to banking services while institutions investigate the conflict. If you suspect two records exist, report the issue to your bank and let the authorised institutions reconcile it."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Safe Steps for a BVN Correction",
-      "id": "safe-steps"
-    },
-    {
-      "type": "stepper",
-      "steps": [
-        { "title": "Verify the existing BVN", "content": "Retrieve or validate the number through NIBSS or your bank." },
-        { "title": "Identify the exact wrong field", "content": "Compare the central BVN detail, your NIN, legal ID, and the bank's local account profile." },
-        { "title": "Collect evidence", "content": "Use documents that prove the correct name, date of birth, or phone ownership." },
-        { "title": "Submit through a traceable channel", "content": "Use your bank or review Ufriends' <a href=\"/bvn-modification-nigeria\">BVN modification service</a> for assisted submission." },
-        { "title": "Confirm the result", "content": "Obtain a fresh verification after approval and ask affected banks to refresh their local profiles." }
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Common BVN Change Scenarios",
-      "id": "common-scenarios"
-    },
-    {
-      "type": "list",
-      "items": [
-        "<strong>I changed my surname after marriage.</strong> Request a supported name update with the documents required by the receiving institution. Do not enrol for another BVN.",
-        "<strong>My date of birth is wrong.</strong> Ask the bank for its current evidence checklist. CBN guidance limits date-of-birth correction and requires supporting documents.",
-        "<strong>I lost the SIM linked to my BVN.</strong> Recover the same line if possible. If the number is permanently unavailable, follow the controlled phone-update process.",
-        "<strong>One bank displays another name order.</strong> Verify the central BVN result first. If it is correct, update that bank's local customer record instead of changing the BVN again.",
-        "<strong>I suspect duplicate enrolment.</strong> Stop further enrolment attempts and report the conflict to your bank for authorised reconciliation."
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "When Ufriends Can Help",
-      "id": "ufriends-help"
-    },
-    {
-      "type": "paragraph",
-      "content": "Ufriends can assist when the number itself is valid but a supported detail needs correction. Review the <a href=\"/bvn-modification-nigeria\">BVN modification service</a>, select the exact field, confirm the live requirements and price, and submit consistent evidence through the dashboard. Ufriends cannot create a replacement BVN, erase a watch-list record, or guarantee a regulator's approval."
-    },
-    {
-      "type": "paragraph",
-      "content": "If you only forgot the number, retrieve it through NIBSS or your bank rather than buying a modification. If the BVN is correct but one account is wrong, contact that bank. Choosing the correct service saves money and reduces duplicate requests."
-    },
-    {
-      "type": "paragraph",
-      "content": "Official references: the CBN <a href=\"https://www.cbn.gov.ng/PaymentsSystem/BVN.html\">BVN overview</a>, its <a href=\"https://www.cbn.gov.ng/out/2017/bpsd/circular%20on%20the%20regulatory%20framework%20for%20bvn%20%20watchlist%20for%20nigerian%20financial%20system.pdf\">BVN framework</a>, the <a href=\"https://www.cbn.gov.ng/AboutCBN/Reforms.html\">2026 reforms summary</a>, and NIBSS <a href=\"https://nibss-plc.com.ng/ussd-validation-services/\">USSD validation guidance</a>."
-    }
-  ]
+    "slug": "can-bvn-number-be-changed",
+    "title": "Can a BVN Number Be Changed? What You Can Correct",
+    "excerpt": "Your BVN number and the details linked to it are different. Learn what can be corrected, what cannot be replaced, and the safe next step.",
+    "category": "Banking Identity",
+    "readMin": 5,
+    "publishedAt": "2026-10-06",
+    "keywords": [
+        "can BVN be changed",
+        "can I change my BVN number",
+        "is it possible to change BVN",
+        "can someone change BVN number",
+        "BVN details correction"
+    ],
+    "schemaType": "Article",
+    "sections": [
+        {
+            "type": "paragraph",
+            "content": "You generally do not replace your 11-digit Bank Verification Number because a name, date of birth, or phone number is wrong. A BVN is a unique banking identity connected to your biometric enrolment. The correct remedy is to update the supported personal detail attached to the existing BVN through an approved banking process. To see the complete demographic details attached to your biometric profile, obtain a <a href=\"/blog/forgot-your-bvn-simple-ways-to-recover-check-and-print-your-bvn-slip-in-minutes\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">verified BVN slip with picture</a> for your personal records."
+        },
+        {
+            "type": "paragraph",
+            "content": "Trying to enrol for another BVN can create a duplicate-enrolment problem and may trigger fraud controls. If someone claims they can issue a fresh BVN to erase a mismatch, debt, restriction, or watch-list record, do not proceed. Contact your bank and resolve the underlying record through the documented process."
+        },
+        {
+            "type": "toc",
+            "items": [
+                {
+                    "title": "BVN number versus BVN details",
+                    "id": "number-vs-details"
+                },
+                {
+                    "title": "Details you can correct",
+                    "id": "correctable-details"
+                },
+                {
+                    "title": "When the number seems wrong",
+                    "id": "number-seems-wrong"
+                },
+                {
+                    "title": "Duplicate BVN warning",
+                    "id": "duplicate-warning"
+                },
+                {
+                    "title": "Safe correction steps",
+                    "id": "safe-steps"
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "BVN Number and BVN Details Are Not the Same",
+            "id": "number-vs-details"
+        },
+        {
+            "type": "table",
+            "headers": [
+                "Item",
+                "Meaning",
+                "Normal action"
+            ],
+            "rows": [
+                [
+                    "BVN number",
+                    "The unique 11-digit identifier generated after biometric enrolment",
+                    "Retrieve or validate it; do not replace it for a simple error"
+                ],
+                [
+                    "Name",
+                    "The customer's recorded legal name",
+                    "Correct with appropriate identification or legal evidence"
+                ],
+                [
+                    "Date of birth",
+                    "The birth date stored on the BVN profile",
+                    "Correct with supporting documents, subject to applicable limits"
+                ],
+                [
+                    "Phone number",
+                    "The contact line linked to the BVN",
+                    "Update through an approved institution, subject to current rules"
+                ],
+                [
+                    "Bank account profile",
+                    "A bank's own local customer record",
+                    "Ask that bank to refresh or correct its profile"
+                ]
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Which BVN Details Can Be Corrected?",
+            "id": "correctable-details"
+        },
+        {
+            "type": "paragraph",
+            "content": "CBN guidance recognises name changes, date-of-birth correction, and minor error correction when the customer provides valid supporting documents. The BVN framework also permits controlled updates to the linked phone number. In March 2026, CBN announced an amendment stating that a BVN-linked phone number may be changed only once. Ask your bank to confirm the latest rule and evidence before submitting."
+        },
+        {
+            "type": "list",
+            "items": [
+                "Correct a misspelled name with a valid ID showing the intended spelling.",
+                "Support a legal name change with the applicable certificate, affidavit, or other evidence.",
+                "Correct a date of birth with reliable birth evidence; CBN rules limit this type of change.",
+                "Update a lost or replaced phone line only after strong identity verification.",
+                "Ask a bank to correct its local account record when the central BVN record is already right."
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "What If the BVN Number You Have Seems Wrong?",
+            "id": "number-seems-wrong"
+        },
+        {
+            "type": "paragraph",
+            "content": "First retrieve the BVN through a recognised method instead of guessing. NIBSS says a customer can dial *565*0# from the phone number registered to the BVN. If you no longer have that line, visit your bank with valid identification. A number copied incorrectly from an old form is a retrieval problem, not a reason to create another BVN."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Why Duplicate BVN Enrolment Is Risky",
+            "id": "duplicate-warning"
+        },
+        {
+            "type": "paragraph",
+            "content": "The BVN system uses biometrics to give a bank customer a single identity across the banking system. A second enrolment attempt can look like identity manipulation or fraud. It may delay access to banking services while institutions investigate the conflict. If you suspect two records exist, report the issue to your bank and let the authorised institutions reconcile it."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Safe Steps for a BVN Correction",
+            "id": "safe-steps"
+        },
+        {
+            "type": "stepper",
+            "steps": [
+                {
+                    "title": "Verify the existing BVN",
+                    "content": "Retrieve or validate the number through NIBSS or your bank."
+                },
+                {
+                    "title": "Identify the exact wrong field",
+                    "content": "Compare the central BVN detail, your NIN, legal ID, and the bank's local account profile."
+                },
+                {
+                    "title": "Collect evidence",
+                    "content": "Use documents that prove the correct name, date of birth, or phone ownership."
+                },
+                {
+                    "title": "Submit through a traceable channel",
+                    "content": "Use your bank or review Ufriends' <a href=\"/bvn-modification-nigeria\">BVN modification service</a> for assisted submission."
+                },
+                {
+                    "title": "Confirm the result",
+                    "content": "Obtain a fresh verification after approval and ask affected banks to refresh their local profiles."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Common BVN Change Scenarios",
+            "id": "common-scenarios"
+        },
+        {
+            "type": "list",
+            "items": [
+                "<strong>I changed my surname after marriage.</strong> Request a supported name update with the documents required by the receiving institution. Do not enrol for another BVN.",
+                "<strong>My date of birth is wrong.</strong> Ask the bank for its current evidence checklist. CBN guidance limits date-of-birth correction and requires supporting documents.",
+                "<strong>I lost the SIM linked to my BVN.</strong> Recover the same line if possible. If the number is permanently unavailable, follow the controlled phone-update process.",
+                "<strong>One bank displays another name order.</strong> Verify the central BVN result first. If it is correct, update that bank's local customer record instead of changing the BVN again.",
+                "<strong>I suspect duplicate enrolment.</strong> Stop further enrolment attempts and report the conflict to your bank for authorised reconciliation."
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "When Ufriends Can Help",
+            "id": "ufriends-help"
+        },
+        {
+            "type": "paragraph",
+            "content": "Ufriends can assist when the number itself is valid but a supported detail needs correction. Review the <a href=\"/bvn-modification-nigeria\">BVN modification service</a>, select the exact field, confirm the live requirements and price, and submit consistent evidence through the dashboard. Ufriends cannot create a replacement BVN, erase a watch-list record, or guarantee a regulator's approval."
+        },
+        {
+            "type": "paragraph",
+            "content": "If you only forgot the number, retrieve it through NIBSS or your bank rather than buying a modification. If the BVN is correct but one account is wrong, contact that bank. Choosing the correct service saves money and reduces duplicate requests."
+        },
+        {
+            "type": "paragraph",
+            "content": "Official references: the CBN <a href=\"https://www.cbn.gov.ng/PaymentsSystem/BVN.html\">BVN overview</a>, its <a href=\"https://www.cbn.gov.ng/out/2017/bpsd/circular%20on%20the%20regulatory%20framework%20for%20bvn%20%20watchlist%20for%20nigerian%20financial%20system.pdf\">BVN framework</a>, the <a href=\"https://www.cbn.gov.ng/AboutCBN/Reforms.html\">2026 reforms summary</a>, and NIBSS <a href=\"https://nibss-plc.com.ng/ussd-validation-services/\">USSD validation guidance</a>."
+        }
+    ]
 }

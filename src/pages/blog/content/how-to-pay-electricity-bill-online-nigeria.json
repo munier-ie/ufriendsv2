@@ -29,7 +29,7 @@
         },
         {
             "type": "paragraph",
-            "content": "Many customers ask: 'Why was my token purchase rejected despite my card being debited?' The issue is often routing latency between the commercial bank and the DISCO's database. When a bank network experiences delays, they cannot generate the encrypted token code. Using a dedicated payment portal like Ufriends IT ensures the API query matches your meter profile instantly and returns your 20-digit token on your screen, saving you from failed transaction errors, keeping records clear, preventing double debits, and providing immediate value, bypassing manual validation checks."
+            "content": "Many customers ask: 'Why was my token purchase rejected despite my card being debited?' The issue is often routing latency between the commercial bank and the DISCO's database. When a bank network experiences delays, they cannot generate the encrypted token code. Using a dedicated payment portal like <a href=\"/pay-electricity-bill-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Pay Electricity Bill Online)</a> ensures the API query matches your meter profile instantly and returns your 20-digit token on your screen, saving you from failed transaction errors, keeping records clear, preventing double debits, and providing immediate value, bypassing manual validation checks."
         },
         {
             "type": "paragraph",
@@ -243,6 +243,11 @@
                 "<strong>Can I check my consumption history online?</strong> Some advanced smart meters allow consumption tracking on the DISCO portal, which you can log into using your meter number.",
                 "<strong>What if my meter doesn't accept the token even after KCT update?</strong> If KCT was loaded successfully but standard tokens are still rejected, your meter's hardware circuit may have a fault; contact the DISCO customer care team immediately."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Pay Prepaid & Postpaid Electricity Bills Across All DISCOs</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Generate prepaid meter recharge tokens instantly for IKEDC, EKEDC, AEDC, IBEDC, PHED, and more on Ufriends IT with 0% hassle.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/pay-electricity-bill-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Pay Electricity Bill Online →</a>\n            <a href=\"/subscribe-cable-tv-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Pay Cable TV Subscription</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/how-to-pay-dstv-subscription-online-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Pay DStv Subscription Online</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

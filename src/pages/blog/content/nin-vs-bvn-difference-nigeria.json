@@ -30,7 +30,7 @@
         },
         {
             "type": "paragraph",
-            "content": "Traditionally, resolving this meant spending days writing letters at bank branches and standing in queues at NIMC offices, only to be told that the databases were experiencing downtime. Fortunately, you no longer have to face physical office visits. By using secure, authorized online portals like Ufriends IT, you can modify your wrong details and resolve your NIN and BVN mismatches online. This guide explains the differences between both systems, why they conflict, and provides a step-by-step resolution path, saving you time and stress, allowing you to bypass physical delays."
+            "content": "Traditionally, resolving this meant spending days writing letters at bank branches and standing in queues at NIMC offices, only to be told that the databases were experiencing downtime. Fortunately, you no longer have to face physical office visits. By using secure, authorized online portals like <a href=\"/nin-modification-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (NIN Modification Portal)</a>, you can modify your wrong details and resolve your NIN and BVN mismatches online. This guide explains the differences between both systems, why they conflict, and provides a step-by-step resolution path, saving you time and stress, allowing you to bypass physical delays."
         },
         {
             "type": "paragraph",
@@ -245,6 +245,11 @@
                 "<strong>Does Ufriends IT offer developer APIs for identity checks?</strong> Yes, software developers can integrate our identity search API v1 to retrieve or check customer detail alignment dynamically.",
                 "<strong>Is my sensitive identity data safe on the platform?</strong> Yes, Ufriends IT utilizes robust security protocols and end-to-end data encryption to safeguard your uploaded documents and details from third-party interception."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Harmonize Your National Identity & Banking Records</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Ensure your NIN and BVN match 100% to avoid CBN account restrictions. Process modifications online on Ufriends IT.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/nin-modification-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">NIN Modification Portal →</a>\n            <a href=\"/bvn-modification-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">BVN Modification Portal</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Resolving BVN and NIN Detail Mismatches</a></li><li><a href=\"/blog/how-to-modify-bvn-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Correct BVN Details Online</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

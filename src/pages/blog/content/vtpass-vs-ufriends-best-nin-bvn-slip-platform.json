@@ -28,7 +28,7 @@
     "sections": [
         {
             "type": "paragraph",
-            "content": "VTpass is one of the biggest names in Nigerian bill payments and VTU services. It has been around for years and has millions of users. Ufriends IT is a platform that combines VTU with government identity services like NIN/BVN slip printing and modification. If you are wondering which platform gives you better overall value — especially if you also need identity documents — this comparison breaks it down for you."
+            "content": "VTpass is one of the biggest names in Nigerian bill payments and VTU services. It has been around for years and has millions of users. <a href=\"/print-nin-slip-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Print NIN Slip Online)</a> is a platform that combines VTU with government identity services like NIN/BVN slip printing and modification. If you are wondering which platform gives you better overall value — especially if you also need identity documents — this comparison breaks it down for you."
         },
         {
             "type": "paragraph",
@@ -37,17 +37,50 @@
         {
             "type": "toc",
             "items": [
-                { "title": "Quick Comparison", "id": "quick-comparison" },
-                { "title": "VTpass — What It Offers", "id": "vtpass-overview" },
-                { "title": "Ufriends IT — What It Offers", "id": "ufriends-overview" },
-                { "title": "Feature Comparison Table", "id": "feature-table" },
-                { "title": "Data and Airtime Pricing", "id": "pricing" },
-                { "title": "NIN and BVN Slip Services", "id": "nin-bvn-slips" },
-                { "title": "Bill Payments and Utility Services", "id": "bill-payments" },
-                { "title": "Developer and Business Features", "id": "developer-features" },
-                { "title": "Pros and Cons", "id": "pros-cons" },
-                { "title": "Which Platform Should You Use?", "id": "which-to-use" },
-                { "title": "Frequently Asked Questions", "id": "faqs" }
+                {
+                    "title": "Quick Comparison",
+                    "id": "quick-comparison"
+                },
+                {
+                    "title": "VTpass — What It Offers",
+                    "id": "vtpass-overview"
+                },
+                {
+                    "title": "Ufriends IT — What It Offers",
+                    "id": "ufriends-overview"
+                },
+                {
+                    "title": "Feature Comparison Table",
+                    "id": "feature-table"
+                },
+                {
+                    "title": "Data and Airtime Pricing",
+                    "id": "pricing"
+                },
+                {
+                    "title": "NIN and BVN Slip Services",
+                    "id": "nin-bvn-slips"
+                },
+                {
+                    "title": "Bill Payments and Utility Services",
+                    "id": "bill-payments"
+                },
+                {
+                    "title": "Developer and Business Features",
+                    "id": "developer-features"
+                },
+                {
+                    "title": "Pros and Cons",
+                    "id": "pros-cons"
+                },
+                {
+                    "title": "Which Platform Should You Use?",
+                    "id": "which-to-use"
+                },
+                {
+                    "title": "Frequently Asked Questions",
+                    "id": "faqs"
+                }
             ]
         },
         {
@@ -88,27 +121,107 @@
         },
         {
             "type": "table",
-            "headers": ["Feature", "VTpass", "Ufriends IT"],
+            "headers": [
+                "Feature",
+                "VTpass",
+                "Ufriends IT"
+            ],
             "rows": [
-                ["Data Bundles (All Networks)", "✅ Yes", "✅ Yes"],
-                ["Airtime Recharge", "✅ Yes", "✅ Yes"],
-                ["Electricity Bills", "✅ Yes (comprehensive)", "✅ Yes"],
-                ["Cable TV (DStv, GOtv, Startimes)", "✅ Yes", "✅ Yes"],
-                ["Exam Pins (WAEC, NECO, JAMB)", "✅ Yes", "✅ Yes"],
-                ["Motor Insurance", "✅ Yes", "❌ No"],
-                ["Airtime to Cash", "❌ No", "✅ Yes"],
-                ["Bulk SMS", "✅ Yes", "✅ Yes"],
-                ["NIN Slip Printing", "❌ No", "✅ Yes (4 formats)"],
-                ["BVN Slip Generation", "❌ No", "✅ Yes (2 formats)"],
-                ["NIN Modification", "❌ No", "✅ Yes"],
-                ["BVN Modification", "❌ No", "✅ Yes"],
-                ["BVN Retrieval", "❌ No", "✅ Yes"],
-                ["CAC Business Registration", "❌ No", "✅ Yes"],
-                ["Developer API", "✅ Yes (partner tiers)", "✅ Full (v1 + SDKs + Sandbox)"],
-                ["Card Payment", "✅ Yes", "❌ Wallet only"],
-                ["Mobile App", "✅ Android + iOS", "✅ PWA (all devices)"],
-                ["Agent/Partner Program", "✅ Yes (4 levels)", "✅ Yes (Agent + Vendor)"],
-                ["Virtual Account Funding", "✅ Yes", "✅ Yes (auto-credit)"]
+                [
+                    "Data Bundles (All Networks)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime Recharge",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Electricity Bills",
+                    "✅ Yes (comprehensive)",
+                    "✅ Yes"
+                ],
+                [
+                    "Cable TV (DStv, GOtv, Startimes)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Exam Pins (WAEC, NECO, JAMB)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Motor Insurance",
+                    "✅ Yes",
+                    "❌ No"
+                ],
+                [
+                    "Airtime to Cash",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "Bulk SMS",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN Slip Printing",
+                    "❌ No",
+                    "✅ Yes (4 formats)"
+                ],
+                [
+                    "BVN Slip Generation",
+                    "❌ No",
+                    "✅ Yes (2 formats)"
+                ],
+                [
+                    "NIN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Retrieval",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "CAC Business Registration",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "Developer API",
+                    "✅ Yes (partner tiers)",
+                    "✅ Full (v1 + SDKs + Sandbox)"
+                ],
+                [
+                    "Card Payment",
+                    "✅ Yes",
+                    "❌ Wallet only"
+                ],
+                [
+                    "Mobile App",
+                    "✅ Android + iOS",
+                    "✅ PWA (all devices)"
+                ],
+                [
+                    "Agent/Partner Program",
+                    "✅ Yes (4 levels)",
+                    "✅ Yes (Agent + Vendor)"
+                ],
+                [
+                    "Virtual Account Funding",
+                    "✅ Yes",
+                    "✅ Yes (auto-credit)"
+                ]
             ]
         },
         {
@@ -263,6 +376,11 @@
                     "a": "Yes. Many users use VTpass for niche bill payments and motor insurance, and Ufriends IT for data, airtime, and NIN/BVN identity services. You can maintain wallets on both platforms."
                 }
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Access Nigeria’s #1 Platform for Utility & Identity Services</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Unlike VTpass which only processes utility bills, Ufriends IT empowers you with instant NIN/BVN slips, identity modifications, and cheap data.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/print-nin-slip-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Print NIN Slip Online →</a>\n            <a href=\"/bvn-modification-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">BVN Modification Portal</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/subandgain-vs-ufriends-cheapest-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">SubAndGain vs Ufriends IT</a></li><li><a href=\"/blog/best-vtu-website-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Best VTU Websites in Nigeria 2026</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

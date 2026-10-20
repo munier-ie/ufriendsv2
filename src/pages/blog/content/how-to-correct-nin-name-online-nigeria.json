@@ -1,16 +1,18 @@
 {
   "slug": "how-to-correct-nin-name-online-nigeria",
-  "title": "How to Correct Your NIN Name Online in Nigeria",
-  "excerpt": "Learn how to correct a wrong name on your NIN online, the documents NIMC requires, and how to avoid delays or a rejected request.",
+  "title": "NIN Name Correction Online: Portal Guide and Rules (2026)",
+  "excerpt": "Learn how to access the official NIN name correction portal, legal requirements for a NIN name change, required documents, and how to avoid application rejection.",
   "category": "Government Services",
   "readMin": 6,
   "publishedAt": "2026-10-06",
   "keywords": [
+    "nin name correction",
+    "nin name correction portal",
+    "nin name change",
     "how to correct my NIN name online in Nigeria",
-    "can I correct my NIN name online",
-    "NIN name correction",
-    "NIMC self service modification",
-    "change name on NIN"
+    "nimc self service modification",
+    "change name on NIN online",
+    "nin modification portal nigeria"
   ],
   "schemaType": "Article",
   "sections": [
@@ -25,18 +27,36 @@
     {
       "type": "toc",
       "items": [
-        { "title": "Documents needed", "id": "documents-needed" },
-        { "title": "Online correction steps", "id": "online-steps" },
-        { "title": "Name order and spelling", "id": "name-order" },
-        { "title": "After submission", "id": "after-submission" },
-        { "title": "Avoiding rejection", "id": "avoid-rejection" },
-        { "title": "Official sources", "id": "official-sources" }
+        {
+          "title": "NIN Name Change Requirements & Legal Documents",
+          "id": "documents-needed"
+        },
+        {
+          "title": "NIN Name Correction Portal: How to Access and Submit Online",
+          "id": "online-steps"
+        },
+        {
+          "title": "Name Order, Maiden Name & Spelling Rules",
+          "id": "name-order"
+        },
+        {
+          "title": "Statutory Processing Timelines & Tracking Status",
+          "id": "after-submission"
+        },
+        {
+          "title": "Common Causes of Application Rejection",
+          "id": "avoid-rejection"
+        },
+        {
+          "title": "Official NIMC Portals & Ufriends Assisted Service",
+          "id": "official-sources"
+        }
       ]
     },
     {
       "type": "heading",
       "level": 2,
-      "content": "Documents Needed for NIN Name Correction",
+      "content": "NIN Name Change Requirements & Legal Documents",
       "id": "documents-needed"
     },
     {
@@ -55,9 +75,44 @@
       ]
     },
     {
+      "type": "table",
+      "headers": [
+        "Reason for Correction",
+        "Primary Supporting Document",
+        "Secondary Verification Document",
+        "Processing Channel"
+      ],
+      "rows": [
+        [
+          "Spelling / Typographical Error",
+          "Court Sworn Affidavit",
+          "Valid Photo ID (Voter's Card, Passport, Driver's License)",
+          "Online Portal / Ufriends IT"
+        ],
+        [
+          "Name Change After Marriage",
+          "Registered Marriage Certificate",
+          "National Newspaper Publication Page",
+          "NIMC Portal / Ufriends IT"
+        ],
+        [
+          "Rearrangement of Name Order",
+          "Court Sworn Affidavit",
+          "Birth Certificate / Statutory Declaration of Age",
+          "Online Portal / Ufriends IT"
+        ],
+        [
+          "Addition or Removal of Name",
+          "Court Sworn Affidavit & Newspaper Extract",
+          "Government Employee / School Record",
+          "Online Portal / Ufriends IT"
+        ]
+      ]
+    },
+    {
       "type": "heading",
       "level": 2,
-      "content": "How to Correct Your NIN Name Online",
+      "content": "NIN Name Correction Portal: How to Access and Submit Online",
       "id": "online-steps"
     },
     {
@@ -129,7 +184,7 @@
     {
       "type": "heading",
       "level": 2,
-      "content": "Official Sources",
+      "content": "Official NIMC Portals & Ufriends Assisted Submission",
       "id": "official-sources"
     },
     {
@@ -165,6 +220,11 @@
     {
       "type": "paragraph",
       "content": "Requirements can change. Confirm them on NIMC's <a href=\"https://nimc.gov.ng/self-service-modifications/\">Self-Service Modifications page</a>, its <a href=\"https://nimc.gov.ng/nin/nin-modifications-adults/\">adult modification guidance</a>, and the <a href=\"https://nimc.gov.ng/press-releases/public-advisory-on-self-service-modification-account-access-and-unlinking--process-\">portal access advisory</a> before submitting."
+    },
+    {
+      "type": "cta-box",
+      "content": "\n        <div style=\"padding:16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;margin:24px 0;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#166534;margin-bottom:8px;\">Need Guided Assistance with Your NIN Modification?</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Avoid application delays and document rejection. Submit your NIN name, DOB, or phone correction through Ufriends IT's assisted verification desk with dedicated compliance review.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/nin-modification-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#16a34a;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Start NIN Modification Online →</a>\n            <a href=\"/print-nin-slip-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #16a34a;color:#16a34a;font-weight:600;border-radius:8px;text-decoration:none;\">Print Official NIN Slip</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #dcfce7;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Identity Guides:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way\" style=\"color:#16a34a;font-weight:600;text-decoration:underline;\">BVN and NIN Name Discrepancy Fix</a></li>\n              <li><a href=\"/blog/how-to-print-nin-slip-online-nigeria\" style=\"color:#16a34a;font-weight:600;text-decoration:underline;\">How to Print Standard & Premium NIN Slips</a></li>\n            </ul>\n          </div>\n        </div>\n      "
     }
-  ]
+  ],
+  "updatedAt": "2026-10-20"
 }

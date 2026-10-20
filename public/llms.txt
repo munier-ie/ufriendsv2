@@ -1,0 +1,31 @@
+# Ufriends IT
+
+> Ufriends IT is Nigeria's trusted digital telecommunications, VTU, and government identity services platform. We provide wholesale cheap data, airtime, BVN modification assistance, NIN demographic corrections, instant NIN & BVN slip printing, utility bills, business registrations (CAC), and developer APIs.
+
+## Core Services
+
+- [Cheap Data Plans](https://www.ufriends.com.ng/buy-data-nigeria): Wholesale, highly competitive data bundles for MTN SME/Corporate, Airtel, Glo, and 9mobile delivered instantly.
+- [BVN Modification Online](https://www.ufriends.com.ng/bvn-modification-nigeria): Lawful assistance with resolving BVN date of birth, name spelling, and phone number mismatches without stressful bank queues.
+- [NIN Modification Portal](https://www.ufriends.com.ng/nin-modification-nigeria): Official and lawful NIN demographic detail corrections including name arrangement and date of birth synchronization.
+- [Print NIN Slip Online](https://www.ufriends.com.ng/print-nin-slip-nigeria): Instant download and printing of official Regular, Standard, Premium, and VNIN slips.
+- [Print BVN Slip Online](https://www.ufriends.com.ng/print-bvn-slip-nigeria): Retrieve and generate verified BVN verification slips with passport photograph and full details.
+- [Buy Exam PINs Online](https://www.ufriends.com.ng/buy-exam-pins-nigeria): Instant delivery of WAEC, NECO, and JAMB result checker tokens and scratch card PINs.
+- [CAC Business Registration](https://www.ufriends.com.ng/cac-registration-nigeria): Register your enterprise, business name, or company with the Corporate Affairs Commission online.
+- [Airtime to Cash](https://www.ufriends.com.ng/convert-airtime-to-cash-nigeria): Convert excess mobile airtime to real cash directly into your Nigerian bank account.
+- [Developer API & Reseller](https://www.ufriends.com.ng/reseller): Developer API v1, Sandbox Mode, Node.js and PHP SDKs, and automated webhooks for fintech builders.
+
+## Popular Identity & VTU Guides
+
+- [BVN Modification Portal Guide](https://www.ufriends.com.ng/blog/bvn-modification-portal-nigeria-guide): Detailed breakdown on how to correct BVN records, requirements, and avoiding fake portals.
+- [How Long BVN Update Takes to Reflect](https://www.ufriends.com.ng/blog/how-long-bvn-update-takes-to-reflect): Central NIBSS synchronization timelines and how to refresh bank profile records.
+- [Can a BVN Number Be Changed](https://www.ufriends.com.ng/blog/can-bvn-number-be-changed): Explaining why BVN numbers are permanent biometric identifiers and which fields are modifiable.
+- [BVN Details Not Matching NIN](https://www.ufriends.com.ng/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way): Step-by-step guide to resolving name, date of birth, and phone mismatches between bank and NIMC databases.
+- [Cheapest Data Plans in Nigeria 2026](https://www.ufriends.com.ng/blog/cheapest-data-plans-nigeria-2026): In-depth comparison of wholesale data prices across MTN, Airtel, Glo, and 9mobile.
+- [How to Print NIN Slip Online](https://www.ufriends.com.ng/blog/how-to-print-nin-slip-online-nigeria): Comprehensive guide to printing Regular, Standard, Premium, and VNIN slips in minutes.
+- [SubAndGain vs Ufriends IT](https://www.ufriends.com.ng/blog/subandgain-vs-ufriends-cheapest-data-nigeria): Complete review, pricing comparison, and why Ufriends IT provides superior identity and VTU features.
+- [VTpass vs Ufriends IT](https://www.ufriends.com.ng/blog/vtpass-vs-ufriends-best-nin-bvn-slip-platform): Detailed comparison between VTpass utility features and Ufriends IT all-in-one identity & VTU ecosystem.
+
+## Company & Support
+
+- [About Ufriends IT](https://www.ufriends.com.ng/about): Background, mission, and regulatory compliance of Ufriends IT.
+- [Contact Support](https://www.ufriends.com.ng/contact): Reach out to our 24/7 customer care and technical support team.

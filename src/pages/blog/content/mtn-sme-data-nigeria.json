@@ -84,7 +84,7 @@
         },
         {
             "type": "paragraph",
-            "content": "Smart entrepreneurs and automated VTU platforms (like Ufriends IT) buy these massive terabyte bundles directly from MTN and resell the smaller units to everyday Nigerians at prices much lower than MTN's standard retail rates. This creates a win-win scenario: MTN sells data in bulk, VTU platforms make a thin margin on high transaction volumes, and the final consumer enjoys heavily discounted data plans without high retail markups."
+            "content": "Smart entrepreneurs and automated VTU platforms (like <a href=\"/buy-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Buy MTN SME Data)</a>) buy these massive terabyte bundles directly from MTN and resell the smaller units to everyday Nigerians at prices much lower than MTN's standard retail rates. This creates a win-win scenario: MTN sells data in bulk, VTU platforms make a thin margin on high transaction volumes, and the final consumer enjoys heavily discounted data plans without high retail markups."
         },
         {
             "type": "paragraph",
@@ -267,6 +267,11 @@
                 "<strong>How do I resolve a failed transfer?</strong> Contact the Ufriends WhatsApp support group linked on your dashboard, providing your transaction receipt.",
                 "<strong>Can developers automate data sales?</strong> Yes, Ufriends IT provides a Developer API v1 with Node.js/PHP SDKs and a free Sandbox Mode to automate data sales."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Get Cheap MTN SME Data Delivered in 5 Seconds</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Purchase high-speed 30-day MTN SME and Corporate data packages at wholesale reseller rates on Ufriends IT.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Buy MTN SME Data →</a>\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Start Data Reselling on Ufriends</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/cheapest-data-plans-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Cheapest Data Plans in Nigeria 2026</a></li><li><a href=\"/blog/buy-cheap-airtel-data-online-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Cheap Airtel Data Plans Online</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

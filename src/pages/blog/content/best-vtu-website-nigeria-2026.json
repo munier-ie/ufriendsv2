@@ -138,7 +138,7 @@
         },
         {
             "type": "paragraph",
-            "content": "Ufriends IT is a comprehensive digital services website in Nigeria. Instead of offering only data and airtime, it combines bill payments, business registration, and government identity services into a single dashboard. It is the perfect choice for business centers and cybercafes that want to offer a wide range of services without shifting between websites, boosting operational efficiency."
+            "content": "<a href=\"/buy-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Buy Cheap Data)</a> is a comprehensive digital services website in Nigeria. Instead of offering only data and airtime, it combines bill payments, business registration, and government identity services into a single dashboard. It is the perfect choice for business centers and cybercafes that want to offer a wide range of services without shifting between websites, boosting operational efficiency."
         },
         {
             "type": "paragraph",
@@ -326,6 +326,11 @@
                 "<strong>Is business registration available on Ufriends?</strong> Yes, you can submit Corporate Affairs Commission (CAC) business registration requests directly from your dashboard.",
                 "<strong>Can I upgrade my account level?</strong> Yes, Ufriends IT allows users to upgrade their accounts to Agent or Vendor categories to access even lower wholesale prices."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Start Using Nigeria’s Most Complete Digital Platform</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Enjoy wholesale data, electricity payments, exam tokens, and government ID services on Ufriends IT today.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Buy Cheap Data →</a>\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Start a Reseller Business</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/how-to-start-vtu-business-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Start a VTU Business in Nigeria</a></li><li><a href=\"/blog/cheapest-data-plans-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Cheapest Data Plans 2026</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

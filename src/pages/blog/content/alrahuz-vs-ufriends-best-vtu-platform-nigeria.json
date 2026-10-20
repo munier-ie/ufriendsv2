@@ -30,7 +30,7 @@
     "sections": [
         {
             "type": "paragraph",
-            "content": "Choosing the right VTU platform in Nigeria can be stressful, especially when there are so many options out there. Two platforms that come up often in discussions are Alrahuz Data and Ufriends IT. Both offer data, airtime, bill payments, and reseller features — but they are not the same. This comparison breaks down the real differences so you can pick the one that actually works for your situation."
+            "content": "Choosing the right VTU platform in Nigeria can be stressful, especially when there are so many options out there. Two platforms that come up often in discussions are Alrahuz Data and <a href=\"/buy-data-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Buy Data on Ufriends IT)</a>. Both offer data, airtime, bill payments, and reseller features — but they are not the same. This comparison breaks down the real differences so you can pick the one that actually works for your situation."
         },
         {
             "type": "paragraph",
@@ -39,16 +39,46 @@
         {
             "type": "toc",
             "items": [
-                { "title": "Quick Summary — Who Should Use Which?", "id": "quick-summary" },
-                { "title": "Platform Overview", "id": "platform-overview" },
-                { "title": "Side-by-Side Feature Comparison", "id": "feature-comparison" },
-                { "title": "Data and Airtime Pricing", "id": "pricing" },
-                { "title": "Government and Identity Services", "id": "identity-services" },
-                { "title": "API and Developer Support", "id": "api-support" },
-                { "title": "Customer Support and Reliability", "id": "support-reliability" },
-                { "title": "Pros and Cons", "id": "pros-cons" },
-                { "title": "Final Verdict", "id": "final-verdict" },
-                { "title": "Frequently Asked Questions", "id": "faqs" }
+                {
+                    "title": "Quick Summary — Who Should Use Which?",
+                    "id": "quick-summary"
+                },
+                {
+                    "title": "Platform Overview",
+                    "id": "platform-overview"
+                },
+                {
+                    "title": "Side-by-Side Feature Comparison",
+                    "id": "feature-comparison"
+                },
+                {
+                    "title": "Data and Airtime Pricing",
+                    "id": "pricing"
+                },
+                {
+                    "title": "Government and Identity Services",
+                    "id": "identity-services"
+                },
+                {
+                    "title": "API and Developer Support",
+                    "id": "api-support"
+                },
+                {
+                    "title": "Customer Support and Reliability",
+                    "id": "support-reliability"
+                },
+                {
+                    "title": "Pros and Cons",
+                    "id": "pros-cons"
+                },
+                {
+                    "title": "Final Verdict",
+                    "id": "final-verdict"
+                },
+                {
+                    "title": "Frequently Asked Questions",
+                    "id": "faqs"
+                }
             ]
         },
         {
@@ -93,27 +123,107 @@
         },
         {
             "type": "table",
-            "headers": ["Feature", "Alrahuz Data", "Ufriends IT"],
+            "headers": [
+                "Feature",
+                "Alrahuz Data",
+                "Ufriends IT"
+            ],
             "rows": [
-                ["Data Bundles (MTN, Airtel, Glo, 9mobile)", "✅ Yes", "✅ Yes"],
-                ["Airtime Recharge", "✅ Yes", "✅ Yes"],
-                ["Electricity Bill Payment", "✅ Yes", "✅ Yes"],
-                ["Cable TV (DStv, GOtv, Startimes)", "✅ Yes", "✅ Yes"],
-                ["Exam Pins (WAEC, NECO, JAMB)", "✅ Yes", "✅ Yes"],
-                ["Recharge Card Printing", "✅ Yes", "❌ No"],
-                ["Airtime to Cash", "✅ Yes", "✅ Yes"],
-                ["Bulk SMS", "✅ Yes", "✅ Yes"],
-                ["NIN Slip Printing", "❌ No", "✅ Yes (4 formats)"],
-                ["BVN Slip Generation", "❌ No", "✅ Yes"],
-                ["NIN Modification", "❌ No", "✅ Yes"],
-                ["BVN Modification", "❌ No", "✅ Yes"],
-                ["BVN Retrieval", "❌ No", "✅ Yes"],
-                ["CAC Business Registration", "❌ No", "✅ Yes"],
-                ["Developer API", "✅ Basic", "✅ Full (v1 + SDKs)"],
-                ["Virtual Bank Account Funding", "❌ Bank transfer", "✅ Yes (auto-credit)"],
-                ["Mobile App", "✅ Android", "✅ Web app (PWA)"],
-                ["Reseller / Agent Tiers", "✅ Yes", "✅ Yes"],
-                ["Referral Program", "✅ Yes", "✅ Yes"]
+                [
+                    "Data Bundles (MTN, Airtel, Glo, 9mobile)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Airtime Recharge",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Electricity Bill Payment",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Cable TV (DStv, GOtv, Startimes)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Exam Pins (WAEC, NECO, JAMB)",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Recharge Card Printing",
+                    "✅ Yes",
+                    "❌ No"
+                ],
+                [
+                    "Airtime to Cash",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Bulk SMS",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN Slip Printing",
+                    "❌ No",
+                    "✅ Yes (4 formats)"
+                ],
+                [
+                    "BVN Slip Generation",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "NIN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Modification",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "BVN Retrieval",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "CAC Business Registration",
+                    "❌ No",
+                    "✅ Yes"
+                ],
+                [
+                    "Developer API",
+                    "✅ Basic",
+                    "✅ Full (v1 + SDKs)"
+                ],
+                [
+                    "Virtual Bank Account Funding",
+                    "❌ Bank transfer",
+                    "✅ Yes (auto-credit)"
+                ],
+                [
+                    "Mobile App",
+                    "✅ Android",
+                    "✅ Web app (PWA)"
+                ],
+                [
+                    "Reseller / Agent Tiers",
+                    "✅ Yes",
+                    "✅ Yes"
+                ],
+                [
+                    "Referral Program",
+                    "✅ Yes",
+                    "✅ Yes"
+                ]
             ]
         },
         {
@@ -262,6 +372,11 @@
                     "a": "Ufriends IT offers a more comprehensive API with a Sandbox Mode, Node.js and PHP SDKs, and automated webhooks. Alrahuz provides basic API access for VTU services. If you are building a fintech product, Ufriends IT's developer tools are more complete."
                 }
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Need a Fast, Reliable Alternative to Alrahuz Data?</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Create a free Ufriends IT account to buy cheap data, print NIN slips, and access Developer API v1 with 99.9% uptime.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/buy-data-nigeria\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Buy Data on Ufriends IT →</a>\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Reseller & Developer API v1</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/maskawasub-vs-ufriends-data-airtime-comparison\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">MaskawaSub vs Ufriends IT</a></li><li><a href=\"/blog/best-vtu-website-nigeria-2026\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Best VTU Websites in Nigeria 2026</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }

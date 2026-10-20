@@ -23,7 +23,7 @@
         },
         {
             "type": "paragraph",
-            "content": "Whether you are a freelancer receiving remote payments, a retail vendor selling digital services, or a mobile reseller distributing data bundles on platforms like Ufriends IT, understanding the difference between an e-wallet and a virtual account is crucial to managing your cash flow. Making the wrong choice can lead to high transaction charges, delayed settlements, or payout locks during network downtime. This comprehensive guide details the mechanics of both systems, highlights their pros and cons, and shows you how they combine on modern platforms, keeping you fully informed, ensuring your funds are protected, streamlining your payments, making bookkeeping structured."
+            "content": "Whether you are a freelancer receiving remote payments, a retail vendor selling digital services, or a mobile reseller distributing data bundles on platforms like <a href=\"/reseller\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT (Agency Banking & Reseller Tools)</a>, understanding the difference between an e-wallet and a virtual account is crucial to managing your cash flow. Making the wrong choice can lead to high transaction charges, delayed settlements, or payout locks during network downtime. This comprehensive guide details the mechanics of both systems, highlights their pros and cons, and shows you how they combine on modern platforms, keeping you fully informed, ensuring your funds are protected, streamlining your payments, making bookkeeping structured."
         },
         {
             "type": "paragraph",
@@ -245,6 +245,11 @@
                 "<strong>Can developers automate virtual account creation?</strong> Yes, Ufriends IT provides APIs that allow developer portals to assign virtual accounts to their users automatically.",
                 "<strong>Do virtual accounts charge monthly maintenance fees?</strong> No, virtual accounts have no hidden card maintenance or account maintenance fees."
             ]
+        },
+        {
+            "type": "callout",
+            "style": "info",
+            "content": "\n        <div style=\"padding:4px;\">\n          <h3 style=\"font-size:18px;font-weight:700;color:#003570;margin-bottom:8px;\">Power Your Financial Transactions with Instant Virtual Accounts</h3>\n          <p style=\"margin-bottom:14px;color:#334155;line-height:1.6;\">Every Ufriends IT user gets dedicated Wema, Providus, and Monnify virtual accounts with instant 10-second wallet funding.</p>\n          <div style=\"margin-bottom:16px;\">\n            <a href=\"/reseller\" style=\"display:inline-block;padding:10px 20px;background:#004687;color:#fff;font-weight:700;border-radius:8px;text-decoration:none;margin-right:10px;\">Agency Banking & Reseller Tools →</a>\n            <a href=\"/convert-airtime-to-cash-nigeria\" style=\"display:inline-block;padding:10px 18px;border:1px solid #004687;color:#004687;font-weight:600;border-radius:8px;text-decoration:none;\">Airtime to Cash</a>\n          </div>\n          <div style=\"font-size:14px;color:#64748b;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:12px;\">\n            <strong style=\"color:#0f172a;\">Related Guides & Articles:</strong>\n            <ul style=\"margin-top:6px;padding-left:18px;line-height:1.7;\">\n              <li><a href=\"/blog/how-to-link-nin-to-bank-account-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Linking NIN to Bank Account Guide</a></li><li><a href=\"/blog/how-to-get-pos-terminal-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">How to Get a POS Terminal</a></li>\n            </ul>\n          </div>\n        </div>\n      "
         }
     ]
 }
