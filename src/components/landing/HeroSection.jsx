@@ -1,9 +1,10 @@
-import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint, Shield, Star, Smartphone, Apple } from 'lucide-react';
+import { ArrowRight, Play, Zap, Wifi, Tv, Fingerprint, Shield, Star, Apple } from 'lucide-react';
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 
 import Logo from '../ui/Logo';
+import GooglePlayIcon from '../ui/GooglePlayIcon';
 import { useLandingContent } from '../../contexts/LandingContentContext';
 import DownloadModal from '../ui/DownloadModal';
 
@@ -71,16 +72,17 @@ export default function HeroSection() {
               <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Download our Mobile App</p>
               <div className="flex flex-wrap justify-center sm:justify-start gap-3">
                 <a 
-                  href="https://github.com/munier-ie/ufriendsv2/releases/download/v1.0.0/ufriends-v1.apk" 
-                  download 
-                  className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white rounded-xl transition-transform duration-150 active:scale-95 group shadow-md"
+                  href="https://play.google.com/store/apps/details?id=com.ufriends.ng&pcampaignid=web_share" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-[#1e90ff] to-[#004687] text-white rounded-xl shadow-md active:scale-95"
                 >
-                  <div className="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Smartphone className="w-5 h-5" />
+                  <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-sm">
+                    <GooglePlayIcon className="w-5 h-5" />
                   </div>
                   <div className="text-left">
-                    <p className="text-[10px] leading-none text-blue-100 uppercase">Available for</p>
-                    <p className="text-sm font-bold">Android (APK)</p>
+                    <p className="text-[10px] leading-none text-blue-100 uppercase">Get it on</p>
+                    <p className="text-sm font-bold">Google Play</p>
                   </div>
                 </a>
 
