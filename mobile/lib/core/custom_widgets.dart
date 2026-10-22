@@ -146,11 +146,11 @@ class AppLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      'assets/images/logo.svg',
+    return Image.asset(
+      'assets/images/logo.png',
       width: size,
       height: size,
-      placeholderBuilder: (context) => Icon(Icons.people_alt, color: AppTheme.primaryColor, size: size),
+      errorBuilder: (context, error, stackTrace) => Icon(Icons.people_alt, color: AppTheme.primaryColor, size: size),
     );
   }
 }
