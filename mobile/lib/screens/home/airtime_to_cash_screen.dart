@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../core/app_theme.dart';
 import '../../core/custom_widgets.dart';
 import '../../core/api_service.dart';
@@ -23,6 +24,8 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
   String? _selectedNetwork;
   bool _loading = false;
   String _sessionId = '';
+  final Map<String, double> _rates = {};
+  final Set<String> _inactiveNetworks = {};
 
   final List<Map<String, dynamic>> _networks = [
     {
@@ -51,7 +54,23 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
   void initState() {
     super.initState();
     _phoneController.addListener(_autoSelectNetwork);
+    _loadRates();
   }
+
+  Future<void> _loadRates() async {
+    final res = await ApiService.getAirtimeToCashRates();
+    if (!mounted || res['success'] != true) return;
+    final rates = (res['data']['rates'] as List? ?? const []);
+    setState(() {
+      for (final item in rates) {
+        final network = item['network'].toString().toUpperCase();
+        _rates[network] = (item['rate'] as num).toDouble();
+        if (item['active'] != true) _inactiveNetworks.add(network);
+      }
+    });
+  }
+
+  double? get _selectedRate => _rates[_selectedNetwork?.toUpperCase()];
 
   void _autoSelectNetwork() {
     String text = _phoneController.text;
@@ -83,6 +102,14 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
       AppToast.show(context, message: 'Please fill in all fields', type: ToastType.warning);
       return;
     }
+    if (!RegExp(r'^0\d{10}$').hasMatch(_phoneController.text)) {
+      AppToast.show(context, message: 'Phone number must be exactly 11 digits and start with 0', type: ToastType.warning);
+      return;
+    }
+    if (_inactiveNetworks.contains(_selectedNetwork!.toUpperCase())) {
+      AppToast.show(context, message: 'Airtime to cash is temporarily disabled for $_selectedNetwork.', type: ToastType.warning);
+      return;
+    }
 
 
     setState(() => _loading = true);
@@ -92,7 +119,6 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
     if (!mounted) return;
 
     if (res['success']) {
-      AppToast.show(context, message: 'OTP sent successfully!', type: ToastType.success);
       _showOTPBottomSheet();
     } else {
       final errorMsg = (res['error'] != null && res['error'].toString().isNotEmpty) ? res['error'].toString() : 'Failed to send OTP';
@@ -117,7 +143,7 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
               ),
               decoration: BoxDecoration(
                 color: context.bottomSheetBg,
-                borderRadius: BorderRadius.only(
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(24),
                   topRight: Radius.circular(24),
                 ),
@@ -133,7 +159,33 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: Colors.green.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green.shade200),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.check_circle_outline, color: Colors.green.shade700, size: 18),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            'OTP sent successfully to ${_phoneController.text}',
+                            style: TextStyle(
+                              color: Colors.green.shade800,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                   const Text(
                     'Verification Required',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -163,7 +215,7 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                       labelText: 'Transfer PIN',
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 28),
                   Row(
                     children: [
                       Expanded(
@@ -192,6 +244,24 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton.icon(
+                    onPressed: () async {
+                      final res = await ApiService.generateAirtimeToCashOTP(_selectedNetwork!.toUpperCase(), _phoneController.text);
+                      if (!context.mounted) return;
+                      if (res['success'] == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('A new OTP has been sent!'), duration: Duration(seconds: 3)),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(res['error'] ?? 'Failed to resend OTP'), backgroundColor: Colors.red),
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.refresh, size: 16),
+                    label: const Text('Resend OTP', style: TextStyle(fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -349,7 +419,11 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                       children: _networks.map((net) {
                         bool isSelected = _selectedNetwork == net['name'];
                         return GestureDetector(
-                          onTap: () => setState(() => _selectedNetwork = net['name']),
+                          onTap: () {
+                            if (!_inactiveNetworks.contains(net['name'].toString().toUpperCase())) {
+                              setState(() => _selectedNetwork = net['name']);
+                            }
+                          },
                           child: Container(
                             width: 65,
                             height: 65,
@@ -399,8 +473,11 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                     TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      maxLength: 11,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       decoration: const InputDecoration(
-                        hintText: 'Enter phone number sending from',
+                        hintText: '08012345678',
+                        counterText: '',
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -413,10 +490,19 @@ class _AirtimeToCashScreenState extends State<AirtimeToCashScreen> {
                     TextField(
                       controller: _amountController,
                       keyboardType: TextInputType.number,
+                      onChanged: (_) => setState(() {}),
                       decoration: const InputDecoration(
                         hintText: 'Enter amount to convert',
                       ),
                     ),
+                    if (_amountController.text.isNotEmpty && _selectedRate != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 10),
+                        child: Text(
+                          'You receive: ₦${((double.tryParse(_amountController.text) ?? 0) * _selectedRate! / 100).toStringAsFixed(2)} (${_selectedRate!.toStringAsFixed(0)}%)',
+                          style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     const SizedBox(height: 40),
                     
                     GradientButton(

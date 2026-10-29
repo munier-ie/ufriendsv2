@@ -1,144 +1,248 @@
 {
-  "slug": "how-to-change-bvn-name-correction-nigeria",
-  "title": "How to Change or Correct Your BVN Name in Nigeria",
-  "excerpt": "Correct a spelling error, surname, or name order on your BVN with the right supporting documents and a safe, traceable process.",
-  "category": "Banking Identity",
-  "readMin": 5,
-  "publishedAt": "2026-10-06",
-  "keywords": [
-    "how to change BVN name online",
-    "BVN name correction",
-    "change my BVN name",
-    "BVN name modification",
-    "correct name on BVN"
-  ],
-  "schemaType": "Article",
-  "sections": [
-    {
-      "type": "paragraph",
-      "content": "You can request a correction when the name on your BVN is misspelled, in the wrong order, or no longer matches your legal name. The evidence depends on the type of change. A one-letter correction is different from adopting a new surname after marriage or replacing a substantially different name."
-    },
-    {
-      "type": "paragraph",
-      "content": "CBN guidance allows minor name corrections with valid identification and recognises name changes supported by legal documents. Banks must also keep a consistent BVN name across a customer's accounts. The safest approach is to establish the correct legal name first, then update the central BVN record and ask each bank to refresh its local profile."
-    },
-    {
-      "type": "toc",
-      "items": [
-        { "title": "Type of name change", "id": "change-types" },
-        { "title": "Documents", "id": "documents" },
-        { "title": "Correction steps", "id": "steps" },
-        { "title": "BVN and NIN mismatch", "id": "nin-mismatch" },
-        { "title": "Processing time", "id": "processing-time" }
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Identify the Type of BVN Name Change",
-      "id": "change-types"
-    },
-    {
-      "type": "table",
-      "headers": ["Problem", "Example", "Likely evidence"],
-      "rows": [
-        ["Spelling correction", "Adeola recorded as Adeolla", "Valid ID showing the correct spelling"],
-        ["Name order", "Surname entered as first name", "ID and existing identity records"],
-        ["Marriage-related surname", "Previous surname replaced or combined", "Marriage certificate and other required legal documents"],
-        ["Substantial legal change", "One or more names replaced", "Affidavit, publication, ID, and any extra bank requirement"],
-        ["Bank-only mismatch", "Central BVN is correct but one account differs", "Fresh BVN verification and bank profile-update form"]
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Documents Commonly Used for BVN Name Correction",
-      "id": "documents"
-    },
-    {
-      "type": "list",
-      "items": [
-        "A valid government ID showing the correct name.",
-        "Your NIN slip when the BVN should be aligned with the NIN record.",
-        "A marriage certificate for a marriage-related surname change.",
-        "A sworn affidavit stating the former and correct names when required.",
-        "A newspaper publication for a legal name change when required.",
-        "The bank's completed BVN or customer-information update form."
-      ]
-    },
-    {
-      "type": "paragraph",
-      "content": "Ask the receiving institution for its exact checklist. Do not pay for documents you do not need, but do not omit evidence that explains a material change. Every document should use the same final spelling and name order."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Step-by-Step BVN Name Correction",
-      "id": "steps"
-    },
-    {
-      "type": "stepper",
-      "steps": [
-        { "title": "Confirm the current BVN name", "content": "Retrieve or verify the record so you can see the exact spelling and order stored centrally." },
-        { "title": "Choose the correct final name", "content": "Use your legal evidence and NIN. Do not modify a correct record merely to match a mistaken bank profile." },
-        { "title": "Collect consistent documents", "content": "Check every spelling, date, seal, signature, and certificate number before submission." },
-        { "title": "Submit through an approved route", "content": "Use your bank or a traceable assisted route such as Ufriends' <a href=\"/bvn-modification-nigeria\">BVN modification service</a>." },
-        { "title": "Verify and refresh linked accounts", "content": "After approval, obtain a fresh result and ask any bank still showing the old name to update its own customer profile." }
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "What If Your BVN Name Does Not Match Your NIN?",
-      "id": "nin-mismatch"
-    },
-    {
-      "type": "paragraph",
-      "content": "CBN guidance requires financial institutions to retrieve BVN or NIN details from the authoritative databases during onboarding. A mismatch can stop the process. Compare both records with your strongest legal documents and correct the record that is actually wrong. Our <a href=\"/blog/bvn-details-not-matching-your-nin-how-to-correct-name-phone-and-date-of-birth-the-right-way\">BVN and NIN mismatch guide</a> explains that decision in more detail."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "How Long Does BVN Change of Name Take?",
-      "id": "processing-time"
-    },
-    {
-      "type": "paragraph",
-      "content": "A CBN circular set five working days as the resolution timeline for BVN issues after all required documents are submitted. A complex change can take longer if evidence is incomplete or if a bank needs additional review. After central approval, a separate bank profile may still need to be refreshed. See our <a href=\"/blog/how-long-bvn-update-takes-to-reflect\">BVN update timeline guide</a> for the stages."
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "BVN Name Correction Questions",
-      "id": "name-correction-questions"
-    },
-    {
-      "type": "list",
-      "items": [
-        "<strong>Can I correct one misspelled letter?</strong> Yes. A minor error can be supported with valid identification showing the intended spelling.",
-        "<strong>Can I change to a completely different name?</strong> A substantial change receives more scrutiny and requires legal evidence explaining the difference. Ask the receiving institution for its checklist.",
-        "<strong>Does changing my BVN name update every account automatically?</strong> The central result may change first. Each bank may still need to refresh its local customer profile.",
-        "<strong>What if my NIN contains the wrong name too?</strong> Compare both records with your legal evidence and correct the inaccurate source record. Do not make two records consistently wrong.",
-        "<strong>Can I edit the BVN slip instead?</strong> No. Editing a PDF does not change the central record and can create a false identity document."
-      ]
-    },
-    {
-      "type": "heading",
-      "level": 2,
-      "content": "Submit a BVN Name Correction Through Ufriends",
-      "id": "ufriends-submission"
-    },
-    {
-      "type": "paragraph",
-      "content": "When your evidence is ready, open the <a href=\"/bvn-modification-nigeria\">Ufriends BVN modification page</a>, confirm the supported name-change type and current requirements, then sign in to view the live price. Use the exact final spelling from your documents and keep the request reference. Ufriends assists with submission and tracking; it does not replace the bank or other authorised institution that validates the evidence and controls the BVN update."
-    },
-    {
-      "type": "paragraph",
-      "content": "After completion, obtain a fresh verification and update only the institutions that still hold the former name. This gives the visitor a clear outcome: one correct central identity, consistent linked bank profiles, and a traceable record of the change."
-    },
-    {
-      "type": "paragraph",
-      "content": "Official references: the CBN <a href=\"https://www.cbn.gov.ng/out/2016/bpsd/bvn%20issues%20circular.pdf\">clarification on BVN issues</a> and <a href=\"https://www.cbn.gov.ng/Out/2023/PSMD/Circular%20on%20Tier%201%20Wallets%20%26%20Accounts%2C%20Guidance%20Note%20%26%20Profiling%20of%20Customers%27%20Accounts%20%26%20Wallets.pdf\">KYC guidance note</a>."
-    }
-  ]
+    "slug": "how-to-change-bvn-name-correction-nigeria",
+    "title": "How to Change or Correct Your BVN Name in Nigeria",
+    "excerpt": "Correct a spelling error, marriage surname, or inverted name order on your BVN with valid legal documents and an approved online process.",
+    "category": "Banking Identity",
+    "readMin": 6,
+    "publishedAt": "2026-10-06",
+    "updatedAt": "2026-10-29",
+    "keywords": [
+        "how to change BVN name online",
+        "BVN name correction",
+        "change my BVN name",
+        "BVN name modification",
+        "correct name on BVN",
+        "bvn name update portal nigeria"
+    ],
+    "schemaType": "Article",
+    "sections": [
+        {
+            "type": "paragraph",
+            "content": "Discovering that your name is misspelled or scrambled on your Bank Verification Number (BVN) record is one of the most frustrating barriers to financial access in Nigeria. Whether a single letter was typed incorrectly by an enrolment officer years ago or you have recently married and changed your surname, a name mismatch between your BVN and your National Identification Number (NIN) will trigger automated account restrictions. To inspect the exact name currently registered on your central banking profile, you can <a href=\"/print-bvn-slip-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">retrieve your verified BVN slip online</a>."
+        },
+        {
+            "type": "fast-track",
+            "badge": "Online Name Correction Portal",
+            "title": "Need to Correct Your BVN Name Without Bank Delays?",
+            "content": "Do not let typographical errors freeze your bank accounts or block important transactions. Submit your lawful name modification online via the <a href=\"/bvn-modification-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends IT BVN Modification Portal</a> to enjoy rapid processing without taking days off work to queue at bank branches.",
+            "buttonText": "Correct BVN Name Online",
+            "buttonLink": "/bvn-modification-nigeria"
+        },
+        {
+            "type": "paragraph",
+            "content": "Central Bank of Nigeria (CBN) regulations allow customers to rectify legitimate typographical errors and lawful surname changes when supported by genuine civil documentation. However, navigating this process traditionally meant taking a whole day off work, visiting a High Court for affidavits, and queueing for hours at the bank branch where you first registered your BVN. Modern digital portals now make this process entirely seamless."
+        },
+        {
+            "type": "toc",
+            "items": [
+                {
+                    "title": "Recognised Types of BVN Name Changes",
+                    "id": "change-types"
+                },
+                {
+                    "title": "Traditional Bank Route vs Ufriends IT Online",
+                    "id": "bank-vs-ufriends"
+                },
+                {
+                    "title": "Required Supporting Documents Checklist",
+                    "id": "documents"
+                },
+                {
+                    "title": "Step-by-Step: How to Change BVN Name on Ufriends IT",
+                    "id": "step-by-step"
+                },
+                {
+                    "title": "BVN and NIN Name Mismatch Resolution",
+                    "id": "nin-mismatch"
+                },
+                {
+                    "title": "Processing Timelines & Verification",
+                    "id": "processing-time"
+                },
+                {
+                    "title": "Frequently Asked Questions",
+                    "id": "faqs"
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Recognised Types of BVN Name Changes",
+            "id": "change-types"
+        },
+        {
+            "type": "table",
+            "headers": [
+                "Type of Correction",
+                "Real-World Example",
+                "Mandatory Evidence Required"
+            ],
+            "rows": [
+                [
+                    "Minor Spelling Correction",
+                    "\\\"Adeola\\\" mistakenly captured as \\\"Adeolla\\\" or \\\"Ibrahim\\\" as \\\"Ibraheem\\\"",
+                    "Valid government ID (NIN Slip, Passport, or Voter Card) showing correct spelling"
+                ],
+                [
+                    "Name Arrangement / Order",
+                    "Surname recorded as first name, causing KYC validation failure",
+                    "National Identity Management Commission (NIMC) verified NIN slip"
+                ],
+                [
+                    "Marriage-Related Surname Update",
+                    "Maiden surname replaced or hyphenated following lawful marriage",
+                    "Official Marriage Certificate, Sworn Affidavit, and Newspaper Publication"
+                ],
+                [
+                    "Substantial Legal Name Change",
+                    "One or more names replaced through legal deed poll",
+                    "Sworn Court Affidavit, National Newspaper Publication, and Aligned NIN"
+                ],
+                [
+                    "Bank-Only Profile Discrepancy",
+                    "Central NIBSS BVN is correct but a local bank displays old name",
+                    "Fresh BVN verification slip presented to the affected commercial bank"
+                ]
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Physical Bank Branch Route vs. Online Ufriends IT Portal",
+            "id": "bank-vs-ufriends"
+        },
+        {
+            "type": "paragraph",
+            "content": "Compare the legacy branch procedure with the streamlined online service offered by Ufriends IT:"
+        },
+        {
+            "type": "table",
+            "headers": [
+                "Comparison Metric",
+                "Traditional Physical Bank Branch",
+                "Digital Route via Ufriends IT"
+            ],
+            "rows": [
+                [
+                    "Application Method",
+                    "Physical presence at customer care desk",
+                    "100% digital submission from your smartphone or laptop"
+                ],
+                [
+                    "Geographical Flexibility",
+                    "Must locate the specific branch where BVN was enrolled",
+                    "Submit anywhere across Nigeria or internationally (Diaspora)"
+                ],
+                [
+                    "Paperwork Complexity",
+                    "Physical paper forms, paper affidavits, photo printouts",
+                    "Clean digital image or PDF upload of supporting documents"
+                ],
+                [
+                    "Turnaround Speed",
+                    "5 to 10 business days with repeated follow-up visits",
+                    "Automated compliance check and swift submission"
+                ],
+                [
+                    "Working Hours",
+                    "Limited to 8:00 AM \u2013 4:00 PM (Monday to Friday)",
+                    "24/7 accessible self-service portal"
+                ],
+                [
+                    "Direct Action",
+                    "Requires queueing in physical banking halls",
+                    "<a href=\"/bvn-modification-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Submit BVN Name Correction Online \u2192</a>"
+                ]
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Required Supporting Documents Checklist",
+            "id": "documents"
+        },
+        {
+            "type": "list",
+            "items": [
+                "<strong>Valid National ID:</strong> An official National Identification Number (NIN) slip displaying the intended legal name spelling and order.",
+                "<strong>Marriage Certificate:</strong> Required for women updating their surname following marriage.",
+                "<strong>Sworn Affidavit:</strong> A sworn affidavit of change of name or correction of error from a recognized court of competent jurisdiction.",
+                "<strong>Newspaper Publication:</strong> Required for substantial name changes in a widely circulated Nigerian daily national newspaper.",
+                "<strong>Original BVN Number:</strong> Your 11-digit BVN correctly recorded on the application form."
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Step-by-Step: How to Change BVN Name on Ufriends IT",
+            "id": "step-by-step"
+        },
+        {
+            "type": "stepper",
+            "steps": [
+                {
+                    "title": "Check Central NIBSS Profile",
+                    "content": "Verify your exact registered name by generating an on-screen preview on the <a href=\"/print-bvn-slip-nigeria\">Ufriends BVN Slip Tool</a>."
+                },
+                {
+                    "title": "Select Name Correction Service",
+                    "content": "Open the <a href=\"/bvn-modification-nigeria\">BVN Modification Portal</a> and select \\\"Name Correction\\\" from the service options."
+                },
+                {
+                    "title": "Input the Exact Legal Name",
+                    "content": "Type your First Name, Middle Name, and Surname precisely as they appear on your legal National Identity documents."
+                },
+                {
+                    "title": "Upload Verification Documents",
+                    "content": "Upload crisp, clear digital snapshots or PDF scans of your valid ID and supporting legal evidence."
+                },
+                {
+                    "title": "Automated Processing & Status Tracking",
+                    "content": "Submit your request and track its progress in real time on your dashboard. Once completed, download your updated slip."
+                }
+            ]
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "BVN and NIN Name Mismatch Resolution",
+            "id": "nin-mismatch"
+        },
+        {
+            "type": "paragraph",
+            "content": "CBN directives mandate that all commercial banks cross-verify customer data between the NIBSS BVN repository and the NIMC National Identity database. If there is a single-letter discrepancy between both systems, automated financial operations will reject the transaction. The proper protocol is to identify which database contains the typographical error and update it so both platforms reflect identical spelling. If your NIN is the record containing errors, use the <a href=\"/nin-modification-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">Ufriends NIN Modification Service</a>."
+        },
+        {
+            "type": "heading",
+            "level": 2,
+            "content": "Processing Timelines & Verification",
+            "id": "processing-time"
+        },
+        {
+            "type": "paragraph",
+            "content": "Once your BVN name change is approved centrally on NIBSS, you should generate an updated <a href=\"/print-bvn-slip-nigeria\" style=\"color:#004687;font-weight:600;text-decoration:underline;\">official BVN slip with photo</a>. Present this slip to any commercial bank where your account remains restricted so they can trigger an instant profile refresh on their internal ledger."
+        },
+        {
+            "type": "faq",
+            "items": [
+                {
+                    "q": "Can I correct just one misspelled letter in my BVN name?",
+                    "a": "Yes! Minor typographical corrections (e.g., correcting an extra or missing letter) are supported with a valid NIN slip showing the intended spelling."
+                },
+                {
+                    "q": "Does updating my BVN name change my 11-digit number?",
+                    "a": "No. Your 11-digit BVN is a permanent biometric anchor and never changes. Only your demographic name record is updated."
+                },
+                {
+                    "q": "Can I do a BVN name correction online without going to a bank?",
+                    "a": "Yes! The Ufriends IT BVN Modification Portal enables you to submit your verified evidence and complete your name change completely online from your mobile phone."
+                },
+                {
+                    "q": "What happens after my BVN name is updated?",
+                    "a": "Once updated centrally on NIBSS, you can print a fresh BVN slip from Ufriends IT and notify your bank to refresh their local customer profile, instantly lifting any KYC holds."
+                }
+            ]
+        }
+    ]
 }

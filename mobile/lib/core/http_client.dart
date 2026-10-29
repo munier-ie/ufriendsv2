@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:http/http.dart' as raw_http;
@@ -9,9 +10,12 @@ import 'connectivity_service.dart';
 
 const _timeout = Duration(seconds: 30);
 
-void _checkConnectivity() {
+Future<void> _checkConnectivity() async {
   if (!ConnectivityService.isOnline) {
-    throw NoInternetException('No Internet: Please check your connection');
+    final isRestored = await ConnectivityService.checkRealConnectivity();
+    if (!isRestored) {
+      throw NoInternetException('No Internet: Please check your connection');
+    }
   }
 }
 
@@ -38,23 +42,59 @@ Future<Map<String, String>> _withDeviceId(Map<String, String>? headers) async {
 }
 
 Future<raw_http.Response> get(Uri url, {Map<String, String>? headers}) async {
-  _checkConnectivity();
-  return raw_http.get(url, headers: await _withDeviceId(headers)).timeout(_timeout);
+  await _checkConnectivity();
+  try {
+    final res = await raw_http.get(url, headers: await _withDeviceId(headers)).timeout(_timeout);
+    ConnectivityService.markOnline();
+    return res;
+  } catch (e) {
+    if (e is SocketException || e is TimeoutException) {
+      ConnectivityService.checkRealConnectivity();
+    }
+    rethrow;
+  }
 }
 
 Future<raw_http.Response> post(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-  _checkConnectivity();
-  return raw_http.post(url, headers: await _withDeviceId(headers), body: body, encoding: encoding).timeout(_timeout);
+  await _checkConnectivity();
+  try {
+    final res = await raw_http.post(url, headers: await _withDeviceId(headers), body: body, encoding: encoding).timeout(_timeout);
+    ConnectivityService.markOnline();
+    return res;
+  } catch (e) {
+    if (e is SocketException || e is TimeoutException) {
+      ConnectivityService.checkRealConnectivity();
+    }
+    rethrow;
+  }
 }
 
 Future<raw_http.Response> put(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-  _checkConnectivity();
-  return raw_http.put(url, headers: await _withDeviceId(headers), body: body, encoding: encoding).timeout(_timeout);
+  await _checkConnectivity();
+  try {
+    final res = await raw_http.put(url, headers: await _withDeviceId(headers), body: body, encoding: encoding).timeout(_timeout);
+    ConnectivityService.markOnline();
+    return res;
+  } catch (e) {
+    if (e is SocketException || e is TimeoutException) {
+      ConnectivityService.checkRealConnectivity();
+    }
+    rethrow;
+  }
 }
 
 Future<raw_http.Response> delete(Uri url, {Map<String, String>? headers, Object? body, Encoding? encoding}) async {
-  _checkConnectivity();
-  return raw_http.delete(url, headers: await _withDeviceId(headers), body: body, encoding: encoding).timeout(_timeout);
+  await _checkConnectivity();
+  try {
+    final res = await raw_http.delete(url, headers: await _withDeviceId(headers), body: body, encoding: encoding).timeout(_timeout);
+    ConnectivityService.markOnline();
+    return res;
+  } catch (e) {
+    if (e is SocketException || e is TimeoutException) {
+      ConnectivityService.checkRealConnectivity();
+    }
+    rethrow;
+  }
 }
 
 class MultipartRequest extends raw_http.MultipartRequest {
@@ -62,9 +102,18 @@ class MultipartRequest extends raw_http.MultipartRequest {
 
   @override
   Future<raw_http.StreamedResponse> send() async {
-    _checkConnectivity();
+    await _checkConnectivity();
     headers.addAll(await _withDeviceId(headers));
-    return super.send().timeout(_timeout);
+    try {
+      final res = await super.send().timeout(_timeout);
+      ConnectivityService.markOnline();
+      return res;
+    } catch (e) {
+      if (e is SocketException || e is TimeoutException) {
+        ConnectivityService.checkRealConnectivity();
+      }
+      rethrow;
+    }
   }
 }
 

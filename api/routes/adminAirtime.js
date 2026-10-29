@@ -5,6 +5,7 @@ const adminAuth = require('../middleware/adminAuth');
 const { z } = require('zod');
 const walletOps = require('../services/wallet.service');
 const { recordWalletCredit } = require('../services/security.service');
+const { DEFAULT_AIRTIME_CASH_RATES, ensureAirtimeCashRates } = require('../utils/airtimeCashRates');
 
 // Schema for updating request status
 const updateStatusSchema = z.object({
@@ -146,19 +147,8 @@ router.put('/requests/:id', adminAuth, async (req, res) => {
  */
 router.get('/rates', adminAuth, async (req, res) => {
     try {
-        let rates = await prisma.airtimeToCashRate.findMany();
-
-        // Seed if empty
-        if (rates.length === 0) {
-            const defaults = [
-                { network: 'MTN', rate: 85, active: true, phoneNumber: '', updatedAt: new Date() },
-                { network: 'GLO', rate: 75, active: true, phoneNumber: '', updatedAt: new Date() },
-                { network: 'AIRTEL', rate: 80, active: true, phoneNumber: '', updatedAt: new Date() },
-                { network: '9MOBILE', rate: 80, active: true, phoneNumber: '', updatedAt: new Date() }
-            ];
-            await prisma.airtimeToCashRate.createMany({ data: defaults });
-            rates = await prisma.airtimeToCashRate.findMany();
-        }
+        await ensureAirtimeCashRates(prisma);
+        const rates = await prisma.airtimeToCashRate.findMany({ orderBy: { id: 'asc' } });
 
         const config = await prisma.siteConfig.findFirst();
 

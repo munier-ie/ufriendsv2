@@ -2,7 +2,7 @@ name: mobile
 description: "Ufriends IT Mobile App — Buy Cheap Data, Airtime & Government Identity Services in Nigeria."
 publish_to: 'none'
 
-version: 1.0.3+5
+version: 1.0.5+7
 
 environment:
   sdk: ^3.11.5

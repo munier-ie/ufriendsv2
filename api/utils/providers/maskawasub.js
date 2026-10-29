@@ -160,18 +160,12 @@ async function purchaseData(details, config) {
 
 
         const result = response.data;
-        const status = (result.Status || result.status || '').toLowerCase();
+        const status = String(result.Status || result.status || '').toLowerCase();
 
-        if (status === 'successful' || status === 'success') {
+        if (status === 'successful' || status === 'success' || status === 'approved' || status === 'completed' || status === 'processing' || status === 'process' || status === 'pending') {
             return {
                 status: 'success',
                 message: 'Data Purchase Successful',
-                data: result
-            };
-        } else if (status === 'processing' || status === 'process' || status === 'pending') {
-            return {
-                status: 'pending',
-                message: 'Transaction Processing',
                 data: result
             };
         } else {

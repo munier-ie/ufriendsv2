@@ -410,8 +410,19 @@ async function sendAdminServiceRequestNotification(user, serviceType, amount, tr
 /**
  * Send 2FA OTP Email
  */
-async function send2FaOtpEmail(user, otpCode, isLoginPage = true) {
-    const subject = isLoginPage ? 'Ufriends 2FA Login Code' : 'Ufriends 2FA Setup Code';
+async function send2FaOtpEmail(user, otpCode, purpose = true) {
+    const isDisable = purpose === 'disable';
+    const isLogin = purpose === true || purpose === 'login';
+    const subject = isDisable
+        ? 'Ufriends 2FA Disable Code'
+        : isLogin
+        ? 'Ufriends 2FA Login Code'
+        : 'Ufriends 2FA Setup Code';
+    const message = isDisable
+        ? 'You requested to disable two-factor authentication on your Ufriends account.'
+        : isLogin
+        ? 'Someone is trying to log into your Ufriends account.'
+        : 'You are setting up two-factor authentication on your account.';
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #004687; border-radius: 12px; padding: 30px; background-color: #ffffff;">
             <div style="text-align: center; margin-bottom: 30px;">
@@ -419,7 +430,7 @@ async function send2FaOtpEmail(user, otpCode, isLoginPage = true) {
             </div>
             <p style="color: #333333; font-size: 16px; margin-bottom: 20px;">Hello <strong>${user.firstName}</strong>,</p>
             <p style="color: #555555; font-size: 15px; line-height: 1.5; margin-bottom: 25px;">
-                ${isLoginPage ? 'Someone is trying to log into your Ufriends account.' : 'You are setting up two-factor authentication on your account.'} 
+                ${message} 
                 Use the verification code below to complete the process.
             </p>
             <div style="background-color: #f0f7ff; border: 2px dashed #004687; border-radius: 8px; padding: 20px; text-align: center; margin-bottom: 30px;">

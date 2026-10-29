@@ -12,19 +12,33 @@ router.post('/setup', authenticateUser, async (req, res) => {
         const user = await prisma.user.findUnique({ where: { id: req.user.id } });
         if (user.twoFaEnabled) return res.status(400).json({ error: '2FA is already enabled.' });
 
-        const temp_secret = speakeasy.generateSecret({ length: 20, name: `UFriends (${user.email})` });
+        const appName = 'UFriends';
+        const accountLabel = user.email || user.phone || 'User';
+        const temp_secret = speakeasy.generateSecret({
+            length: 20,
+            name: `${appName} (${accountLabel})`,
+            issuer: appName
+        });
 
         await prisma.user.update({
             where: { id: req.user.id },
             data: { twoFaSecret: temp_secret.base32 }
         });
 
-        QRCode.toDataURL(temp_secret.otpauth_url, (err, data_url) => {
+        QRCode.toDataURL(temp_secret.otpauth_url, {
+            errorCorrectionLevel: 'M',
+            margin: 2,
+            scale: 8
+        }, (err, data_url) => {
             if (err) return res.status(500).json({ error: 'Error generating QR code' });
             res.json({
                 success: true,
                 qrCode: data_url,
-                tempToken: temp_secret.base32
+                tempToken: temp_secret.base32,
+                secret: temp_secret.base32,
+                otpauthUrl: temp_secret.otpauth_url,
+                account: accountLabel,
+                issuer: appName
             });
         });
     } catch (error) {
@@ -71,7 +85,12 @@ router.post('/enable', authenticateUser, async (req, res) => {
             });
         }
 
-        res.json({ success: true, message: '2FA enabled successfully!' });
+        res.json({
+            success: true,
+            message: '2FA enabled successfully!',
+            enabled: true,
+            method: method === 'email' ? 'email' : 'totp'
+        });
     } catch (error) {
         console.error('Enable 2FA error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -101,6 +120,35 @@ router.post('/setup-email', authenticateUser, async (req, res) => {
     }
 });
 
+// Request OTP to Disable Email 2FA
+router.post(['/send-disable-otp', '/disable/send-otp'], authenticateUser, async (req, res) => {
+    try {
+        const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (!user.twoFaEnabled) {
+            return res.status(400).json({ error: 'Two-factor authentication is not enabled.' });
+        }
+        if (user.twoFaMethod !== 'email') {
+            return res.status(400).json({ error: 'Your 2FA is configured with an Authenticator App. Please enter the code from your Authenticator App.' });
+        }
+
+        const otpCode = crypto.randomInt(100000, 999999);
+        const expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins
+
+        await prisma.user.update({
+            where: { id: req.user.id },
+            data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+        });
+
+        const { send2FaOtpEmail } = require('../services/email.service');
+        await send2FaOtpEmail(user, otpCode, 'disable');
+
+        res.json({ success: true, message: 'Verification code sent to your email.' });
+    } catch (error) {
+        console.error('Send disable 2FA OTP error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Disable 2FA
 router.post('/disable', authenticateUser, async (req, res) => {
     try {
@@ -108,22 +156,30 @@ router.post('/disable', authenticateUser, async (req, res) => {
         if (!code) return res.status(400).json({ error: 'Verification code is required' });
 
         const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+        if (!user.twoFaEnabled) {
+            return res.status(400).json({ error: 'Two-factor authentication is not currently enabled.' });
+        }
+
+        const method = user.twoFaMethod || (user.twoFaSecret ? 'totp' : 'email');
         
-        if (user.twoFaMethod === 'totp') {
+        if (method === 'totp') {
+            if (!user.twoFaSecret) {
+                return res.status(400).json({ error: 'Authenticator secret not found' });
+            }
             const verified = speakeasy.totp.verify({
                 secret: user.twoFaSecret,
                 encoding: 'base32',
                 token: code,
                 window: 1
             });
-            if (!verified) return res.status(400).json({ error: 'Invalid authenticator code' });
-        } else if (user.twoFaMethod === 'email') {
+            if (!verified) return res.status(400).json({ error: 'Invalid authenticator code. Please check your Authenticator App.' });
+        } else if (method === 'email') {
             // [SEC-MED-05] Email 2FA disable requires OTP re-confirmation to prevent session-hijack bypass
             if (!user.emailVerifyCode || !user.emailVerifyExpiry || user.emailVerifyExpiry < new Date()) {
-                return res.status(400).json({ error: 'OTP required. Please use the setup-email endpoint to send a new code.' });
+                return res.status(400).json({ error: 'Verification code expired or not requested. Please request a new code.' });
             }
             if (user.emailVerifyCode !== parseInt(code)) {
-                return res.status(400).json({ error: 'Incorrect verification code.' });
+                return res.status(400).json({ error: 'Incorrect verification code. Please check your email.' });
             }
             // Clear OTP after verification
             await prisma.user.update({
@@ -137,7 +193,12 @@ router.post('/disable', authenticateUser, async (req, res) => {
             data: { twoFaEnabled: false, twoFaSecret: null, twoFaMethod: null }
         });
 
-        res.json({ success: true, message: '2FA disabled successfully!' });
+        res.json({
+            success: true,
+            message: '2FA disabled successfully!',
+            enabled: false,
+            method: null
+        });
     } catch (error) {
         console.error('Disable 2FA error:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -149,8 +210,9 @@ router.get('/status', authenticateUser, async (req, res) => {
     try {
         const user = await prisma.user.findUnique({ where: { id: req.user.id } });
         res.json({
-            enabled: user.twoFaEnabled,
-            method: user.twoFaMethod
+            success: true,
+            enabled: Boolean(user?.twoFaEnabled),
+            method: user?.twoFaMethod || null
         });
     } catch (error) {
         res.status(500).json({ error: 'Internal server error' });

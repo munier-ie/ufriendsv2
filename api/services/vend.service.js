@@ -627,11 +627,11 @@ async function vendData(transaction, service, phone, network) {
                     await prisma.transaction.update({
                         where: { id: transaction.id },
                         data: {
-                            status: result.status === 'pending' ? 1 : 0, // 0 = Success
-                            description: `${transaction.description} [${result.status.toUpperCase()} via ${prov.name}]`
+                            status: 0, // 0 = Success
+                            description: `${transaction.description} [SUCCESS via ${prov.name}]`
                         }
                     });
-                    return sanitizeVendResult(result);
+                    return sanitizeVendResult({ ...result, status: 'success' });
                 } else {
                     const errMsg = result.message || 'Transaction rejected';
                     console.warn(`[VendData] Provider ${prov.name} returned failed status: ${errMsg}. Attempting fallback...`);

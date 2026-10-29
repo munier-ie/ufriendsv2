@@ -93,13 +93,14 @@ class _ActivityScreenState extends State<ActivityScreen> {
   void _showTransactionDetails(Map<String, dynamic> tx) {
     final bool isDebit = (tx['amount'] ?? 0) < 0;
     final bool isSuccess = tx['status'] == 0 || tx['status'] == '0';
-    final bool isFailed = tx['status'] == 1 || tx['status'] == '1';
+    final bool isPending = tx['status'] == 1 || tx['status'] == '1';
+    final bool isRefunded = tx['status'] == 3 || tx['status'] == '3';
     final String status = isSuccess
         ? 'Success'
-        : (isFailed ? 'Failed' : 'Pending');
+        : (isPending ? 'Pending' : (isRefunded ? 'Refunded' : 'Failed'));
     final Color statusColor = isSuccess
         ? Colors.green
-        : (isFailed ? Colors.red : Colors.orange);
+        : (isPending ? Colors.orange : Colors.red);
     final bool isSlipTransaction =
         (tx['serviceName'] ?? '').toString().toLowerCase().contains('slip') ||
         (tx['serviceName'] ?? '').toString().toLowerCase().contains('bvn') ||
@@ -323,9 +324,11 @@ class _ActivityScreenState extends State<ActivityScreen> {
                                   'Status',
                                   tx['status'] == 0 || tx['status'] == '0'
                                       ? 'SUCCESS'
-                                      : tx['status'] == 2 || tx['status'] == '2'
-                                      ? 'FAILED'
-                                      : 'PENDING',
+                                      : tx['status'] == 1 || tx['status'] == '1'
+                                      ? 'PENDING'
+                                      : tx['status'] == 3 || tx['status'] == '3'
+                                      ? 'REFUNDED'
+                                      : 'FAILED',
                                 ),
                                 _receiptRow('Date', formatDate(tx['date'])),
                                 _receiptRow(
@@ -657,16 +660,21 @@ class _ActivityScreenState extends State<ActivityScreen> {
 
   Widget _buildTransactionItem(Map<String, dynamic> tx) {
     final bool isDebit = (tx['amount'] ?? 0) < 0;
-    final String status = tx['status'] == 0
+    final bool isSuccess = tx['status'] == 0 || tx['status'] == '0';
+    final bool isPending = tx['status'] == 1 || tx['status'] == '1';
+    final bool isRefunded = tx['status'] == 3 || tx['status'] == '3';
+    final String status = isSuccess
         ? 'Success'
-        : tx['status'] == 1
-        ? 'Failed'
-        : 'Pending';
-    final Color statusColor = tx['status'] == 0
+        : isPending
+        ? 'Pending'
+        : isRefunded
+        ? 'Refunded'
+        : 'Failed';
+    final Color statusColor = isSuccess
         ? Colors.green
-        : tx['status'] == 1
-        ? Colors.red
-        : Colors.orange;
+        : isPending
+        ? Colors.orange
+        : Colors.red;
 
     return InkWell(
       onTap: () => _showTransactionDetails(tx),

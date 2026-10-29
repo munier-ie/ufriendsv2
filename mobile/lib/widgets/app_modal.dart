@@ -366,7 +366,10 @@ class _ModalDialogContentState extends State<_ModalDialogContent> {
     if (widget.autoClose) {
       _dismissTimer = Timer(widget.autoCloseDuration, () {
         if (mounted) {
-          Navigator.of(context, rootNavigator: true).pop();
+          final nav = Navigator.of(context);
+          if (nav.canPop()) {
+            nav.pop();
+          }
         }
       });
     }

@@ -108,7 +108,7 @@ export default function AirtimeToCashDashboard() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">Airtime to Cash</h1>
-                    <p className="text-gray-500">Manage conversion requests and rates</p>
+                    <p className="text-gray-500">Manage automated conversions, legacy manual requests, and rates</p>
                 </div>
                 <div className="flex bg-gray-100 p-1 rounded-lg">
                     <button
@@ -135,7 +135,7 @@ export default function AirtimeToCashDashboard() {
             {/* Content Area */}
             {activeTab === 'settings' ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h2 className="text-lg font-bold mb-4 flex items-center">
+                            <h2 className="text-lg font-bold mb-4 flex items-center">
                         <Settings className="w-5 h-5 mr-2" />
                         Configuration
                     </h2>
@@ -147,7 +147,7 @@ export default function AirtimeToCashDashboard() {
                                 value={receivingNumber}
                                 onChange={(e) => setReceivingNumber(e.target.value)}
                                 placeholder="Separate multiple numbers with comma"
-                                description="The number(s) users should transfer airtime to."
+                                description="Used only by the legacy manual approval flow. Automated conversions use the Airtime2Cash provider API."
                             />
                         </div>
 
@@ -175,7 +175,7 @@ export default function AirtimeToCashDashboard() {
                                             type="tel"
                                             value={rate.phoneNumber || ''}
                                             onChange={(e) => handleRateChange(rate.network, 'phoneNumber', e.target.value)}
-                                            placeholder="Phone number"
+                                            placeholder="Manual-flow phone number"
                                         />
                                     </div>
                                     <div className="flex items-center space-x-2">

@@ -51,6 +51,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (_) => VerificationScreen(
             userId: result['userId'],
             type: result['type'],
+            twoFaMethod: result['twoFaMethod'],
           )
         )
       );

@@ -1,4 +1,4 @@
-import { Loader2, Shield, Key, Lock, Smartphone, History, User, LogOut, Mail } from 'lucide-react';
+import { Loader2, Shield, Key, KeyRound, Lock, Unlock, Smartphone, History, User, LogOut, Mail, Copy, Check, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { modal, toast } from '../../../contexts/ModalContext';
 import axios from 'axios';
@@ -24,8 +24,11 @@ export default function AdminProfile() {
     const [twoFaMethod, setTwoFaMethod] = useState('totp');
     const [twoFaQrCode, setTwoFaQrCode] = useState('');
     const [twoFaToken, setTwoFaToken] = useState('');
+    const [twoFaSecret, setTwoFaSecret] = useState('');
+    const [twoFaCopied, setTwoFaCopied] = useState(false);
     const [twoFaCode, setTwoFaCode] = useState('');
     const [disableTwoFaCode, setDisableTwoFaCode] = useState('');
+    const [showDisableSection, setShowDisableSection] = useState(false);
 
     useEffect(() => {
         fetchProfile();
@@ -102,7 +105,8 @@ export default function AdminProfile() {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 setTwoFaQrCode(response.data.qrCode);
-                setTwoFaToken(response.data.tempToken);
+                setTwoFaToken(response.data.tempToken || response.data.secret);
+                setTwoFaSecret(response.data.secret || response.data.tempToken);
                 setTwoFaStep('setup_totp');
                 setTwoFaMethod('totp');
             } else {
@@ -131,6 +135,7 @@ export default function AdminProfile() {
             fetchProfile();
             setTwoFaStep('initial');
             setTwoFaCode('');
+            setShowDisableSection(false);
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to verify and enable 2FA')
         }
@@ -146,6 +151,7 @@ export default function AdminProfile() {
             toast.success('2FA disabled successfully')
             fetchProfile();
             setDisableTwoFaCode('');
+            setShowDisableSection(false);
         } catch (error) {
             toast.error(error.response?.data?.error || 'Failed to disable 2FA')
         }
@@ -269,7 +275,7 @@ export default function AdminProfile() {
                                     <div className="h-px bg-gray-100" />
 
                                     <div className="space-y-4">
-                                        <h3 className="font-bold text-gray-900 mb-4 flex items-center"><Smartphone size={18} className="mr-2" /> Two-Factor Authentication</h3>
+                                        <h3 className="font-bold text-gray-900 mb-4 flex items-center"><Lock size={18} className="mr-2 text-primary" /> Two-Factor Authentication</h3>
                                         <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl mb-4">
                                             <span className="font-medium text-gray-700">2FA Status</span>
                                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${profile?.twoFaEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
@@ -294,17 +300,21 @@ export default function AdminProfile() {
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <button
                                                             onClick={() => handleTwoFaSetup('totp')}
-                                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center bg-white"
+                                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center bg-white group"
                                                         >
-                                                            <Smartphone className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                                            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
+                                                                <KeyRound size={20} />
+                                                            </div>
                                                             <span className="block font-medium text-gray-900">Authenticator</span>
                                                             <span className="text-xs text-gray-500">Google Auth / Authy</span>
                                                         </button>
                                                         <button
                                                             onClick={() => handleTwoFaSetup('email')}
-                                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center bg-white"
+                                                            className="p-4 border-2 border-gray-100 rounded-xl hover:border-primary transition-colors text-center bg-white group"
                                                         >
-                                                            <Mail className="w-8 h-8 mx-auto mb-2 text-primary" />
+                                                            <div className="w-10 h-10 mx-auto mb-2 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-105 transition-transform">
+                                                                <Mail size={20} />
+                                                            </div>
                                                             <span className="block font-medium text-gray-900">Email OTP</span>
                                                             <span className="text-xs text-gray-500">Verify via email</span>
                                                         </button>
@@ -321,8 +331,31 @@ export default function AdminProfile() {
                                                     <div className="space-y-4 bg-white p-4 border border-gray-100 rounded-xl">
                                                         <p className="text-sm text-gray-600 font-medium">1. Scan this QR code with your authenticator</p>
                                                         <div className="flex justify-center bg-white p-4 rounded-xl border border-gray-200 w-fit mx-auto">
-                                                            <img src={twoFaQrCode} alt="2FA QR Code" />
+                                                            <img src={twoFaQrCode} alt="2FA QR Code" className="w-40 h-40 object-contain" />
                                                         </div>
+                                                        {twoFaSecret && (
+                                                            <div className="bg-gray-50 p-3 rounded-lg border border-gray-200 text-xs">
+                                                                <div className="flex items-center justify-between font-semibold text-gray-600 mb-1">
+                                                                    <span>Manual Setup Key:</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                            navigator.clipboard.writeText(twoFaSecret);
+                                                                            setTwoFaCopied(true);
+                                                                            toast.success('Key copied!');
+                                                                            setTimeout(() => setTwoFaCopied(false), 2000);
+                                                                        }}
+                                                                        className="flex items-center gap-1 text-primary hover:underline font-bold"
+                                                                    >
+                                                                        {twoFaCopied ? <Check size={12} /> : <Copy size={12} />}
+                                                                        {twoFaCopied ? 'Copied' : 'Copy'}
+                                                                    </button>
+                                                                </div>
+                                                                <div className="font-mono font-bold text-gray-800 break-all select-all">
+                                                                    {twoFaSecret}
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <p className="text-sm text-gray-600 font-medium">2. Enter the 6-digit code to verify</p>
                                                         <input
                                                             type="text"
@@ -378,29 +411,68 @@ export default function AdminProfile() {
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
-                                                <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
-                                                    <p className="text-sm text-yellow-800">
-                                                        ⚠️ Disabling 2FA makes your admin account significantly less secure.
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-medium text-gray-700 mb-2">Authenticator Code to Disable</label>
-                                                    <input
-                                                        type="text"
-                                                        maxLength={6}
-                                                        value={disableTwoFaCode}
-                                                        onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}
-                                                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
-                                                        placeholder="000000"
-                                                    />
-                                                </div>
-                                                <Button
-                                                    onClick={handleTwoFaDisable}
-                                                    disabled={disableTwoFaCode.length !== 6}
-                                                    className="w-full bg-red-600 hover:bg-red-700 border-none"
-                                                >
-                                                    Disable 2FA
-                                                </Button>
+                                                {!showDisableSection ? (
+                                                    <div className="space-y-4">
+                                                        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl space-y-2">
+                                                            <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                                                                <CheckCircle2 size={18} className="text-emerald-600" />
+                                                                <span>Two-Factor Authentication is Active</span>
+                                                            </div>
+                                                            <p className="text-xs text-emerald-700">
+                                                                Your administrator account requires a 6-digit verification code on every login to secure administrative controls.
+                                                            </p>
+                                                        </div>
+                                                        <Button
+                                                            variant="outline"
+                                                            onClick={() => {
+                                                                setShowDisableSection(true);
+                                                                setDisableTwoFaCode('');
+                                                            }}
+                                                            className="w-full text-red-600 border-red-200 hover:bg-red-50 flex items-center justify-center gap-2"
+                                                        >
+                                                            <Unlock size={16} />
+                                                            <span>Disable Two-Factor Authentication</span>
+                                                        </Button>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4">
+                                                        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start gap-3">
+                                                            <AlertTriangle size={18} className="text-yellow-700 shrink-0 mt-0.5" />
+                                                            <p className="text-xs text-yellow-800">
+                                                                Disabling 2FA makes your admin account significantly less secure. Enter your authenticator code below to confirm.
+                                                            </p>
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-bold text-gray-600 uppercase tracking-wider mb-2 text-center">
+                                                                Authenticator Code to Disable
+                                                            </label>
+                                                            <input
+                                                                type="text"
+                                                                maxLength={6}
+                                                                value={disableTwoFaCode}
+                                                                onChange={(e) => setDisableTwoFaCode(e.target.value.replace(/\D/g, ''))}
+                                                                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-primary text-center tracking-widest text-lg font-bold"
+                                                                placeholder="000000"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <Button
+                                                                onClick={handleTwoFaDisable}
+                                                                disabled={disableTwoFaCode.length !== 6}
+                                                                className="flex-1 bg-red-600 hover:bg-red-700 border-none"
+                                                            >
+                                                                Confirm & Disable
+                                                            </Button>
+                                                            <Button
+                                                                variant="outline"
+                                                                onClick={() => setShowDisableSection(false)}
+                                                                className="flex-1"
+                                                            >
+                                                                Cancel
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>

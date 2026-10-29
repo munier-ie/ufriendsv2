@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
-import { ArrowLeft, Clock, Calendar, Tag, ArrowRight, ChevronRight } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Tag, ArrowRight, ChevronRight, X, ShieldCheck, Zap } from 'lucide-react';
 import PageMeta from '../../components/seo/PageMeta';
 import LandingNavbar from '../../components/landing/LandingNavbar';
 import LandingFooter from '../../components/landing/LandingFooter';
@@ -210,6 +210,39 @@ function DynamicArticle({ slug }) {
                                 </div>
                             );
                         }
+                        if (sec.type === 'fast-track' || (sec.type === 'callout' && sec.style === 'fast-track')) {
+                            return (
+                                <div key={i} className="my-7 p-6 rounded-2xl bg-gradient-to-r from-blue-50/95 via-sky-50/80 to-blue-50/95 border border-blue-200/90 shadow-sm relative overflow-hidden">
+                                    <div className="flex items-start gap-4">
+                                        <span className="flex-shrink-0 w-10 h-10 rounded-xl bg-primary text-white flex items-center justify-center font-bold text-lg shadow-sm">
+                                            ⚡
+                                        </span>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-100 text-blue-900 border border-blue-200 mb-2">
+                                                <span>{sec.badge || 'Fast-Track Solution'}</span>
+                                            </div>
+                                            {sec.title && (
+                                                <h4 className="text-base md:text-lg font-bold text-gray-900 mb-1.5">
+                                                    {sec.title}
+                                                </h4>
+                                            )}
+                                            <div className="text-sm md:text-base text-gray-700 leading-relaxed" dangerouslySetInnerHTML={{ __html: sec.content }} />
+                                            {sec.buttonText && sec.buttonLink && (
+                                                <div className="mt-4">
+                                                    <a
+                                                        href={sec.buttonLink}
+                                                        className="inline-flex items-center gap-2 bg-primary hover:bg-[#003570] text-white text-xs md:text-sm font-bold px-5 py-2.5 rounded-xl shadow-md transition-colors"
+                                                    >
+                                                        {sec.buttonText}
+                                                        <ArrowRight size={14} />
+                                                    </a>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
                         if (sec.type === 'callout') {
                             const isWarning = sec.style === 'warning';
                             return (
@@ -275,12 +308,202 @@ function DynamicArticle({ slug }) {
     );
 }
 
+// ─── Contextual CTA Configuration Helper ─────────────────────────────────────
+function getContextualCta(post, slug = '') {
+    const s = (slug || '').toLowerCase();
+    const cat = post?.category || '';
+
+    // 1. BVN Slip retrieval / print
+    if (s.includes('bvn-slip') || s.includes('print-your-bvn-slip') || s.includes('recover-check-and-print-your-bvn')) {
+        return {
+            badge: 'Official BVN Verification Portal',
+            badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+            title: 'Need to Retrieve & Print Your BVN Slip Now?',
+            description: 'Generate your official NIBSS BVN slip with verified passport photograph in under 60 seconds. Accepted by all Nigerian banks, embassies, and KYC portals.',
+            primaryText: 'Print Official BVN Slip',
+            primaryUrl: '/print-bvn-slip-nigeria',
+            secondaryText: 'BVN Modification Portal',
+            secondaryUrl: '/bvn-modification-nigeria',
+            stickyShort: 'Print Official BVN Slip in 60s'
+        };
+    }
+
+    // 2. BVN Modification / Mismatch / Date of Birth / Name Change
+    if (cat === 'Banking Identity' || s.includes('bvn') || s.includes('how-to-modify-bvn') || s.includes('can-bvn-number-be-changed')) {
+        return {
+            badge: 'Online BVN Correction Portal',
+            badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-400/30',
+            title: 'Fix Your BVN Demographic Details Online',
+            description: 'Avoid banking restrictions, court affidavit stress, and branch queues. Submit your lawful BVN name, date of birth, or phone correction online with fast automated processing.',
+            primaryText: 'Correct BVN Details Online',
+            primaryUrl: '/bvn-modification-nigeria',
+            secondaryText: 'Print BVN Slip',
+            secondaryUrl: '/print-bvn-slip-nigeria',
+            stickyShort: 'Fix BVN Online Without Bank Queues'
+        };
+    }
+
+    // 3. NIN Slip Print
+    if (s.includes('print-nin-slip') || s.includes('nin-slip')) {
+        return {
+            badge: 'Official NIN Self-Service',
+            badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+            title: 'Retrieve & Print Your Verified NIN Slip',
+            description: 'Instant download and printing of official Standard, Premium, and Regular NIN slips with secure cryptographic QR verification codes.',
+            primaryText: 'Print NIN Slip Online',
+            primaryUrl: '/print-nin-slip-nigeria',
+            secondaryText: 'NIN Modification Portal',
+            secondaryUrl: '/nin-modification-nigeria',
+            stickyShort: 'Print Verified NIN Slip in 60s'
+        };
+    }
+
+    // 4. NIN Modification / Government Services
+    if (cat === 'Government Services' || s.includes('nin')) {
+        return {
+            badge: 'NIMC Demographic Correction',
+            badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-400/30',
+            title: 'Correct Your NIN Details Lawfully Online',
+            description: 'Submit official National Identification Number demographic corrections for name spelling, date of birth, and phone number with live tracking.',
+            primaryText: 'Start NIN Modification',
+            primaryUrl: '/nin-modification-nigeria',
+            secondaryText: 'Print NIN Slip',
+            secondaryUrl: '/print-nin-slip-nigeria',
+            stickyShort: 'Fix NIN Demographics Online'
+        };
+    }
+
+    // 5. Airtime to cash
+    if (s.includes('airtime-to-cash') || s.includes('convert-airtime')) {
+        return {
+            badge: 'Instant Bank Cash Settlement',
+            badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+            title: 'Convert Excess Airtime to Cash in 3 Minutes',
+            description: 'Turn your MTN, Airtel, Glo, or 9mobile balance into direct bank deposits with automated verification and competitive payout rates.',
+            primaryText: 'Convert Airtime to Cash',
+            primaryUrl: '/dashboard/airtime2cash',
+            secondaryText: 'Check Live Rates',
+            secondaryUrl: '/buy-data-nigeria',
+            stickyShort: 'Convert Airtime to Bank Cash'
+        };
+    }
+
+    // 6. Data & Airtime
+    if (cat === 'Data & Airtime' || s.includes('data') || s.includes('airtime')) {
+        return {
+            badge: 'Wholesale SME Telecom Rates',
+            badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+            title: 'Save Up to 40% on MTN, Airtel & Glo Data',
+            description: 'Instant automated delivery on wholesale SME, gifting, and corporate data bundles starting from ₦220/GB. Active 24/7 with instant wallet funding.',
+            primaryText: 'Buy Cheap Data Now',
+            primaryUrl: '/buy-data-nigeria',
+            secondaryText: 'Join Reseller Program',
+            secondaryUrl: '/reseller',
+            stickyShort: 'Get Cheap 1GB Data from ₦220'
+        };
+    }
+
+    // 7. Business Registration (CAC)
+    if (cat === 'Business Registration' || s.includes('cac')) {
+        return {
+            badge: 'CAC Accredited Registration',
+            badgeColor: 'bg-purple-500/20 text-purple-300 border-purple-400/30',
+            title: 'Register Your Business Name with CAC Online',
+            description: 'Get your approved Business Name registration, BN number, and official CAC status report without physical paperwork or expensive agents.',
+            primaryText: 'Start CAC Registration',
+            primaryUrl: '/cac-registration-nigeria',
+            secondaryText: 'Open Business Account',
+            secondaryUrl: '/register',
+            stickyShort: 'Register Business with CAC Online'
+        };
+    }
+
+    // 8. Education / Exam PINs
+    if (cat === 'Education' || s.includes('waec') || s.includes('neco') || s.includes('jamb')) {
+        return {
+            badge: 'Direct Examination Token Vending',
+            badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-400/30',
+            title: 'Buy WAEC, NECO & JAMB Result PINs Instantly',
+            description: 'Instant digital token generation for exam result checking and admission clearance. Serial keys displayed on-screen and emailed in seconds.',
+            primaryText: 'Buy Exam Result PINs',
+            primaryUrl: '/buy-exam-pins-nigeria',
+            secondaryText: 'Create Student Account',
+            secondaryUrl: '/register',
+            stickyShort: 'Instant WAEC & NECO Result PINs'
+        };
+    }
+
+    // 9. Cable TV
+    if (cat === 'Cable TV' || s.includes('dstv') || s.includes('gotv') || s.includes('startimes')) {
+        return {
+            badge: '0% Convenience Fee Cable Vending',
+            badgeColor: 'bg-sky-500/20 text-sky-300 border-sky-400/30',
+            title: 'Renew DStv, GOtv & Startimes Signal Instantly',
+            description: 'Automated decoder reconnection within 60 seconds with zero service fees. Clear error codes (E16) automatically on recharge.',
+            primaryText: 'Subscribe Cable TV Now',
+            primaryUrl: '/subscribe-cable-tv-nigeria',
+            secondaryText: 'Pay Electricity Bills',
+            secondaryUrl: '/pay-electricity-bill-nigeria',
+            stickyShort: 'Pay DStv / GOtv with 0% Fee'
+        };
+    }
+
+    // 10. Utility Bills
+    if (cat === 'Utility Bills' || s.includes('electricity') || s.includes('meter')) {
+        return {
+            badge: 'Instant Prepaid Meter Vending',
+            badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30',
+            title: 'Buy Prepaid Electricity Tokens in Seconds',
+            description: '24/7 token generation for IKEDC, EKEDC, AEDC, IBEDC, and all Disco providers with instant token SMS and on-screen receipt.',
+            primaryText: 'Pay Electricity Bill',
+            primaryUrl: '/pay-electricity-bill-nigeria',
+            secondaryText: 'Buy Cheap Data',
+            secondaryUrl: '/buy-data-nigeria',
+            stickyShort: 'Buy Prepaid Meter Tokens Online'
+        };
+    }
+
+    // 11. VTU Guides / Competitor comparison / Default
+    return {
+        badge: 'Top-Rated VTU & Telecom Hub',
+        badgeColor: 'bg-blue-500/20 text-blue-300 border-blue-400/30',
+        title: 'Start Your Profitable VTU Business on Ufriends',
+        description: 'Earn daily income selling data, airtime, bill payments, and identity services. Direct API access, wholesale margins, and 24/7 automated delivery.',
+        primaryText: 'Join Reseller Program',
+        primaryUrl: '/reseller',
+        secondaryText: 'Create Free Account',
+        secondaryUrl: '/register',
+        stickyShort: 'Start VTU Reselling Today'
+    };
+}
+
 // ─── BlogPost page ────────────────────────────────────────────────────────────
 export default function BlogPost() {
     const { slug } = useParams();
     const post = BLOG_POSTS.find((p) => p.slug === slug);
 
+    const [showMobileSticky, setShowMobileSticky] = useState(false);
+    const [dismissedSticky, setDismissedSticky] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            if (dismissedSticky) return;
+            const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+            if (totalHeight <= 0) return;
+            const scrollPct = window.scrollY / totalHeight;
+            if (scrollPct > 0.18) {
+                setShowMobileSticky(true);
+            } else {
+                setShowMobileSticky(false);
+            }
+        };
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [dismissedSticky]);
+
     if (!post) return <Navigate to="/blog" replace />;
+
+    const ctaConfig = getContextualCta(post, slug);
 
     const postData = allBlogPosts[slug] || post;
     const publishedDate = new Intl.DateTimeFormat('en-NG', { year: 'numeric', month: 'long', day: 'numeric' }).format(new Date(post.publishedAt));
@@ -439,20 +662,37 @@ export default function BlogPost() {
 
                         <DynamicArticle slug={slug} />
 
-                        <div className="mt-12 bg-gradient-to-br from-primary to-[#003570] rounded-2xl p-8 text-white text-center">
-                            <h2 className="text-xl md:text-2xl font-bold mb-3" style={{ textWrap: 'balance' }}>
-                                Ready to Try It on Ufriends IT?
-                            </h2>
-                            <p className="text-white/70 mb-6 text-sm leading-relaxed">
-                                Review the relevant Ufriends service, current requirements, live price, and expected processing steps before placing an order.
-                            </p>
-                            <Link
-                                to="/register"
-                                className="inline-flex items-center gap-2 bg-white text-primary font-bold px-7 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors duration-200 shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                            >
-                                Create Free Account
-                                <ArrowRight size={14} aria-hidden="true" />
-                            </Link>
+                        {/* Context-Aware Dynamic Conversion CTA */}
+                        <div className="mt-14 bg-gradient-to-br from-primary via-[#003570] to-[#002244] rounded-2xl p-8 md:p-11 text-white shadow-xl relative overflow-hidden border border-white/10">
+                            <div className="relative z-10 max-w-2xl mx-auto text-center">
+                                <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-4 border ${ctaConfig.badgeColor}`}>
+                                    <ShieldCheck size={13} aria-hidden="true" />
+                                    <span>{ctaConfig.badge}</span>
+                                </div>
+                                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold mb-3 text-white" style={{ textWrap: 'balance' }}>
+                                    {ctaConfig.title}
+                                </h2>
+                                <p className="text-white/80 mb-8 text-sm md:text-base leading-relaxed" style={{ textWrap: 'pretty' }}>
+                                    {ctaConfig.description}
+                                </p>
+                                <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5">
+                                    <Link
+                                        to={ctaConfig.primaryUrl}
+                                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-primary font-bold px-7 py-3.5 rounded-xl text-sm hover:bg-blue-50 transition-all duration-200 shadow-lg hover:shadow-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                                    >
+                                        {ctaConfig.primaryText}
+                                        <ArrowRight size={15} aria-hidden="true" />
+                                    </Link>
+                                    {ctaConfig.secondaryText && ctaConfig.secondaryUrl && (
+                                        <Link
+                                            to={ctaConfig.secondaryUrl}
+                                            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3.5 rounded-xl text-sm border border-white/20 transition-all duration-200"
+                                        >
+                                            {ctaConfig.secondaryText}
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {related.length > 0 && (
@@ -482,6 +722,34 @@ export default function BlogPost() {
                         )}
                     </div>
                 </main>
+
+                {/* Mobile Sticky Bottom Conversion Bar */}
+                {showMobileSticky && !dismissedSticky && (
+                    <div className="fixed bottom-0 inset-x-0 z-50 md:hidden bg-[#001d3d]/95 backdrop-blur-md border-t border-white/15 px-4 py-2.5 shadow-2xl flex items-center justify-between gap-3 animate-in fade-in duration-300">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="flex-shrink-0 w-2 h-2 rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
+                            <p className="text-xs font-semibold text-white truncate">
+                                {ctaConfig.stickyShort}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <Link
+                                to={ctaConfig.primaryUrl}
+                                className="bg-primary hover:bg-[#003570] text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-md transition-colors whitespace-nowrap"
+                            >
+                                Start →
+                            </Link>
+                            <button
+                                type="button"
+                                onClick={() => setDismissedSticky(true)}
+                                className="text-white/60 hover:text-white p-1"
+                                aria-label="Dismiss sticky conversion bar"
+                            >
+                                <X size={15} />
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 <LandingFooter />
             </div>

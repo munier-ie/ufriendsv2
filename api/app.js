@@ -210,6 +210,7 @@ app.post('/api/auth/access',             rateLimits.userLogin, rateLimits.userLo
 app.post('/api/auth/register',           rateLimits.signup);
 app.post('/api/auth/verify-email',       rateLimits.otp);
 app.post('/api/auth/resend-verification', rateLimits.otp);
+app.post('/api/auth/resend-2fa',          rateLimits.otp);
 app.post('/api/auth/verify-2fa',         rateLimits.otp);
 app.post('/api/auth/forgot-password',    rateLimits.passwordRecovery);
 app.post('/api/auth/forgot-password-otp', rateLimits.passwordRecovery);

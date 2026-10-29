@@ -515,6 +515,44 @@ router.post('/resend-verification', async (req, res) => {
     }
 });
 
+// POST /resend-2fa
+router.post('/resend-2fa', async (req, res) => {
+    try {
+        const userId = Number.parseInt(req.body?.userId, 10);
+        if (!Number.isSafeInteger(userId) || userId <= 0) {
+            return res.status(400).json({ error: 'A valid userId is required' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user || !user.twoFaEnabled) {
+            return res.json({ message: 'If 2FA is required, a new code has been sent.' });
+        }
+
+        if (user.twoFaMethod === 'email') {
+            const otpCode = crypto.randomInt(100000, 999999);
+            const expiry = new Date(Date.now() + 10 * 60 * 1000);
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { emailVerifyCode: otpCode, emailVerifyExpiry: expiry }
+            });
+            send2FaOtpEmail(user, otpCode).catch(err => {
+                console.error('Failed to resend 2FA email:', safeError(err));
+            });
+            return res.json({
+                success: true,
+                message: 'A new 2FA verification code has been sent to your email.'
+            });
+        }
+
+        return res.status(400).json({
+            error: 'Authenticator app codes are generated automatically on your device and do not need to be resent.'
+        });
+    } catch (error) {
+        console.error('Resend 2FA error:', safeError(error));
+        return res.status(500).json({ error: 'Failed to resend 2FA code' });
+    }
+});
+
 // POST /verify-2fa
 router.post('/verify-2fa', async (req, res) => {
     try {

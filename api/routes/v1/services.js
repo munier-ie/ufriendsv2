@@ -373,13 +373,14 @@ router.post('/purchase', apiKeyAuth, async (req, res) => {
         }
 
         if (vendResult.status === 'success' || vendResult.status === 'pending') {
+            const finalStatus = (vendResult.status === 'success' || service.type === 'data') ? 'success' : 'pending';
             const responsePayload = {
                 success:         true,
                 reference:       result.transaction.reference,
                 serviceName:     service.name,
                 amount:          finalAmount,
                 newBalance:      result.updatedUser.wallet,
-                status:          vendResult.status,
+                status:          finalStatus,
                 providerData:    vendResult.data || null
             };
 
@@ -388,7 +389,7 @@ router.post('/purchase', apiKeyAuth, async (req, res) => {
             if (vendResult.pin)   responsePayload.pin   = vendResult.pin;
 
             res.json(responsePayload);
-            if (vendResult.status === 'pending') return;
+            if (finalStatus === 'pending') return;
 
             // Post-processing (non-blocking)
             creditReferralBonus(req.user.id, service.type, service.referralCommission || undefined)

@@ -22,6 +22,8 @@ async function generateOTP(networkName, sender) {
             sender
         }, {
             headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'Authorization': `Bearer ${token}`
             }
         });
@@ -51,6 +53,8 @@ async function verifyOTP(networkName, sender, otp) {
             otp
         }, {
             headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
                 'Authorization': `Bearer ${token}`
             }
         });

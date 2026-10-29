@@ -59,9 +59,10 @@ async function purchaseAirtime(details, config) {
         // Success: {"status":"pending|Approved","trans_id":"...","network":"...","balance":"..."}
         // Error: {"error":"ERR201","description":"..."}
 
-        if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
+        const statusStr = String(result.status || '').toLowerCase();
+        if (statusStr === 'approved' || statusStr === 'success' || statusStr === 'successful' || statusStr === 'completed' || statusStr === 'pending' || statusStr === 'processing') {
             return {
-                status: result.status.toLowerCase() === 'approved' ? 'success' : 'pending',
+                status: 'success',
                 message: 'Transaction Successful',
                 data: result,
                 reference: result.trans_id
@@ -116,9 +117,10 @@ async function purchaseData(details, config) {
         const result = response.data;
 
 
-        if (result.status && (result.status.toLowerCase() === 'approved' || result.status.toLowerCase() === 'pending')) {
+        const statusStr = String(result.status || '').toLowerCase();
+        if (statusStr === 'approved' || statusStr === 'success' || statusStr === 'successful' || statusStr === 'completed' || statusStr === 'pending' || statusStr === 'processing') {
             return {
-                status: result.status.toLowerCase() === 'approved' ? 'success' : 'pending',
+                status: 'success',
                 message: 'Data Purchase Successful',
                 data: result,
                 reference: result.trans_id

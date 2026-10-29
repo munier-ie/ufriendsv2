@@ -11,6 +11,7 @@ const { sendTransactionReceipt } = require('../services/email.service');
 const { cache } = require('../middleware/cacheMiddleware');
 const walletOps = require('../services/wallet.service');
 const { cleanPlanName, isSocialPlan } = require('../utils/planFormatter');
+const { ensureAirtimeCashRates } = require('../utils/airtimeCashRates');
 
 // Validation schemas
 const purchaseSchema = z.object({
@@ -59,6 +60,7 @@ router.post('/verify', authenticateUser, async (req, res) => {
 // Get all services with pricing for all tiers
 router.get('/all', authenticateUser, cache(300), async (req, res) => {
     try {
+        await ensureAirtimeCashRates(prisma);
         const [
             services,
             manualPrices,
@@ -533,14 +535,15 @@ router.post('/purchase', authenticateUser, pinRateLimit, async (req, res) => {
         }
 
         if (vendResult.status === 'success' || vendResult.status === 'pending') {
+            const isSuccess = vendResult.status === 'success' || service.type === 'data';
             res.json({
-                message: vendResult.status === 'pending' ? vendResult.message : 'Purchase successful',
-                status: vendResult.status,
-                transaction: { ...result.transaction, status: vendResult.status === 'pending' ? 1 : 0 },
+                message: isSuccess ? 'Purchase successful' : (vendResult.message || 'Transaction processing'),
+                status: isSuccess ? 'success' : 'pending',
+                transaction: { ...result.transaction, status: isSuccess ? 0 : 1 },
                 newBalance: result.updatedUser.wallet,
                 providerResponse: vendResult.data
             });
-            if (vendResult.status === 'pending') return;
+            if (!isSuccess) return;
 
             // Post-process: Referral, Email
             let referralCommission = service.referralCommission || undefined; // Use db default if null

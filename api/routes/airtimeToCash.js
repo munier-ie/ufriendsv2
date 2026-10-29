@@ -9,12 +9,17 @@ const whatsappService = require('../services/whatsapp.service');
 const airtime2cash = require('../utils/providers/airtime2cash');
 const { recordWalletCredit } = require('../services/security.service');
 const walletOps = require('../services/wallet.service');
+const { ensureAirtimeCashRates, normalizeAirtimeNetwork } = require('../utils/airtimeCashRates');
 
 // Validation Schema
+const phoneNumberSchema = z.string()
+    .trim()
+    .regex(/^0\d{10}$/, 'Phone number must be exactly 11 digits and start with 0');
+
 const requestSchema = z.object({
     network: z.string().min(1, "Network is required"),
     amount: z.number().min(100, "Minimum amount is 100"),
-    phoneNumber: z.string().min(10, "Phone number required"),
+    phoneNumber: phoneNumberSchema,
     pin: z.string().length(4, "Transaction PIN must be 4 digits"),
     transferPin: z.string().length(4, "Transfer PIN must be 4 digits"),
     sessionId: z.string().min(1, "Session ID is required")
@@ -27,11 +32,27 @@ const requestSchema = z.object({
  */
 router.post('/generate-otp', authenticateUser, async (req, res) => {
     try {
-        const { network, phoneNumber } = req.body;
-        const result = await airtime2cash.generateOTP(network, phoneNumber);
+        const { network, phoneNumber } = z.object({
+            network: z.string().min(1, 'Network is required'),
+            phoneNumber: phoneNumberSchema
+        }).parse(req.body);
+        const result = await airtime2cash.generateOTP(normalizeAirtimeNetwork(network), phoneNumber);
+        if (result?.code !== 2000) {
+            return res.status(400).json({ error: result?.message || 'The provider could not send the OTP.', code: result?.code });
+        }
         res.json(result);
     } catch (error) {
-        res.status(500).json({ error: 'Unable to generate OTP at this time' });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: error.errors[0].message });
+        }
+        const providerStatus = error.response?.status;
+        const providerMessage = error.response?.data?.message;
+        console.error('Airtime2Cash OTP generation failed:', providerStatus || error.message, providerMessage || '');
+        res.status(providerStatus === 401 ? 502 : 500).json({
+            error: providerStatus === 401
+                ? 'Airtime2Cash authentication failed. Please contact support.'
+                : (providerMessage || 'Unable to generate OTP at this time')
+        });
     }
 });
 
@@ -42,11 +63,28 @@ router.post('/generate-otp', authenticateUser, async (req, res) => {
  */
 router.post('/verify-otp', authenticateUser, async (req, res) => {
     try {
-        const { network, phoneNumber, otp } = req.body;
-        const result = await airtime2cash.verifyOTP(network, phoneNumber, otp);
+        const { network, phoneNumber, otp } = z.object({
+            network: z.string().min(1, 'Network is required'),
+            phoneNumber: phoneNumberSchema,
+            otp: z.string().trim().min(1, 'OTP is required')
+        }).parse(req.body);
+        const result = await airtime2cash.verifyOTP(normalizeAirtimeNetwork(network), phoneNumber, otp);
+        if (result?.code !== 2000) {
+            return res.status(400).json({ error: result?.message || 'The provider could not verify the OTP.', code: result?.code });
+        }
         res.json(result);
     } catch (error) {
-        res.status(500).json({ error: 'Unable to verify OTP at this time' });
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: error.errors[0].message });
+        }
+        const providerStatus = error.response?.status;
+        const providerMessage = error.response?.data?.message;
+        console.error('Airtime2Cash OTP verification failed:', providerStatus || error.message, providerMessage || '');
+        res.status(providerStatus === 401 ? 502 : 500).json({
+            error: providerStatus === 401
+                ? 'Airtime2Cash authentication failed. Please contact support.'
+                : (providerMessage || 'Unable to verify OTP at this time')
+        });
     }
 });
 
@@ -57,7 +95,9 @@ router.post('/verify-otp', authenticateUser, async (req, res) => {
  */
 router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
     try {
-        const { network, amount, phoneNumber, pin, transferPin, sessionId } = requestSchema.parse(req.body);
+        const parsed = requestSchema.parse(req.body);
+        const network = normalizeAirtimeNetwork(parsed.network);
+        const { amount, phoneNumber, pin, transferPin, sessionId } = parsed;
         const userId = req.user.id;
 
         // 1. Verify Transaction PIN
@@ -73,12 +113,14 @@ router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
         await clearPinFailures(req);
 
         // 2. Fetch Rate
-        const rateData = await prisma.airtimeToCashRate.findUnique({
-            where: { network: network.toUpperCase() }
-        });
+        await ensureAirtimeCashRates(prisma);
+        const rateData = await prisma.airtimeToCashRate.findUnique({ where: { network } });
 
-        if (!rateData || !rateData.active) {
-            return res.status(400).json({ error: `Airtime to Cash is currently unavailable for ${network}` });
+        if (!rateData) {
+            return res.status(503).json({ error: `Airtime to Cash has not been configured for ${network}. Please contact support.` });
+        }
+        if (!rateData.active) {
+            return res.status(503).json({ error: `Airtime to Cash is temporarily disabled for ${network}.` });
         }
 
         const percentage = rateData.rate / 100;
@@ -86,7 +128,7 @@ router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
 
         // 3. Call Provider to Transfer
         const reference = require('crypto').randomUUID();
-        const transferResult = await airtime2cash.transferAirtime(network.toUpperCase(), phoneNumber, amount, reference, transferPin, sessionId);
+        const transferResult = await airtime2cash.transferAirtime(network, phoneNumber, amount, reference, transferPin, sessionId);
 
         if (transferResult.code === 2000) {
             // Success: Credit User Wallet
@@ -97,7 +139,7 @@ router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
                 await tx.transaction.create({
                     data: {
                         reference: reference,
-                        serviceName: `Airtime to Cash (${network.toUpperCase()})`,
+                        serviceName: `Airtime to Cash (${network})`,
                         description: `Converted ₦${amount} airtime to cash`,
                         amount: convertedAmount,
                         status: 0, // Success
@@ -125,7 +167,7 @@ router.post('/request', authenticateUser, pinRateLimit, async (req, res) => {
                 return await tx.airtimeToCashRequest.create({
                     data: {
                         userId,
-                        network: network.toUpperCase(),
+                        network,
                         amount,
                         rate: rateData.rate,
                         convertedAmount,
@@ -186,9 +228,9 @@ router.get('/history', authenticateUser, async (req, res) => {
  */
 router.get('/rates', authenticateUser, async (req, res) => {
     try {
+        await ensureAirtimeCashRates(prisma);
         const [rates, config] = await Promise.all([
             prisma.airtimeToCashRate.findMany({
-                where: { active: true },
                 select: { network: true, rate: true, phoneNumber: true, active: true }
             }),
             prisma.siteConfig.findFirst({ select: { airtimeToCashNumbers: true } })

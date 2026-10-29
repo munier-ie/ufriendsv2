@@ -291,7 +291,9 @@ router.post('/setup-2fa', adminAuthMiddleware, async (req, res) => {
             res.json({ 
                 success: true, 
                 qrCode: data_url,
-                tempToken: temp_secret.base32 
+                tempToken: temp_secret.base32,
+                secret: temp_secret.base32,
+                otpauthUrl: temp_secret.otpauth_url
             });
         });
     } catch (error) {

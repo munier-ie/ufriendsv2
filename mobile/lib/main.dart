@@ -132,6 +132,7 @@ class OfflineBannerWrapper extends StatefulWidget {
 
 class _OfflineBannerWrapperState extends State<OfflineBannerWrapper> {
   bool _isOffline = !ConnectivityService.isOnline;
+  bool _isRetrying = false;
 
   @override
   void initState() {
@@ -140,9 +141,19 @@ class _OfflineBannerWrapperState extends State<OfflineBannerWrapper> {
       if (mounted) {
         setState(() {
           _isOffline = !isOnline;
+          _isRetrying = false;
         });
       }
     });
+  }
+
+  Future<void> _handleRetry() async {
+    if (_isRetrying) return;
+    setState(() => _isRetrying = true);
+    await ConnectivityService.checkRealConnectivity();
+    if (mounted) {
+      setState(() => _isRetrying = false);
+    }
   }
 
   @override
@@ -154,23 +165,35 @@ class _OfflineBannerWrapperState extends State<OfflineBannerWrapper> {
             color: Colors.red.shade700,
             child: SafeArea(
               bottom: false,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.wifi_off_rounded, color: Colors.white, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'No Internet: Please check your connection',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+              child: InkWell(
+                onTap: _handleRetry,
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_isRetrying)
+                        const SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                        )
+                      else
+                        const Icon(Icons.wifi_off_rounded, color: Colors.white, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        _isRetrying
+                            ? 'Checking connection...'
+                            : 'No Internet: Tap to reconnect',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

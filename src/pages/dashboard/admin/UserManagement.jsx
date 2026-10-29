@@ -1,4 +1,4 @@
-import { Search, MoreVertical, Wallet, Ban, CheckCircle, Loader2, X, User, FileText, History, Plus, ShieldAlert, ShieldCheck, ArrowUpRight } from 'lucide-react';
+import { Search, MoreVertical, Wallet, Ban, CheckCircle, Loader2, X, User, FileText, History, Plus, ShieldAlert, ShieldCheck, ArrowUpRight, Unlock, Lock, KeyRound } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPortal } from 'react-dom';
@@ -219,6 +219,30 @@ export default function UserManagement() {
         }
     };
 
+    const handleDisable2Fa = async (userToUpdate) => {
+        const target = userToUpdate || userDetail || selectedUser;
+        if (!target) return;
+        const name = target.firstName ? `${target.firstName} ${target.lastName || ''}`.trim() : (target.email || 'this user');
+        if (!confirm(`Are you certain you want to completely disable Two-Factor Authentication (2FA) for ${name}? The user will be able to log in with just their password.`)) return;
+
+        setSubmitting(true);
+        try {
+            const token = localStorage.getItem('adminToken');
+            const res = await axios.post(`/api/admin/users/${target.id}/disable-2fa`, {}, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            toast.success(res.data.message || `2FA has been completely disabled for ${name}`);
+            if (selectedUser?.id === target.id) {
+                fetchUserDetail(target.id);
+            }
+            fetchUsers();
+        } catch (error) {
+            toast.error(error.response?.data?.error || 'Failed to disable 2FA for user');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
@@ -308,6 +332,11 @@ export default function UserManagement() {
                                                     }`}>
                                                     {user.regStatus === 1 ? 'Blocked' : 'Active'}
                                                 </span>
+                                                {user.twoFaEnabled && (
+                                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-primary border border-blue-200">
+                                                        2FA: {user.twoFaMethod === 'email' ? 'Email' : 'App'}
+                                                    </span>
+                                                )}
                                                 {user.securityHold && (
                                                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
                                                         SECURITY HOLD
@@ -316,12 +345,27 @@ export default function UserManagement() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
-                                                onClick={() => handleSelectUser(user)}
-                                                className="text-gray-400 hover:text-primary p-1"
-                                            >
-                                                <MoreVertical size={18} />
-                                            </button>
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                {user.twoFaEnabled && (
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleDisable2Fa(user);
+                                                        }}
+                                                        title="Completely disable 2FA for this user"
+                                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                    >
+                                                        <Unlock size={17} />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    onClick={() => handleSelectUser(user)}
+                                                    title="View User Details"
+                                                    className="text-gray-400 hover:text-primary hover:bg-gray-100 p-1.5 rounded-lg transition-colors"
+                                                >
+                                                    <MoreVertical size={18} />
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -470,6 +514,33 @@ export default function UserManagement() {
                                                             </button>
                                                         </div>
                                                     </div>
+                                                </div>
+
+                                                {/* Two-Factor Authentication Management */}
+                                                <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200/80 flex items-center justify-between">
+                                                    <div>
+                                                        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider block">
+                                                            Two-Factor Authentication (2FA)
+                                                        </label>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                                                userDetail.twoFaEnabled ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-200 text-gray-600'
+                                                            }`}>
+                                                                {userDetail.twoFaEnabled ? `Active (${userDetail.twoFaMethod === 'email' ? 'Email OTP' : 'Authenticator App'})` : 'Disabled'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {userDetail.twoFaEnabled && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleDisable2Fa(userDetail)}
+                                                            disabled={submitting}
+                                                            className="px-3 py-1.5 text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 border border-red-200 rounded-lg transition-all flex items-center gap-1.5"
+                                                        >
+                                                            <Unlock size={14} />
+                                                            <span>Disable 2FA</span>
+                                                        </button>
+                                                    )}
                                                 </div>
 
                                                 <Button loading={submitting} onClick={handleUpdateProfile} className="mt-4">

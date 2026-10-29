@@ -44,6 +44,7 @@ class ApiService {
             'error': data['message'] ?? 'Verification required',
             'verificationRequired': true,
             'type': data['emailVerificationRequired'] == true ? 'email' : '2fa',
+            'twoFaMethod': data['twoFaMethod'],
             'userId': data['userId'],
           };
         }
@@ -144,6 +145,29 @@ class ApiService {
       return {
         'success': false,
         'error': data['message'] ?? data['error'] ?? 'Failed to resend code',
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> resend2Fa(int userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/auth/resend-2fa'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userId': userId}),
+      );
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'A new verification code has been sent.',
+        };
+      }
+      return {
+        'success': false,
+        'error': data['error'] ?? data['message'] ?? 'Failed to resend 2FA code',
       };
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
@@ -268,11 +292,13 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> getProfile() async {
+  static Future<Map<String, dynamic>> getProfile({bool forceRefresh = false}) async {
     const cacheKey = 'profile';
-    final cached = ApiCache.get(cacheKey);
-    if (cached != null) {
-      return {'success': true, 'user': cached};
+    if (!forceRefresh) {
+      final cached = ApiCache.get(cacheKey);
+      if (cached != null) {
+        return {'success': true, 'user': cached};
+      }
     }
 
     try {
@@ -930,12 +956,12 @@ class ApiService {
           'error': 'Session expired. Please log in again.',
         };
       }
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && data['code'] == 2000) {
         return {'success': true, 'data': data};
       }
       return {
         'success': false,
-        'error': data['error'] ?? 'Failed to generate OTP',
+        'error': data['error'] ?? data['message'] ?? 'Failed to generate OTP',
       };
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
@@ -968,12 +994,12 @@ class ApiService {
           'error': 'Session expired. Please log in again.',
         };
       }
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && data['code'] == 2000) {
         return {'success': true, 'data': data};
       }
       return {
         'success': false,
-        'error': data['error'] ?? 'Failed to verify OTP',
+        'error': data['error'] ?? data['message'] ?? 'Failed to verify OTP',
       };
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
@@ -1016,6 +1042,29 @@ class ApiService {
         return {'success': true, 'data': data};
       }
       return {'success': false, 'error': data['error'] ?? 'Request failed'};
+    } catch (e) {
+      return {'success': false, 'error': 'Network error occurred'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getAirtimeToCashRates() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/airtime-cash/rates'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+      final data = jsonDecode(response.body);
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired. Please log in again.'};
+      }
+      if (response.statusCode == 200) {
+        return {'success': true, 'data': data};
+      }
+      return {'success': false, 'error': data['error'] ?? 'Failed to load conversion rates'};
     } catch (e) {
       return {'success': false, 'error': 'Network error occurred'};
     }
@@ -2017,7 +2066,13 @@ class ApiService {
       }
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return {'success': true, 'message': data['message']};
+        ApiCache.bust('profile');
+        return {
+          'success': true,
+          'message': data['message'],
+          'enabled': data['enabled'] ?? true,
+          'method': data['method'] ?? method,
+        };
       }
       return {
         'success': false,
@@ -2044,11 +2099,67 @@ class ApiService {
       }
       final data = jsonDecode(response.body);
       if (response.statusCode == 200) {
-        return {'success': true, 'message': data['message']};
+        ApiCache.bust('profile');
+        return {
+          'success': true,
+          'message': data['message'],
+          'enabled': false,
+          'method': null,
+        };
       }
       return {
         'success': false,
         'error': data['error'] ?? 'Failed to disable 2FA',
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendDisableTwoFaOtp() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.post(
+        Uri.parse('${AppConstants.baseUrl}/twofa/send-disable-otp'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired'};
+      }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        return {'success': true, 'message': data['message'] ?? 'OTP sent to your email.'};
+      }
+      return {
+        'success': false,
+        'error': data['error'] ?? 'Failed to send verification code',
+      };
+    } catch (e) {
+      return {'success': false, 'error': 'Network error'};
+    }
+  }
+
+  static Future<Map<String, dynamic>> getTwoFaStatus() async {
+    try {
+      final token = await AuthService.getToken();
+      final response = await http.get(
+        Uri.parse('${AppConstants.baseUrl}/twofa/status'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (_handleAuthError(response)) {
+        return {'success': false, 'error': 'Session expired'};
+      }
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'enabled': data['enabled'] == true,
+          'method': data['method'],
+        };
+      }
+      return {
+        'success': false,
+        'error': data['error'] ?? 'Failed to retrieve 2FA status',
       };
     } catch (e) {
       return {'success': false, 'error': 'Network error'};

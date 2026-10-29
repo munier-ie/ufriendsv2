@@ -19,10 +19,24 @@ export default function AirtimeToCash() {
     const [transferPin, setTransferPin] = useState('');
     const [sitePin, setSitePin] = useState('');
     const [sessionId, setSessionId] = useState('');
+    const [rates, setRates] = useState({});
 
     useEffect(() => {
         fetchHistory();
+        fetchRates();
     }, []);
+
+    const fetchRates = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get('/api/airtime-cash/rates', {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setRates(Object.fromEntries((response.data.rates || []).map((rate) => [rate.network, rate])));
+        } catch (error) {
+            console.error('Error fetching airtime cash rates:', error);
+        }
+    };
 
     const fetchHistory = async () => {
         try {
@@ -37,17 +51,26 @@ export default function AirtimeToCash() {
     };
 
     const calculateReceiveAmount = (amt) => {
-        return amt * 0.8; // 80% payout
+        const rate = rates[formData.network]?.rate;
+        return rate ? amt * (Number(rate) / 100) : 0;
     };
 
     const handleGenerateOTP = async () => {
+        if (!/^0\d{10}$/.test(formData.phoneNumber)) {
+            modal.error('Phone number must be exactly 11 digits and start with 0');
+            return;
+        }
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            await axios.post('/api/airtime-cash/generate-otp',
+            const response = await axios.post('/api/airtime-cash/generate-otp',
                 { network: formData.network, phoneNumber: formData.phoneNumber },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            if (response.data?.code !== 2000) {
+                modal.error(response.data?.message || 'The provider could not send the OTP');
+                return;
+            }
             modal.success('OTP sent successfully!');
             setStep(2);
         } catch (error) {
@@ -65,6 +88,10 @@ export default function AirtimeToCash() {
                 { network: formData.network, phoneNumber: formData.phoneNumber, otp },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            if (response.data?.code !== 2000) {
+                modal.error(response.data?.message || 'The provider could not verify the OTP');
+                return;
+            }
             modal.success('OTP verified!');
             setSessionId(response.data.data.sessionId);
             setStep(3);
@@ -95,7 +122,7 @@ export default function AirtimeToCash() {
                 title: 'Airtime to Cash Successful',
                 message: res.data?.message || 'Conversion successful! Wallet credited.',
                 transaction: {
-                    reference: res.data?.transaction?.reference || `A2C-${Date.now().toString().slice(-8)}`,
+                    reference: res.data?.request?.id ? `ATC-${res.data.request.id}` : `A2C-${Date.now().toString().slice(-8)}`,
                     serviceName: `${formData.network} Airtime to Cash`,
                     amount: parseFloat(formData.amount) || 0,
                     recipient: formData.phoneNumber,
@@ -147,10 +174,11 @@ export default function AirtimeToCash() {
                                         required
                                     >
                                         <option value="">Select Network</option>
-                                        <option value="MTN">MTN (80%)</option>
-                                        <option value="AIRTEL">Airtel (80%)</option>
-                                        <option value="GLO">Glo (80%)</option>
-                                        <option value="9MOBILE">9Mobile (80%)</option>
+                                        {['MTN', 'AIRTEL', 'GLO', '9MOBILE'].map((network) => (
+                                            <option key={network} value={network} disabled={rates[network] && !rates[network].active}>
+                                                {network === '9MOBILE' ? '9Mobile' : network[0] + network.slice(1).toLowerCase()} {rates[network] ? `(${rates[network].rate}%)` : ''}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
 
@@ -164,16 +192,20 @@ export default function AirtimeToCash() {
                                     placeholder="Minimum ₦100"
                                 />
 
-                                <Input
-                                    label="Phone Number Sending From"
-                                    type="tel"
-                                    required
-                                    value={formData.phoneNumber}
-                                    onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                                    placeholder="080..."
-                                />
+                                    <Input
+                                        label="Phone Number Sending From"
+                                        type="tel"
+                                        required
+                                        minLength="11"
+                                        maxLength="11"
+                                        pattern="^0[0-9]{10}$"
+                                        inputMode="numeric"
+                                        value={formData.phoneNumber}
+                                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value.replace(/\D/g, '').slice(0, 11) })}
+                                        placeholder="08012345678"
+                                    />
 
-                                {formData.amount && (
+                                {formData.amount && rates[formData.network]?.active && (
                                     <div className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-200">
                                         <span className="text-gray-600 font-medium">You Receive</span>
                                         <span className="text-2xl font-bold text-green-600">
@@ -256,9 +288,9 @@ export default function AirtimeToCash() {
                         <h4 className="font-medium text-gray-900 mb-2">Instructions:</h4>
                         <ul className="text-sm text-gray-600 space-y-1 list-disc pl-4">
                             <li>Select your network and enter the amount you want to convert.</li>
-                            <li>We charge a 20% convenience fee.</li>
-                            <li>After submitting, you will receive instructions on where to transfer the airtime.</li>
-                            <li>Wallet will be funded once transfer is verified.</li>
+                            <li>Your payout is calculated using the current rate for the selected network.</li>
+                            <li>Complete the provider OTP and SIM transfer verification.</li>
+                            <li>Your Ufriends wallet is credited after the provider confirms the transfer.</li>
                         </ul>
                     </div>
                 </div>
@@ -284,7 +316,7 @@ export default function AirtimeToCash() {
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
                                             <p className="font-bold text-gray-900">{item.network}</p>
-                                            <p className="text-xs text-gray-500">{new Date(item.createAt).toLocaleString()}</p>
+                                            <p className="text-xs text-gray-500">{new Date(item.createdAt).toLocaleString()}</p>
                                         </div>
                                         <span className={`px-2 py-1 text-xs rounded-full font-medium ${item.status === 1 ? 'bg-green-100 text-green-700' :
                                                 item.status === 2 ? 'bg-red-100 text-red-700' :
@@ -295,7 +327,7 @@ export default function AirtimeToCash() {
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-gray-600">Sent: ₦{item.amount.toLocaleString()}</span>
-                                        <span className="font-bold text-green-600">Receive: ₦{item.receiveAmount.toLocaleString()}</span>
+                                        <span className="font-bold text-green-600">Receive: ₦{Number(item.convertedAmount || 0).toLocaleString()}</span>
                                     </div>
                                 </div>
                             ))

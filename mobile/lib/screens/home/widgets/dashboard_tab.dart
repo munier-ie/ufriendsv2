@@ -411,8 +411,21 @@ class _DashboardTabState extends State<DashboardTab> {
             String serviceName = tx['serviceName'] ?? 'Transaction';
             String desc = tx['description'] ?? '';
             double amount = double.tryParse(tx['amount'].toString()) ?? 0.0;
-            String status = tx['status'] == 0 ? 'Success' : 'Failed';
-            Color color = amount > 0 ? Colors.green : Colors.blue;
+            bool isSuccess = tx['status'] == 0 || tx['status'] == '0';
+            bool isPending = tx['status'] == 1 || tx['status'] == '1';
+            bool isRefunded = tx['status'] == 3 || tx['status'] == '3';
+            String status = isSuccess
+                ? 'Success'
+                : isPending
+                ? 'Pending'
+                : isRefunded
+                ? 'Refunded'
+                : 'Failed';
+            Color color = isSuccess
+                ? Colors.green
+                : isPending
+                ? Colors.orange
+                : Colors.red;
 
             return _transactionItem(
               serviceName,

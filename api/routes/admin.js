@@ -180,6 +180,8 @@ router.get('/users', adminAuth, async (req, res) => {
                     securityHold: true,
                     accountLimit: true,
                     type: true,
+                    twoFaEnabled: true,
+                    twoFaMethod: true,
                     createdAt: true
                 },
                 take: takeLimit,
@@ -593,6 +595,61 @@ router.put('/users/:id/password', adminAuth, async (req, res) => {
     } catch (error) {
         console.error('Reset password error:', error);
         res.status(500).json({ error: 'Failed to reset password' });
+    }
+});
+
+// POST /api/admin/users/:id/disable-2fa - Admin completely disables 2FA for a user
+router.post('/users/:id/disable-2fa', adminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = parseInt(id, 10);
+        if (!Number.isSafeInteger(userId) || userId <= 0) {
+            return res.status(400).json({ error: 'Valid user ID is required' });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: userId },
+            data: {
+                twoFaEnabled: false,
+                twoFaMethod: null,
+                twoFaSecret: null,
+                emailVerifyCode: null,
+                emailVerifyExpiry: null
+            }
+        });
+
+        // Invalidate any active session or login challenges
+        await prisma.loginChallenge.deleteMany({
+            where: { subjectId: userId, subjectType: 'user' }
+        }).catch(() => {});
+
+        // Log admin audit action
+        await prisma.userAction.create({
+            data: {
+                userId,
+                action: '2FA_DISABLED_BY_ADMIN',
+                details: `Two-Factor Authentication completely disabled by Admin (${req.admin.name || req.admin.username})`,
+                adminId: req.admin.id
+            }
+        }).catch(err => console.error('Failed to log admin action:', err));
+
+        res.json({
+            success: true,
+            message: `2FA has been completely disabled for ${user.firstName || user.email}.`,
+            user: {
+                id: updatedUser.id,
+                twoFaEnabled: false,
+                twoFaMethod: null
+            }
+        });
+    } catch (error) {
+        console.error('Admin disable 2FA error:', error);
+        res.status(500).json({ error: 'Failed to disable 2FA for user' });
     }
 });
 
